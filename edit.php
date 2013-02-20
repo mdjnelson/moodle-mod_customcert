@@ -18,7 +18,8 @@
 /**
  * Edit the customcert settings.
  *
- * @package    mod_customcert
+ * @package    mod
+ * @subpackage customcert
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,11 +27,13 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/customcert/lib.php');
 require_once($CFG->dirroot . '/mod/customcert/edit_form.php');
+require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 
 $cmid = required_param('cmid', PARAM_INT);
 $moveup = optional_param('moveup', 0, PARAM_INT);
 $movedown = optional_param('movedown', 0, PARAM_INT);
-$delete = optional_param('delete', 0, PARAM_INT);
+$deleteelement = optional_param('deleteelement', 0, PARAM_INT);
+$deletepage = optional_param('deletepage', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
@@ -59,8 +62,12 @@ if ((!empty($moveup)) || (!empty($movedown))) {
         $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
         $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
     }
-} else if ((!empty($delete)) && (!empty($confirm))) {
-    customcert_delete_page($delete);
+} else if ((!empty($deletepage)) && (!empty($confirm))) { // Check if we are deleting a page.
+    customcert_delete_page($deletepage);
+} else if ((!empty($deleteelement)) && (!empty($confirm))) { // Check if we are deleting an element.
+    // Ensure element exists and delete it.
+    $element = $DB->get_record('customcert_elements', array('id' => $deleteelement), '*', MUST_EXIST);
+    customcert_delete_element($element);
 }
 
 $mform = new mod_customcert_edit_form('', array('customcertid' => $customcert->id,
@@ -74,32 +81,64 @@ if ($data = $mform->get_data()) {
     // Save any page data.
     customcert_save_page_data($data);
 
-    // Check if they requested to delete a page.
+    // Flag to determine if we are deleting anything.
+    $deleting = false;
+
+    // Loop through the data.
     foreach ($data as $key => $value) {
+        // Check if they requested to delete a page.
         if (strpos($key, 'deletecertpage_') !== false) {
+            // Get the pageid.
             $pageid = str_replace('deletecertpage_', '', $key);
+            // Set deletion flag to true.
+            $deleting = true;
+            // Create the message.
+            $message = get_string('deletepageconfirm', 'customcert');
             // Create the link options.
             $nourl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id));
             $yesurl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id,
-                                                                       'delete' => $pageid,
+                                                                       'deletepage' => $pageid,
                                                                        'confirm' => 1,
                                                                        'sesskey' => sesskey()));
+        } else if (strpos($key, 'deleteelement_') !== false) { // Check if they requested to delete a page element.
+            // Get the element id.
+            $elementid = str_replace('deleteelement_', '', $key);
+            // Set deletion flag to true.
+            $deleting = true;
+            // Create the message.
+            $message = get_string('deleteelementconfirm', 'customcert');
+            // Create the link options.
+            $nourl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id));
+            $yesurl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id,
+                                                                       'deleteelement' => $elementid,
+                                                                       'confirm' => 1,
+                                                                       'sesskey' => sesskey()));
+        } else if (strpos($key, 'addelement_') !== false) { // Check if they chose to add an element to a page.
+            // Get the page id.
+            $pageid = str_replace('addelement_', '', $key);
+            // Get the element.
+            $element = "element_" . $pageid;
+            $element = $data->$element;
+            customcert_add_element($element, $pageid);
+        }
+
+        // Check if we are deleting either a page or an element.
+        if ($deleting) {
             // Show a confirmation page.
-            $strheading = get_string('deletecertpage', 'customcert');
+            $strheading = get_string('deleteconfirm', 'customcert');
             $PAGE->navbar->add($strheading);
             $PAGE->set_title($strheading);
             $PAGE->set_heading($COURSE->fullname);
             $PAGE->set_url('/mod/customcert/edit.php', array('cmid' => $cmid));
             echo $OUTPUT->header();
             echo $OUTPUT->heading($strheading);
-            $message = get_string('deletecertpageconfirm', 'customcert');
             echo $OUTPUT->confirm($message, $yesurl, $nourl);
             echo $OUTPUT->footer();
             exit();
         }
     }
 
-    // If they chose to add another page, enter it into database.
+    // Check if they chose to add a page.
     if (!empty($data->addcertpage)) {
         customcert_add_page($data);
     }

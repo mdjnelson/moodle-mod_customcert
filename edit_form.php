@@ -35,32 +35,27 @@ class mod_customcert_edit_form extends moodleform {
     /**
      * The instance id.
      */
-    protected $id = null;
+    private $id = null;
 
     /**
      * The course.
      */
-    protected $course = null;
+    private $course = null;
 
     /**
      * The total number of pages for this cert.
      */
-    protected $numpages = 1;
-
-    /**
-     * The orientation options.
-     */
-    protected $orientationoptions = array();
-
-    /**
-     * The image options.
-     */
-    protected $imageoptions = array();
+    private $numpages = 1;
 
     /**
      * The filemanager options.
      */
-    protected $filemanageroptions = array();
+    private $filemanageroptions = array();
+
+    /**
+     * The array of element objects loaded on this form.
+     */
+    private $elementobjects = array();
 
     /**
      * Form definition.
@@ -69,9 +64,6 @@ class mod_customcert_edit_form extends moodleform {
         global $CFG, $DB, $OUTPUT;
 
         $this->id = $this->_customdata['customcertid'];
-        $this->orientationoptions = array('L' => get_string('landscape', 'customcert'),
-                                          'P' => get_string('portrait', 'customcert'));
-        $this->imageoptions = customcert_get_images();
         $this->filemanageroptions = array('maxbytes' => $this->_customdata['course']->maxbytes,
                                           'subdirs' => 1,
                                           'accepted_types' => 'image');
@@ -135,13 +127,6 @@ class mod_customcert_edit_form extends moodleform {
                     // Set the height.
                     $element = $mform->getElement('height_'.$p->id);
                     $element->setValue($p->height);
-                    // Set the background image.
-                    $element = $mform->getElement('backgroundimage_'.$p->id);
-                    $element->setValue($p->backgroundimage);
-                    // Now get the page text fields.
-                    if ($textfields = $DB->get_records('customcert_text_fields', array())) {
-
-                    }
                 }
             }
         }
@@ -161,17 +146,24 @@ class mod_customcert_edit_form extends moodleform {
         foreach ($data as $key => $value) {
             if (strpos($key, 'width_') !== false) {
                 $page = str_replace('width_', '', $key);
-                // Validate that the weight is a valid value.
-                if (!isset($data['width_'.$page]) || !is_number($data['width_'.$page])) {
-                    $errors['width_'.$page] = get_string('widthnotvalid', 'customcert');
+                // Validate that the width is a valid value.
+                if (!isset($data['width_' . $page]) || !is_number($data['width_' . $page])) {
+                    $errors['width_' . $page] = get_string('widthnotvalid', 'customcert');
                 }
             }
             if (strpos($key, 'height_') !== false) {
                 $page = str_replace('height_', '', $key);
                 // Validate that the height is a valid value.
-                if (!isset($data['height_'.$page]) || !is_number($data['height_'.$page])) {
-                    $errors['height_'.$page] = get_string('heightnotvalid', 'customcert');
+                if (!isset($data['height_' . $page]) || !is_number($data['height_' . $page])) {
+                    $errors['height_' . $page] = get_string('heightnotvalid', 'customcert');
                 }
+            }
+        }
+
+        // Go through each element and perform validation.
+        if (!empty($this->elementobjects)) {
+            foreach ($this->elementobjects as $e) {
+                $errors += $e->validate_form_elements($data, $files);
             }
         }
 
@@ -184,67 +176,80 @@ class mod_customcert_edit_form extends moodleform {
      * @param stdClass $page the customcert page
      **/
     private function add_customcert_page_elements($page = null) {
-        global $DB, $OUTPUT;
+        global $CFG, $DB, $OUTPUT;
 
         // Create the form object.
         $mform =& $this->_form;
 
-        // If page is null we are adding a customcert, not editing one, so set identifier to 1.
+        // Get the elements that are available
+        $elementsavailable = customcert_get_elements();
+
+        // If page is null we are adding a customcert, not editing one, so set pageid to 1.
         if (is_null($page)) {
-            $identifier = 1;
+            $pageid = 1;
             $pagenum = 1;
         } else {
-            $identifier = $page->id;
+            $pageid = $page->id;
             $pagenum = $page->pagenumber;
         }
 
-        $mform->addElement('header', 'page_'.$identifier, get_string('page', 'customcert', $pagenum));
+        $mform->addElement('header', 'page_' . $pageid, get_string('page', 'customcert', $pagenum));
 
         // Place the ordering arrows.
         // Only display the move up arrow if it is not the first.
         if ($pagenum > 1) {
-            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'moveup' => $identifier));
+            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'moveup' => $pageid));
             $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
         }
         // Only display the move down arrow if it is not the last.
         if ($pagenum < $this->numpages) {
-            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'movedown' => $identifier));
+            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'movedown' => $pageid));
             $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
         }
 
-        $mform->addElement('select', 'orientation_'.$identifier, get_string('orientation', 'customcert'), $this->orientationoptions);
-        $mform->setDefault('orientation_'.$identifier, 'P');
-        $mform->addHelpButton('orientation_'.$identifier, 'orientation', 'customcert');
+        $orientationoptions = array('L' => get_string('landscape', 'customcert'),
+                                    'P' => get_string('portrait', 'customcert'));
+        $mform->addElement('select', 'orientation_' . $pageid, get_string('orientation', 'customcert'), $orientationoptions);
+        $mform->setDefault('orientation_' . $pageid, 'P');
+        $mform->addHelpButton('orientation_' . $pageid, 'orientation', 'customcert');
 
-        $mform->addElement('text', 'width_'.$identifier, get_string('width', 'customcert'));
-        $mform->addRule('width_'.$identifier, null, 'required', null, 'client');
-        $mform->addHelpButton('width_'.$identifier, 'width', 'customcert');
+        $mform->addElement('text', 'width_' . $pageid, get_string('width', 'customcert'));
+        $mform->addRule('width_' . $pageid, null, 'required', null, 'client');
+        $mform->addHelpButton('width_' . $pageid, 'width', 'customcert');
 
-        $mform->addElement('text', 'height_'.$identifier, get_string('height', 'customcert'));
-        $mform->addRule('height_'.$identifier, null, 'required', null, 'client');
-        $mform->addHelpButton('height_'.$identifier, 'height', 'customcert');
+        $mform->addElement('text', 'height_' . $pageid, get_string('height', 'customcert'));
+        $mform->addRule('height_' . $pageid, null, 'required', null, 'client');
+        $mform->addHelpButton('height_' . $pageid, 'height', 'customcert');
 
-        // Get the other image options.
-        $mform->addElement('select', 'backgroundimage_'.$identifier, get_string('backgroundimage', 'customcert'), $this->imageoptions);
-        $mform->setDefault('backgroundimage_'.$identifier, 0);
-        $mform->addHelpButton('backgroundimage_'.$identifier, 'backgroundimage', 'customcert');
+        // Check if there are elements to add.
+        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
+            // Loop through and add the ones present.
+            foreach ($elements as $element) {
+                $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
+                // It's possible this element was added to the database then the folder was deleted, if
+                // this is the case we do not want to render these elements as an error will occur.
+                if (file_exists($classfile)) {
+                    $classname = "customcert_element_{$element->element}";
+                    $e = new $classname($element);
+                    $e->render_form_elements($mform);
+                    // Add this to the objects array.
+                    $this->elementobjects[] = $e;
+                    // Add submit button to delete this.
+                    $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('delete', 'customcert'));
+                }
+            }
+        }
 
-        // Add text fields.
-        $textgroup = array();
-        $textgroup[] =& $mform->createElement('text', 'certtext_'.$identifier, '',
-            array('cols' => '40', 'rows' => '4', 'wrap' => 'virtual'));
-        $group = $mform->createElement('group', 'customcerttextgroup_'.$identifier,
-            get_string('addtext', 'customcert'), $textgroup);
-
-        $count = (is_null($page)) ? 1 : $DB->count_records('customcert_text_fields', array('customcertpageid' => $identifier)) + 1;
-        $this->repeat_elements(array($group), $count, array(), 'customcertimagerepeats_'.$identifier, 'imageadd_'.$identifier, 1,
-            get_string('addanothertextfield', 'customcert'), true);
+        $group = array();
+        $group[] = $mform->createElement('select', 'element_' . $pageid, '', $elementsavailable);
+        $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
+        $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if it is not the first page.
         if ($pagenum > 1) {
-            $mform->addElement('html', '<div class=\'deletecertpage\'>');
-            $mform->addElement('submit', 'deletecertpage_'.$identifier, get_string('deletecertpage', 'customcert'));
-            $mform->addElement('html', '</div>');
+            $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
+            $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
+            $mform->addElement('html', html_writer::end_tag('div'));
         }
     }
 }

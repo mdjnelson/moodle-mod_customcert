@@ -52,7 +52,6 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $this->add_intro_editor(false, get_string('intro', 'customcert'));
 
-        // Design Options.
         $mform->addElement('header', 'options', get_string('options', 'customcert'));
 
         $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));

@@ -24,10 +24,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->dirroot.'/grade/lib.php');
-require_once($CFG->dirroot.'/grade/querylib.php');
-
 /**
  * Add customcert instance.
  *
@@ -38,8 +34,7 @@ require_once($CFG->dirroot.'/grade/querylib.php');
 function customcert_add_instance($data, $mform) {
     global $DB;
 
-    $time = time();
-    $data->timecreated = $time;
+    $data->timecreated = time();
     $data->timemodified = $data->timecreated;
 
     return $DB->insert_record('customcert', $data);
@@ -75,11 +70,11 @@ function customcert_delete_instance($id) {
     global $DB;
 
     // Ensure the customcert exists.
-    if (!$customcert = $DB->get_record('customcert', array('id' => $id))) {
+    if (!$DB->get_record('customcert', array('id' => $id))) {
         return false;
     }
 
-    // Get the course module used when deleting files associated to the customcert.
+    // Get the course module as it is used when deleting files.
     if (!$cm = get_coursemodule_from_instance('customcert', $id)) {
         return false;
     }
@@ -89,24 +84,28 @@ function customcert_delete_instance($id) {
         return false;
     }
 
-    // Delete the customcert issues.
-    if (!$DB->delete_records('customcert_issues', array('customcertid' => $id))) {
-        return false;
-    }
-
-    // Get all the customcert pages.
-    if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $id))) {
-        // Loop through pages.
-        foreach ($pages as $p) {
-            // Delete the text fields.
-            if (!$DB->delete_records('customcert_text_fields', array('customcertpageid' => $p->id))) {
+    // Delete the elements.
+    $sql = "SELECT e.*
+            FROM {customcert_elements} e
+            INNER JOIN {customcert_pages} p
+            ON e.pageid = p.id
+            WHERE p.customcertid = :customcertid";
+    if ($elements = $DB->get_records_sql($sql, array('customcertid' => $id))) {
+        foreach ($elements as $element) {
+            if (!customcert_delete_element($element)) {
                 return false;
             }
         }
-        // Delete the pages
-        if (!$DB->delete_records('customcert_pages', array('customcertid' => $id))) {
-            return false;
-        }
+    }
+
+    // Delete the pages.
+    if (!$DB->delete_records('customcert_pages', array('customcertid' => $id))) {
+        return false;
+    }
+
+    // Delete the customcert issues.
+    if (!$DB->delete_records('customcert_issues', array('customcertid' => $id))) {
+        return false;
     }
 
     // Delete any files associated with the customcert.
@@ -333,6 +332,102 @@ function customcert_upload_imagefiles($draftitemid) {
     file_save_draft_area_files($draftitemid, context_system::instance()->id, 'mod_customcert', 'image', 0);
 }
 
+/**
+ * Return the list of possible elements to add.
+ *
+ * @return array the list of images that can be used.
+ */
+function customcert_get_elements() {
+    global $CFG;
+
+    // Array to store the element types.
+    $options = array();
+
+    // Check that the directory exists.
+    $elementdir = "$CFG->dirroot/mod/customcert/elements";
+    if (file_exists($elementdir)) {
+        // Get directory contents.
+        $elementfolders = new DirectoryIterator($elementdir);
+        // Loop through the elements folder.
+        foreach ($elementfolders as $elementfolder) {
+            // If it is not a directory or it is '.' or '..', skip it.
+            if (!$elementfolder->isDir() || $elementfolder->isDot()) {
+                continue;
+            }
+            // Check that the standard class file exists, if not we do
+            // not want to display it as an option as it will not work.
+            $foldername = $elementfolder->getFilename();
+            $classfile = "$elementdir/$foldername/lib.php";
+            if (file_exists($classfile)) {
+                require_once($classfile);
+                $component = "customcertelement_{$foldername}";
+                $options[$foldername] = get_string('pluginname', $component);
+            }
+        }
+
+    }
+
+    return $options;
+}
+
+/**
+ * Return the list of possible fonts to use.
+ */
+function customcert_get_fonts() {
+    global $CFG;
+
+    // Array to store the available fonts.
+    $options = array();
+
+    // Location of fonts in Moodle.
+    $fontdir = "$CFG->dirroot/lib/tcpdf/fonts";
+    // Check that the directory exists.
+    if (file_exists($fontdir)) {
+        // Get directory contents.
+        $fonts = new DirectoryIterator($fontdir);
+        // Loop through the font folder.
+        foreach ($fonts as $font) {
+            // If it is not a file, or either '.' or '..', or
+            // the extension is not php, or we can not open file,
+            // skip it.
+            if (!$font->isFile() || $font->isDot() || ($font->getExtension() != 'php')) {
+                continue;
+            }
+            // Set the name of the font to null, the include next should then set this
+            // value, if it is not set then the file does not include the necessary data.
+            $name = null;
+            // Some of the TCPDF files include files that are not present, so we have to
+            // suppress warnings, this is the TCPDF libraries fault, grrr.
+            @include("$fontdir/$font");
+            // If no $name variable in file, skip it.
+            if (is_null($name)) {
+                continue;
+            }
+            // Format the font name, so "FontName-Style" becomes "Font Name - Style".
+            $formatname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);
+            $formatname = preg_replace("/([a-zA-Z])-([a-zA-Z])/", "$1 - $2", $formatname);
+            $options[$name] = $formatname;
+            ksort($options);
+        }
+
+    }
+
+    return $options;
+}
+
+/**
+ * Return the list of possible font sizes to use.
+ */
+function customcert_get_font_sizes() {
+    // Array to store the sizes.
+    $sizes = array();
+
+    for ($i = 1; $i <= 60; $i++) {
+        $sizes[$i] = $i;
+    }
+
+    return $sizes;
+}
 
 /**
  * Handles saving page data.
@@ -340,7 +435,7 @@ function customcert_upload_imagefiles($draftitemid) {
  * @param stdClass $data the customcert data
  */
 function customcert_save_page_data($data) {
-    global $DB;
+    global $CFG, $DB;
 
     // Set the time to a variable.
     $time = time();
@@ -356,43 +451,64 @@ function customcert_save_page_data($data) {
         $page->orientation = $data->orientation_1;
         $page->width = $data->width_1;
         $page->height = $data->height_1;
-        $page->backgroundimage = $data->backgroundimage_1;
         $page->pagenumber = 1;
         $page->timecreated = $time;
         $page->timemodified = $time;
         // Insert the page.
         $DB->insert_record('customcert_pages', $page);
     } else {
-        // Go through the data and check for any page data.
-        foreach ($data as $key => $value) {
-            if (strpos($key, 'orientation_') !== false) {
-                // Get the page id.
-                $pageid = str_replace('orientation_', '', $key);
-                // Get the rest of the elements now.
-                $orientation = "orientation_$pageid";
-                $width = "width_$pageid";
-                $height = "height_$pageid";
-                $backgroundimage = "backgroundimage_$pageid";
-                // Create the page to update.
-                $page = new stdClass();
-                $page->id = $pageid;
-                $page->customcertid = $data->id;
-                $page->orientation = $data->$orientation;
-                $page->width = $data->$width;
-                $page->height = $data->$height;
-                $page->backgroundimage = $data->$backgroundimage;
-                $page->timemodified = $time;
+        // Get the existing pages and save the page data.
+        if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $data->id))) {
+            // Loop through existing pages.
+            foreach ($pages as $page) {
+                // Get the name of the fields we want from the form.
+                $orientation = 'orientation_' . $page->id;
+                $width = 'width_' . $page->id;
+                $height = 'height_' . $page->id;
+                // Create the page data to update the DB with.
+                $p = new stdClass();
+                $p->id = $page->id;
+                $p->orientation = $data->$orientation;
+                $p->width = $data->$width;
+                $p->height = $data->$height;
+                $p->timemodified = $time;
                 // Update the page.
-                $DB->update_record('customcert_pages', $page);
+                $DB->update_record('customcert_pages', $p);
+                // Get the elements for the page.
+                if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+                    // Loop through the elements.
+                    foreach ($elements as $element) {
+                        // Check that the standard class file exists.
+                        $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
+                        if (file_exists($classfile)) {
+                            $classname = "customcert_element_{$element->element}";
+                            $e = new $classname($element);
+                            $e->save_form_elements($data);
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 /**
+ * Handles adding another element to a page in the customcert.
+ *
+ * @param string $element the name of the element
+ * @param int $pageid the page id we are saving it to
+ */
+function customcert_add_element($element, $pageid) {
+    global $CFG;
+
+    $classname = "customcert_element_{$element}";
+    $classname::add_element($element, $pageid);
+}
+
+/**
  * Handles adding another page to the customcert.
  *
- * @param stdClass $data the customcert data
+ * @param stdClass $data the form data
  */
 function customcert_add_page($data) {
     global $DB;
@@ -408,8 +524,10 @@ function customcert_add_page($data) {
         $pagenum = $maxnum->maxpagenumber + 1;
     }
 
-    // New page creation.
+    // Store time in a variable.
     $time = time();
+
+    // New page creation.
     $page = new stdClass();
     $page->customcertid = $data->id;
     $page->orientation = 'P';
@@ -427,7 +545,7 @@ function customcert_add_page($data) {
  * @param int $pageid the customcert page
  */
 function customcert_delete_page($pageid) {
-    global $DB;
+    global $CFG, $DB;
 
     // Get the page.
     $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
@@ -435,8 +553,12 @@ function customcert_delete_page($pageid) {
     // Delete this page.
     $DB->delete_records('customcert_pages', array('id' => $page->id));
 
-    // Delete any text fields belonging to this page.
-    $DB->delete_records('customcert_text_fields', array('customcertpageid' => $page->id));
+    // The element may have some extra tasks it needs to complete to completely delete itself.
+    if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+        foreach ($elements as $element) {
+            customcert_delete_element($element);
+        }
+    }
 
     // Now we want to decrease the page number values of
     // the pages that are greater than the page we deleted.
@@ -446,6 +568,27 @@ function customcert_delete_page($pageid) {
             AND pagenumber > :pagenumber";
     $DB->execute($sql, array('customcertid' => $page->customcertid,
                              'pagenumber' => $page->pagenumber));
+}
+
+/**
+ * Handles deleting an element.
+ *
+ * @param stdClass $element the element
+ * @param bool returns true if success, false otherwise
+ */
+function customcert_delete_element($element) {
+    global $CFG;
+
+    // Check that the standard class file exists.
+    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
+    if (file_exists($classfile)) {
+        require_once($classfile);
+        $classname = "customcert_element_{$element->element}";
+        $e = new $classname($element);
+        return $e->delete_element();
+    }
+
+    return false;
 }
 
 /**

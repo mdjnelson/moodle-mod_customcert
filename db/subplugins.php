@@ -16,18 +16,14 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code fragment to define the version of the customcert module
+ * Definition of sub-plugins.
  *
  * @package    mod
  * @subpackage customcert
  * @copyright  Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$module->version   = 2013022101; // The current module version (Date: YYYYMMDDXX)
-$module->requires  = 2012062500; // Requires this Moodle version
-$module->cron      = 0; // Period for cron to check this module (secs)
-$module->component = 'mod_customcert';
+defined('MOODLE_INTERNAL') || die();
 
-$module->maturity  = MATURITY_ALPHA;
-$module->release   = "Alpha release"; // User-friendly version number
+$subplugins = array('customcertelement' => 'mod/customcert/elements');
