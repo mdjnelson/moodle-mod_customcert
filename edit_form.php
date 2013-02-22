@@ -226,6 +226,13 @@ class mod_customcert_edit_form extends moodleform {
         $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
+        // Add option to delete this page if it is not the first page.
+        if ($pagenum > 1) {
+            $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
+            $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
+            $mform->addElement('html', html_writer::end_tag('div'));
+        }
+
         // Check if there are elements to add.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
             // Loop through and add the ones present.
@@ -246,13 +253,6 @@ class mod_customcert_edit_form extends moodleform {
                     $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('delete', 'customcert'));
                 }
             }
-        }
-
-        // Add option to delete this page if it is not the first page.
-        if ($pagenum > 1) {
-            $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
-            $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
-            $mform->addElement('html', html_writer::end_tag('div'));
         }
     }
 }
