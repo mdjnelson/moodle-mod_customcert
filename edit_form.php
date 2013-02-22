@@ -221,6 +221,11 @@ class mod_customcert_edit_form extends moodleform {
         $mform->addRule('height_' . $pageid, null, 'required', null, 'client');
         $mform->addHelpButton('height_' . $pageid, 'height', 'customcert');
 
+        $group = array();
+        $group[] = $mform->createElement('select', 'element_' . $pageid, '', $elementsavailable);
+        $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
+        $mform->addElement('group', 'elementgroup', '', $group, '', false);
+
         // Check if there are elements to add.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
             // Loop through and add the ones present.
@@ -229,6 +234,9 @@ class mod_customcert_edit_form extends moodleform {
                 // It's possible this element was added to the database then the folder was deleted, if
                 // this is the case we do not want to render these elements as an error will occur.
                 if (file_exists($classfile)) {
+                    // Add the page number to the element so we can use within the element.
+                    $element->pagenum = $pagenum;
+                    // Get the classname.
                     $classname = "customcert_element_{$element->element}";
                     $e = new $classname($element);
                     $e->render_form_elements($mform);
@@ -239,11 +247,6 @@ class mod_customcert_edit_form extends moodleform {
                 }
             }
         }
-
-        $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $pageid, '', $elementsavailable);
-        $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
-        $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if it is not the first page.
         if ($pagenum > 1) {

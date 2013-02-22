@@ -47,43 +47,35 @@ class customcert_element_grade extends customcert_element_base {
      * @return array the form elements
      */
     public function render_form_elements($mform) {
-        // Keep track of the number of times these elements have been
-        // added, so we only add the help icon once.
-        static $numtimesadded = 0;
-
         // The identifier.
         $id = $this->element->id;
 
-        $gradeinfo = json_decode($this->element->data);
-        $gradeitem = $gradeinfo->gradeitem;
-        $gradeformat = $gradeinfo->gradeformat;
+        $gradeitem = '';
+        $gradeformat = '';
 
-        // The common group of elements.
-        $group = array();
-        $group[] = $mform->createElement('select', 'gradeitem_' . $id, '', $this->get_grade_items());
-        $group[] = $mform->createElement('select', 'gradeformat_' . $id, '', $this->get_grade_format_options());
-        $group[] = $mform->createElement('select', 'font_' . $id, '', customcert_get_fonts());
-        $group[] = $mform->createElement('select', 'size_' . $id, '', customcert_get_font_sizes());
-        $group[] = $mform->createELement('text', 'colour_' . $id, '', array('size' => 10, 'maxlength' => 6));
-        $group[] = $mform->createElement('text', 'posx_' . $id, '', array('size' => 10));
-        $group[] = $mform->createElement('text', 'posy_' . $id, '', array('size' => 10));
+        // Check if there is any data for this element.
+        if (!empty($this->element->data)) {
+            $gradeinfo = json_decode($this->element->data);
+            $gradeitem = $gradeinfo->gradeitem;
+            $gradeformat = $gradeinfo->gradeformat;
+        }
 
-        // Add this group.
-        $mform->addElement('group', 'elementfieldgroup_' . $id, get_string('pluginname', 'customcertelement_grade'), $group,
-            array(' ' . get_string('gradeformat', 'customcertelement_grade') . ' ', ' ' . get_string('font', 'customcert') . ' ',
-            	  ' ' . get_string('fontsize', 'customcert') . ' ', ' ' . get_string('colour', 'customcert') . ' ',
-                  ' ' . get_string('posx', 'customcert') . ' ', ' ' . get_string('posy', 'customcert') . ' '), false);
+        // Add element header.
+        $mform->addElement('header', 'headerelement_' . $id, get_string('page', 'customcert', $this->element->pagenum) . " - " .
+            get_string('pluginname', 'customcertelement_grade'));
 
-        $this->set_form_element_types($mform);
+        // The elements unique to this field.
+        $mform->addElement('select', 'gradeitem_' . $id, get_string('gradeitem', 'customcertelement_grade'), $this->get_grade_items());
+        $mform->addElement('select', 'gradeformat_' . $id, get_string('gradeformat', 'customcertelement_grade'), $this->get_grade_format_options());
+
+        parent::render_common_form_elements($mform);
 
         $mform->setDefault('gradeitem_' . $id, $gradeitem);
         $mform->setDefault('gradeformat_' . $id, $gradeformat);
 
-        if ($numtimesadded == 0) {
-            $mform->addHelpButton('elementfieldgroup_' . $id, 'gradeformelements', 'customcertelement_grade');
-        }
-
-        $numtimesadded++;
+        // Add help buttons.
+        $mform->addHelpButton('gradeitem_' . $id, 'gradeitem', 'customcertelement_grade');
+        $mform->addHelpButton('gradeformat_' . $id, 'gradeformat', 'customcertelement_grade');
 	}
 
 	/**

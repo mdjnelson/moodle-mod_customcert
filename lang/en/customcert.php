@@ -26,13 +26,6 @@
 
 $string['addcertpage'] = 'Add another certificate page';
 $string['addelement'] = 'Add element';
-$string['colour'] = 'Colour';
-$string['commonformelements'] = 'Common form elements';
-$string['commonformelements_help'] = 'These are the most common attributes shared between multiple customcert elements.<br /><br />
-<strong>Font Size:</strong> This is the size of the font in points.<br />
-<strong>Colour:</strong> This is the colour of the font.<br />
-<strong>Position x:</strong> This is the position in pixels from the top left corner you wish the element to display in the x direction.<br />
-<strong>Position Y:</strong> This is the position in pixels from the top left corner you wish the element to display in the y direction.<br />';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive the certificate.';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
@@ -45,7 +38,11 @@ $string['deleteelementconfirm'] = 'Are you sure you want to delete this element?
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['editcustomcert'] = 'Edit custom certificate';
 $string['font'] = 'Font';
+$string['font_help'] = 'The font used when generating this element.';
+$string['fontcolour'] = 'Colour';
+$string['fontcolour_help'] = 'The colour of the font.';
 $string['fontsize'] = 'Size';
+$string['fontsize_help'] = 'The size of the font in points.';
 $string['height'] = 'Height';
 $string['heightnotvalid'] = 'The height has to be a valid number.';
 $string['height_help'] = 'This is the height of the certificate PDF in mm. For reference an A4 piece of paper is 297mm high and a letter is 279mm high.';
@@ -65,7 +62,9 @@ $string['pluginadministration'] = 'Custom Certificate administration';
 $string['pluginname'] = 'Custom Certificate';
 $string['portrait'] = 'Portrait';
 $string['posx'] = 'Position X';
+$string['posx_help'] = 'This is the position in pixels from the top left corner you wish the element to display in the x direction.';
 $string['posy'] = 'Postion Y';
+$string['posy_help'] = 'This is the position in pixels from the top left corner you wish the element to display in the y direction.';
 $string['uploadimage'] = 'Upload image';
 $string['width'] = 'Width';
 $string['widthnotvalid'] = 'The width has to be a valid number.';

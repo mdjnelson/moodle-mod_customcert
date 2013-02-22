@@ -39,6 +39,23 @@ class customcert_element_studentname extends customcert_element_base {
     }
 
     /**
+     * This function renders the form elements when adding a customcert element.
+     *
+     * @param stdClass $mform the edit_form instance.
+     * @return array the form elements
+     */
+    public function render_form_elements($mform) {
+        // The identifier.
+        $id = $this->element->id;
+
+        // Add element header.
+        $mform->addElement('header', 'headerelement_' . $id, get_string('page', 'customcert', $this->element->pagenum) . " - "
+            . get_string('pluginname', 'customcertelement_studentname'));
+
+        parent::render_common_form_elements($mform);
+    }
+
+    /**
      * Handles displaying the element on the pdf.
      *
      * @param $pdf the pdf object, see lib/pdflib.php

@@ -23,15 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['gradeformelements'] = 'Grade form elements';
-$string['gradeformelements_help'] = 'These are the most common attributes shared between multiple customcert elements.<br /><br />
-<strong>Grade:</strong> The grade item you wish to display the grade of.<br />
-<strong>Grade Format:</strong> The format you wish to use when displaying the grade.<br />
-<strong>Font Size:</strong> This is the size of the font in points.<br />
-<strong>Colour:</strong> This is the colour of the font.<br />
-<strong>Position x:</strong> This is the position in pixels from the top left corner you wish the element to display in the x direction.<br />
-<strong>Position Y:</strong> This is the position in pixels from the top left corner you wish the element to display in the y direction.<br />';
+$string['gradeitem'] = 'Grade item';
+$string['gradeitem_help'] = 'The grade item you wish to display the grade of.';
 $string['gradeformat'] = 'Grade format';
+$string['gradeformat_help'] = 'The format you wish to use when displaying the grade.';
 $string['gradeitem'] = 'Grade item';
 $string['gradepercent'] = 'Percentage Grade';
 $string['gradepoints'] = 'Points Grade';
