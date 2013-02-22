@@ -83,12 +83,6 @@ class customcert_element_base {
         // The identifier.
         $id = $this->element->id;
 
-        // The label.
-        $label = get_string('pluginname', 'customcertelement_' . $this->element->element);
-
-        // String we are going to use often.
-        $strrequired = get_string('required');
-
         // The common group of elements.
         $group = array();
         $group[] = $mform->createElement('select', 'font_' . $id, '', customcert_get_fonts());
@@ -98,30 +92,11 @@ class customcert_element_base {
         $group[] = $mform->createElement('text', 'posy_' . $id, '', array('size' => 10));
 
         // Add this group.
-        $mform->addElement('group', 'elementfieldgroup_' . $id, $label, $group,
-            array(' ' . get_string('fontsize', 'customcert') . ' ', ' ' . get_string('colour', 'customcert') . ' ',
-                  ' ' . get_string('posx', 'customcert') . ' ', ' ' . get_string('posy', 'customcert') . ' '), false);
+        $mform->addElement('group', 'elementfieldgroup_' . $id, get_string('pluginname', 'customcertelement_' . $this->element->element),
+            $group, array(' ' . get_string('fontsize', 'customcert') . ' ', ' ' . get_string('colour', 'customcert') . ' ',
+                          ' ' . get_string('posx', 'customcert') . ' ', ' ' . get_string('posy', 'customcert') . ' '), false);
 
-        // Set the types of these elements.
-        $mform->setType('font_' . $id, PARAM_TEXT);
-        $mform->setType('size_' . $id, PARAM_INT);
-        $mform->setType('colour_' . $id, PARAM_RAW); // Need to validate this is a hexadecimal value.
-        $mform->setType('posx_' . $id, PARAM_INT);
-        $mform->setType('posy_' . $id, PARAM_INT);
-
-        // Add some rules.
-        $grouprule = array();
-        $grouprule['colour_' . $id][] = array(null, 'required', null, 'client');
-        $grouprule['posx_' . $id][] = array(null, 'required', null, 'client');
-        $grouprule['posy_' . $id][] = array(null, 'required', null, 'client');
-        $mform->addGroupRule('elementfieldgroup_' . $id, $grouprule);
-
-        // Set the values of these elements.
-        $mform->setDefault('font_' . $id, $this->element->font);
-        $mform->setDefault('size_' . $id, $this->element->size);
-        $mform->setDefault('colour_' . $id, $this->element->colour);
-        $mform->setDefault('posx_' . $id, $this->element->posx);
-        $mform->setDefault('posy_' . $id, $this->element->posy);
+        $this->set_form_element_types($mform);
 
         if ($numtimesadded == 0) {
             $mform->addHelpButton('elementfieldgroup_' . $id, 'commonformelements', 'customcert');
@@ -197,6 +172,7 @@ class customcert_element_base {
         $id = $this->element->id;
 
         // Get the name of the fields we want from the form.
+        $datainfo = $this->save_unique_data($data);
         $font = 'font_' . $id;
         $size = 'size_' . $id;
         $colour = 'colour_' . $id;
@@ -206,6 +182,7 @@ class customcert_element_base {
         // Get the data from the form.
         $element = new stdClass();
         $element->id = $id;
+        $element->data = $datainfo;
         $element->font = (!empty($data->$font)) ? $data->$font : null;
         $element->size = (!empty($data->$size)) ? $data->$size : null;
         $element->colour = (!empty($data->$colour)) ? ltrim($data->$colour, "#") : null;
@@ -214,6 +191,17 @@ class customcert_element_base {
 
         // Ok, now update record in the database.
         $DB->update_record('customcert_elements', $element);
+    }
+
+    /**
+     * This will handle how form data will be saved into the data column in the
+     * customcert column.
+     * Can be overriden if more functionality is needed.
+     *
+     * @param stdClass $data the form data.
+     */
+    public function save_unique_data($data) {
+        return null;
     }
 
     /**
@@ -237,5 +225,39 @@ class customcert_element_base {
         global $DB;
 
         return $DB->delete_records('customcert_elements', array('id' => $this->element->id));
+    }
+
+
+    /**
+     * Helper function that sets the types, defaults and rules for the common elements.
+     *
+     * @param stdClass $mform the edit_form instance.
+     * @return array the form elements
+     */
+    public function set_form_element_types($mform) {
+
+        // The identifier.
+        $id = $this->element->id;
+
+        // Set the types of these elements.
+        $mform->setType('font_' . $id, PARAM_TEXT);
+        $mform->setType('size_' . $id, PARAM_INT);
+        $mform->setType('colour_' . $id, PARAM_RAW); // Need to validate this is a hexadecimal value.
+        $mform->setType('posx_' . $id, PARAM_INT);
+        $mform->setType('posy_' . $id, PARAM_INT);
+
+        // Add some rules.
+        $grouprule = array();
+        $grouprule['colour_' . $id][] = array(null, 'required', null, 'client');
+        $grouprule['posx_' . $id][] = array(null, 'required', null, 'client');
+        $grouprule['posy_' . $id][] = array(null, 'required', null, 'client');
+        $mform->addGroupRule('elementfieldgroup_' . $id, $grouprule);
+
+        // Set the values of these elements.
+        $mform->setDefault('font_' . $id, $this->element->font);
+        $mform->setDefault('size_' . $id, $this->element->size);
+        $mform->setDefault('colour_' . $id, $this->element->colour);
+        $mform->setDefault('posx_' . $id, $this->element->posx);
+        $mform->setDefault('posy_' . $id, $this->element->posy);
     }
 }

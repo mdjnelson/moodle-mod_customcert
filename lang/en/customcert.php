@@ -44,6 +44,7 @@ $string['deleteconfirm'] = 'Delete confirmation';
 $string['deleteelementconfirm'] = 'Are you sure you want to delete this element?';
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['editcustomcert'] = 'Edit custom certificate';
+$string['font'] = 'Font';
 $string['fontsize'] = 'Size';
 $string['height'] = 'Height';
 $string['heightnotvalid'] = 'The height has to be a valid number.';

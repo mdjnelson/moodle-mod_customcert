@@ -16,9 +16,9 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains the version information for the studentname plugin.
+ * This file contains the version information for the grade plugin.
  *
- * @package    customcertelement_studentname
+ * @package    customcertelement_grade
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,4 +27,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2013022901;
 $plugin->requires  = 2012112900;
-$plugin->component = 'customcertelement_studentname';
+$plugin->component = 'customcertelement_grade';
