@@ -38,7 +38,6 @@ function customcert_add_instance($data, $mform) {
     $data->timemodified = $data->timecreated;
 
     return $DB->insert_record('customcert', $data);
-
 }
 
 /**

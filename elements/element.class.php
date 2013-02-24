@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * The base class for the customcert elements.
  *
@@ -60,7 +59,7 @@ class customcert_element_base {
         $data->element = $element;
         $data->font = 'Times-Roman';
         $data->size = '12';
-        $data->colour = 'FFFFFF';
+        $data->colour = '#FFFFFF';
         $data->posx = '250';
         $data->posy = '250';
         $data->timecreated = time();
@@ -93,17 +92,17 @@ class customcert_element_base {
         // Commonly used string.
         $strrequired = get_string('required');
 
-        // The common group of elements.
+        // The common elements.
         $mform->addElement('select', 'font_' . $id, get_string('font', 'customcert'), customcert_get_fonts());
         $mform->addElement('select', 'size_' . $id, get_string('fontsize', 'customcert'), customcert_get_font_sizes());
-        $mform->addELement('text', 'colour_' . $id, get_string('fontcolour', 'customcert'), array('size' => 10, 'maxlength' => 6));
+        $mform->addElement('customcert_colourpicker', 'colour_' . $id, get_string('fontcolour', 'customcert'));
         $mform->addElement('text', 'posx_' . $id, get_string('posx', 'customcert'), array('size' => 10));
         $mform->addElement('text', 'posy_' . $id, get_string('posy', 'customcert'), array('size' => 10));
 
         // Set the types of these elements.
         $mform->setType('font_' . $id, PARAM_TEXT);
         $mform->setType('size_' . $id, PARAM_INT);
-        $mform->setType('colour_' . $id, PARAM_RAW); // Need to validate this is a hexadecimal value.
+        $mform->setType('colour_' . $id, PARAM_RAW); // Need to validate that this is a valid colour.
         $mform->setType('posx_' . $id, PARAM_INT);
         $mform->setType('posy_' . $id, PARAM_INT);
 
@@ -140,42 +139,27 @@ class customcert_element_base {
         // The identifier.
         $id = $this->element->id;
 
-        // Get the group name.
-        $group = 'elementfieldgroup_' . $id;
-
-        // Get the colour.
+        // Validate the colour.
         $colour = 'colour_' . $id;
-        $colour = $data[$colour];
-        $colour = ltrim($colour, "#");
-        // Check if colour is not a valid hexadecimal value.
-        if(!preg_match("/[0-9A-F]{6}/i", $colour)) {
-            $errors[$group] = get_string('invalidcolour', 'customcert');
+        $colourdata = $data[$colour];
+        if (!$this->validate_colour($colourdata)) {
+            $errors[$colour] = get_string('invalidcolour', 'customcert');
         }
 
         // Get position X.
         $posx = 'posx_' . $id;
-        $posx = $data[$posx];
+        $posxdata = $data[$posx];
         // Check if posx is not numeric or less than 0.
-        if ((!is_numeric($posx)) || ($posx < 0)) {
-            if (!empty($errors[$group])) {
-                $errors[$group] .= "<br />";
-                $errors[$group] .= get_string('invalidposition', 'customcert', 'X');
-            } else {
-                $errors[$group] = get_string('invalidposition', 'customcert', 'X');
-            }
+        if ((!is_numeric($posxdata)) || ($posxdata < 0)) {
+            $errors[$posx] = get_string('invalidposition', 'customcert', 'X');
         }
 
         // Get position Y.
         $posy = 'posy_' . $id;
-        $posy = $data[$posy];
+        $posydata = $data[$posy];
         // Check if posy is not numeric or less than 0.
-        if ((!is_numeric($posy)) || ($posy < 0)) {
-            if (!empty($errors[$group])) {
-                $errors[$group] .= "<br />";
-                $errors[$group] .= get_string('invalidposition', 'customcert', 'Y');
-            } else {
-                $errors[$group] = get_string('invalidposition', 'customcert', 'Y');
-            }
+        if ((!is_numeric($posydata)) || ($posydata < 0)) {
+            $errors[$posy] = get_string('invalidposition', 'customcert', 'Y');
         }
 
         return $errors;
@@ -207,7 +191,7 @@ class customcert_element_base {
         $element->data = $datainfo;
         $element->font = (!empty($data->$font)) ? $data->$font : null;
         $element->size = (!empty($data->$size)) ? $data->$size : null;
-        $element->colour = (!empty($data->$colour)) ? ltrim($data->$colour, "#") : null;
+        $element->colour = (!empty($data->$colour)) ? $data->$colour : null;
         $element->posx = (!empty($data->$posx)) ? $data->$posx : null;
         $element->posy = (!empty($data->$posy)) ? $data->$posy : null;
 
@@ -247,5 +231,70 @@ class customcert_element_base {
         global $DB;
 
         return $DB->delete_records('customcert_elements', array('id' => $this->element->id));
+    }
+
+    /**
+     * Validates the colour selected.
+     *
+     * @param string $data
+     * @return string|false
+     */
+    protected function validate_colour($colour) {
+        /**
+         * List of valid HTML colour names
+         *
+         * @var array
+         */
+         $colournames = array(
+            'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',
+            'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
+            'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
+            'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson',
+            'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
+            'darkgrey', 'darkgreen', 'darkkhaki', 'darkmagenta',
+            'darkolivegreen', 'darkorange', 'darkorchid', 'darkred',
+            'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray',
+            'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
+            'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
+            'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro',
+            'ghostwhite', 'gold', 'goldenrod', 'gray', 'grey', 'green',
+            'greenyellow', 'honeydew', 'hotpink', 'indianred', 'indigo',
+            'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen',
+            'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan',
+            'lightgoldenrodyellow', 'lightgray', 'lightgrey', 'lightgreen',
+            'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue',
+            'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow',
+            'lime', 'limegreen', 'linen', 'magenta', 'maroon',
+            'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple',
+            'mediumseagreen', 'mediumslateblue', 'mediumspringgreen',
+            'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream',
+            'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive',
+            'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
+            'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip',
+            'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red',
+            'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown',
+            'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue',
+            'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan',
+            'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white',
+            'whitesmoke', 'yellow', 'yellowgreen'
+        );
+
+        if (preg_match('/^#?([[:xdigit:]]{3}){1,2}$/', $colour)) {
+            return true;
+        } else if (in_array(strtolower($colour), $colournames)) {
+            return true;
+        } else if (preg_match('/rgb\(\d{0,3}%?\, ?\d{0,3}%?, ?\d{0,3}%?\)/i', $colour)) {
+            return true;
+        } else if (preg_match('/rgba\(\d{0,3}%?\, ?\d{0,3}%?, ?\d{0,3}%?\, ?\d(\.\d)?\)/i', $colour)) {
+            return true;
+        } else if (preg_match('/hsl\(\d{0,3}\, ?\d{0,3}%, ?\d{0,3}%\)/i', $colour)) {
+            return true;
+        } else if (preg_match('/hsla\(\d{0,3}\, ?\d{0,3}%,\d{0,3}%\, ?\d(\.\d)?\)/i', $colour)) {
+            return true;
+        } else if (($colour == 'transparent') || ($colour == 'currentColor') || ($colour == 'inherit')) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

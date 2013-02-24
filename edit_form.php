@@ -19,8 +19,11 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
 }
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/customcert/lib.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/customcert/lib.php');
+require_once($CFG->dirroot . '/mod/customcert/colourpicker.php');
+
+MoodleQuickForm::registerElementType('customcert_colourpicker', $CFG->dirroot . '/mod/customcert/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
 
 /**
  * Instance add/edit form.
@@ -119,13 +122,13 @@ class mod_customcert_edit_form extends moodleform {
                 // Loop through the pages.
                 foreach ($pages as $p) {
                     // Set the orientation.
-                    $element = $mform->getElement('orientation_'.$p->id);
+                    $element = $mform->getElement('orientation_' . $p->id);
                     $element->setValue($p->orientation);
                     // Set the width.
-                    $element = $mform->getElement('width_'.$p->id);
+                    $element = $mform->getElement('width_' . $p->id);
                     $element->setValue($p->width);
                     // Set the height.
-                    $element = $mform->getElement('height_'.$p->id);
+                    $element = $mform->getElement('height_' . $p->id);
                     $element->setValue($p->height);
                 }
             }
