@@ -69,23 +69,11 @@ class customcert_element_base {
 
     /**
      * This function renders the form elements when adding a customcert element.
-     * Must be overriden.
+     * Can be overridden if more functionality is needed.
      *
      * @param stdClass $mform the edit_form instance.
-     * @return array the form elements
      */
     public function render_form_elements($mform) {
-        // Must be overriden.
-        return false;
-    }
-
-    /**
-     * This function renders the common form elements when adding a customcert element.
-     *
-     * @param stdClass $mform the edit_form instance.
-     * @return array the form elements
-     */
-    public function render_common_form_elements($mform) {
         // The identifier.
         $id = $this->element->id;
 

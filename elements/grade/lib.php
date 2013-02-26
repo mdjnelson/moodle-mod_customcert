@@ -60,15 +60,11 @@ class customcert_element_grade extends customcert_element_base {
             $gradeformat = $gradeinfo->gradeformat;
         }
 
-        // Add element header.
-        $mform->addElement('header', 'headerelement_' . $id, get_string('page', 'customcert', $this->element->pagenum) . " - " .
-            get_string('pluginname', 'customcertelement_grade'));
-
         // The elements unique to this field.
         $mform->addElement('select', 'gradeitem_' . $id, get_string('gradeitem', 'customcertelement_grade'), $this->get_grade_items());
         $mform->addElement('select', 'gradeformat_' . $id, get_string('gradeformat', 'customcertelement_grade'), $this->get_grade_format_options());
 
-        parent::render_common_form_elements($mform);
+        parent::render_form_elements($mform);
 
         $mform->setDefault('gradeitem_' . $id, $gradeitem);
         $mform->setDefault('gradeformat_' . $id, $gradeformat);

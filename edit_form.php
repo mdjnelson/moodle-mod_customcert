@@ -244,6 +244,9 @@ class mod_customcert_edit_form extends moodleform {
                 // It's possible this element was added to the database then the folder was deleted, if
                 // this is the case we do not want to render these elements as an error will occur.
                 if (file_exists($classfile)) {
+                    // Add element header.
+                    $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
+                        get_string('pluginname', 'customcertelement_' . $element->element));
                     // Add the page number to the element so we can use within the element.
                     $element->pagenum = $pagenum;
                     // Get the classname.
