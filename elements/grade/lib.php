@@ -44,7 +44,6 @@ class customcert_element_grade extends customcert_element_base {
      * This function renders the form elements when adding a customcert element.
      *
      * @param stdClass $mform the edit_form instance.
-     * @return array the form elements
      */
     public function render_form_elements($mform) {
         // The identifier.
@@ -79,9 +78,9 @@ class customcert_element_grade extends customcert_element_base {
      * customcert column.
      *
      * @param stdClass $data the form data.
+     * @return string the json encoded array
      */
     public function save_unique_data($data) {
-
     	// The identifier.
         $id = $this->element->id;
 
@@ -116,6 +115,8 @@ class customcert_element_grade extends customcert_element_base {
 
     /**
      * Helper function to return all the grades items for this course.
+     *
+     * @return array the array of gradeable items in the course
      */
     public function get_grade_items() {
     	global $COURSE, $DB;
@@ -174,6 +175,8 @@ class customcert_element_grade extends customcert_element_base {
 
     /**
      * Helper function to return all the possible grade formats.
+     *
+     * @return array returns an array of grade formats
      */
     function get_grade_format_options() {
     	$gradeformat = array();

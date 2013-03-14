@@ -25,6 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2013022901;
+$plugin->version   = 2013031300;
 $plugin->requires  = 2012112900;
 $plugin->component = 'customcertelement_grade';
