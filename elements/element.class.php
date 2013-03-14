@@ -119,6 +119,7 @@ class customcert_element_base {
      * Can be overridden if more functionality is needed.
      *
      * @param array $data the submitted data
+     * @param array $files the submitted files
      * @return array the validation errors
      */
     public function validate_form_elements($data, $files) {
