@@ -55,6 +55,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->addElement('header', 'options', get_string('options', 'customcert'));
 
         $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
+        $mform->setType('requiredtime', PARAM_INT);
         $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
 
         $this->standard_coursemodule_elements();
