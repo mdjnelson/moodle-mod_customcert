@@ -238,27 +238,30 @@ class mod_customcert_edit_form extends moodleform {
             $mform->addElement('html', html_writer::end_tag('div'));
         }
 
-        // Check if there are elements to add.
-        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
-            // Loop through and add the ones present.
-            foreach ($elements as $element) {
-                $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
-                // It's possible this element was added to the database then the folder was deleted, if
-                // this is the case we do not want to render these elements as an error will occur.
-                if (file_exists($classfile)) {
-                    // Add element header.
-                    $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
-                        get_string('pluginname', 'customcertelement_' . $element->element));
-                    // Add the page number to the element so we can use within the element.
-                    $element->pagenum = $pagenum;
-                    // Get the classname.
-                    $classname = "customcert_element_{$element->element}";
-                    $e = new $classname($element);
-                    $e->render_form_elements($mform);
-                    // Add this to the objects array.
-                    $this->elementobjects[] = $e;
-                    // Add submit button to delete this.
-                    $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('delete', 'customcert'));
+        // Check that this page is not a newly created one with no data in the database.
+        if (!is_null($page)) {
+            // Check if there are elements to add.
+            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
+                // Loop through and add the ones present.
+                foreach ($elements as $element) {
+                    $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
+                    // It's possible this element was added to the database then the folder was deleted, if
+                    // this is the case we do not want to render these elements as an error will occur.
+                    if (file_exists($classfile)) {
+                        // Add element header.
+                        $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
+                            get_string('pluginname', 'customcertelement_' . $element->element));
+                        // Add the page number to the element so we can use within the element.
+                        $element->pagenum = $pagenum;
+                        // Get the classname.
+                        $classname = "customcert_element_{$element->element}";
+                        $e = new $classname($element);
+                        $e->render_form_elements($mform);
+                        // Add this to the objects array.
+                        $this->elementobjects[] = $e;
+                        // Add submit button to delete this.
+                        $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('delete', 'customcert'));
+                    }
                 }
             }
         }

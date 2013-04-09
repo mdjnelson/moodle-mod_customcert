@@ -442,7 +442,7 @@ function customcert_save_page_data($data) {
     // Get the total number of pages that exist for this customcert.
     $totalpages = $DB->count_records('customcert_pages', array('customcertid' => $data->id));
 
-    // Check if this file has any pages yet, if not we are inserting.
+    // Check if this customcert has any pages yet, if not we are inserting.
     if ($totalpages == 0) {
         // Create the page to insert.
         $page = new stdClass();
