@@ -233,7 +233,7 @@ class mod_customcert_edit_form extends moodleform {
 
         // Add option to delete this page if it is not the first page.
         if ($pagenum > 1) {
-            $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
+            $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
             $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
             $mform->addElement('html', html_writer::end_tag('div'));
         }
@@ -260,7 +260,7 @@ class mod_customcert_edit_form extends moodleform {
                         // Add this to the objects array.
                         $this->elementobjects[] = $e;
                         // Add submit button to delete this.
-                        $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
+                        $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
                         $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('deleteelement', 'customcert'));
                         $mform->addElement('html', html_writer::end_tag('div'));
                     }
