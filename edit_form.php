@@ -26,7 +26,7 @@ require_once($CFG->dirroot . '/mod/customcert/colourpicker.php');
 MoodleQuickForm::registerElementType('customcert_colourpicker', $CFG->dirroot . '/mod/customcert/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
 
 /**
- * Instance add/edit form.
+ * The form for handling the layout of the customcert instance.
  *
  * @package    mod
  * @subpackage customcert
@@ -102,7 +102,7 @@ class mod_customcert_edit_form extends moodleform {
     }
 
     /**
-     * Fill in the current page data for this certificate.
+     * Fill in the current page data for this customcert.
      */
     function definition_after_data() {
         global $DB;
@@ -117,7 +117,7 @@ class mod_customcert_edit_form extends moodleform {
 
         // Check that we are updating a current customcert.
         if ($this->id) {
-            // Get the pages for this certificate.
+            // Get the pages for this customcert.
             if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $this->id))) {
                 // Loop through the pages.
                 foreach ($pages as $p) {
