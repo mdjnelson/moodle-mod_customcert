@@ -98,7 +98,7 @@ class mod_customcert_edit_form extends moodleform {
         $mform->setType('cmid', PARAM_INT);
         $mform->setDefault('cmid', $this->_customdata['cmid']);
 
-        $this->add_action_buttons();
+        $this->add_action_buttons(false);
     }
 
     /**
