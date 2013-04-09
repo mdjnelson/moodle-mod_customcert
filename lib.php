@@ -628,3 +628,108 @@ function customcert_get_course_time($courseid) {
 
     return 0;
 }
+
+/**
+ * Returns the total number of issues for a given customcert.
+ *
+ * @param int $customcertid
+ * @param stdClass $cm the course module
+ * @param bool $groupmode the group mode
+ * @return int the number of issues
+ */
+function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
+    global $DB;
+
+    list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
+
+    // Get all the users that have customcerts issued, should only be one issue per user for a customcert.
+    $allparams = $conditionsparams + array('customcertid' => $customcertid);
+
+    return $DB->count_records_sql("SELECT COUNT(u.*) as count
+                                   FROM {user} u
+                                   INNER JOIN {customcert_issues} ci
+                                   ON u.id = ci.userid
+                                   WHERE u.deleted = 0
+                                   AND ci.customcertid = :customcertid
+                                   $conditionssql",
+                                   $allparams);
+}
+
+/**
+ * Returns an array of the conditional variables to use in the get_issues SQL query.
+ *
+ * @param stdClass $cm the course module
+ * @param bool $groupmode are we in group mode ?
+ * @return array the conditional variables
+ */
+function customcert_get_conditional_issues_sql($cm, $groupmode) {
+    // Get all users that can manage this customcert to exclude them from the report.
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $conditionssql = '';
+    $conditionsparams = array();
+    if ($certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'))) {
+        list($sql, $params) = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
+        $conditionssql .= "AND NOT u.id $sql \n";
+        $conditionsparams += $params;
+    }
+
+    $restricttogroup = false;
+    if ($groupmode) {
+        $currentgroup = groups_get_activity_group($cm);
+        if ($currentgroup) {
+            $restricttogroup = true;
+            $groupusers = array_keys(groups_get_members($currentgroup, 'u.*'));
+            if (empty($groupusers)) {
+                return array();
+            }
+        }
+    }
+
+    $restricttogrouping = false;
+
+    // If groupmembersonly used, remove users who are not in any group.
+    if (!empty($CFG->enablegroupings) and $cm->groupmembersonly) {
+        if ($groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id')) {
+            $restricttogrouping = true;
+        } else {
+            return array();
+        }
+    }
+
+    if ($restricttogroup || $restricttogrouping) {
+        if ($restricttogroup) {
+            $allowedusers = $groupusers;
+        } else if ($restricttogroup && $restricttogrouping) {
+            $allowedusers = array_intersect($groupusers, $groupingusers);
+        } else  {
+            $allowedusers = $groupingusers;
+        }
+
+        list($sql, $params) = $DB->get_in_or_equal($allowedusers, SQL_PARAMS_NAMED, 'grp');
+        $conditionssql .= "AND u.id $sql \n";
+        $conditionsparams += $params;
+    }
+
+    return array($conditionssql, $conditionsparams);
+}
+
+/**
+ * Generates a 10-digit code of random letters and numbers.
+ *
+ * @return string
+ */
+function customcert_generate_code() {
+    global $DB;
+
+    $uniquecodefound = false;
+    $code = random_string(10);
+    while (!$uniquecodefound) {
+        if (!$DB->record_exists('customcert_issues', array('code' => $code))) {
+            $uniquecodefound = true;
+        } else {
+            $code = random_string(10);
+        }
+    }
+
+    return $code;
+}
