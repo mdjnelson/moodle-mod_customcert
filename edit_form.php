@@ -260,7 +260,9 @@ class mod_customcert_edit_form extends moodleform {
                         // Add this to the objects array.
                         $this->elementobjects[] = $e;
                         // Add submit button to delete this.
-                        $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('delete', 'customcert'));
+                        $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletecertpage')));
+                        $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('deleteelement', 'customcert'));
+                        $mform->addElement('html', html_writer::end_tag('div'));
                     }
                 }
             }
