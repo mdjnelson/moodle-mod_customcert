@@ -102,12 +102,11 @@ class customcert_element_grade extends customcert_element_base {
     }
 
     /**
-     * Handles displaying the element on the pdf.
+     * Handles rendering the element on the pdf.
      *
      * @param $pdf the pdf object, see lib/pdflib.php
-     * @todo functionality missing, add when we start rendering the pdf
      */
-    public function display($pdf) {
+    public function render($pdf) {
         global $USER;
 
         // TO DO.

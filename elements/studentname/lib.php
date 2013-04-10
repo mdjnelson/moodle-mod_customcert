@@ -39,11 +39,11 @@ class customcert_element_studentname extends customcert_element_base {
     }
 
     /**
-     * Handles displaying the element on the pdf.
+     * Handles rendering the element on the pdf.
      *
      * @param $pdf the pdf object, see lib/pdflib.php
      */
-    public function display($pdf) {
+    public function render($pdf) {
         global $USER;
 
         $pdf->setFont($this->element->font, '', $this->element->size);

@@ -200,12 +200,12 @@ class customcert_element_base {
     }
 
     /**
-     * Handles displaying the element on the pdf.
+     * Handles rendering the element on the pdf.
      * Must be overriden.
      *
      * @param stdClass the pdf object, see lib/pdflib.php
      */
-    public function display($pdf) {
+    public function render($pdf) {
         // Must be overriden.
         return false;
     }
