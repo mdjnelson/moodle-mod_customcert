@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
  */
 
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
 $module->version   = 2013022101; // The current module version (Date: YYYYMMDDXX)
 $module->requires  = 2012062500; // Requires this Moodle version
 $module->cron      = 0; // Period for cron to check this module (secs)
