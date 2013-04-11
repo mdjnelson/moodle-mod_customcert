@@ -212,6 +212,19 @@ class customcert_element_base {
     }
 
     /**
+     * Common behaviour for rendering specified content on the pdf.
+     *
+     * @param stdClass $pdf the pdf object
+     * @param stdClass $content the content to render
+     */
+    public function render_content($pdf, $content) {
+        $pdf->setFont($this->element->font, '', $this->element->size);
+        $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
+        $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
+        $pdf->writeHTMLCell(0, 0, $this->element->posx, $this->element->posy, $content);
+    }
+
+    /**
      * Handles deleting any data this element may have introduced.
      * Can be overriden if more functionality is needed.
      *
