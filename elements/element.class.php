@@ -59,7 +59,7 @@ class customcert_element_base {
         $data->element = $element;
         $data->font = 'Times-Roman';
         $data->size = '12';
-        $data->colour = '#FFFFFF';
+        $data->colour = '#000000';
         $data->posx = '250';
         $data->posy = '250';
         $data->timecreated = time();
