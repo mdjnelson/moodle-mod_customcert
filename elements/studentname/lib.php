@@ -41,13 +41,15 @@ class customcert_element_studentname extends customcert_element_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param $pdf the pdf object, see lib/pdflib.php
+     * @param stdClass $pdf the pdf object
+     * @param int $userid
      */
-    public function render($pdf) {
-        global $USER;
+    public function render($pdf, $userid) {
+        global $DB;
 
-        $pdf->setFont($this->element->font, '', $this->element->size);
-        $pdf->SetXY($this->element->posx, $this->element->posy);
-        $pdf->writeHTMLCell(0, 0, '', '', fullname($USER), 0, 0, 0, true, $align);
+        $user = $DB->get_record('user', array('id' => $userid), 'id, firstname, lastname', MUST_EXIST);
+        $fullname = fullname($user);
+
+        parent::render_content($pdf, $fullname);
     }
 }
