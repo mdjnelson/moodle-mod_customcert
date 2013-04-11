@@ -286,18 +286,8 @@ class customcert_element_base {
             return true;
         } else if (in_array(strtolower($colour), $colournames)) {
             return true;
-        } else if (preg_match('/rgb\(\d{0,3}%?\, ?\d{0,3}%?, ?\d{0,3}%?\)/i', $colour)) {
-            return true;
-        } else if (preg_match('/rgba\(\d{0,3}%?\, ?\d{0,3}%?, ?\d{0,3}%?\, ?\d(\.\d)?\)/i', $colour)) {
-            return true;
-        } else if (preg_match('/hsl\(\d{0,3}\, ?\d{0,3}%, ?\d{0,3}%\)/i', $colour)) {
-            return true;
-        } else if (preg_match('/hsla\(\d{0,3}\, ?\d{0,3}%,\d{0,3}%\, ?\d(\.\d)?\)/i', $colour)) {
-            return true;
-        } else if (($colour == 'transparent') || ($colour == 'currentColor') || ($colour == 'inherit')) {
-            return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 }
