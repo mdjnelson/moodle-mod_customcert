@@ -19,9 +19,10 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/customcert/lib.php');
-require_once($CFG->dirroot . '/mod/customcert/colourpicker.php');
+require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 
-MoodleQuickForm::registerElementType('customcert_colourpicker', $CFG->dirroot . '/mod/customcert/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
+MoodleQuickForm::registerElementType('customcert_colourpicker',
+    $CFG->dirroot . '/mod/customcert/includes/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
 
 /**
  * The form for handling the layout of the customcert instance.
