@@ -735,3 +735,45 @@ function customcert_generate_code() {
 
     return $code;
 }
+
+/**
+ * Generate the PDF for the specified customcert and user.
+ *
+ * @param stdClass $customcert
+ * @param int $userid
+ */
+function customcert_generate_pdf($customcert, $userid) {
+    global $CFG, $DB;
+
+    // Get the pages for the customcert, there should always be at least one page for each customcert.
+    if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $customcert->id), 'pagenumber ASC')) {
+        // Create the pdf object.
+        $pdf = new pdf();
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetTitle($customcert->name);
+        // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
+        $filename = rtrim($customcert->name, '.');
+        $filename = clean_filename($filename . '.pdf');
+        // Loop through the pages and display their content.
+        foreach ($pages as $page) {
+            // Add the page to the PDF.
+            $pdf->AddPage($page->orientation, array($page->width, $page->height));
+            // Get the elements for the page.
+            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+                // Loop through and display.
+                foreach ($elements as $element) {
+                    // Check that the standard class file exists.
+                    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
+                    if (file_exists($classfile)) {
+                        require_once($classfile);
+                        $classname = "customcert_element_{$element->element}";
+                        $e = new $classname($element);
+                        $e->render($pdf, $userid);
+                    }
+                }
+            }
+        }
+        $pdf->Output($filename, 'D');
+    }
+}

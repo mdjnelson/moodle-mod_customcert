@@ -24,8 +24,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once("../../config.php");
-require_once("$CFG->dirroot/mod/customcert/lib.php");
+require_once('../../config.php');
+require_once($CFG->dirroot . '/mod/customcert/lib.php');
+require_once($CFG->libdir . '/pdflib.php');
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -119,5 +120,5 @@ if (empty($action)) {
         $DB->insert_record('customcert_issues', $customcertissue);
     }
     // Now we want to generate the PDF.
-    customcert_generate_pdf();
+    customcert_generate_pdf($customcert, $USER->id);
 }
