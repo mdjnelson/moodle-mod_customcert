@@ -397,6 +397,9 @@ function customcert_get_fonts() {
             // Set the name of the font to null, the include next should then set this
             // value, if it is not set then the file does not include the necessary data.
             $name = null;
+            // Some files include a display name, the include next should then set this
+            // value if it is present, if not then $name is used to create the display name.
+            $displayname = null;
             // Some of the TCPDF files include files that are not present, so we have to
             // suppress warnings, this is the TCPDF libraries fault, grrr.
             @include("$fontdir/$font");
@@ -404,13 +407,17 @@ function customcert_get_fonts() {
             if (is_null($name)) {
                 continue;
             }
-            // Format the font name, so "FontName-Style" becomes "Font Name - Style".
-            $formatname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);
-            $formatname = preg_replace("/([a-zA-Z])-([a-zA-Z])/", "$1 - $2", $formatname);
-            $options[$name] = $formatname;
-            ksort($options);
+            // Remove the extension of the ".php" file that contains the font information.
+            $filename = basename($font, ".php");
+            // Check if there is no display name to use.
+            if (is_null($displayname)) {
+                // Format the font name, so "FontName-Style" becomes "Font Name - Style".
+                $displayname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);
+                $displayname = preg_replace("/([a-zA-Z])-([a-zA-Z])/", "$1 - $2", $displayname);
+            }
+            $options[$filename] = $displayname;
         }
-
+        ksort($options);
     }
 
     return $options;
