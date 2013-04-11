@@ -203,9 +203,10 @@ class customcert_element_base {
      * Handles rendering the element on the pdf.
      * Must be overriden.
      *
-     * @param stdClass the pdf object, see lib/pdflib.php
+     * @param stdClass $pdf the pdf object
+     * @param int $userid
      */
-    public function render($pdf) {
+    public function render($pdf, $userid) {
         // Must be overriden.
         return false;
     }
