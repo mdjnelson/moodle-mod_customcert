@@ -92,8 +92,8 @@ class customcert_element_grade extends customcert_element_base {
 
         // Array of data we will be storing in the database.
         $arrtostore = array(
-        	'gradeitem' => $gradeitem,
-        	'gradeformat' => $gradeformat
+            'gradeitem' => $gradeitem,
+            'gradeformat' => $gradeformat
         );
 
         // Encode these variables before saving into the DB.
@@ -118,35 +118,35 @@ class customcert_element_grade extends customcert_element_base {
      * @return array the array of gradeable items in the course
      */
     public function get_grade_items() {
-    	global $COURSE, $DB;
+        global $COURSE, $DB;
 
-    	$strtopic = get_string("topic");
-	    $strweek = get_string("week");
-	    $strsection = get_string("section");
+        $strtopic = get_string("topic");
+        $strweek = get_string("week");
+        $strsection = get_string("section");
 
-	    // Array to store the grade items.
-	    $modules = array();
-	    $modules['coursegrade'] = get_string('coursegrade', 'customcertelement_grade');
+        // Array to store the grade items.
+        $modules = array();
+        $modules['coursegrade'] = get_string('coursegrade', 'customcertelement_grade');
 
-	    // Collect course modules data
-	    $modinfo = get_fast_modinfo($COURSE);
-	    $mods = $modinfo->get_cms();
-	    $sections = $modinfo->get_section_info_all();
+        // Collect course modules data
+        $modinfo = get_fast_modinfo($COURSE);
+        $mods = $modinfo->get_cms();
+        $sections = $modinfo->get_section_info_all();
 
-	    // Create the section label depending on course format.
+        // Create the section label depending on course format.
         switch ($COURSE->format) {
             case "topics": $sectionlabel = $strtopic;
             case "weeks": $sectionlabel = $strweek;
             default: $sectionlabel = $strsection;
         }
 
-	    // Loop through each course section.
-	    for ($i = 0; $i <= count($sections) - 1; $i++) {
-	        // Confirm the index exists, should always be true.
-	        if (isset($sections[$i])) {
-	        	// Get the individual section.
-	            $section = $sections[$i];
-	            // Get the mods for this section.
+        // Loop through each course section.
+        for ($i = 0; $i <= count($sections) - 1; $i++) {
+            // Confirm the index exists, should always be true.
+            if (isset($sections[$i])) {
+            	// Get the individual section.
+                $section = $sections[$i];
+                // Get the mods for this section.
                 $sectionmods = explode(",", $section->sequence);
                 // Loop through the section mods.
                 foreach ($sectionmods as $sectionmod) {
@@ -166,10 +166,10 @@ class customcert_element_grade extends customcert_element_base {
                         }
                     }
                 }
-		    }
-		}
+            }
+        }
 
-	    return $modules;
+        return $modules;
     }
 
     /**
@@ -178,11 +178,11 @@ class customcert_element_grade extends customcert_element_base {
      * @return array returns an array of grade formats
      */
     function get_grade_format_options() {
-    	$gradeformat = array();
-    	$gradeformat[1] = get_string('gradepercent', 'customcertelement_grade');
-    	$gradeformat[2] = get_string('gradepoints', 'customcertelement_grade');
-    	$gradeformat[3] = get_string('gradeletter', 'customcertelement_grade');
+        $gradeformat = array();
+        $gradeformat[1] = get_string('gradepercent', 'customcertelement_grade');
+        $gradeformat[2] = get_string('gradepoints', 'customcertelement_grade');
+        $gradeformat[3] = get_string('gradeletter', 'customcertelement_grade');
 
-		return $gradeformat;
+        return $gradeformat;
     }
 }
