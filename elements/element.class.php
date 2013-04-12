@@ -62,9 +62,34 @@ class customcert_element_base {
         $data->colour = '#000000';
         $data->posx = '250';
         $data->posy = '250';
+        $data->sequence = customcert_element_base::get_element_sequence($pageid);
         $data->timecreated = time();
 
         $DB->insert_record('customcert_elements', $data);
+    }
+
+    /**
+     * Returns the sequence on a specified customcert page for a
+     * newly created element.
+     *
+     * @param int $pageid the id of the page we are adding this element to
+     * @return int the element number
+     */
+    public static function get_element_sequence($pageid) {
+        global $DB;
+
+        // Set the sequence of the element we are creating.
+        $sequence = 1;
+        // Check if there already elements that exist, if so, overwrite value.
+        $sql = "SELECT MAX(sequence) as maxsequence
+                FROM {customcert_elements}
+                WHERE pageid = :id";
+        // Get the current max sequence on this page and add 1 to get the new sequence.
+        if ($maxseq = $DB->get_record_sql($sql, array('id' => $pageid))) {
+            $sequence = $maxseq->maxsequence + 1;
+        }
+
+        return $sequence;
     }
 
     /**

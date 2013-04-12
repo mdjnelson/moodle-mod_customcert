@@ -767,7 +767,7 @@ function customcert_generate_pdf($customcert, $userid) {
             // Add the page to the PDF.
             $pdf->AddPage($page->orientation, array($page->width, $page->height));
             // Get the elements for the page.
-            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
                 // Loop through and display.
                 foreach ($elements as $element) {
                     // Check that the standard class file exists.

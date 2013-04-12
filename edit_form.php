@@ -240,7 +240,9 @@ class mod_customcert_edit_form extends moodleform {
         // Check that this page is not a newly created one with no data in the database.
         if (!is_null($page)) {
             // Check if there are elements to add.
-            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'id ASC')) {
+            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'sequence ASC')) {
+                // Get the total number of elements.
+                $numelements = count($elements);
                 // Loop through and add the ones present.
                 foreach ($elements as $element) {
                     $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
@@ -250,6 +252,16 @@ class mod_customcert_edit_form extends moodleform {
                         // Add element header.
                         $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
                             get_string('pluginname', 'customcertelement_' . $element->element));
+                        // Only display the move up arrow if it is not the first.
+                        if ($element->sequence > 1) {
+                            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emoveup' => $element->id));
+                            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
+                        }
+                        // Only display the move down arrow if it is not the last.
+                        if ($element->sequence < $numelements) {
+                            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emovedown' => $element->id));
+                            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
+                        }
                         // Add the page number to the element so we can use within the element.
                         $element->pagenum = $pagenum;
                         // Get the classname.

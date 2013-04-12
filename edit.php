@@ -32,6 +32,8 @@ require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 $cmid = required_param('cmid', PARAM_INT);
 $moveup = optional_param('moveup', 0, PARAM_INT);
 $movedown = optional_param('movedown', 0, PARAM_INT);
+$emoveup = optional_param('emoveup', 0, PARAM_INT);
+$emovedown = optional_param('emovedown', 0, PARAM_INT);
 $deleteelement = optional_param('deleteelement', 0, PARAM_INT);
 $deletepage = optional_param('deletepage', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
@@ -61,6 +63,22 @@ if ((!empty($moveup)) || (!empty($movedown))) {
     if ($swapcertpage && $movecertpage) {
         $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
         $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
+    }
+} else if ((!empty($emoveup)) || (!empty($emovedown))) { // Check if we are moving a custom certificate element.
+    // Check if we are moving an element up.
+    if (!empty($emoveup)) {
+        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $emoveup))) {
+            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence - 1));
+        }
+    } else { // Must be moving a element down.
+        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $emovedown))) {
+            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence + 1));
+        }
+    }
+    // Check that there is an element to move, and an element to swap it with.
+    if ($swapcertelement && $movecertelement) {
+        $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
+        $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
     }
 } else if ((!empty($deletepage)) && (!empty($confirm))) { // Check if we are deleting a page.
     customcert_delete_page($deletepage);
