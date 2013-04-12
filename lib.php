@@ -672,6 +672,8 @@ function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
  * @return array the conditional variables
  */
 function customcert_get_conditional_issues_sql($cm, $groupmode) {
+    global $CFG, $DB;
+
     // Get all users that can manage this customcert to exclude them from the report.
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     $conditionssql = '';
