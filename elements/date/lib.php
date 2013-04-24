@@ -57,8 +57,13 @@ class customcert_element_date extends customcert_element_base {
             $dateformat = $dateinfo->dateformat;
         }
 
-        $mform->addElement('select', 'dateitem_' . $id, get_string('dateitem', 'customcertelement_date'), $this->get_date_options());
-        $mform->addElement('select', 'dateformat_' . $id, get_string('dateformat', 'customcertelement_date'), $this->get_date_formats());
+        // Get the possible date options.
+        $dateoptions = array();
+        $dateoptions['1'] = get_string('issueddate', 'certificate');
+        $dateoptions['2'] = get_string('completiondate', 'certificate');
+        $dateoptions = $dateoptions + customcert_element_grade::get_grade_items();
+        $mform->addElement('select', 'dateitem_' . $id, get_string('dateitem', 'customcertelement_date'), $dateoptions);
+        $mform->addElement('select', 'dateformat_' . $id, get_string('dateformat', 'customcertelement_date'), customcert_element_date::get_date_formats());
 
         parent::render_form_elements($mform);
 
@@ -72,7 +77,7 @@ class customcert_element_date extends customcert_element_base {
 
 	/**
      * This will handle how form data will be saved into the data column in the
-     * customcert column.
+     * customcert_elements table.
      *
      * @param stdClass $data the form data.
      * @return string the json encoded array
@@ -100,32 +105,19 @@ class customcert_element_date extends customcert_element_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param $pdf the pdf object, see lib/pdflib.php
+     * @param stdClass $pdf the pdf object
+     * @param int $userid
      */
-    public function render($pdf) {
-        global $USER;
-
+    public function render($pdf, $userid) {
         // TO DO.
     }
-
-    /**
-     * Helper function to return all the date options.
-     *
-     * @return array the list of date options
-     */
-    public function get_date_options() {
-	    $dateoptions['1'] = get_string('issueddate', 'certificate');
-	    $dateoptions['2'] = get_string('completiondate', 'certificate');
-
-	    return $dateoptions;
-	}
 
 	/**
      * Helper function to return all the date formats.
      *
      * @return array the list of date formats
      */
-    public function get_date_formats() {
+    public static function get_date_formats() {
 	    $dateformats = array();
 	    $dateformats[] = 'January 1, 2000';
 	    $dateformats[] = 'January 1st, 2000';
