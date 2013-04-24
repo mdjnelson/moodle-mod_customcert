@@ -54,6 +54,9 @@ class customcert_element_base {
     public static function add_element($element, $pageid) {
         global $DB;
 
+        // Set the time as a variable.
+        $time = time();
+
         $data = new stdClass();
         $data->pageid = $pageid;
         $data->element = $element;
@@ -63,7 +66,8 @@ class customcert_element_base {
         $data->posx = '250';
         $data->posy = '250';
         $data->sequence = customcert_element_base::get_element_sequence($pageid);
-        $data->timecreated = time();
+        $data->timecreated = $time;
+        $data->timemodified = $time;
 
         $DB->insert_record('customcert_elements', $data);
     }
@@ -119,11 +123,6 @@ class customcert_element_base {
         $mform->setType('posx_' . $id, PARAM_INT);
         $mform->setType('posy_' . $id, PARAM_INT);
 
-        // Add some rules.
-        $mform->addRule('colour_' . $id, $strrequired, 'required', null, 'client');
-        $mform->addRule('posx_' . $id, $strrequired, 'required', null, 'client');
-        $mform->addRule('posy_' . $id, $strrequired, 'required', null, 'client');
-
         // Set the values of these elements.
         $mform->setDefault('font_' . $id, $this->element->font);
         $mform->setDefault('size_' . $id, $this->element->size);
@@ -164,7 +163,7 @@ class customcert_element_base {
         $posx = 'posx_' . $id;
         $posxdata = $data[$posx];
         // Check if posx is not numeric or less than 0.
-        if ((!is_numeric($posxdata)) || ($posxdata < 0)) {
+        if (empty($posxdata) || (!is_numeric($posxdata)) || ($posxdata < 0)) {
             $errors[$posx] = get_string('invalidposition', 'customcert', 'X');
         }
 
@@ -172,7 +171,7 @@ class customcert_element_base {
         $posy = 'posy_' . $id;
         $posydata = $data[$posy];
         // Check if posy is not numeric or less than 0.
-        if ((!is_numeric($posydata)) || ($posydata < 0)) {
+        if (empty($posydata) || (!is_numeric($posydata)) || ($posydata < 0)) {
             $errors[$posy] = get_string('invalidposition', 'customcert', 'Y');
         }
 
@@ -208,6 +207,7 @@ class customcert_element_base {
         $element->colour = (!empty($data->$colour)) ? $data->$colour : null;
         $element->posx = (!empty($data->$posx)) ? $data->$posx : null;
         $element->posy = (!empty($data->$posy)) ? $data->$posy : null;
+        $element->timemodified = time();
 
         // Ok, now update record in the database.
         $DB->update_record('customcert_elements', $element);

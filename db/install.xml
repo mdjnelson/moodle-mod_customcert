@@ -61,6 +61,7 @@
         <FIELD NAME="posy" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" ENUM="false"/>
         <FIELD NAME="sequence" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" ENUM="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" ENUM="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" ENUM="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_elements"/>

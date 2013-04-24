@@ -252,6 +252,13 @@ class mod_customcert_edit_form extends moodleform {
                         // Add element header.
                         $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
                             get_string('pluginname', 'customcertelement_' . $element->element));
+                        // We do not need to expand these elements if the modified time is greater than the created time as it
+                        // means the values have already been altered by the user - ie. the element has not just been created.
+                        if ($element->timemodified > $element->timecreated) {
+                            $mform->setExpanded('headerelement_' . $element->id, false);
+                        } else {
+                            $mform->setExpanded('headerelement_' . $element->id, true);
+                        }
                         // Only display the move up arrow if it is not the first.
                         if ($element->sequence > 1) {
                             $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emoveup' => $element->id));
