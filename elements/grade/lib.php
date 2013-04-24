@@ -154,8 +154,10 @@ class customcert_element_grade extends customcert_element_base {
         switch ($COURSE->format) {
             case "topics":
                 $sectionlabel = get_string("topic");
+                break;
             case "weeks":
                 $sectionlabel = get_string("week");
+                break;
             default:
                 $sectionlabel = get_string("section");
                 break;
