@@ -161,17 +161,15 @@ class customcert_element_base {
 
         // Get position X.
         $posx = 'posx_' . $id;
-        $posxdata = $data[$posx];
-        // Check if posx is not numeric or less than 0.
-        if (empty($posxdata) || (!is_numeric($posxdata)) || ($posxdata < 0)) {
+        // Check if posx is not set, or not numeric or less than 0.
+        if ((!isset($data[$posx])) || (!is_numeric($data[$posx])) || ($data[$posx] <= 0)) {
             $errors[$posx] = get_string('invalidposition', 'customcert', 'X');
         }
 
         // Get position Y.
         $posy = 'posy_' . $id;
-        $posydata = $data[$posy];
-        // Check if posy is not numeric or less than 0.
-        if (empty($posydata) || (!is_numeric($posydata)) || ($posydata < 0)) {
+        // Check if posy is not set, or not numeric or less than 0.
+        if ((!isset($data[$posy])) || (!is_numeric($data[$posy])) || ($data[$posy] <= 0)) {
             $errors[$posy] = get_string('invalidposition', 'customcert', 'Y');
         }
 
