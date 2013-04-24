@@ -148,16 +148,18 @@ class mod_customcert_edit_form extends moodleform {
         foreach ($data as $key => $value) {
             if (strpos($key, 'width_') !== false) {
                 $page = str_replace('width_', '', $key);
+                $widthid = 'width_' . $page;
                 // Validate that the width is a valid value.
-                if (!isset($data['width_' . $page]) || !is_number($data['width_' . $page])) {
-                    $errors['width_' . $page] = get_string('widthnotvalid', 'customcert');
+                if ((!isset($data[$widthid])) || (!is_numeric($data[$widthid])) || ($data[$widthid] <= 0)) {
+                    $errors[$widthid] = get_string('widthnotvalid', 'customcert');
                 }
             }
             if (strpos($key, 'height_') !== false) {
                 $page = str_replace('height_', '', $key);
+                $heightid = 'height_' . $page;
                 // Validate that the height is a valid value.
-                if (!isset($data['height_' . $page]) || !is_number($data['height_' . $page])) {
-                    $errors['height_' . $page] = get_string('heightnotvalid', 'customcert');
+                if ((!isset($data[$heightid])) || (!is_numeric($data[$heightid])) || ($data[$heightid] <= 0)) {
+                    $errors[$heightid] = get_string('heightnotvalid', 'customcert');
                 }
             }
         }
