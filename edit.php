@@ -38,8 +38,8 @@ $deletepage = optional_param('deletepage', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id'=>$cm->instance), '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
 $context = context_module::instance($cm->id);
 
 require_login($course, false, $cm);

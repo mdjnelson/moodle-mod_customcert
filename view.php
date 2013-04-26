@@ -33,7 +33,7 @@ $action = optional_param('action', '', PARAM_ALPHA);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id'=> $cm->instance), '*', MUST_EXIST);
+$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
 
 // Ensure the user is allowed to view this page.
 require_login($course, true, $cm);

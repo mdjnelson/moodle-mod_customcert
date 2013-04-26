@@ -289,7 +289,7 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 
     if (has_capability('mod/customcert:manage', $PAGE->cm->context)) {
         $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', array('cmid'=>$PAGE->cm->id)),
+                new moodle_url('/mod/customcert/edit.php', array('cmid' => $PAGE->cm->id)),
                 navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
                 new pix_icon('t/edit', ''));
         $customcertnode->add_node($node, $beforekey);
