@@ -39,11 +39,6 @@ class mod_customcert_edit_form extends moodleform {
     private $id = null;
 
     /**
-     * The course.
-     */
-    private $course = null;
-
-    /**
      * The total number of pages for this cert.
      */
     private $numpages = 1;
