@@ -22,7 +22,7 @@ require_once("HTML/QuickForm/text.php");
 /**
  * Form element for handling the colour picker.
  *
- * @package    customcert_customcert_colourpicker
+ * @package    mod_customcert
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

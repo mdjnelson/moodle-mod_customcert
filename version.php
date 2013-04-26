@@ -18,8 +18,7 @@
 /**
  * Code fragment to define the version of the customcert module
  *
- * @package    mod
- * @subpackage customcert
+ * @package    mod_customcert
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
  */

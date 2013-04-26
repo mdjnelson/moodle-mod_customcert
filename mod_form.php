@@ -23,8 +23,7 @@ require_once($CFG->dirroot.'/mod/customcert/lib.php');
 /**
  * Instance add/edit form.
  *
- * @package    mod
- * @subpackage customcert
+ * @package    mod_customcert
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -18,8 +18,7 @@
 /**
  * Edit the customcert settings.
  *
- * @package    mod
- * @subpackage customcert
+ * @package    mod_customcert
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
