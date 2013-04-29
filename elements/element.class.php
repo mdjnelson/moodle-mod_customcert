@@ -45,7 +45,7 @@ class customcert_element_base {
     /**
      * This function is responsible for adding the element for the first time
      * to the database when no data has yet been specified, default values set.
-     * Can be overriden if more functionality is needed.
+     * Can be overridden if more functionality is needed.
      *
      * @param string $element the name of the element
      * @param int $pageid the page id we are saving it to
@@ -177,7 +177,7 @@ class customcert_element_base {
 
     /**
      * Handles saving the form elements created by this element.
-     * Can be overriden if more functionality is needed.
+     * Can be overridden if more functionality is needed.
      *
      * @param stdClass $data the form data.
      */
@@ -213,7 +213,7 @@ class customcert_element_base {
     /**
      * This will handle how form data will be saved into the data column in the
      * customcert column.
-     * Can be overriden if more functionality is needed.
+     * Can be overridden if more functionality is needed.
      *
      * @param stdClass $data the form data.
      */
@@ -223,13 +223,13 @@ class customcert_element_base {
 
     /**
      * Handles rendering the element on the pdf.
-     * Must be overriden.
+     * Must be overridden.
      *
      * @param stdClass $pdf the pdf object
      * @param int $userid
      */
     public function render($pdf, $userid) {
-        // Must be overriden.
+        // Must be overridden.
         return false;
     }
 
@@ -248,7 +248,7 @@ class customcert_element_base {
 
     /**
      * Handles deleting any data this element may have introduced.
-     * Can be overriden if more functionality is needed.
+     * Can be overridden if more functionality is needed.
      *
      * @return bool success return true if deletion success, false otherwise
      */
