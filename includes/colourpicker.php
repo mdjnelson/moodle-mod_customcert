@@ -56,9 +56,9 @@ class MoodleQuickForm_customcert_colourpicker extends HTML_QuickForm_text {
         $content = '<label class="accesshide" for="' . $this->getAttribute('id') . '" >' . $this->getLabel() . '</label>';
         $content .= html_writer::start_tag('div', array('class' => 'form-colourpicker defaultsnext'));
         $content .= html_writer::tag('div', $OUTPUT->pix_icon('i/loading', get_string('loading', 'admin'), 'moodle',
-        	array('class' => 'loadingicon')), array('class' => 'admin_colourpicker clearfix'));
+            array('class' => 'loadingicon')), array('class' => 'admin_colourpicker clearfix'));
         $content .= html_writer::empty_tag('input', array('type' => 'text', 'id' => $this->getAttribute('id'),
-        	'name' => $this->getName(), 'value' => $this->getValue(), 'size' => '12'));
+            'name' => $this->getName(), 'value' => $this->getValue(), 'size' => '12'));
         $content .= html_writer::end_tag('div');
 
         return $content;

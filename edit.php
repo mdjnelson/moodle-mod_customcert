@@ -26,6 +26,8 @@
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/customcert/lib.php');
 require_once($CFG->dirroot . '/mod/customcert/edit_form.php');
+require_once($CFG->dirroot . '/mod/customcert/load_template_form.php');
+require_once($CFG->dirroot . '/mod/customcert/save_template_form.php');
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 
 $cmid = required_param('cmid', PARAM_INT);
@@ -45,6 +47,24 @@ $context = context_module::instance($cm->id);
 require_login($course, false, $cm);
 
 require_capability('mod/customcert:manage', $context);
+
+// The form for loading a customcert templates.
+$templates = customcert_get_templates();
+$loadtemplateform = new mod_customcert_load_template_form('', array('cmid' => $cm->id, 'templates' => $templates));
+// The form for saving the current information as a template.
+$savetemplateform = new mod_customcert_save_template_form('', array('cmid' => $cm->id));
+
+// Check if they chose to load a customcert template and redirect.
+if ($data = $loadtemplateform->get_data()) {
+    $url = new moodle_url('/mod/customcert/load_template.php', array('cmid' => $cmid, 'tid' => $data->template));
+    redirect($url);
+}
+
+// Check if they chose to save the current information and redirect.
+if ($data = $savetemplateform->get_data()) {
+    $url = new moodle_url('/mod/customcert/save_template.php', array('cmid' => $cmid, 'name' => $data->name));
+    redirect($url);
+}
 
 // Check if they are moving a custom certificate page.
 if ((!empty($moveup)) || (!empty($movedown))) {
@@ -84,7 +104,10 @@ if ((!empty($moveup)) || (!empty($movedown))) {
 } else if ((!empty($deleteelement)) && (!empty($confirm))) { // Check if we are deleting an element.
     // Ensure element exists and delete it.
     $element = $DB->get_record('customcert_elements', array('id' => $deleteelement), '*', MUST_EXIST);
-    customcert_delete_element($element);
+    // Get an instance of the element class.
+    if ($e = customcert_get_element_instance($element)) {
+        return $e->delete_element();
+    }
 }
 
 $mform = new mod_customcert_edit_form('', array('customcertid' => $customcert->id,
@@ -171,4 +194,8 @@ $PAGE->set_url('/mod/customcert/edit.php', array('cmid' => $cmid));
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('editcustomcert', 'mod_customcert'));
 $mform->display();
+if (!empty($templates)) {
+    $loadtemplateform->display();
+}
+$savetemplateform->display();
 echo $OUTPUT->footer();

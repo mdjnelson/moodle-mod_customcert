@@ -78,11 +78,15 @@ class mod_customcert_edit_form extends moodleform {
 
         $mform->closeHeaderBefore('addcertpage');
 
-        $mform->addElement('submit', 'addcertpage', get_string('addcertpage', 'customcert'));
-
         $mform->addElement('header', 'uploadimage', get_string('uploadimage', 'customcert'));
 
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
+
+        // Add the submit buttons.
+        $group = array();
+        $group[] = $mform->createElement('submit', 'submitbutton', get_string('savechanges'));
+        $group[] = $mform->createElement('submit', 'addcertpage', get_string('addcertpage', 'customcert'));
+        $mform->addElement('group', 'loadtemplategroup', '', $group, '', false);
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
@@ -90,8 +94,6 @@ class mod_customcert_edit_form extends moodleform {
         $mform->addElement('hidden', 'cmid');
         $mform->setType('cmid', PARAM_INT);
         $mform->setDefault('cmid', $this->_customdata['cmid']);
-
-        $this->add_action_buttons(false);
     }
 
     /**
@@ -179,9 +181,6 @@ class mod_customcert_edit_form extends moodleform {
         // Create the form object.
         $mform =& $this->_form;
 
-        // Get the elements that are available
-        $elementsavailable = customcert_get_elements();
-
         // If page is null we are adding a customcert, not editing one, so set pageid to 1.
         if (is_null($page)) {
             $pageid = 1;
@@ -222,7 +221,7 @@ class mod_customcert_edit_form extends moodleform {
         $mform->addHelpButton('height_' . $pageid, 'height', 'customcert');
 
         $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $pageid, '', $elementsavailable);
+        $group[] = $mform->createElement('select', 'element_' . $pageid, '', customcert_get_elements());
         $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 

@@ -92,8 +92,9 @@ function customcert_delete_instance($id) {
             WHERE p.customcertid = :customcertid";
     if ($elements = $DB->get_records_sql($sql, array('customcertid' => $id))) {
         foreach ($elements as $element) {
-            if (!customcert_delete_element($element)) {
-                return false;
+            // Get an instance of the element class.
+            if ($e = customcert_get_element_instance($element)) {
+                return $e->delete_element();
             }
         }
     }
@@ -359,6 +360,7 @@ function customcert_get_elements() {
             $foldername = $elementfolder->getFilename();
             $classfile = "$elementdir/$foldername/lib.php";
             if (file_exists($classfile)) {
+                // Need to require this file in case if we choose to add this element.
                 require_once($classfile);
                 $component = "customcertelement_{$foldername}";
                 $options[$foldername] = get_string('pluginname', $component);
@@ -485,11 +487,8 @@ function customcert_save_page_data($data) {
                 if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
                     // Loop through the elements.
                     foreach ($elements as $element) {
-                        // Check that the standard class file exists.
-                        $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
-                        if (file_exists($classfile)) {
-                            $classname = "customcert_element_{$element->element}";
-                            $e = new $classname($element);
+                        // Get an instance of the element class.
+                        if ($e = customcert_get_element_instance($element)) {
                             $e->save_form_elements($data);
                         }
                     }
@@ -497,6 +496,27 @@ function customcert_save_page_data($data) {
             }
         }
     }
+}
+
+/**
+ * Returns an instance of the element class.
+ *
+ * @param stdClass $element the element
+ * @return stdClass|bool returns the instance of the element class, or false if element
+ *         class does not exists.
+ */
+function customcert_get_element_instance($element) {
+    global $CFG;
+
+    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
+    // Ensure this necessary file exists.
+    if (file_exists($classfile)) {
+        require_once($classfile);
+        $classname = "customcert_element_{$element->element}";
+        return new $classname($element);
+    }
+
+    return false;
 }
 
 /**
@@ -563,7 +583,10 @@ function customcert_delete_page($pageid) {
     // The element may have some extra tasks it needs to complete to completely delete itself.
     if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
         foreach ($elements as $element) {
-            customcert_delete_element($element);
+            // Get an instance of the element class.
+            if ($e = customcert_get_element_instance($element)) {
+                return $e->delete_element();
+            }
         }
     }
 
@@ -578,24 +601,15 @@ function customcert_delete_page($pageid) {
 }
 
 /**
- * Handles deleting an element.
+ * Returns a list of all the templates.
  *
  * @param stdClass $element the element
  * @param bool returns true if success, false otherwise
  */
-function customcert_delete_element($element) {
-    global $CFG;
+function customcert_get_templates() {
+    global $DB;
 
-    // Check that the standard class file exists.
-    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
-    if (file_exists($classfile)) {
-        require_once($classfile);
-        $classname = "customcert_element_{$element->element}";
-        $e = new $classname($element);
-        return $e->delete_element();
-    }
-
-    return false;
+    return $DB->get_records_menu('customcert_template', array(), 'name ASC', 'id, name');
 }
 
 /**
@@ -771,12 +785,8 @@ function customcert_generate_pdf($customcert, $userid) {
             if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
                 // Loop through and display.
                 foreach ($elements as $element) {
-                    // Check that the standard class file exists.
-                    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
-                    if (file_exists($classfile)) {
-                        require_once($classfile);
-                        $classname = "customcert_element_{$element->element}";
-                        $e = new $classname($element);
+                    // Get an instance of the element class.
+                    if ($e = customcert_get_element_instance($element)) {
                         $e->render($pdf, $userid);
                     }
                 }

@@ -135,7 +135,7 @@ class customcert_element_base {
         $mform->addHelpButton('colour_' . $id, 'fontcolour', 'customcert');
         $mform->addHelpButton('posx_' . $id, 'posx', 'customcert');
         $mform->addHelpButton('posy_' . $id, 'posy', 'customcert');
-	}
+    }
 
     /**
      * Performs validation on the element values.
@@ -219,6 +219,28 @@ class customcert_element_base {
      */
     public function save_unique_data($data) {
         return null;
+    }
+
+    /**
+     * This will handle how individual elements save their data
+     * to a template to be loaded later.
+     * Can be overridden if more functionality is needed.
+     *
+     * @param stdClass $data the form data.
+     */
+    public function save_data_to_template($data) {
+        return true;
+    }
+
+    /**
+     * This will handle how individual elements load their data
+     * from a template to an existing customcert.
+     * Can be overridden if more functionality is needed.
+     *
+     * @param stdClass $data the form data.
+     */
+    public function load_data_from_template($data) {
+        return true;
     }
 
     /**
