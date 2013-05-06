@@ -184,7 +184,8 @@ if ($data = $mform->get_data()) {
     }
 
     // Redirect to the editing page to show form with recent updates.
-    redirect($CFG->wwwroot . '/mod/customcert/edit.php?cmid=' . $cm->id);
+    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    redirect($url);
 }
 
 $PAGE->set_title(get_string('editcustomcert', 'customcert', format_string($customcert->name)));

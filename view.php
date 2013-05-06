@@ -41,7 +41,8 @@ $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 require_capability('mod/customcert:view', $context);
 
 // Initialise $PAGE.
-$PAGE->set_url('/mod/customcert/view.php', array('id' => $cm->id));
+$pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
+$PAGE->set_url($pageurl);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm);
 $PAGE->set_title(format_string($customcert->name));
@@ -50,7 +51,7 @@ $PAGE->set_heading(format_string($course->fullname));
 // Check that no action was passed, if so that means we are not outputting to PDF.
 if (empty($action)) {
     // Get the current groups mode.
-    groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/customcert/view.php?id=' . $cm->id);
+    groups_print_activity_menu($cm, $pageurl);
     $currentgroup = groups_get_activity_group($cm);
     $groupmode = groups_get_activity_groupmode($cm);
 
@@ -61,8 +62,9 @@ if (empty($action)) {
         $numissues = customcert_get_number_of_issues($customcert->id, $cm, $groupmode);
         // If the number of issues is greater than 0 display a link to the report.
         if ($numissues > 0) {
+            $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
             $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
-                array('href' => $CFG->wwwroot . '/mod/customcert/report.php?id=' . $cm->id));
+                array('href' => $href->out()));
             $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
         }
     }
