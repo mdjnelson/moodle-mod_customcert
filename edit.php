@@ -106,7 +106,7 @@ if ((!empty($moveup)) || (!empty($movedown))) {
     $element = $DB->get_record('customcert_elements', array('id' => $deleteelement), '*', MUST_EXIST);
     // Get an instance of the element class.
     if ($e = customcert_get_element_instance($element)) {
-        return $e->delete_element();
+        $e->delete_element();
     }
 }
 
