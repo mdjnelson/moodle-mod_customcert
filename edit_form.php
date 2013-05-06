@@ -212,11 +212,13 @@ class mod_customcert_edit_form extends moodleform {
 
         $mform->addElement('text', 'width_' . $pageid, get_string('width', 'customcert'));
         $mform->setType('width_' . $pageid, PARAM_INT);
+        $mform->setDefault('width_' . $pageid, '210');
         $mform->addRule('width_' . $pageid, null, 'required', null, 'client');
         $mform->addHelpButton('width_' . $pageid, 'width', 'customcert');
 
         $mform->addElement('text', 'height_' . $pageid, get_string('height', 'customcert'));
         $mform->setType('height_' . $pageid, PARAM_INT);
+        $mform->setDefault('height_' . $pageid, '297');
         $mform->addRule('height_' . $pageid, null, 'required', null, 'client');
         $mform->addHelpButton('height_' . $pageid, 'height', 'customcert');
 

@@ -558,6 +558,8 @@ function customcert_add_page($data) {
     $page = new stdClass();
     $page->customcertid = $data->id;
     $page->orientation = 'P';
+    $page->width = '210';
+    $page->height = '297';
     $page->pagenumber = $pagenum;
     $page->timecreated = $time;
     $page->timemodified = $time;
