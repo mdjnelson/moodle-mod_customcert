@@ -53,8 +53,12 @@ function customcert_add_instance($data, $mform) {
     $data->protection = customcert_set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
+    $data->id = $DB->insert_record('customcert', $data);
 
-    return $DB->insert_record('customcert', $data);
+    // Add a page to this certificate.
+    customcert_add_page($data);
+
+    return $data->id;
 }
 
 /**
@@ -488,48 +492,30 @@ function customcert_save_page_data($data) {
     // Set the time to a variable.
     $time = time();
 
-    // Get the total number of pages that exist for this customcert.
-    $totalpages = $DB->count_records('customcert_pages', array('customcertid' => $data->id));
-
-    // Check if this customcert has any pages yet, if not we are inserting.
-    if ($totalpages == 0) {
-        // Create the page to insert.
-        $page = new stdClass();
-        $page->customcertid = $data->id;
-        $page->orientation = $data->orientation_1;
-        $page->width = $data->width_1;
-        $page->height = $data->height_1;
-        $page->pagenumber = 1;
-        $page->timecreated = $time;
-        $page->timemodified = $time;
-        // Insert the page.
-        $DB->insert_record('customcert_pages', $page);
-    } else {
-        // Get the existing pages and save the page data.
-        if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $data->id))) {
-            // Loop through existing pages.
-            foreach ($pages as $page) {
-                // Get the name of the fields we want from the form.
-                $orientation = 'orientation_' . $page->id;
-                $width = 'width_' . $page->id;
-                $height = 'height_' . $page->id;
-                // Create the page data to update the DB with.
-                $p = new stdClass();
-                $p->id = $page->id;
-                $p->orientation = $data->$orientation;
-                $p->width = $data->$width;
-                $p->height = $data->$height;
-                $p->timemodified = $time;
-                // Update the page.
-                $DB->update_record('customcert_pages', $p);
-                // Get the elements for the page.
-                if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
-                    // Loop through the elements.
-                    foreach ($elements as $element) {
-                        // Get an instance of the element class.
-                        if ($e = customcert_get_element_instance($element)) {
-                            $e->save_form_elements($data);
-                        }
+    // Get the existing pages and save the page data.
+    if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $data->id))) {
+        // Loop through existing pages.
+        foreach ($pages as $page) {
+            // Get the name of the fields we want from the form.
+            $orientation = 'orientation_' . $page->id;
+            $width = 'width_' . $page->id;
+            $height = 'height_' . $page->id;
+            // Create the page data to update the DB with.
+            $p = new stdClass();
+            $p->id = $page->id;
+            $p->orientation = $data->$orientation;
+            $p->width = $data->$width;
+            $p->height = $data->$height;
+            $p->timemodified = $time;
+            // Update the page.
+            $DB->update_record('customcert_pages', $p);
+            // Get the elements for the page.
+            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+                // Loop through the elements.
+                foreach ($elements as $element) {
+                    // Get an instance of the element class.
+                    if ($e = customcert_get_element_instance($element)) {
+                        $e->save_form_elements($data);
                     }
                 }
             }
@@ -579,15 +565,23 @@ function customcert_add_element($element, $pageid) {
 function customcert_add_page($data) {
     global $DB;
 
-    // Set the number of the page we are creating.
-    $pagenum = 1;
-    // Check if there already pages that exist, if so, overwrite value.
-    $sql = "SELECT MAX(pagenumber) as maxpagenumber
-            FROM {customcert_pages}
-            WHERE customcertid = :id";
-    // Get the current max page number and add 1 to page number for new page.
-    if ($maxnum = $DB->get_record_sql($sql, array('id' => $data->id))) {
-        $pagenum = $maxnum->maxpagenumber + 1;
+    // If no pageid is passed then we are creating the first page.
+    if (empty($data->pageid)) {
+        $pagenumber = 1;
+    } else { // Create a page after an existing one.
+        // Get the page we are inserting the new one after.
+        $currentpage = $DB->get_record('customcert_pages', array('id' => $data->pageid), '*', MUST_EXIST);
+
+        // Increase the page numbers of the pages that are going
+        // to be in front of the new page we are creating
+        $sql = "UPDATE {customcert_pages}
+                SET pagenumber = pagenumber + 1
+                WHERE customcertid = :customcertid
+                AND pagenumber > :pagenumber";
+        $DB->execute($sql, array('customcertid' => $currentpage->customcertid,
+                                 'pagenumber' => $currentpage->pagenumber));
+
+        $pagenumber = $currentpage->pagenumber + 1;
     }
 
     // Store time in a variable.
@@ -599,7 +593,7 @@ function customcert_add_page($data) {
     $page->orientation = 'P';
     $page->width = '210';
     $page->height = '297';
-    $page->pagenumber = $pagenum;
+    $page->pagenumber = $pagenumber;
     $page->timecreated = $time;
     $page->timemodified = $time;
 
@@ -626,7 +620,7 @@ function customcert_delete_page($pageid) {
         foreach ($elements as $element) {
             // Get an instance of the element class.
             if ($e = customcert_get_element_instance($element)) {
-                return $e->delete_element();
+                $e->delete_element();
             }
         }
     }

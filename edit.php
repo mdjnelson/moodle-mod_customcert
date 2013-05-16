@@ -160,6 +160,9 @@ if ($data = $mform->get_data()) {
             $element = "element_" . $pageid;
             $element = $data->$element;
             customcert_add_element($element, $pageid);
+        } else if (strpos($key, 'addcertpage_') !== false) { // Check if they chose to add a page.
+            $data->pageid = str_replace('addcertpage_', '', $key);
+            customcert_add_page($data);
         }
 
         // Check if we are deleting either a page or an element.
@@ -176,11 +179,6 @@ if ($data = $mform->get_data()) {
             echo $OUTPUT->footer();
             exit();
         }
-    }
-
-    // Check if they chose to add a page.
-    if (!empty($data->addcertpage)) {
-        customcert_add_page($data);
     }
 
     // Redirect to the editing page to show form with recent updates.

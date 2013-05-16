@@ -72,21 +72,18 @@ class mod_customcert_edit_form extends moodleform {
             foreach ($pages as $p) {
                 $this->add_customcert_page_elements($p);
             }
-        } else {
-            $this->add_customcert_page_elements();
         }
-
-        $mform->closeHeaderBefore('addcertpage');
 
         $mform->addElement('header', 'uploadimage', get_string('uploadimage', 'customcert'));
 
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
 
+        $mform->closeHeaderBefore('submitbtn');
+
         // Add the submit buttons.
         $group = array();
-        $group[] = $mform->createElement('submit', 'submitbutton', get_string('savechanges'));
-        $group[] = $mform->createElement('submit', 'addcertpage', get_string('addcertpage', 'customcert'));
-        $mform->addElement('group', 'loadtemplategroup', '', $group, '', false);
+        $group[] = $mform->createElement('submit', 'submitbtn', get_string('savechanges'));
+        $mform->addElement('group', 'submitbtngroup', '', $group, '', false);
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
@@ -175,20 +172,14 @@ class mod_customcert_edit_form extends moodleform {
      *
      * @param stdClass $page the customcert page
      **/
-    private function add_customcert_page_elements($page = null) {
+    private function add_customcert_page_elements($page) {
         global $CFG, $DB, $OUTPUT;
 
         // Create the form object.
         $mform =& $this->_form;
 
-        // If page is null we are adding a customcert, not editing one, so set pageid to 1.
-        if (is_null($page)) {
-            $pageid = 1;
-            $pagenum = 1;
-        } else {
-            $pageid = $page->id;
-            $pagenum = $page->pagenumber;
-        }
+        $pageid = $page->id;
+        $pagenum = $page->pagenumber;
 
         $mform->addElement('header', 'page_' . $pageid, get_string('page', 'customcert', $pagenum));
 
@@ -227,58 +218,57 @@ class mod_customcert_edit_form extends moodleform {
         $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
-        // Add option to delete this page if it is not the first page.
-        if ($pagenum > 1) {
+        $mform->addElement('submit', 'addcertpage_' . $pageid, get_string('addcertpage', 'customcert'));
+
+        // Add option to delete this page if there is more than one page.
+        if ($this->numpages > 1) {
             $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
             $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
             $mform->addElement('html', html_writer::end_tag('div'));
         }
 
-        // Check that this page is not a newly created one with no data in the database.
-        if (!is_null($page)) {
-            // Check if there are elements to add.
-            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'sequence ASC')) {
-                // Get the total number of elements.
-                $numelements = count($elements);
-                // Loop through and add the ones present.
-                foreach ($elements as $element) {
-                    $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
-                    // It's possible this element was added to the database then the folder was deleted, if
-                    // this is the case we do not want to render these elements as an error will occur.
-                    if (file_exists($classfile)) {
-                        // Add element header.
-                        $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
-                            get_string('pluginname', 'customcertelement_' . $element->element));
-                        // We do not need to expand these elements if the modified time is greater than the created time as it
-                        // means the values have already been altered by the user - ie. the element has not just been created.
-                        if ($element->timemodified > $element->timecreated) {
-                            $mform->setExpanded('headerelement_' . $element->id, false);
-                        } else {
-                            $mform->setExpanded('headerelement_' . $element->id, true);
-                        }
-                        // Only display the move up arrow if it is not the first.
-                        if ($element->sequence > 1) {
-                            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emoveup' => $element->id));
-                            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
-                        }
-                        // Only display the move down arrow if it is not the last.
-                        if ($element->sequence < $numelements) {
-                            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emovedown' => $element->id));
-                            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
-                        }
-                        // Add the page number to the element so we can use within the element.
-                        $element->pagenum = $pagenum;
-                        // Get the classname.
-                        $classname = "customcert_element_{$element->element}";
-                        $e = new $classname($element);
-                        $e->render_form_elements($mform);
-                        // Add this to the objects array.
-                        $this->elementobjects[] = $e;
-                        // Add submit button to delete this.
-                        $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
-                        $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('deleteelement', 'customcert'));
-                        $mform->addElement('html', html_writer::end_tag('div'));
+        // Check if there are elements to add.
+        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'sequence ASC')) {
+            // Get the total number of elements.
+            $numelements = count($elements);
+            // Loop through and add the ones present.
+            foreach ($elements as $element) {
+                $classfile = "{$CFG->dirroot}/mod/customcert/elements/{$element->element}/lib.php";
+                // It's possible this element was added to the database then the folder was deleted, if
+                // this is the case we do not want to render these elements as an error will occur.
+                if (file_exists($classfile)) {
+                    // Add element header.
+                    $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
+                        get_string('pluginname', 'customcertelement_' . $element->element));
+                    // We do not need to expand these elements if the modified time is greater than the created time as it
+                    // means the values have already been altered by the user - ie. the element has not just been created.
+                    if ($element->timemodified > $element->timecreated) {
+                        $mform->setExpanded('headerelement_' . $element->id, false);
+                    } else {
+                        $mform->setExpanded('headerelement_' . $element->id, true);
                     }
+                    // Only display the move up arrow if it is not the first.
+                    if ($element->sequence > 1) {
+                        $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emoveup' => $element->id));
+                        $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
+                    }
+                    // Only display the move down arrow if it is not the last.
+                    if ($element->sequence < $numelements) {
+                        $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emovedown' => $element->id));
+                        $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
+                    }
+                    // Add the page number to the element so we can use within the element.
+                    $element->pagenum = $pagenum;
+                    // Get the classname.
+                    $classname = "customcert_element_{$element->element}";
+                    $e = new $classname($element);
+                    $e->render_form_elements($mform);
+                    // Add this to the objects array.
+                    $this->elementobjects[] = $e;
+                    // Add submit button to delete this.
+                    $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
+                    $mform->addElement('submit', 'deleteelement_' . $element->id, get_string('deleteelement', 'customcert'));
+                    $mform->addElement('html', html_writer::end_tag('div'));
                 }
             }
         }
