@@ -55,9 +55,37 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->setType('requiredtime', PARAM_INT);
         $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
 
+        $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'), get_string('print', 'customcert'));
+        $mform->addElement('checkbox', 'protection_modify', '', get_string('modify', 'customcert'));
+        $mform->addElement('checkbox', 'protection_copy', '', get_string('copy', 'customcert'));
+        $mform->addHelpButton('protection_print', 'setprotection', 'customcert');
+
         $this->standard_coursemodule_elements();
 
         $this->add_action_buttons();
+    }
+
+    /**
+     * Any data processing needed before the form is displayed.
+     *
+     * @param array $defaultvalues
+     */
+    public function data_preprocessing(&$defaultvalues) {
+        global $DB;
+
+        if (!empty($defaultvalues['protection'])) {
+            $protection = explode(', ', $defaultvalues['protection']);
+            // Set the values in the form to what has been set in database.
+            if (in_array(PROTECTION_PRINT, $protection)) {
+                $defaultvalues['protection_print'] = 1;
+            }
+            if (in_array(PROTECTION_MODIFY, $protection)) {
+                $defaultvalues['protection_modify'] = 1;
+            }
+            if (in_array(PROTECTION_COPY, $protection)) {
+                $defaultvalues['protection_copy'] = 1;
+            }
+        }
     }
 
     /**

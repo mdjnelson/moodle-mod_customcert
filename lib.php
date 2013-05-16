@@ -26,6 +26,21 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 /**
+ * @var string the print protection variable
+ */
+define('PROTECTION_PRINT', 'print');
+
+/**
+ * @var string the modify protection variable
+ */
+define('PROTECTION_MODIFY', 'modify');
+
+/**
+ * @var string the copy protection variable
+ */
+define('PROTECTION_COPY', 'copy');
+
+/**
  * Add customcert instance.
  *
  * @param stdClass $customcert
@@ -35,6 +50,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 function customcert_add_instance($data, $mform) {
     global $DB;
 
+    $data->protection = customcert_set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
 
@@ -51,11 +67,34 @@ function customcert_add_instance($data, $mform) {
 function customcert_update_instance($data, $mform) {
     global $DB;
 
-    // Update the time modified.
+    $data->protection = customcert_set_protection($data);
     $data->timemodified = time();
     $data->id = $data->instance;
 
     return $DB->update_record('customcert', $data);
+}
+
+/**
+ * Handles setting the protection field for the customcert
+ *
+ * @param stdClass $data
+ * @return string the value to insert into the protection field
+ */
+function customcert_set_protection($data) {
+    $protection = array();
+
+    if (!empty($data->protection_print)) {
+        $protection[] = PROTECTION_PRINT;
+    }
+    if (!empty($data->protection_modify)) {
+        $protection[] = PROTECTION_MODIFY;
+    }
+    if (!empty($data->protection_copy)) {
+        $protection[] = PROTECTION_COPY;
+    }
+
+    // Return the protection string.
+    return implode(', ', $protection);
 }
 
 /**
@@ -773,6 +812,10 @@ function customcert_generate_pdf($customcert, $userid) {
     if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $customcert->id), 'pagenumber ASC')) {
         // Create the pdf object.
         $pdf = new pdf();
+        if (!empty($customcert->protection)) {
+            $protection = explode(', ', $customcert->protection);
+            $pdf->SetProtection($protection);
+        }
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetTitle($customcert->name);
