@@ -264,7 +264,7 @@ class customcert_element_base {
      * @param stdClass $content the content to render
      */
     public function render_content($pdf, $content) {
-        $pdf->setFont($this->element->font, '', $this->element->size);
+        $this->set_font($pdf);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
         $pdf->writeHTMLCell(0, 0, $this->element->posx, $this->element->posy, $content);
@@ -280,6 +280,40 @@ class customcert_element_base {
         global $DB;
 
         return $DB->delete_records('customcert_elements', array('id' => $this->element->id));
+    }
+
+    /**
+     * Sets the font for the element.
+     *
+     * @param stdClass $pdf the pdf object
+     */
+    public function set_font($pdf) {
+        // Variable for the font.
+        $font = $this->element->font;
+        // Get the last two characters of the font name.
+        $fontlength = strlen($font);
+        $lastchar = $font[$fontlength - 1];
+        $secondlastchar = $font[$fontlength - 2];
+        // The attributes of the font.
+        $attr = '';
+        // Check if the last character is 'i'.
+        if ($lastchar == 'i') {
+            // Remove the 'i' from the font name.
+            $font = substr($font, 0, -1);
+            // Check if the second last char is b.
+            if ($secondlastchar == 'b') {
+                // Remove the 'b' from the font name.
+                $font = substr($font, 0, -1);
+                $attr .= 'B';
+            }
+            $attr .= 'I';
+        } else if ($lastchar == 'b') {
+            // Remove the 'b' from the font name.
+            $font = substr($font, 0, -1);
+            $attr .= 'B';
+        }
+        // Check if this font is going to be bold.
+        $pdf->setFont($font, $attr, $this->element->size);
     }
 
     /**
