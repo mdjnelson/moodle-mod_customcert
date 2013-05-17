@@ -61,7 +61,7 @@ class customcert_element_base {
         $data = new stdClass();
         $data->pageid = $pageid;
         $data->element = $element;
-        $data->font = 'Times-Roman';
+        $data->font = 'times';
         $data->size = '12';
         $data->colour = '#000000';
         $data->posx = '250';
