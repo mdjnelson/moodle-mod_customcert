@@ -83,6 +83,7 @@ class mod_customcert_edit_form extends moodleform {
         // Add the submit buttons.
         $group = array();
         $group[] = $mform->createElement('submit', 'submitbtn', get_string('savechanges'));
+        $group[] = $mform->createElement('submit', 'previewbtn', get_string('savechangespreview', 'customcert'));
         $mform->addElement('group', 'submitbtngroup', '', $group, '', false);
 
         $mform->addElement('hidden', 'id');

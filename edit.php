@@ -181,6 +181,11 @@ if ($data = $mform->get_data()) {
         }
     }
 
+    // Check if we want to preview this custom certificate.
+    if (!empty($data->previewbtn)) {
+        customcert_generate_pdf($customcert, $USER->id);
+    }
+
     // Redirect to the editing page to show form with recent updates.
     $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
     redirect($url);

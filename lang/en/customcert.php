@@ -75,6 +75,7 @@ $string['posx_help'] = 'This is the position in pixels from the top left corner 
 $string['posy'] = 'Postion Y';
 $string['posy_help'] = 'This is the position in pixels from the top left corner you wish the element to display in the y direction.';
 $string['save'] = 'Save';
+$string['savechangespreview'] = 'Save changes and preview';
 $string['savetemplate'] = 'Save template';
 $string['setprotection'] = 'Set protection';
 $string['setprotection_help'] = 'Choose the actions you wish to prevent users from performing on this certificate.';

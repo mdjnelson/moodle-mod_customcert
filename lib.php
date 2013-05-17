@@ -802,6 +802,8 @@ function customcert_generate_code() {
 function customcert_generate_pdf($customcert, $userid) {
     global $CFG, $DB;
 
+    require_once($CFG->libdir . '/pdflib.php');
+
     // Get the pages for the customcert, there should always be at least one page for each customcert.
     if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $customcert->id), 'pagenumber ASC')) {
         // Create the pdf object.
