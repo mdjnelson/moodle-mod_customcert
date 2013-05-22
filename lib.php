@@ -41,6 +41,17 @@ define('PROTECTION_MODIFY', 'modify');
 define('PROTECTION_COPY', 'copy');
 
 /**
+ * @var int the number of issues that will be displayed on each page in the report
+ * If you want to display all customcerts on a page set this to 0.
+ */
+define('CUSTOMCERT_PER_PAGE', 20);
+
+/**
+ * @var int the max number of issues to display
+ */
+define('CUSTOMCERT_MAX_PER_PAGE', 300);
+
+/**
  * Add customcert instance.
  *
  * @param stdClass $customcert
@@ -55,7 +66,7 @@ function customcert_add_instance($data, $mform) {
     $data->timemodified = $data->timecreated;
     $data->id = $DB->insert_record('customcert', $data);
 
-    // Add a page to this certificate.
+    // Add a page to this customcert.
     customcert_add_page($data);
 
     return $data->id;
@@ -686,6 +697,41 @@ function customcert_get_course_time($courseid) {
     return 0;
 }
 
+
+/**
+ * Returns a list of issued customcerts.
+ *
+ * @param int $customcertid
+ * @param bool $groupmode are we in group mode
+ * @param stdClass $cm the course module
+ * @param int $page offset
+ * @param int $perpage total per page
+ * @return stdClass the users
+ */
+function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) {
+    global $CFG, $DB;
+
+    list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
+
+    // Get all the users that have customcerts issued, should only be one issue per user for a customcert
+    $allparams = $conditionsparams + array('customcertid' => $customcertid);
+
+    $users = $DB->get_records_sql("SELECT u.*, ci.code, ci.timecreated
+                                   FROM {user} u
+                                   INNER JOIN {customcert_issues} ci
+                                   ON u.id = ci.userid
+                                   WHERE u.deleted = 0
+                                   AND ci.customcertid = :customcertid
+                                   $conditionssql
+                                   ORDER BY " . $DB->sql_fullname(),
+                                   $allparams,
+                                   $page * $perpage,
+                                   $perpage);
+
+
+    return $users;
+}
+
 /**
  * Returns the total number of issues for a given customcert.
  *
@@ -835,4 +881,63 @@ function customcert_generate_pdf($customcert, $userid) {
         }
         $pdf->Output($filename, 'D');
     }
+}
+
+/**
+ * Generate the report.
+ *
+ * @param stdClass $customcert
+ * @param stdClass $users the list of users who have had a customcert issued
+ * @param string $type
+ */
+function customcert_generate_report_file($customcert, $users, $type) {
+    global $CFG, $COURSE;
+
+    if ($type == 'ods') {
+        require_once($CFG->libdir . '/odslib.class.php');
+        $workbook = new MoodleODSWorkbook('-');
+    } else if ($type == 'xls') {
+        require_once($CFG->libdir . '/excellib.class.php');
+        $workbook = new MoodleExcelWorkbook('-');
+    }
+
+    $filename = clean_filename($COURSE->shortname . ' ' . rtrim($customcert->name, '.') . '.' . $type);
+
+    // Send HTTP headers
+    $workbook->send($filename);
+
+    // Creating the first worksheet
+    $myxls = $workbook->add_worksheet(get_string('report', 'customcert'));
+
+    // Print names of all the fields
+    $myxls->write_string(0, 0, get_string('lastname'));
+    $myxls->write_string(0, 1, get_string('firstname'));
+    $myxls->write_string(0, 2, get_string('idnumber'));
+    $myxls->write_string(0, 3, get_string('group'));
+    $myxls->write_string(0, 4, get_string('receiveddate', 'customcert'));
+    $myxls->write_string(0, 5, get_string('code', 'customcert'));
+
+    // Generate the data for the body of the spreadsheet
+    $i = 0;
+    $row = 1;
+    if ($users) {
+        foreach ($users as $user) {
+            $myxls->write_string($row, 0, $user->lastname);
+            $myxls->write_string($row, 1, $user->firstname);
+            $studentid = (!empty($user->idnumber)) ? $user->idnumber : ' ';
+            $myxls->write_string($row, 2, $studentid);
+            $ug2 = '';
+            if ($usergrps = groups_get_all_groups($COURSE->id, $user->id)) {
+                foreach ($usergrps as $ug) {
+                    $ug2 = $ug2 . $ug->name;
+                }
+            }
+            $myxls->write_string($row, 3, $ug2);
+            $myxls->write_string($row, 4, userdate($user->timecreated));
+            $myxls->write_string($row, 5, $user->code);
+            $row++;
+        }
+    }
+    // Close the workbook
+    $workbook->close();
 }

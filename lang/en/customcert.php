@@ -25,6 +25,8 @@
 
 $string['addcertpage'] = 'Add another certificate page';
 $string['addelement'] = 'Add element';
+$string['awardedto'] = 'Awarded to';
+$string['code'] = 'Code';
 $string['copy'] = 'Copy';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive the certificate.';
@@ -74,6 +76,8 @@ $string['posx'] = 'Position X';
 $string['posx_help'] = 'This is the position in pixels from the top left corner you wish the element to display in the x direction.';
 $string['posy'] = 'Postion Y';
 $string['posy_help'] = 'This is the position in pixels from the top left corner you wish the element to display in the y direction.';
+$string['receiveddate'] = 'Received date';
+$string['report'] = 'Report';
 $string['save'] = 'Save';
 $string['savechangespreview'] = 'Save changes and preview';
 $string['savetemplate'] = 'Save template';
