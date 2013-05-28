@@ -715,20 +715,17 @@ function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) 
     // Get all the users that have customcerts issued, should only be one issue per user for a customcert
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
-    $users = $DB->get_records_sql("SELECT u.*, ci.code, ci.timecreated
-                                   FROM {user} u
-                                   INNER JOIN {customcert_issues} ci
-                                   ON u.id = ci.userid
-                                   WHERE u.deleted = 0
-                                   AND ci.customcertid = :customcertid
-                                   $conditionssql
-                                   ORDER BY " . $DB->sql_fullname(),
-                                   $allparams,
-                                   $page * $perpage,
-                                   $perpage);
-
-
-    return $users;
+    return $DB->get_records_sql("SELECT u.*, ci.code, ci.timecreated
+                                 FROM {user} u
+                                 INNER JOIN {customcert_issues} ci
+                                 ON u.id = ci.userid
+                                 WHERE u.deleted = 0
+                                 AND ci.customcertid = :customcertid
+                                 $conditionssql
+                                 ORDER BY " . $DB->sql_fullname(),
+                                 $allparams,
+                                 $page * $perpage,
+                                 $perpage);
 }
 
 /**
