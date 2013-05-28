@@ -164,7 +164,7 @@ function customcert_delete_instance($id) {
     }
 
     // Delete any files associated with the customcert.
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $context = context_module::instance($cm->id);
     $fs = get_file_storage();
     $fs->delete_area_files($context->id);
 
@@ -768,7 +768,7 @@ function customcert_get_conditional_issues_sql($cm, $groupmode) {
     global $CFG, $DB;
 
     // Get all users that can manage this customcert to exclude them from the report.
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $context = context_module::instance($cm->id);
     $conditionssql = '';
     $conditionsparams = array();
     if ($certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'))) {

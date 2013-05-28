@@ -35,7 +35,7 @@ $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', M
 
 // Ensure the user is allowed to view this page.
 require_login($course, true, $cm);
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 require_capability('mod/customcert:view', $context);
 
 // Initialise $PAGE.
