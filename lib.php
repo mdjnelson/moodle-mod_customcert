@@ -54,7 +54,7 @@ define('CUSTOMCERT_MAX_PER_PAGE', 300);
 /**
  * Add customcert instance.
  *
- * @param stdClass $customcert
+ * @param stdClass $data
  * @param stdClass $mform
  * @return int new customcert instance id
  */
@@ -254,7 +254,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
  * @param stdClass $course
  * @param stdClass $user
  * @param stdClass $mod
- * @param stdClass $page
+ * @param stdClass $customcert
  * @return string the user complete information
  */
 function customcert_user_complete($course, $user, $mod, $customcert) {
@@ -377,7 +377,7 @@ function customcert_get_images() {
 /**
  * Handles uploading an image for the customcert module.
  *
- * @param stdClass $draftiemtid the draft area containing the files
+ * @param int $draftitemid the draft area containing the files
  */
 function customcert_upload_imagefiles($draftitemid) {
     // Get the filestorage object.
@@ -649,8 +649,7 @@ function customcert_delete_page($pageid) {
 /**
  * Returns a list of all the templates.
  *
- * @param stdClass $element the element
- * @param bool returns true if success, false otherwise
+ * @return bool returns true if success, false otherwise
  */
 function customcert_get_templates() {
     global $DB;

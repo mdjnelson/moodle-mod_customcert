@@ -218,9 +218,10 @@ class customcert_element_base {
      * Can be overridden if more functionality is needed.
      *
      * @param stdClass $data the form data.
+     * @return string the unique data to save
      */
     public function save_unique_data($data) {
-        return null;
+        return '';
     }
 
     /**
@@ -228,7 +229,8 @@ class customcert_element_base {
      * to a template to be loaded later.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data.
+     * @param stdClass $data the form data
+     * @return bool returns true if the data was saved to the template, false otherwise
      */
     public function save_data_to_template($data) {
         return true;
@@ -239,7 +241,8 @@ class customcert_element_base {
      * from a template to an existing customcert.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data.
+     * @param stdClass $data the form data
+     * @return bool returns true if the data was loaded from the template, false otherwise
      */
     public function load_data_from_template($data) {
         return true;
@@ -254,7 +257,6 @@ class customcert_element_base {
      */
     public function render($pdf, $userid) {
         // Must be overridden.
-        return false;
     }
 
     /**
@@ -319,8 +321,8 @@ class customcert_element_base {
     /**
      * Validates the colour selected.
      *
-     * @param string $data
-     * @return string|false
+     * @param string $colour
+     * @return bool returns true if the colour is valid, false otherwise
      */
     protected function validate_colour($colour) {
         /**
