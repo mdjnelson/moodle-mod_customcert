@@ -196,7 +196,7 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_url('/mod/customcert/edit.php', array('cmid' => $cmid));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editcustomcert', 'mod_customcert'));
+echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
 $mform->display();
 if (!empty($templates)) {
     $loadtemplateform->display();
