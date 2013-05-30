@@ -180,7 +180,7 @@ function customcert_delete_instance($id) {
  * @return array status array
  */
 function customcert_reset_userdata($data) {
-    global $CFG, $DB;
+    global $DB;
 
     $componentstr = get_string('modulenameplural', 'customcert');
     $status = array();
@@ -331,7 +331,7 @@ function customcert_cron () {
  * @param navigation_node $customcertnode
  */
 function customcert_extend_settings_navigation(settings_navigation $settings, navigation_node $customcertnode) {
-    global $PAGE, $CFG;
+    global $PAGE;
 
     $keys = $customcertnode->get_children_key_list();
     $beforekey = null;
@@ -359,9 +359,6 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @param int $draftitemid the draft area containing the files
  */
 function customcert_upload_imagefiles($draftitemid) {
-    // Get the filestorage object.
-    $fs = get_file_storage();
-
     // Save the file if it exists that is currently in the draft area.
     file_save_draft_area_files($draftitemid, context_system::instance()->id, 'mod_customcert', 'image', 0);
 }
@@ -477,7 +474,7 @@ function customcert_get_font_sizes() {
  * @param stdClass $data the customcert data
  */
 function customcert_save_page_data($data) {
-    global $CFG, $DB;
+    global $DB;
 
     // Set the time to a variable.
     $time = time();
@@ -541,8 +538,6 @@ function customcert_get_element_instance($element) {
  * @param int $pageid the page id we are saving it to
  */
 function customcert_add_element($element, $pageid) {
-    global $CFG;
-
     $classname = "customcert_element_{$element}";
     $classname::add_element($element, $pageid);
 }
@@ -597,7 +592,7 @@ function customcert_add_page($data) {
  * @param int $pageid the customcert page
  */
 function customcert_delete_page($pageid) {
-    global $CFG, $DB;
+    global $DB;
 
     // Get the page.
     $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
@@ -687,13 +682,15 @@ function customcert_get_course_time($courseid) {
  * @return stdClass the users
  */
 function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) {
-    global $CFG, $DB;
+    global $DB;
 
+    // Get the conditional SQL.
     list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
 
-    // Get all the users that have customcerts issued, should only be one issue per user for a customcert
+    // Add the conditional SQL and the customcertid to form all used parameters.
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
+    // Return the issues.
     return $DB->get_records_sql("SELECT u.*, ci.code, ci.timecreated
                                  FROM {user} u
                                  INNER JOIN {customcert_issues} ci
@@ -718,11 +715,13 @@ function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) 
 function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
     global $DB;
 
+    // Get the conditional SQL.
     list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
 
-    // Get all the users that have customcerts issued, should only be one issue per user for a customcert.
+    // Add the conditional SQL and the customcertid to form all used parameters.
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
+    // Return the number of issues.
     return $DB->count_records_sql("SELECT COUNT(u.*) as count
                                    FROM {user} u
                                    INNER JOIN {customcert_issues} ci
