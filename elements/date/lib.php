@@ -44,9 +44,6 @@ class customcert_element_date extends customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        // The identifier.
-        $id = $this->element->id;
-
         $dateitem = '';
         $dateformat = '';
 
@@ -62,17 +59,17 @@ class customcert_element_date extends customcert_element_base {
         $dateoptions['1'] = get_string('issueddate', 'certificate');
         $dateoptions['2'] = get_string('completiondate', 'certificate');
         $dateoptions = $dateoptions + customcert_element_grade::get_grade_items();
-        $mform->addElement('select', 'dateitem_' . $id, get_string('dateitem', 'customcertelement_date'), $dateoptions);
-        $mform->addElement('select', 'dateformat_' . $id, get_string('dateformat', 'customcertelement_date'), customcert_element_date::get_date_formats());
+        $mform->addElement('select', 'dateitem_' . $this->element->id, get_string('dateitem', 'customcertelement_date'), $dateoptions);
+        $mform->addElement('select', 'dateformat_' . $this->element->id, get_string('dateformat', 'customcertelement_date'), customcert_element_date::get_date_formats());
 
         parent::render_form_elements($mform);
 
-        $mform->setDefault('dateitem_' . $id, $dateitem);
-        $mform->setDefault('dateformat_' . $id, $dateformat);
+        $mform->setDefault('dateitem_' . $this->element->id, $dateitem);
+        $mform->setDefault('dateformat_' . $this->element->id, $dateformat);
 
         // Add help buttons.
-        $mform->addHelpButton('dateitem_' . $id, 'dateitem', 'customcertelement_date');
-        $mform->addHelpButton('dateformat_' . $id, 'dateformat', 'customcertelement_date');
+        $mform->addHelpButton('dateitem_' . $this->element->id, 'dateitem', 'customcertelement_date');
+        $mform->addHelpButton('dateformat_' . $this->element->id, 'dateformat', 'customcertelement_date');
 	}
 
 	/**
@@ -83,13 +80,10 @@ class customcert_element_date extends customcert_element_base {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-    	// The identifier.
-        $id = $this->element->id;
-
         // Get the date item and format from the form.
-        $dateitem = 'dateitem_' . $id;
+        $dateitem = 'dateitem_' . $this->element->id;
         $dateitem = $data->$dateitem;
-        $dateformat = 'dateformat_' . $id;
+        $dateformat = 'dateformat_' . $this->element->id;
         $dateformat = $data->$dateformat;
 
         // Array of data we will be storing in the database.

@@ -57,7 +57,7 @@ class mod_customcert_edit_form extends moodleform {
      * Form definition.
      */
     function definition() {
-        global $CFG, $DB, $OUTPUT;
+        global $DB;
 
         $this->id = $this->_customdata['customcertid'];
         $this->filemanageroptions = array('maxbytes' => $this->_customdata['course']->maxbytes,
@@ -118,10 +118,10 @@ class mod_customcert_edit_form extends moodleform {
                     $element = $mform->getElement('orientation_' . $p->id);
                     $element->setValue($p->orientation);
                     // Set the width.
-                    $element = $mform->getElement('width_' . $p->id);
+                    $element = $mform->getElement('pagewidth_' . $p->id);
                     $element->setValue($p->width);
                     // Set the height.
-                    $element = $mform->getElement('height_' . $p->id);
+                    $element = $mform->getElement('pageheight_' . $p->id);
                     $element->setValue($p->height);
                 }
             }
@@ -140,20 +140,20 @@ class mod_customcert_edit_form extends moodleform {
 
         // Go through the data and check any width or height values.
         foreach ($data as $key => $value) {
-            if (strpos($key, 'width_') !== false) {
-                $page = str_replace('width_', '', $key);
-                $widthid = 'width_' . $page;
+            if (strpos($key, 'pagewidth_') !== false) {
+                $page = str_replace('pagewidth_', '', $key);
+                $widthid = 'pagewidth_' . $page;
                 // Validate that the width is a valid value.
                 if ((!isset($data[$widthid])) || (!is_numeric($data[$widthid])) || ($data[$widthid] <= 0)) {
-                    $errors[$widthid] = get_string('widthnotvalid', 'customcert');
+                    $errors[$widthid] = get_string('invalidwidth', 'customcert');
                 }
             }
-            if (strpos($key, 'height_') !== false) {
-                $page = str_replace('height_', '', $key);
-                $heightid = 'height_' . $page;
+            if (strpos($key, 'pageheight_') !== false) {
+                $page = str_replace('pageheight_', '', $key);
+                $heightid = 'pageheight_' . $page;
                 // Validate that the height is a valid value.
                 if ((!isset($data[$heightid])) || (!is_numeric($data[$heightid])) || ($data[$heightid] <= 0)) {
-                    $errors[$heightid] = get_string('heightnotvalid', 'customcert');
+                    $errors[$heightid] = get_string('invalidheight', 'customcert');
                 }
             }
         }
@@ -179,57 +179,54 @@ class mod_customcert_edit_form extends moodleform {
         // Create the form object.
         $mform =& $this->_form;
 
-        $pageid = $page->id;
-        $pagenum = $page->pagenumber;
-
-        $mform->addElement('header', 'page_' . $pageid, get_string('page', 'customcert', $pagenum));
+        $mform->addElement('header', 'page_' . $page->id, get_string('page', 'customcert', $page->pagenumber));
 
         // Place the ordering arrows.
         // Only display the move up arrow if it is not the first.
-        if ($pagenum > 1) {
-            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'moveup' => $pageid));
+        if ($page->pagenumber > 1) {
+            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'moveup' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
         }
         // Only display the move down arrow if it is not the last.
-        if ($pagenum < $this->numpages) {
-            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'movedown' => $pageid));
+        if ($page->pagenumber < $this->numpages) {
+            $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'movedown' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
         }
 
         $orientationoptions = array('L' => get_string('landscape', 'customcert'),
                                     'P' => get_string('portrait', 'customcert'));
-        $mform->addElement('select', 'orientation_' . $pageid, get_string('orientation', 'customcert'), $orientationoptions);
-        $mform->setDefault('orientation_' . $pageid, 'P');
-        $mform->addHelpButton('orientation_' . $pageid, 'orientation', 'customcert');
+        $mform->addElement('select', 'orientation_' . $page->id, get_string('orientation', 'customcert'), $orientationoptions);
+        $mform->setDefault('orientation_' . $page->id, 'P');
+        $mform->addHelpButton('orientation_' . $page->id, 'orientation', 'customcert');
 
-        $mform->addElement('text', 'width_' . $pageid, get_string('width', 'customcert'));
-        $mform->setType('width_' . $pageid, PARAM_INT);
-        $mform->setDefault('width_' . $pageid, '210');
-        $mform->addRule('width_' . $pageid, null, 'required', null, 'client');
-        $mform->addHelpButton('width_' . $pageid, 'width', 'customcert');
+        $mform->addElement('text', 'pagewidth_' . $page->id, get_string('width', 'customcert'));
+        $mform->setType('pagewidth_' . $page->id, PARAM_INT);
+        $mform->setDefault('pagewidth_' . $page->id, '210');
+        $mform->addRule('pagewidth_' . $page->id, null, 'required', null, 'client');
+        $mform->addHelpButton('pagewidth_' . $page->id, 'width', 'customcert');
 
-        $mform->addElement('text', 'height_' . $pageid, get_string('height', 'customcert'));
-        $mform->setType('height_' . $pageid, PARAM_INT);
-        $mform->setDefault('height_' . $pageid, '297');
-        $mform->addRule('height_' . $pageid, null, 'required', null, 'client');
-        $mform->addHelpButton('height_' . $pageid, 'height', 'customcert');
+        $mform->addElement('text', 'pageheight_' . $page->id, get_string('height', 'customcert'));
+        $mform->setType('pageheight_' . $page->id, PARAM_INT);
+        $mform->setDefault('pageheight_' . $page->id, '297');
+        $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
+        $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
 
         $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $pageid, '', customcert_get_elements());
-        $group[] = $mform->createElement('submit', 'addelement_' . $pageid, get_string('addelement', 'customcert'));
+        $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());
+        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
-        $mform->addElement('submit', 'addcertpage_' . $pageid, get_string('addcertpage', 'customcert'));
+        $mform->addElement('submit', 'addcertpage_' . $page->id, get_string('addcertpage', 'customcert'));
 
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
             $mform->addElement('html', html_writer::start_tag('div', array('class' => 'deletebutton')));
-            $mform->addElement('submit', 'deletecertpage_' . $pageid, get_string('deletecertpage', 'customcert'));
+            $mform->addElement('submit', 'deletecertpage_' . $page->id, get_string('deletecertpage', 'customcert'));
             $mform->addElement('html', html_writer::end_tag('div'));
         }
 
         // Check if there are elements to add.
-        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $pageid), 'sequence ASC')) {
+        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
             // Get the total number of elements.
             $numelements = count($elements);
             // Loop through and add the ones present.
@@ -239,7 +236,7 @@ class mod_customcert_edit_form extends moodleform {
                 // this is the case we do not want to render these elements as an error will occur.
                 if (file_exists($classfile)) {
                     // Add element header.
-                    $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $pagenum) . " - " .
+                    $mform->addElement('header', 'headerelement_' . $element->id, get_string('page', 'customcert', $page->pagenumber) . " - " .
                         get_string('pluginname', 'customcertelement_' . $element->element));
                     // We do not need to expand these elements if the modified time is greater than the created time as it
                     // means the values have already been altered by the user - ie. the element has not just been created.
@@ -259,7 +256,7 @@ class mod_customcert_edit_form extends moodleform {
                         $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
                     }
                     // Add the page number to the element so we can use within the element.
-                    $element->pagenum = $pagenum;
+                    $element->pagenum = $page->pagenumber;
                     // Get the classname.
                     $classname = "customcert_element_{$element->element}";
                     $e = new $classname($element);

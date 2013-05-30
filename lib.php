@@ -354,27 +354,6 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 }
 
 /**
- * Return the list of possible images to use.
- *
- * @return array the list of images that can be used.
- */
-function customcert_get_images() {
-    // Create file storage object.
-    $fs = get_file_storage();
-
-    // The array used to store the images.
-    $arrfiles = array();
-    $arrfiles[0] = get_string('noimage', 'customcert');
-    if ($files = $fs->get_area_files(context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
-        foreach ($files as $hash => $file) {
-            $arrfiles[$hash] = $file->get_filename();
-        }
-    }
-
-    return $arrfiles;
-}
-
-/**
  * Handles uploading an image for the customcert module.
  *
  * @param int $draftitemid the draft area containing the files
@@ -509,8 +488,8 @@ function customcert_save_page_data($data) {
         foreach ($pages as $page) {
             // Get the name of the fields we want from the form.
             $orientation = 'orientation_' . $page->id;
-            $width = 'width_' . $page->id;
-            $height = 'height_' . $page->id;
+            $width = 'pagewidth_' . $page->id;
+            $height = 'pageheight_' . $page->id;
             // Create the page data to update the DB with.
             $p = new stdClass();
             $p->id = $page->id;

@@ -52,9 +52,6 @@ class customcert_element_grade extends customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        // The identifier.
-        $id = $this->element->id;
-
         $gradeitem = '';
         $gradeformat = '';
 
@@ -71,17 +68,17 @@ class customcert_element_grade extends customcert_element_base {
         $gradeitems = $gradeitems + customcert_element_grade::get_grade_items();
 
         // The grade items.
-        $mform->addElement('select', 'gradeitem_' . $id, get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
+        $mform->addElement('select', 'gradeitem_' . $this->element->id, get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
         $mform->setType('gradeitem_', PARAM_INT);
-        $mform->setDefault('gradeitem_' . $id, $gradeitem);
-        $mform->addHelpButton('gradeitem_' . $id, 'gradeitem', 'customcertelement_grade');
+        $mform->setDefault('gradeitem_' . $this->element->id, $gradeitem);
+        $mform->addHelpButton('gradeitem_' . $this->element->id, 'gradeitem', 'customcertelement_grade');
 
         // The grade format.
-        $mform->addElement('select', 'gradeformat_' . $id, get_string('gradeformat', 'customcertelement_grade'),
+        $mform->addElement('select', 'gradeformat_' . $this->element->id, get_string('gradeformat', 'customcertelement_grade'),
             customcert_element_grade::get_grade_format_options());
         $mform->setType('gradeformat_', PARAM_INT);
-        $mform->setDefault('gradeformat_' . $id, $gradeformat);
-        $mform->addHelpButton('gradeformat_' . $id, 'gradeformat', 'customcertelement_grade');
+        $mform->setDefault('gradeformat_' . $this->element->id, $gradeformat);
+        $mform->addHelpButton('gradeformat_' . $this->element->id, 'gradeformat', 'customcertelement_grade');
 
         parent::render_form_elements($mform);
 	}
@@ -94,13 +91,10 @@ class customcert_element_grade extends customcert_element_base {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-    	// The identifier.
-        $id = $this->element->id;
-
         // Get the grade item and format from the form.
-        $gradeitem = 'gradeitem_' . $id;
+        $gradeitem = 'gradeitem_' . $this->element->id;
         $gradeitem = $data->$gradeitem;
-        $gradeformat = 'gradeformat_' . $id;
+        $gradeformat = 'gradeformat_' . $this->element->id;
         $gradeformat = $data->$gradeformat;
 
         // Array of data we will be storing in the database.
