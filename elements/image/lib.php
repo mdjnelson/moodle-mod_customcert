@@ -30,15 +30,6 @@ require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 class customcert_element_image extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-    }
-
-    /**
      * This function is responsible for adding the element for the first time
      * to the database when no data has yet been specified, default values set.
      * Can be overridden if more functionality is needed.

@@ -30,15 +30,6 @@ require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 class customcert_element_studentname extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-    }
-
-    /**
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object

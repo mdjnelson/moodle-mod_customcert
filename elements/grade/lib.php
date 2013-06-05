@@ -38,15 +38,6 @@ define('CUSTOMCERT_GRADE_COURSE', '0');
 class customcert_element_grade extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-    }
-
-    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param stdClass $mform the edit_form instance.
