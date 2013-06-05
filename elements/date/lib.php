@@ -91,9 +91,8 @@ class customcert_element_date extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
+    public function render($pdf) {
         // TO DO.
     }
 

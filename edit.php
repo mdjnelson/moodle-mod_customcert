@@ -183,7 +183,7 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-        customcert_generate_pdf($customcert, $USER->id);
+        customcert_generate_pdf($customcert);
     }
 
     // Redirect to the editing page to show form with recent updates.

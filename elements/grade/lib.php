@@ -103,9 +103,10 @@ class customcert_element_grade extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
+    public function render($pdf) {
+        global $USER;
+
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
             return;
@@ -115,7 +116,7 @@ class customcert_element_grade extends customcert_element_base {
         $gradeinfo = json_decode($this->element->data);
 
         // Get the grade for the grade item.
-        $grade = customcert_element_grade::get_grade($gradeinfo, $userid);
+        $grade = customcert_element_grade::get_grade($gradeinfo, $USER->id);
         parent::render_content($pdf, $grade);
     }
 

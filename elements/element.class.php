@@ -169,9 +169,8 @@ class customcert_element_base {
      * Must be overridden.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
+    public function render($pdf) {
         // Must be overridden.
     }
 
@@ -179,7 +178,7 @@ class customcert_element_base {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param stdClass $content the content to render
+     * @param string $content the content to render
      */
     public function render_content($pdf, $content) {
         $this->set_font($pdf);

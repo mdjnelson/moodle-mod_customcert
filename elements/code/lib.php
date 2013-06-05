@@ -33,15 +33,14 @@ class customcert_element_code extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
-        global $DB;
+    public function render($pdf) {
+        global $DB, $USER;
 
         // Get the page.
         $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
         // Now we can get the issue for this user.
-        $issue = $DB->get_record('customcert_issues', array('userid' => $userid, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
+        $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
 
         parent::render_content($pdf, $issue->code);
     }

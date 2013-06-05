@@ -120,5 +120,5 @@ if (empty($action)) {
         $DB->insert_record('customcert_issues', $customcertissue);
     }
     // Now we want to generate the PDF.
-    customcert_generate_pdf($customcert, $USER->id);
+    customcert_generate_pdf($customcert);
 }

@@ -33,14 +33,10 @@ class customcert_element_studentname extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
-        global $DB;
+    public function render($pdf) {
+        global $USER;
 
-        $user = $DB->get_record('user', array('id' => $userid), 'id, firstname, lastname', MUST_EXIST);
-        $fullname = fullname($user);
-
-        parent::render_content($pdf, $fullname);
+        parent::render_content($pdf, fullname($USER));
     }
 }

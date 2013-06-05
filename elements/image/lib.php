@@ -144,9 +144,8 @@ class customcert_element_image extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param stdClass $pdf the pdf object
-     * @param int $userid
      */
-    public function render($pdf, $userid) {
+    public function render($pdf) {
         global $CFG;
 
         // If there is no element data, we have nothing to display.
