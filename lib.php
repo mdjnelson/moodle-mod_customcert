@@ -396,9 +396,9 @@ function customcert_get_elements() {
                 $options[$foldername] = get_string('pluginname', $component);
             }
         }
-
     }
 
+    asort($options);
     return $options;
 }
 
