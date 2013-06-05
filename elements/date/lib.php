@@ -50,17 +50,16 @@ class customcert_element_date extends customcert_element_base {
         $dateoptions['1'] = get_string('issueddate', 'certificate');
         $dateoptions['2'] = get_string('completiondate', 'certificate');
         $dateoptions = $dateoptions + customcert_element_grade::get_grade_items();
+
         $mform->addElement('select', 'dateitem_' . $this->element->id, get_string('dateitem', 'customcertelement_date'), $dateoptions);
+        $mform->setDefault('dateitem_' . $this->element->id, $dateitem);
+        $mform->addHelpButton('dateitem_' . $this->element->id, 'dateitem', 'customcertelement_date');
+
         $mform->addElement('select', 'dateformat_' . $this->element->id, get_string('dateformat', 'customcertelement_date'), customcert_element_date::get_date_formats());
+        $mform->setDefault('dateformat_' . $this->element->id, $dateformat);
+        $mform->addHelpButton('dateformat_' . $this->element->id, 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
-
-        $mform->setDefault('dateitem_' . $this->element->id, $dateitem);
-        $mform->setDefault('dateformat_' . $this->element->id, $dateformat);
-
-        // Add help buttons.
-        $mform->addHelpButton('dateitem_' . $this->element->id, 'dateitem', 'customcertelement_date');
-        $mform->addHelpButton('dateformat_' . $this->element->id, 'dateformat', 'customcertelement_date');
 	}
 
 	/**
