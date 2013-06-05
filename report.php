@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Handles viewing a customcert.
+ * Handles viewing a report that shows who has received a customcert.
  *
  * @package    mod_customcert
  * @copyright  Mark Nelson <markn@moodle.com>
@@ -62,10 +62,10 @@ if ($download) {
 
 // Create the table for the users.
 $table = new html_table();
-$table->width = '95%';
-$table->tablealign = 'center';
+$table->attributes['class'] = 'generaltable centre';
+$table->attributes['style'] = 'width: 95%;';
 $table->head  = array(get_string('awardedto', 'customcert'), get_string('receiveddate', 'customcert'), get_string('code', 'customcert'));
-$table->align = array('left', 'left', 'center', 'center');
+$table->align = array('left', 'left', 'center');
 foreach ($users as $user) {
     $name = $OUTPUT->user_picture($user) . fullname($user);
     $date = userdate($user->timecreated);
@@ -75,7 +75,7 @@ foreach ($users as $user) {
 
 // Create table to store buttons.
 $tablebutton = new html_table();
-$tablebutton->attributes['class'] = 'downloadreport';
+$tablebutton->attributes['class'] = 'centre';
 $btndownloadods = $OUTPUT->single_button(new moodle_url('report.php', array('id' => $cm->id, 'download' => 'ods')), get_string("downloadods"));
 $btndownloadxls = $OUTPUT->single_button(new moodle_url('report.php', array('id' => $cm->id, 'download' => 'xls')), get_string("downloadexcel"));
 $tablebutton->data[] = array($btndownloadods, $btndownloadxls);

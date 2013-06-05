@@ -877,13 +877,13 @@ function customcert_generate_report_file($customcert, $users, $type) {
 
     $filename = clean_filename($COURSE->shortname . ' ' . rtrim($customcert->name, '.') . '.' . $type);
 
-    // Send HTTP headers
+    // Send HTTP headers.
     $workbook->send($filename);
 
-    // Creating the first worksheet
+    // Creating the first worksheet.
     $myxls = $workbook->add_worksheet(get_string('report', 'customcert'));
 
-    // Print names of all the fields
+    // Print names of all the fields.
     $myxls->write_string(0, 0, get_string('lastname'));
     $myxls->write_string(0, 1, get_string('firstname'));
     $myxls->write_string(0, 2, get_string('idnumber'));
@@ -891,7 +891,7 @@ function customcert_generate_report_file($customcert, $users, $type) {
     $myxls->write_string(0, 4, get_string('receiveddate', 'customcert'));
     $myxls->write_string(0, 5, get_string('code', 'customcert'));
 
-    // Generate the data for the body of the spreadsheet
+    // Generate the data for the body of the spreadsheet.
     $i = 0;
     $row = 1;
     if ($users) {
@@ -912,6 +912,6 @@ function customcert_generate_report_file($customcert, $users, $type) {
             $row++;
         }
     }
-    // Close the workbook
+    // Close the workbook.
     $workbook->close();
 }
