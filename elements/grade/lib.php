@@ -203,7 +203,7 @@ class customcert_element_grade extends customcert_element_base {
      * @return string the grade result
      */
     public static function get_grade($gradeinfo, $userid) {
-        global $COURSE, $USER, $DB;
+        global $COURSE;
 
         // Get the grade information.
         $gradeitem = $gradeinfo->gradeitem;
