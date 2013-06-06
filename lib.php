@@ -496,16 +496,6 @@ function customcert_save_page_data($data) {
             $p->timemodified = $time;
             // Update the page.
             $DB->update_record('customcert_pages', $p);
-            // Get the elements for the page.
-            if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
-                // Loop through the elements.
-                foreach ($elements as $element) {
-                    // Get an instance of the element class.
-                    if ($e = customcert_get_element_instance($element)) {
-                        $e->save_form_elements($data);
-                    }
-                }
-            }
         }
     }
 }
@@ -532,17 +522,6 @@ function customcert_get_element_instance($element) {
 }
 
 /**
- * Handles adding another element to a page in the customcert.
- *
- * @param string $element the name of the element
- * @param int $pageid the page id we are saving it to
- */
-function customcert_add_element($element, $pageid) {
-    $classname = "customcert_element_{$element}";
-    $classname::add_element($element, $pageid);
-}
-
-/**
  * Handles adding another page to the customcert.
  *
  * @param stdClass $data the form data
@@ -550,23 +529,14 @@ function customcert_add_element($element, $pageid) {
 function customcert_add_page($data) {
     global $DB;
 
-    // If no pageid is passed then we are creating the first page.
-    if (empty($data->pageid)) {
-        $pagenumber = 1;
-    } else { // Create a page after an existing one.
-        // Get the page we are inserting the new one after.
-        $currentpage = $DB->get_record('customcert_pages', array('id' => $data->pageid), '*', MUST_EXIST);
-
-        // Increase the page numbers of the pages that are going
-        // to be in front of the new page we are creating
-        $sql = "UPDATE {customcert_pages}
-                SET pagenumber = pagenumber + 1
-                WHERE customcertid = :customcertid
-                AND pagenumber > :pagenumber";
-        $DB->execute($sql, array('customcertid' => $currentpage->customcertid,
-                                 'pagenumber' => $currentpage->pagenumber));
-
-        $pagenumber = $currentpage->pagenumber + 1;
+    // Set the page number to 1 to begin with.
+    $pagenumber = 1;
+    // Get the max page number.
+    $sql = "SELECT MAX(pagenumber) as maxpage
+            FROM {customcert_pages} cp
+            WHERE cp.customcertid = :customcertid";
+    if ($maxpage = $DB->get_record_sql($sql, array('customcertid' => $data->id))) {
+        $pagenumber = $maxpage->maxpage + 1;
     }
 
     // Store time in a variable.

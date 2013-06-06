@@ -30,31 +30,14 @@ require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 class customcert_element_image extends customcert_element_base {
 
     /**
-     * This function is responsible for adding the element for the first time
-     * to the database when no data has yet been specified, default values set.
-     * Can be overridden if more functionality is needed.
+     * Constructor.
      *
-     * @param string $element the name of the element
-     * @param int $pageid the page id we are saving it to
+     * @param stdClass $element the element data
      */
-    public static function add_element($element, $pageid) {
-        global $DB;
+    function __construct($element) {
+        parent::__construct($element);
 
-        $data = customcert_element_base::get_required_attributes($element, $pageid);
-        $data->width = '0';
-        $data->height = '0';
-        $data->posx = '0';
-        $data->posy = '0';
-
-        $DB->insert_record('customcert_elements', $data);
-    }
-
-    /**
-     * This function renders the form elements when adding a customcert element.
-     *
-     * @param stdClass $mform the edit_form instance.
-     */
-    public function render_form_elements($mform) {
+        // Set the image, width and height for this element.
         $image = '';
         $width = '0';
         $height = '0';
@@ -67,18 +50,26 @@ class customcert_element_image extends customcert_element_base {
             $height = $imageinfo->height;
         }
 
-        $mform->addElement('select', 'image_' . $this->element->id, get_string('image', 'customcertelement_image'), self::get_images());
-        $mform->setDefault('image_' . $this->element->id, $image);
+        $this->element->image = $image;
+        $this->element->width = $width;
+        $this->element->height = $height;
+    }
 
-        $mform->addElement('text', 'imagewidth_' . $this->element->id, get_string('width', 'customcertelement_image'), array('size' => 10));
-        $mform->setType('imagewidth_' . $this->element->id, PARAM_INT);
-        $mform->setDefault('imagewidth_' . $this->element->id, $width);
-        $mform->addHelpButton('imagewidth_' . $this->element->id, 'width', 'customcertelement_image');
+    /**
+     * This function renders the form elements when adding a customcert element.
+     *
+     * @param stdClass $mform the edit_form instance.
+     */
+    public function render_form_elements($mform) {
+        $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
 
-        $mform->addElement('text', 'imageheight_' . $this->element->id, get_string('height', 'customcertelement_image'), array('size' => 10));
-        $mform->setType('imageheight_' . $this->element->id, PARAM_INT);
-        $mform->setDefault('imageheight_' . $this->element->id, $height);
-        $mform->addHelpButton('imageheight_' . $this->element->id, 'height', 'customcertelement_image');
+        $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
+        $mform->setType('width', PARAM_INT);
+        $mform->addHelpButton('width', 'width', 'customcertelement_image');
+
+        $mform->addElement('text', 'height', get_string('height', 'customcertelement_image'), array('size' => 10));
+        $mform->setType('height', PARAM_INT);
+        $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
         parent::render_form_elements_position($mform);
     }
@@ -94,18 +85,14 @@ class customcert_element_image extends customcert_element_base {
         // Array to return the errors.
         $errors = array();
 
-        // Get width.
-        $width = 'imagewidth_' . $this->element->id;
         // Check if width is not set, or not numeric or less than 0.
-        if ((!isset($data[$width])) || (!is_numeric($data[$width])) || ($data[$width] < 0)) {
-            $errors[$width] = get_string('invalidwidth', 'customcertelement_image');
+        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] < 0)) {
+            $errors['width'] = get_string('invalidwidth', 'customcertelement_image');
         }
 
-        // Get height.
-        $height = 'imageheight_' . $this->element->id;
         // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data[$height])) || (!is_numeric($data[$height])) || ($data[$height] < 0)) {
-            $errors[$height] = get_string('invalidheight', 'customcertelement_image');
+        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
+            $errors['height'] = get_string('invalidheight', 'customcertelement_image');
         }
 
         // Validate the position.
@@ -122,19 +109,11 @@ class customcert_element_image extends customcert_element_base {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // Get the date item and format from the form.
-        $image = 'image_' . $this->element->id;
-        $image = $data->$image;
-        $width = 'imagewidth_' . $this->element->id;
-        $width = $data->$width;
-        $height = 'imageheight_' . $this->element->id;
-        $height = $data->$height;
-
         // Array of data we will be storing in the database.
         $arrtostore = array(
-            'pathnamehash' => $image,
-            'width' => $width,
-            'height' => $height
+            'pathnamehash' => $data->image,
+            'width' => $data->width,
+            'height' => $data->height
         );
 
         return json_encode($arrtostore);
@@ -154,18 +133,15 @@ class customcert_element_image extends customcert_element_base {
         }
 
         $imageinfo = json_decode($this->element->data);
-        $image = $imageinfo->pathnamehash;
-        $width = $imageinfo->width;
-        $height = $imageinfo->height;
 
         // Get the image.
         $fs = get_file_storage();
-        if ($file = $fs->get_file_by_hash($image)) {
+        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
             $contenthash = $file->get_contenthash();
             $l1 = $contenthash[0] . $contenthash[1];
             $l2 = $contenthash[2] . $contenthash[3];
             $location = $CFG->dataroot . '/filedir' . '/' . $l1 . '/' . $l2 . '/' . $contenthash;
-            $pdf->Image($location, $this->element->posx, $this->element->posy, $width, $height);
+            $pdf->Image($location, $this->element->posx, $this->element->posy, $imageinfo->width, $imageinfo->height);
         }
     }
 

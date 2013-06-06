@@ -38,38 +38,47 @@ define('CUSTOMCERT_GRADE_COURSE', '0');
 class customcert_element_grade extends customcert_element_base {
 
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Constructor.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param stdClass $element the element data
      */
-    public function render_form_elements($mform) {
+    function __construct($element) {
+        parent::__construct($element);
+
+        // Set the item and format for this element.
         $gradeitem = '';
         $gradeformat = '';
 
-        // Check if there is any data for this element.
         if (!empty($this->element->data)) {
             $gradeinfo = json_decode($this->element->data);
             $gradeitem = $gradeinfo->gradeitem;
             $gradeformat = $gradeinfo->gradeformat;
         }
 
+        $this->element->gradeitem = $gradeitem;
+        $this->element->gradeformat = $gradeformat;
+    }
+
+    /**
+     * This function renders the form elements when adding a customcert element.
+     *
+     * @param stdClass $mform the edit_form instance.
+     */
+    public function render_form_elements($mform) {
         // Get the grade items we can display.
         $gradeitems = array();
         $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
-        $gradeitems = $gradeitems + customcert_element_grade::get_grade_items();
+        $gradeitems = $gradeitems + $this->get_grade_items();
 
         // The grade items.
-        $mform->addElement('select', 'gradeitem_' . $this->element->id, get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
-        $mform->setType('gradeitem_', PARAM_INT);
-        $mform->setDefault('gradeitem_' . $this->element->id, $gradeitem);
-        $mform->addHelpButton('gradeitem_' . $this->element->id, 'gradeitem', 'customcertelement_grade');
+        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
+        $mform->setType('gradeitem', PARAM_INT);
+        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
 
         // The grade format.
-        $mform->addElement('select', 'gradeformat_' . $this->element->id, get_string('gradeformat', 'customcertelement_grade'),
-            customcert_element_grade::get_grade_format_options());
-        $mform->setType('gradeformat_', PARAM_INT);
-        $mform->setDefault('gradeformat_' . $this->element->id, $gradeformat);
-        $mform->addHelpButton('gradeformat_' . $this->element->id, 'gradeformat', 'customcertelement_grade');
+        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelement_grade'), $this->get_grade_format_options());
+        $mform->setType('gradeformat', PARAM_INT);
+        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
 
         parent::render_form_elements($mform);
 	}
@@ -82,16 +91,10 @@ class customcert_element_grade extends customcert_element_base {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // Get the grade item and format from the form.
-        $gradeitem = 'gradeitem_' . $this->element->id;
-        $gradeitem = $data->$gradeitem;
-        $gradeformat = 'gradeformat_' . $this->element->id;
-        $gradeformat = $data->$gradeformat;
-
         // Array of data we will be storing in the database.
         $arrtostore = array(
-            'gradeitem' => $gradeitem,
-            'gradeformat' => $gradeformat
+            'gradeitem' => $data->gradeitem,
+            'gradeformat' => $data->gradeformat
         );
 
         // Encode these variables before saving into the DB.
@@ -116,7 +119,7 @@ class customcert_element_grade extends customcert_element_base {
         $gradeinfo = json_decode($this->element->data);
 
         // Get the grade for the grade item.
-        $grade = customcert_element_grade::get_grade($gradeinfo, $USER->id);
+        $grade = $this->get_grade($gradeinfo, $USER->id);
         parent::render_content($pdf, $grade);
     }
 
@@ -169,8 +172,8 @@ class customcert_element_grade extends customcert_element_base {
                     // Get the grade items for this activity.
                     if ($grade_items = grade_get_grade_items_for_activity($mod)) {
                         $mod_item = grade_get_grades($COURSE->id, 'mod', $mod->modname, $mod->instance);
-                        $item = reset($mod_item->items);
-                        if (isset($item->grademax)) {
+                        $gradeitem = reset($mod_item->items);
+                        if (isset($gradeitem->grademax)) {
                             $modules[$mod->id] = $sectionlabel . ' ' . $section->section . ' : ' . $instance->name;
                         }
                     }
@@ -243,22 +246,22 @@ class customcert_element_grade extends customcert_element_base {
         $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
 
         if ($gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid)) {
-            $item = new grade_item();
-            $item->gradetype = GRADE_TYPE_VALUE;
-            $item->courseid = $cm->course;
-            $itemproperties = reset($gradeitem->items);
-            foreach ($itemproperties as $key => $value) {
-                $item->$key = $value;
+            $gradeitem = new grade_item();
+            $gradeitem->gradetype = GRADE_TYPE_VALUE;
+            $gradeitem->courseid = $cm->course;
+            $gradeitemproperties = reset($gradeitem->items);
+            foreach ($gradeitemproperties as $key => $value) {
+                $gradeitem->$key = $value;
             }
             // Grade for the user.
-            $grade = $item->grades[$userid]->grade;
+            $grade = $gradeitem->grades[$userid]->grade;
             // Create the object we will be returning.
             $modinfo = new stdClass;
             $modinfo->name = $DB->get_field($module->name, 'name', array('id' => $cm->instance));
-            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $item, true, $gradeformat, 2);
+            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $gradeitem, true, $gradeformat, 2);
 
             if ($grade) {
-                $modinfo->dategraded = $item->grades[$userid]->dategraded;
+                $modinfo->dategraded = $gradeitem->grades[$userid]->dategraded;
             } else {
                 $modinfo->dategraded = time();
             }

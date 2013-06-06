@@ -40,29 +40,7 @@ class customcert_element_base {
      * @param stdClass $element the element data
      */
     function __construct($element) {
-        $this->element = new stdClass();
-        $this->element = $element;
-    }
-
-    /**
-     * This function is responsible for adding the element for the first time
-     * to the database when no data has yet been specified, default values set.
-     * Can be overridden if more functionality is needed.
-     *
-     * @param string $element the name of the element
-     * @param int $pageid the page id we are saving it to
-     */
-    public static function add_element($element, $pageid) {
-        global $DB;
-
-        $data = customcert_element_base::get_required_attributes($element, $pageid);
-        $data->font = 'times';
-        $data->size = '12';
-        $data->colour = '#000000';
-        $data->posx = '0';
-        $data->posy = '0';
-
-        $DB->insert_record('customcert_elements', $data);
+        $this->element = clone($element);
     }
 
     /**
@@ -76,6 +54,24 @@ class customcert_element_base {
         $this->render_form_elements_font($mform);
         $this->render_form_elements_colour($mform);
         $this->render_form_elements_position($mform);
+    }
+
+    /**
+     * Sets the data on the form when editing an element.
+     * Can be overridden if more functionality is needed.
+     *
+     * @param stdClass $mform the edit_form instance
+     * @param array the form elements to set
+     */
+    public function definition_after_data($mform) {
+        // Loop through the properties of the element and set the values
+        // of the corresponding form element, if it exists.
+        foreach ($this->element as $property => $value) {
+            if ($mform->elementExists($property)) {
+                $element = $mform->getElement($property);
+                $element->setValue($value);
+            }
+        }
     }
 
     /**
@@ -101,31 +97,33 @@ class customcert_element_base {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data.
+     * @param stdClass $data the form data
      */
     public function save_form_elements($data) {
         global $DB;
 
-        // Get the name of the fields we want from the form.
-        $font = 'font_' . $this->element->id;
-        $size = 'size_' . $this->element->id;
-        $colour = 'colour_' . $this->element->id;
-        $posx = 'posx_' . $this->element->id;
-        $posy = 'posy_' . $this->element->id;
-
         // Get the data from the form.
         $element = new stdClass();
-        $element->id = $this->element->id;
+        $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
-        $element->font = (isset($data->$font)) ? $data->$font : null;
-        $element->size = (isset($data->$size)) ? $data->$size : null;
-        $element->colour = (isset($data->$colour)) ? $data->$colour : null;
-        $element->posx = (isset($data->$posx)) ? $data->$posx : null;
-        $element->posy = (isset($data->$posy)) ? $data->$posy : null;
+        $element->font = (isset($data->font)) ? $data->font : null;
+        $element->size = (isset($data->size)) ? $data->size : null;
+        $element->colour = (isset($data->colour)) ? $data->colour : null;
+        $element->posx = (isset($data->posx)) ? $data->posx : null;
+        $element->posy = (isset($data->posy)) ? $data->posy : null;
         $element->timemodified = time();
 
-        // Ok, now update record in the database.
-        $DB->update_record('customcert_elements', $element);
+        // Check if we are updating, or inserting a new element.
+        if (!empty($this->element->id)) { // Must be updating a record in the database.
+            $element->id = $this->element->id;
+            $DB->update_record('customcert_elements', $element);
+        } else { // Must be adding a new one.
+            $element->element = $data->element;
+            $element->pageid = $data->pageid;
+            $element->sequence = $this->get_element_sequence($element->pageid);
+            $element->timecreated = time();
+            $DB->insert_record('customcert_elements', $element);
+        }
     }
 
     /**
@@ -133,7 +131,7 @@ class customcert_element_base {
      * customcert column.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data.
+     * @param stdClass $data the form data
      * @return string the unique data to save
      */
     public function save_unique_data($data) {
@@ -200,28 +198,6 @@ class customcert_element_base {
     }
 
     /**
-     * Helper function responsible for setting the default values for the required variables
-     * for an element. This should be set the same way regardless of elements.
-     *
-     * @param string $element the name of the element
-     * @param int $pageid the page id we are saving it to
-     * @return stdClass the required attributes
-     */
-    public static function get_required_attributes($element, $pageid) {
-        // Set the time as a variable.
-        $time = time();
-
-        $data = new stdClass();
-        $data->pageid = $pageid;
-        $data->element = $element;
-        $data->sequence = customcert_element_base::get_element_sequence($pageid);
-        $data->timecreated = $time;
-        $data->timemodified = $time;
-
-        return $data;
-    }
-
-    /**
      * Helper function that returns the sequence on a specified customcert page for a
      * newly created element.
      *
@@ -251,17 +227,16 @@ class customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements_font($mform) {
-        $mform->addElement('select', 'font_' . $this->element->id, get_string('font', 'customcert'), customcert_get_fonts());
-        $mform->setType('font_' . $this->element->id, PARAM_TEXT);
-        $mform->setDefault('font_' . $this->element->id, $this->element->font);
-        $mform->addHelpButton('font_' . $this->element->id, 'font', 'customcert');
+        $mform->addElement('select', 'font', get_string('font', 'customcert'), customcert_get_fonts());
+        $mform->setType('font', PARAM_TEXT);
+        $mform->setDefault('font', 'times');
+        $mform->addHelpButton('font', 'font', 'customcert');
 
-        $mform->addElement('select', 'size_' . $this->element->id, get_string('fontsize', 'customcert'), customcert_get_font_sizes());
-        $mform->setType('size_' . $this->element->id, PARAM_INT);
-        $mform->setDefault('size_' . $this->element->id, $this->element->size);
-        $mform->addHelpButton('size_' . $this->element->id, 'fontsize', 'customcert');
+        $mform->addElement('select', 'size', get_string('fontsize', 'customcert'), customcert_get_font_sizes());
+        $mform->setType('size', PARAM_INT);
+        $mform->setDefault('size', 12);
+        $mform->addHelpButton('size', 'fontsize', 'customcert');
     }
-
 
     /**
      * Helper function to render the colour elements.
@@ -269,10 +244,10 @@ class customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements_colour($mform) {
-        $mform->addElement('customcert_colourpicker', 'colour_' . $this->element->id, get_string('fontcolour', 'customcert'));
-        $mform->setType('colour_' . $this->element->id, PARAM_RAW); // Need to validate that this is a valid colour.
-        $mform->setDefault('colour_' . $this->element->id, $this->element->colour);
-        $mform->addHelpButton('colour_' . $this->element->id, 'fontcolour', 'customcert');
+        $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
+        $mform->setType('colour', PARAM_RAW); // Need to validate that this is a valid colour.
+        $mform->setDefault('colour', '#000000');
+        $mform->addHelpButton('colour', 'fontcolour', 'customcert');
     }
 
     /**
@@ -281,15 +256,15 @@ class customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements_position($mform) {
-        $mform->addElement('text', 'posx_' . $this->element->id, get_string('posx', 'customcert'), array('size' => 10));
-        $mform->setType('posx_' . $this->element->id, PARAM_INT);
-        $mform->setDefault('posx_' . $this->element->id, $this->element->posx);
-        $mform->addHelpButton('posx_' . $this->element->id, 'posx', 'customcert');
+        $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
+        $mform->setType('posx', PARAM_INT);
+        $mform->setDefault('posx', '0');
+        $mform->addHelpButton('posx', 'posx', 'customcert');
 
-        $mform->addElement('text', 'posy_' . $this->element->id, get_string('posy', 'customcert'), array('size' => 10));
-        $mform->setType('posy_' . $this->element->id, PARAM_INT);
-        $mform->setDefault('posy_' . $this->element->id, $this->element->posy);
-        $mform->addHelpButton('posy_' . $this->element->id, 'posy', 'customcert');
+        $mform->addElement('text', 'posy', get_string('posy', 'customcert'), array('size' => 10));
+        $mform->setType('posy', PARAM_INT);
+        $mform->setDefault('posy', '0');
+        $mform->addHelpButton('posy', 'posy', 'customcert');
     }
 
     /**
@@ -302,10 +277,8 @@ class customcert_element_base {
         $errors = array();
 
         // Validate the colour.
-        $colour = 'colour_' . $this->element->id;
-        $colourdata = $data[$colour];
-        if (!$this->validate_colour($colourdata)) {
-            $errors[$colour] = get_string('invalidcolour', 'customcert');
+        if (!$this->validate_colour($data['colour'])) {
+            $errors['colour'] = get_string('invalidcolour', 'customcert');
         }
 
         return $errors;
@@ -320,18 +293,14 @@ class customcert_element_base {
     public function validate_form_elements_position($data) {
         $errors = array();
 
-        // Get position X.
-        $posx = 'posx_' . $this->element->id;
         // Check if posx is not set, or not numeric or less than 0.
-        if ((!isset($data[$posx])) || (!is_numeric($data[$posx])) || ($data[$posx] < 0)) {
-            $errors[$posx] = get_string('invalidposition', 'customcert', 'X');
+        if ((!isset($data['posx'])) || (!is_numeric($data['posx'])) || ($data['posx'] < 0)) {
+            $errors['posx'] = get_string('invalidposition', 'customcert', 'X');
         }
 
-        // Get position Y.
-        $posy = 'posy_' . $this->element->id;
         // Check if posy is not set, or not numeric or less than 0.
-        if ((!isset($data[$posy])) || (!is_numeric($data[$posy])) || ($data[$posy] < 0)) {
-            $errors[$posy] = get_string('invalidposition', 'customcert', 'Y');
+        if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
+            $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
         }
 
         return $errors;

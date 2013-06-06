@@ -30,15 +30,25 @@ require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 class customcert_element_text extends customcert_element_base {
 
     /**
+     * Constructor.
+     *
+     * @param stdClass $element the element data
+     */
+    function __construct($element) {
+        parent::__construct($element);
+
+        $this->element->text = (!empty($element->data)) ? $element->data : '';
+    }
+
+    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        $mform->addElement('textarea', 'text_' . $this->element->id, get_string('text', 'customcertelement_text'));
-        $mform->setType('text_' . $this->element->id, PARAM_RAW);
-        $mform->setDefault('text_' . $this->element->id, $this->element->data);
-        $mform->addHelpButton('text_' . $this->element->id, 'text', 'customcertelement_text');
+        $mform->addElement('textarea', 'text', get_string('text', 'customcertelement_text'));
+        $mform->setType('text', PARAM_RAW);
+        $mform->addHelpButton('text', 'text', 'customcertelement_text');
 
         parent::render_form_elements($mform);
     }
@@ -51,8 +61,7 @@ class customcert_element_text extends customcert_element_base {
      * @return string the text
      */
     public function save_unique_data($data) {
-        $text = 'text_' . $this->element->id;
-        return $data->$text;
+        return $data->text;
     }
 
     /**

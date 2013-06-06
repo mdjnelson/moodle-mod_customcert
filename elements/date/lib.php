@@ -26,8 +26,31 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
+require_once($CFG->dirroot . '/mod/customcert/elements/grade/lib.php');
 
 class customcert_element_date extends customcert_element_base {
+
+    /**
+     * Constructor.
+     *
+     * @param stdClass $element the element data
+     */
+    function __construct($element) {
+        parent::__construct($element);
+
+        // Set the item and format for this element.
+        $dateitem = '';
+        $dateformat = '';
+
+        if (!empty($this->element->data)) {
+            $dateinfo = json_decode($this->element->data);
+            $dateitem = $dateinfo->dateitem;
+            $dateformat = $dateinfo->dateformat;
+        }
+
+        $this->element->dateitem = $dateitem;
+        $this->element->dateformat = $dateformat;
+    }
 
     /**
      * This function renders the form elements when adding a customcert element.
@@ -35,29 +58,17 @@ class customcert_element_date extends customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        $dateitem = '';
-        $dateformat = '';
-
-        // Check if there is any data for this element.
-        if (!empty($this->element->data)) {
-            $dateinfo = json_decode($this->element->data);
-            $dateitem = $dateinfo->dateitem;
-            $dateformat = $dateinfo->dateformat;
-        }
-
         // Get the possible date options.
         $dateoptions = array();
         $dateoptions['1'] = get_string('issueddate', 'certificate');
         $dateoptions['2'] = get_string('completiondate', 'certificate');
         $dateoptions = $dateoptions + customcert_element_grade::get_grade_items();
 
-        $mform->addElement('select', 'dateitem_' . $this->element->id, get_string('dateitem', 'customcertelement_date'), $dateoptions);
-        $mform->setDefault('dateitem_' . $this->element->id, $dateitem);
-        $mform->addHelpButton('dateitem_' . $this->element->id, 'dateitem', 'customcertelement_date');
+        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
+        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
 
-        $mform->addElement('select', 'dateformat_' . $this->element->id, get_string('dateformat', 'customcertelement_date'), customcert_element_date::get_date_formats());
-        $mform->setDefault('dateformat_' . $this->element->id, $dateformat);
-        $mform->addHelpButton('dateformat_' . $this->element->id, 'dateformat', 'customcertelement_date');
+        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'), $this->get_date_formats());
+        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
 	}
@@ -70,16 +81,10 @@ class customcert_element_date extends customcert_element_base {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // Get the date item and format from the form.
-        $dateitem = 'dateitem_' . $this->element->id;
-        $dateitem = $data->$dateitem;
-        $dateformat = 'dateformat_' . $this->element->id;
-        $dateformat = $data->$dateformat;
-
         // Array of data we will be storing in the database.
         $arrtostore = array(
-        	'dateitem' => $dateitem,
-        	'dateformat' => $dateformat
+        	'dateitem' => $data->dateitem,
+        	'dateformat' => $data->dateformat
         );
 
         // Encode these variables before saving into the DB.
