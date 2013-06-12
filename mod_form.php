@@ -33,7 +33,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      * Form definition.
      */
     function definition() {
-        global $CFG, $DB, $OUTPUT;
+        global $CFG;
 
         $mform =& $this->_form;
 
@@ -91,8 +91,8 @@ class mod_customcert_mod_form extends moodleform_mod {
     /**
      * Some basic validation.
      *
-     * @param $data
-     * @param $files
+     * @param array $data
+     * @param array $files
      * @return array the errors that were found
      */
     public function validation($data, $files) {

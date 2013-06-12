@@ -15,14 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * The grade elements core interaction API.
- *
- * @package    customcertelements_grade
- * @copyright  Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
@@ -35,6 +27,13 @@ require_once($CFG->dirroot . '/grade/querylib.php');
  */
 define('CUSTOMCERT_GRADE_COURSE', '0');
 
+/**
+ * The customcert element grade's core interaction API.
+ *
+ * @package    customcertelements_grade
+ * @copyright  Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class customcert_elements_grade extends customcert_elements_base {
 
     /**
@@ -62,7 +61,7 @@ class customcert_elements_grade extends customcert_elements_base {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the grade items we can display.
@@ -105,7 +104,7 @@ class customcert_elements_grade extends customcert_elements_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param stdClass $pdf the pdf object
+     * @param pdf $pdf the pdf object
      */
     public function render($pdf) {
         global $USER;

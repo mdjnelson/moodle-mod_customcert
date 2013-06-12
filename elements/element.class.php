@@ -27,7 +27,12 @@ require_once($CFG->dirroot . '/mod/customcert/includes/tcpdf_colors.php');
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-class customcert_elements_base {
+/**
+ * Class customcert_elements_base
+ *
+ * All customercert element plugins are based on this class.
+ */
+abstract class customcert_elements_base {
 
     /**
      * The data for the element we are adding.
@@ -47,7 +52,7 @@ class customcert_elements_base {
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
         // Render the common elements.
@@ -60,7 +65,7 @@ class customcert_elements_base {
      * Sets the data on the form when editing an element.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $mform the edit_form instance
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
      * @param array the form elements to set
      */
     public function definition_after_data($mform) {
@@ -166,7 +171,7 @@ class customcert_elements_base {
      * Handles rendering the element on the pdf.
      * Must be overridden.
      *
-     * @param stdClass $pdf the pdf object
+     * @param pdf $pdf the pdf object
      */
     public function render($pdf) {
         // Must be overridden.
@@ -175,7 +180,7 @@ class customcert_elements_base {
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param stdClass $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param string $content the content to render
      */
     public function render_content($pdf, $content) {
@@ -224,7 +229,7 @@ class customcert_elements_base {
     /**
      * Helper function to render the font elements.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements_font($mform) {
         $mform->addElement('select', 'font', get_string('font', 'customcert'), customcert_get_fonts());
@@ -241,7 +246,7 @@ class customcert_elements_base {
     /**
      * Helper function to render the colour elements.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements_colour($mform) {
         $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
@@ -253,7 +258,7 @@ class customcert_elements_base {
     /**
      * Helper function to render the position elements.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements_position($mform) {
         $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
@@ -309,7 +314,7 @@ class customcert_elements_base {
     /**
      * Sets the font for the element.
      *
-     * @param stdClass $pdf the pdf object
+     * @param pdf $pdf the pdf object
      */
     public function set_font($pdf) {
         // Variable for the font.

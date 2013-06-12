@@ -58,8 +58,8 @@ class mod_customcert_save_template_form extends moodleform {
     /**
      * Some basic validation.
      *
-     * @param $data
-     * @param $files
+     * @param array $data
+     * @param array $files
      * @return array the errors that were found
      */
     public function validation($data, $files) {

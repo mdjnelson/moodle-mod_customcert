@@ -15,18 +15,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
+require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
+
 /**
- * The image elements core interaction API.
+ * The customcert element image's core interaction API.
  *
  * @package    customcertelements_image
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-
-require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
-
 class customcert_elements_image extends customcert_elements_base {
 
     /**
@@ -58,7 +57,7 @@ class customcert_elements_image extends customcert_elements_base {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param stdClass $mform the edit_form instance.
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'image', get_string('image', 'customcertelements_image'), self::get_images());
@@ -105,7 +104,7 @@ class customcert_elements_image extends customcert_elements_base {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param stdClass $data the form data.
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -122,7 +121,7 @@ class customcert_elements_image extends customcert_elements_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param stdClass $pdf the pdf object
+     * @param pdf $pdf the pdf object
      */
     public function render($pdf) {
         global $CFG;
@@ -148,7 +147,7 @@ class customcert_elements_image extends customcert_elements_base {
     /**
      * Return the list of possible images to use.
      *
-     * @return array the list of images that can be used.
+     * @return array the list of images that can be used
      */
     public static function get_images() {
         // Create file storage object.

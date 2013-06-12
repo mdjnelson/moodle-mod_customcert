@@ -45,7 +45,7 @@ class mod_customcert_edit_element_form extends moodleform {
 
         $element = $this->_customdata['element'];
 
-        // Add the field for the name of the variable, this is required for all elements.
+        // Add the field for the name of the element, this is required for all elements.
         $mform->addElement('text', 'name', get_string('elementname', 'customcert'));
         $mform->setType('name', PARAM_TEXT);
         $mform->setDefault('name', get_string('pluginname', 'customcertelements_' . $element->element));
@@ -68,8 +68,8 @@ class mod_customcert_edit_element_form extends moodleform {
     /**
      * Validation.
      *
-     * @param $data
-     * @param $files
+     * @param array $data
+     * @param array $files
      * @return array the errors that were found
      */
     public function validation($data, $files) {

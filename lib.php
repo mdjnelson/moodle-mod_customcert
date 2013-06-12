@@ -55,7 +55,7 @@ define('CUSTOMCERT_MAX_PER_PAGE', 300);
  * Add customcert instance.
  *
  * @param stdClass $data
- * @param stdClass $mform
+ * @param mod_customcert_mod_form $mform
  * @return int new customcert instance id
  */
 function customcert_add_instance($data, $mform) {
@@ -76,7 +76,7 @@ function customcert_add_instance($data, $mform) {
  * Update customcert instance.
  *
  * @param stdClass $data
- * @param stdClass $mform
+ * @param mod_customcert_mod_form $mform
  * @return bool true
  */
 function customcert_update_instance($data, $mform) {
@@ -206,7 +206,7 @@ function customcert_reset_userdata($data) {
  * Implementation of the function for printing the form elements that control
  * whether the course reset functionality affects the customcert.
  *
- * @param $mform form passed by reference
+ * @param mod_customcert_mod_form $mform form passed by reference
  */
 function customcert_reset_course_form_definition(&$mform) {
     $mform->addElement('header', 'customcertheader', get_string('modulenameplural', 'customcert'));
