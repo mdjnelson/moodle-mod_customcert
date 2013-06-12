@@ -27,7 +27,7 @@ require_once($CFG->dirroot . '/mod/customcert/includes/tcpdf_colors.php');
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-class customcert_element_base {
+class customcert_elements_base {
 
     /**
      * The data for the element we are adding.

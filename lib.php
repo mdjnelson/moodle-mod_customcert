@@ -392,7 +392,7 @@ function customcert_get_elements() {
             if (file_exists($classfile)) {
                 // Need to require this file in case if we choose to add this element.
                 require_once($classfile);
-                $component = "customcertelement_{$foldername}";
+                $component = "customcertelements_{$foldername}";
                 $options[$foldername] = get_string('pluginname', $component);
             }
         }
@@ -514,7 +514,7 @@ function customcert_get_element_instance($element) {
     // Ensure this necessary file exists.
     if (file_exists($classfile)) {
         require_once($classfile);
-        $classname = "customcert_element_{$element->element}";
+        $classname = "customcert_elements_{$element->element}";
         return new $classname($element);
     }
 

@@ -16,11 +16,20 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'customcertelement_studentname', language 'en'.
+ * Strings for component 'customcertelements_grade', language 'en'.
  *
- * @package    customcertelement_studentname
+ * @package    customcertelements_grade
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Student name';
+$string['gradeitem'] = 'Grade item';
+$string['gradeitem_help'] = 'The grade item you wish to display the grade of.';
+$string['gradeformat'] = 'Grade format';
+$string['gradeformat_help'] = 'The format you wish to use when displaying the grade.';
+$string['gradeitem'] = 'Grade item';
+$string['gradepercent'] = 'Percentage Grade';
+$string['gradepoints'] = 'Points Grade';
+$string['gradeletter'] = 'Letter Grade';
+$string['coursegrade'] = 'Course grade';
+$string['pluginname'] = 'Grade';

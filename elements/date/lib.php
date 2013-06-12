@@ -18,7 +18,7 @@
 /**
  * The date elements core interaction API.
  *
- * @package    customcertelement_date
+ * @package    customcertelements_date
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 require_once($CFG->dirroot . '/mod/customcert/elements/grade/lib.php');
 
-class customcert_element_date extends customcert_element_base {
+class customcert_elements_date extends customcert_elements_base {
 
     /**
      * Constructor.
@@ -62,13 +62,13 @@ class customcert_element_date extends customcert_element_base {
         $dateoptions = array();
         $dateoptions['1'] = get_string('issueddate', 'certificate');
         $dateoptions['2'] = get_string('completiondate', 'certificate');
-        $dateoptions = $dateoptions + customcert_element_grade::get_grade_items();
+        $dateoptions = $dateoptions + customcert_elements_grade::get_grade_items();
 
-        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
-        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
+        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelements_date'), $dateoptions);
+        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelements_date');
 
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'), $this->get_date_formats());
-        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
+        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelements_date'), self::get_date_formats());
+        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelements_date');
 
         parent::render_form_elements($mform);
 	}

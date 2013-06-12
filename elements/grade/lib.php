@@ -18,7 +18,7 @@
 /**
  * The grade elements core interaction API.
  *
- * @package    customcertelement_grade
+ * @package    customcertelements_grade
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,7 +35,7 @@ require_once($CFG->dirroot . '/grade/querylib.php');
  */
 define('CUSTOMCERT_GRADE_COURSE', '0');
 
-class customcert_element_grade extends customcert_element_base {
+class customcert_elements_grade extends customcert_elements_base {
 
     /**
      * Constructor.
@@ -67,18 +67,18 @@ class customcert_element_grade extends customcert_element_base {
     public function render_form_elements($mform) {
         // Get the grade items we can display.
         $gradeitems = array();
-        $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
-        $gradeitems = $gradeitems + $this->get_grade_items();
+        $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelements_grade');
+        $gradeitems = $gradeitems + self::get_grade_items();
 
         // The grade items.
-        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
+        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelements_grade'), $gradeitems);
         $mform->setType('gradeitem', PARAM_INT);
-        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
+        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelements_grade');
 
         // The grade format.
-        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelement_grade'), $this->get_grade_format_options());
+        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelements_grade'), self::get_grade_format_options());
         $mform->setType('gradeformat', PARAM_INT);
-        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
+        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelements_grade');
 
         parent::render_form_elements($mform);
 	}
@@ -119,7 +119,7 @@ class customcert_element_grade extends customcert_element_base {
         $gradeinfo = json_decode($this->element->data);
 
         // Get the grade for the grade item.
-        $grade = $this->get_grade($gradeinfo, $USER->id);
+        $grade = self::get_grade($gradeinfo, $USER->id);
         parent::render_content($pdf, $grade);
     }
 
@@ -191,9 +191,9 @@ class customcert_element_grade extends customcert_element_base {
      */
     public static function get_grade_format_options() {
         $gradeformat = array();
-        $gradeformat[GRADE_DISPLAY_TYPE_REAL] = get_string('gradepoints', 'customcertelement_grade');
-        $gradeformat[GRADE_DISPLAY_TYPE_PERCENTAGE] = get_string('gradepercent', 'customcertelement_grade');
-        $gradeformat[GRADE_DISPLAY_TYPE_LETTER] = get_string('gradeletter', 'customcertelement_grade');
+        $gradeformat[GRADE_DISPLAY_TYPE_REAL] = get_string('gradepoints', 'customcertelements_grade');
+        $gradeformat[GRADE_DISPLAY_TYPE_PERCENTAGE] = get_string('gradepercent', 'customcertelements_grade');
+        $gradeformat[GRADE_DISPLAY_TYPE_LETTER] = get_string('gradeletter', 'customcertelements_grade');
 
         return $gradeformat;
     }
@@ -222,7 +222,7 @@ class customcert_element_grade extends customcert_element_base {
                 return get_string('coursegrade', 'certificate') . ':  ' . $coursegrade;
             }
         } else { // Get the module grade.
-            if ($modinfo = customcert_element_grade::get_mod_grade($gradeitem, $gradeformat, $userid)) {
+            if ($modinfo = self::get_mod_grade($gradeitem, $gradeformat, $userid)) {
                 return get_string('grade', 'certificate') . ':  ' . $modinfo->gradetodisplay;
             }
         }

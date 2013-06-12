@@ -18,7 +18,7 @@
 /**
  * The text elements core interaction API.
  *
- * @package    customcertelement_text
+ * @package    customcertelements_text
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 
-class customcert_element_text extends customcert_element_base {
+class customcert_elements_text extends customcert_elements_base {
 
     /**
      * Constructor.
@@ -46,9 +46,9 @@ class customcert_element_text extends customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        $mform->addElement('textarea', 'text', get_string('text', 'customcertelement_text'));
+        $mform->addElement('textarea', 'text', get_string('text', 'customcertelements_text'));
         $mform->setType('text', PARAM_RAW);
-        $mform->addHelpButton('text', 'text', 'customcertelement_text');
+        $mform->addHelpButton('text', 'text', 'customcertelements_text');
 
         parent::render_form_elements($mform);
     }

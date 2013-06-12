@@ -18,13 +18,13 @@
 /**
  * This file contains the version information for the date plugin.
  *
- * @package    customcertelement_date
+ * @package    customcertelements_date
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$plugin->version   = 2013060700;
+$plugin->version   = 2013061200;
 $plugin->requires  = 2013040500; // Requires this Moodle version.
-$plugin->component = 'customcertelement_date';
+$plugin->component = 'customcertelements_date';

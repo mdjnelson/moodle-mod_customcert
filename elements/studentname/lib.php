@@ -18,7 +18,7 @@
 /**
  * The studentname elements core interaction API.
  *
- * @package    customcertelement_studentname
+ * @package    customcertelements_studentname
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 
-class customcert_element_studentname extends customcert_element_base {
+class customcert_elements_studentname extends customcert_elements_base {
 
     /**
      * Handles rendering the element on the pdf.

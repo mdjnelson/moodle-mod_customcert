@@ -16,13 +16,11 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'customcertelement_text', language 'en'.
+ * Strings for component 'customcertelements_code', language 'en'.
  *
- * @package    customcertelement_text
+ * @package    customcertelements_code
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Text';
-$string['text'] = 'Text';
-$string['text_help'] = 'This is the text that will display on the PDF.';
+$string['pluginname'] = 'Code';

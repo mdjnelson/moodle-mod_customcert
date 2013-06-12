@@ -16,11 +16,15 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'customcertelement_code', language 'en'.
+ * Strings for component 'customcertelements_date', language 'en'.
  *
- * @package    customcertelement_code
+ * @package    customcertelements_date
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Code';
+$string['dateformat'] = 'Date format';
+$string['dateformat_help'] = 'This is the format of the date that will be displayed';
+$string['dateitem'] = 'Date item';
+$string['dateitem_help'] = 'This will be the date that is printed on the certificate';
+$string['pluginname'] = 'Date';

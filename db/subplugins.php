@@ -25,4 +25,4 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$subplugins = array('customcertelement' => 'mod/customcert/elements');
+$subplugins = array('customcertelements' => 'mod/customcert/elements');

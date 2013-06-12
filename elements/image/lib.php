@@ -18,7 +18,7 @@
 /**
  * The image elements core interaction API.
  *
- * @package    customcertelement_image
+ * @package    customcertelements_image
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/elements/element.class.php');
 
-class customcert_element_image extends customcert_element_base {
+class customcert_elements_image extends customcert_elements_base {
 
     /**
      * Constructor.
@@ -61,15 +61,15 @@ class customcert_element_image extends customcert_element_base {
      * @param stdClass $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
-        $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
+        $mform->addElement('select', 'image', get_string('image', 'customcertelements_image'), self::get_images());
 
-        $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
+        $mform->addElement('text', 'width', get_string('width', 'customcertelements_image'), array('size' => 10));
         $mform->setType('width', PARAM_INT);
-        $mform->addHelpButton('width', 'width', 'customcertelement_image');
+        $mform->addHelpButton('width', 'width', 'customcertelements_image');
 
-        $mform->addElement('text', 'height', get_string('height', 'customcertelement_image'), array('size' => 10));
+        $mform->addElement('text', 'height', get_string('height', 'customcertelements_image'), array('size' => 10));
         $mform->setType('height', PARAM_INT);
-        $mform->addHelpButton('height', 'height', 'customcertelement_image');
+        $mform->addHelpButton('height', 'height', 'customcertelements_image');
 
         parent::render_form_elements_position($mform);
     }
@@ -87,12 +87,12 @@ class customcert_element_image extends customcert_element_base {
 
         // Check if width is not set, or not numeric or less than 0.
         if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] < 0)) {
-            $errors['width'] = get_string('invalidwidth', 'customcertelement_image');
+            $errors['width'] = get_string('invalidwidth', 'customcertelements_image');
         }
 
         // Check if height is not set, or not numeric or less than 0.
         if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
-            $errors['height'] = get_string('invalidheight', 'customcertelement_image');
+            $errors['height'] = get_string('invalidheight', 'customcertelements_image');
         }
 
         // Validate the position.
