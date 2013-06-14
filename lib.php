@@ -861,7 +861,6 @@ function customcert_generate_report_file($customcert, $users, $type) {
     $myxls->write_string(0, 5, get_string('code', 'customcert'));
 
     // Generate the data for the body of the spreadsheet.
-    $i = 0;
     $row = 1;
     if ($users) {
         foreach ($users as $user) {
