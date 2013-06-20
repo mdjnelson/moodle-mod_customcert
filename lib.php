@@ -692,7 +692,7 @@ function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
     // Return the number of issues.
-    return $DB->count_records_sql("SELECT COUNT(u.*) as count
+    return $DB->count_records_sql("SELECT COUNT(u.id) as count
                                    FROM {user} u
                                    INNER JOIN {customcert_issues} ci
                                    ON u.id = ci.userid
