@@ -28,7 +28,6 @@ $string['addelement'] = 'Add element';
 $string['awardedto'] = 'Awarded to';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
-$string['configure'] = 'Configure';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive the certificate.';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';

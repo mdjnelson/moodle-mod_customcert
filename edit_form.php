@@ -226,17 +226,17 @@ class mod_customcert_edit_form extends moodleform {
                 $deletelink = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'deleteelement' => $element->id));
                 $deletelink = html_writer::tag('a', get_string('delete', 'customcert'), array('href' => $deletelink->out(false)));
                 $row->cells[] = $deletelink;
-                // Link to configure this element.
+                // Link to edit this element.
                 $params = array();
                 $params['id'] = $element->id;
                 $params['cmid'] = $this->_customdata['cmid'];
                 $params['action'] = 'edit';
-                $nopopupconfigurelink = new moodle_url('/mod/customcert/edit_element.php', $params);
+                $nopopupeditlink = new moodle_url('/mod/customcert/edit_element.php', $params);
                 $params['popup'] = 1;
-                $popupconfigurelink = new moodle_url('/mod/customcert/edit_element.php', $params);
-                $action = new popup_action('click', $popupconfigurelink, 'edit_element_popup', array('height' => 400, 'width' => 600));
-                $configurelink = $OUTPUT->action_link($nopopupconfigurelink->out(false), get_string('configure', 'customcert'), $action);
-                $row->cells[] = $configurelink;
+                $popupeditlink = new moodle_url('/mod/customcert/edit_element.php', $params);
+                $action = new popup_action('click', $popupeditlink, 'edit_element_popup', array('height' => 400, 'width' => 600));
+                $editlink = $OUTPUT->action_link($nopopupeditlink->out(false), get_string('edit'), $action);
+                $row->cells[] = $editlink;
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {
                     // Only display the move up arrow if it is not the first.
