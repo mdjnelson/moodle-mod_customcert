@@ -16,13 +16,15 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of sub-plugins.
+ * This file contains the version information for the text plugin.
  *
- * @package    mod_customcert
+ * @package    customcertelement_text
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$subplugins = array('customcertelement' => 'mod/customcert/element');
+$plugin->version   = 2013061200;
+$plugin->requires  = 2013040500; // Requires this Moodle version.
+$plugin->component = 'customcertelement_text';

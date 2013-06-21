@@ -16,13 +16,11 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of sub-plugins.
+ * Strings for component 'customcertelement_studentname', language 'en'.
  *
- * @package    mod_customcert
+ * @package    customcertelement_studentname
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$subplugins = array('customcertelement' => 'mod/customcert/element');
+$string['pluginname'] = 'Student name';

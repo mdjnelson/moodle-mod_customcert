@@ -16,13 +16,20 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of sub-plugins.
+ * Strings for component 'customcertelement_grade', language 'en'.
  *
- * @package    mod_customcert
+ * @package    customcertelement_grade
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$subplugins = array('customcertelement' => 'mod/customcert/element');
+$string['gradeitem'] = 'Grade item';
+$string['gradeitem_help'] = 'The grade item you wish to display the grade of.';
+$string['gradeformat'] = 'Grade format';
+$string['gradeformat_help'] = 'The format you wish to use when displaying the grade.';
+$string['gradeitem'] = 'Grade item';
+$string['gradepercent'] = 'Percentage Grade';
+$string['gradepoints'] = 'Points Grade';
+$string['gradeletter'] = 'Letter Grade';
+$string['coursegrade'] = 'Course grade';
+$string['pluginname'] = 'Grade';

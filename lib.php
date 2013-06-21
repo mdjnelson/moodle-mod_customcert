@@ -375,7 +375,7 @@ function customcert_get_elements() {
     $options = array();
 
     // Check that the directory exists.
-    $elementdir = "$CFG->dirroot/mod/customcert/elements";
+    $elementdir = "$CFG->dirroot/mod/customcert/element";
     if (file_exists($elementdir)) {
         // Get directory contents.
         $elementfolders = new DirectoryIterator($elementdir);
@@ -392,13 +392,13 @@ function customcert_get_elements() {
             if (file_exists($classfile)) {
                 // Need to require this file in case if we choose to add this element.
                 require_once($classfile);
-                $component = "customcertelements_{$foldername}";
+                $component = "customcertelement_{$foldername}";
                 $options[$foldername] = get_string('pluginname', $component);
             }
         }
     }
 
-    asort($options);
+    collatorlib::asort($options);
     return $options;
 }
 
@@ -510,11 +510,11 @@ function customcert_save_page_data($data) {
 function customcert_get_element_instance($element) {
     global $CFG;
 
-    $classfile = "$CFG->dirroot/mod/customcert/elements/{$element->element}/lib.php";
+    $classfile = "$CFG->dirroot/mod/customcert/element/{$element->element}/lib.php";
     // Ensure this necessary file exists.
     if (file_exists($classfile)) {
         require_once($classfile);
-        $classname = "customcert_elements_{$element->element}";
+        $classname = "customcert_element_{$element->element}";
         return new $classname($element);
     }
 

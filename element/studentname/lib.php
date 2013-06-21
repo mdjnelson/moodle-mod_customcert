@@ -15,14 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
+require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+
 /**
- * Definition of sub-plugins.
+ * The customcert element studentname's core interaction API.
  *
- * @package    mod_customcert
+ * @package    customcertelement_studentname
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class customcert_element_studentname extends customcert_element_base {
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * Handles rendering the element on the pdf.
+     *
+     * @param pdf $pdf the pdf object
+     */
+    public function render($pdf) {
+        global $USER;
 
-$subplugins = array('customcertelement' => 'mod/customcert/element');
+        parent::render_content($pdf, fullname($USER));
+    }
+}

@@ -16,13 +16,18 @@
 // along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of sub-plugins.
+ * Strings for component 'customcertelement_image', language 'en'.
  *
- * @package    mod_customcert
+ * @package    customcertelement_image
  * @copyright  Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$subplugins = array('customcertelement' => 'mod/customcert/element');
+$string['height'] = 'Height';
+$string['height_help'] = 'Height of the image in the page. If equal to zero, it is automatically calculated.';
+$string['image'] = 'Image';
+$string['invalidheight'] = 'The height has to be a valid number greater than 0.';
+$string['invalidwidth'] = 'The width has to be a valid number greater than 0.';
+$string['pluginname'] = 'Image';
+$string['width'] = 'Width';
+$string['width_help'] = 'Width of the image in the page. If equal to zero, it is automatically calculated.';
