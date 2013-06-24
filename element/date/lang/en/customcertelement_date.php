@@ -28,3 +28,7 @@ $string['dateformat_help'] = 'This is the format of the date that will be displa
 $string['dateitem'] = 'Date item';
 $string['dateitem_help'] = 'This will be the date that is printed on the certificate';
 $string['pluginname'] = 'Date';
+$string['numbersuffix_nd'] = 'nd';
+$string['numbersuffix_rd'] = 'rd';
+$string['numbersuffix_st'] = 'st';
+$string['userdateformat'] = 'User date format';
