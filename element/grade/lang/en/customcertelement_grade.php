@@ -23,6 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['coursegrade'] = 'Course grade';
+$string['grade'] = 'Grade';
 $string['gradeitem'] = 'Grade item';
 $string['gradeitem_help'] = 'The grade item you wish to display the grade of.';
 $string['gradeformat'] = 'Grade format';
@@ -31,5 +33,4 @@ $string['gradeitem'] = 'Grade item';
 $string['gradepercent'] = 'Percentage Grade';
 $string['gradepoints'] = 'Points Grade';
 $string['gradeletter'] = 'Letter Grade';
-$string['coursegrade'] = 'Course grade';
 $string['pluginname'] = 'Grade';

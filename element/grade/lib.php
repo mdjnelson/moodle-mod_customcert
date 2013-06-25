@@ -140,14 +140,14 @@ class customcert_element_grade extends customcert_element_base {
 
         // Create the section label depending on course format.
         switch ($COURSE->format) {
-            case "topics":
-                $sectionlabel = get_string("topic");
+            case 'topics':
+                $sectionlabel = get_string('topic');
                 break;
-            case "weeks":
-                $sectionlabel = get_string("week");
+            case 'weeks':
+                $sectionlabel = get_string('week');
                 break;
             default:
-                $sectionlabel = get_string("section");
+                $sectionlabel = get_string('section');
                 break;
         }
 
@@ -218,11 +218,11 @@ class customcert_element_grade extends customcert_element_base {
                 $courseitem->gradetype = GRADE_TYPE_VALUE;
                 $grade = new grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));
                 $coursegrade = grade_format_gradevalue($grade->finalgrade, $courseitem, true, $gradeformat, 2);
-                return get_string('coursegrade', 'certificate') . ':  ' . $coursegrade;
+                return get_string('coursegrade', 'customcertelement_grade') . ':  ' . $coursegrade;
             }
         } else { // Get the module grade.
             if ($modinfo = self::get_mod_grade($gradeitem, $gradeformat, $userid)) {
-                return get_string('grade', 'certificate') . ':  ' . $modinfo->gradetodisplay;
+                return get_string('grade', 'customcertelement_grade') . ':  ' . $modinfo->gradetodisplay;
             }
         }
 
