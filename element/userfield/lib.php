@@ -18,6 +18,7 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+require_once($CFG->libdir . '/conditionlib.php');
 
 /**
  * The customcert element userfield's core interaction API.
@@ -27,17 +28,6 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class customcert_element_userfield extends customcert_element_base {
-
-    /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-
-        $this->element->userfield = (!empty($element->data)) ? $element->data : '';
-    }
 
     /**
      * This function renders the form elements when adding a customcert element.
@@ -89,5 +79,15 @@ class customcert_element_userfield extends customcert_element_base {
         }
 
         parent::render_content($pdf, $value);
+    }
+
+    /**
+     * Sets the data on the form when editing an element.
+     *
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     */
+    public function definition_after_data($mform) {
+        $this->element->userfield = (!empty($this->element->data)) ? $this->element->data : '';
+        parent::definition_after_data($mform);
     }
 }

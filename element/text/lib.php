@@ -29,17 +29,6 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
 class customcert_element_text extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-
-        $this->element->text = (!empty($element->data)) ? $element->data : '';
-    }
-
-    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance
@@ -70,5 +59,15 @@ class customcert_element_text extends customcert_element_base {
      */
     public function render($pdf) {
         parent::render_content($pdf, $this->element->data);
+    }
+
+    /**
+     * Sets the data on the form when editing an element.
+     *
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     */
+    public function definition_after_data($mform) {
+        $this->element->text = (!empty($this->element->data)) ? $this->element->data : '';
+        parent::definition_after_data($mform);
     }
 }

@@ -40,28 +40,6 @@ define('CUSTOMCERT_DATE_COMPLETION', '2');
 class customcert_element_date extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-
-        // Set the item and format for this element.
-        $dateitem = '';
-        $dateformat = '';
-
-        if (!empty($this->element->data)) {
-            $dateinfo = json_decode($this->element->data);
-            $dateitem = $dateinfo->dateitem;
-            $dateformat = $dateinfo->dateformat;
-        }
-
-        $this->element->dateitem = $dateitem;
-        $this->element->dateformat = $dateformat;
-    }
-
-    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance
@@ -165,6 +143,28 @@ class customcert_element_date extends customcert_element_base {
 
             parent::render_content($pdf, $certificatedate);
         }
+    }
+
+    /**
+     * Sets the data on the form when editing an element.
+     *
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     */
+    public function definition_after_data($mform) {
+        // Set the item and format for this element.
+        $dateitem = '';
+        $dateformat = '';
+
+        if (!empty($this->element->data)) {
+            $dateinfo = json_decode($this->element->data);
+            $dateitem = $dateinfo->dateitem;
+            $dateformat = $dateinfo->dateformat;
+        }
+
+        $this->element->dateitem = $dateitem;
+        $this->element->dateformat = $dateformat;
+
+        parent::definition_after_data($mform);
     }
 
 	/**

@@ -37,28 +37,6 @@ define('CUSTOMCERT_GRADE_COURSE', '0');
 class customcert_element_grade extends customcert_element_base {
 
     /**
-     * Constructor.
-     *
-     * @param stdClass $element the element data
-     */
-    function __construct($element) {
-        parent::__construct($element);
-
-        // Set the item and format for this element.
-        $gradeitem = '';
-        $gradeformat = '';
-
-        if (!empty($this->element->data)) {
-            $gradeinfo = json_decode($this->element->data);
-            $gradeitem = $gradeinfo->gradeitem;
-            $gradeformat = $gradeinfo->gradeformat;
-        }
-
-        $this->element->gradeitem = $gradeitem;
-        $this->element->gradeformat = $gradeformat;
-    }
-
-    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance
@@ -120,6 +98,28 @@ class customcert_element_grade extends customcert_element_base {
         // Get the grade for the grade item.
         $grade = self::get_grade($gradeinfo, $USER->id);
         parent::render_content($pdf, $grade);
+    }
+
+    /**
+     * Sets the data on the form when editing an element.
+     *
+     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     */
+    public function definition_after_data($mform) {
+        // Set the item and format for this element.
+        $gradeitem = '';
+        $gradeformat = '';
+
+        if (!empty($this->element->data)) {
+            $gradeinfo = json_decode($this->element->data);
+            $gradeitem = $gradeinfo->gradeitem;
+            $gradeformat = $gradeinfo->gradeformat;
+        }
+
+        $this->element->gradeitem = $gradeitem;
+        $this->element->gradeformat = $gradeformat;
+
+        parent::definition_after_data($mform);
     }
 
     /**
