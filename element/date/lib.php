@@ -84,7 +84,7 @@ class customcert_element_date extends customcert_element_base {
      * @param pdf $pdf the pdf object
      */
     public function render($pdf) {
-        global $COURSE, $DB;
+        global $COURSE, $DB, $USER;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
@@ -96,8 +96,10 @@ class customcert_element_date extends customcert_element_base {
         $dateitem = $dateinfo->dateitem;
         $dateformat = $dateinfo->dateformat;
 
-        // Get the customcert issue date and set the date to the time the issue was given, can be overwritten later.
-        $issue = $DB->get_record('customcert_issues', array('customcertid' => $this->element->id), '*', MUST_EXIST);
+        // Get the page.
+        $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+        // Now we can get the issue for this user.
+        $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
 
         if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
             $date = $issue->timecreated;
