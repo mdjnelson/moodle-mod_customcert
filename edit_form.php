@@ -202,6 +202,11 @@ class mod_customcert_edit_form extends moodleform {
         $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
         $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
 
+        $group = array();
+        $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());
+        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
+        $mform->addElement('group', 'elementgroup', '', $group, '', false);
+
         // Check if there are elements to add.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
             // Get the total number of elements.
@@ -258,11 +263,6 @@ class mod_customcert_edit_form extends moodleform {
             $mform->addElement('static', 'elements_' . $page->id, get_string('elements', 'customcert'), html_writer::table($table));
             $mform->addHelpButton('elements_' . $page->id, 'elements', 'customcert');
         }
-
-        $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());
-        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
-        $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
