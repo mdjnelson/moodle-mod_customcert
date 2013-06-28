@@ -37,11 +37,16 @@ class customcert_element_code extends customcert_element_base {
     public function render($pdf, $preview) {
         global $DB, $USER;
 
-        // Get the page.
-        $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
-        // Now we can get the issue for this user.
-        $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
+        if ($preview) {
+            $code = customcert_generate_code();
+        } else {
+            // Get the page.
+            $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            // Now we can get the issue for this user.
+            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
+            $code = $issue->code;
+        }
 
-        parent::render_content($pdf, $issue->code);
+        parent::render_content($pdf, $code);
     }
 }
