@@ -103,7 +103,7 @@ if ((!empty($moveup)) || (!empty($movedown))) {
         $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
     }
 } else if (!empty($deletepage)) { // Check if we are deleting a page.
-    if (!empty($confirm)) { // Check they have confirmed the deletion
+    if (!empty($confirm)) { // Check they have confirmed the deletion.
         customcert_delete_page($deletepage);
     } else {
         // Set deletion flag to true.
@@ -118,7 +118,7 @@ if ((!empty($moveup)) || (!empty($movedown))) {
             'sesskey' => sesskey()));
     }
 } else if (!empty($deleteelement)) { // Check if we are deleting an element.
-    if (!empty($confirm)) { // Check they have confirmed the deletion
+    if (!empty($confirm)) { // Check they have confirmed the deletion.
         // Ensure element exists and delete it.
         $element = $DB->get_record('customcert_elements', array('id' => $deleteelement), '*', MUST_EXIST);
         // Get an instance of the element class.
@@ -191,7 +191,7 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-        customcert_generate_pdf($customcert);
+        customcert_generate_pdf($customcert, true);
     }
 
     // Redirect to the editing page to show form with recent updates.

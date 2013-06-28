@@ -787,8 +787,9 @@ function customcert_generate_code() {
  * Generate the PDF for the specified customcert and user.
  *
  * @param stdClass $customcert
+ * @param bool $preview true if it is a preview, false otherwise
  */
-function customcert_generate_pdf($customcert) {
+function customcert_generate_pdf($customcert, $preview = false) {
     global $CFG, $DB;
 
     require_once($CFG->libdir . '/pdflib.php');
@@ -817,7 +818,7 @@ function customcert_generate_pdf($customcert) {
                 foreach ($elements as $element) {
                     // Get an instance of the element class.
                     if ($e = customcert_get_element_instance($element)) {
-                        $e->render($pdf);
+                        $e->render($pdf, $preview);
                     }
                 }
             }

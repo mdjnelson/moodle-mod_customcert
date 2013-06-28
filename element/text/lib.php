@@ -56,8 +56,9 @@ class customcert_element_text extends customcert_element_base {
      * Handles rendering the element on the pdf.
      *
      * @param pdf $pdf the pdf object
+     * @param bool $preview true if it is a preview, false otherwise
      */
-    public function render($pdf) {
+    public function render($pdf, $preview) {
         parent::render_content($pdf, $this->element->data);
     }
 
