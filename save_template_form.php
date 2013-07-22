@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -13,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -23,7 +22,7 @@ require_once($CFG->libdir . '/formslib.php');
  * The form for handling saving customcert templates.
  *
  * @package    mod_customcert
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_customcert_save_template_form extends moodleform {

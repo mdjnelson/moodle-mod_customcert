@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -19,7 +18,7 @@
  * Handles viewing a customcert.
  *
  * @package    mod_customcert
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

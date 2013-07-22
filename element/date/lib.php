@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -13,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -34,7 +33,7 @@ define('CUSTOMCERT_DATE_COMPLETION', '2');
  * The customcert element date's core interaction API.
  *
  * @package    customcertelement_date
- * @copyright  Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class customcert_element_date extends customcert_element_base {
