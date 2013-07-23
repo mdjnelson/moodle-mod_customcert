@@ -75,7 +75,6 @@ class customcert_element_grade extends customcert_element_base {
 
         // Encode these variables before saving into the DB.
         return json_encode($arrtostore);
-
     }
 
     /**
@@ -120,6 +119,24 @@ class customcert_element_grade extends customcert_element_base {
         $this->element->gradeformat = $gradeformat;
 
         parent::definition_after_data($mform);
+    }
+
+    /**
+     * This function is responsible for handling the restoration process of the element.
+     *
+     * We will want to update the course module the grade element is pointing to as it will
+     * have changed in the course restore.
+     *
+     * @param restore_customcert_activity_task $restore
+     */
+    public function after_restore($restore) {
+        global $DB;
+
+        $gradeinfo = json_decode($this->element->data);
+        if ($newitem = restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $gradeinfo->gradeitem)) {
+            $gradeinfo->gradeitem = $newitem->newitemid;
+            $DB->set_field('customcert_elements', 'data', self::save_unique_data($gradeinfo), array('id' => $this->element->id));
+        }
     }
 
     /**

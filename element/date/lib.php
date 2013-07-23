@@ -170,6 +170,24 @@ class customcert_element_date extends customcert_element_base {
     }
 
     /**
+     * This function is responsible for handling the restoration process of the element.
+     *
+     * We will want to update the course module the date element is pointing to as it will
+     * have changed in the course restore.
+     *
+     * @param restore_customcert_activity_task $restore
+     */
+    public function after_restore($restore) {
+        global $DB;
+
+        $dateinfo = json_decode($this->element->data);
+        if ($newitem = restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $dateinfo->dateitem)) {
+            $dateinfo->dateitem = $newitem->newitemid;
+            $DB->set_field('customcert_elements', 'data', self::save_unique_data($dateinfo), array('id' => $this->element->id));
+        }
+    }
+
+    /**
      * Helper function to return all the date formats.
      *
      * @return array the list of date formats

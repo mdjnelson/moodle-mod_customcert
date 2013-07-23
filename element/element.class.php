@@ -345,6 +345,19 @@ abstract class customcert_element_base {
     }
 
     /**
+     * This function is responsible for handling the restoration process of the element.
+     *
+     * For example, the function may save data that is related to another course module, this
+     * data will need to be updated if we are restoring the course as the course module id will
+     * be different in the new course.
+     *
+     * @param restore_customcert_activity_task $restore
+     */
+    public function after_restore($restore) {
+
+    }
+
+    /**
      * Validates the colour selected.
      *
      * @param string $colour
