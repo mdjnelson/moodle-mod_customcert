@@ -43,7 +43,7 @@ abstract class customcert_element_base {
      *
      * @param stdClass $element the element data
      */
-    function __construct($element) {
+    public function __construct($element) {
         $this->element = clone($element);
     }
 
