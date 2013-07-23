@@ -37,10 +37,12 @@ class customcert_element_image extends customcert_element_base {
 
         $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
         $mform->setType('width', PARAM_INT);
+        $mform->setDefault('width', 0);
         $mform->addHelpButton('width', 'width', 'customcertelement_image');
 
         $mform->addElement('text', 'height', get_string('height', 'customcertelement_image'), array('size' => 10));
         $mform->setType('height', PARAM_INT);
+        $mform->setDefault('height', 0);
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
         parent::render_form_element_position($mform);
