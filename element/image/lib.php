@@ -125,21 +125,10 @@ class customcert_element_image extends customcert_element_base {
      */
     public function definition_after_data($mform) {
         // Set the image, width and height for this element.
-        $image = '';
-        $width = '0';
-        $height = '0';
-
-        // Check if there is any data for this element.
-        if (!empty($this->element->data)) {
-            $imageinfo = json_decode($this->element->data);
-            $image = $imageinfo->pathnamehash;
-            $width = $imageinfo->width;
-            $height = $imageinfo->height;
-        }
-
-        $this->element->image = $image;
-        $this->element->width = $width;
-        $this->element->height = $height;
+        $imageinfo = json_decode($this->element->data);
+        $this->element->image = $imageinfo->pathnamehash;
+        $this->element->width = $imageinfo->width;
+        $this->element->height = $imageinfo->height;
 
         parent::definition_after_data($mform);
     }

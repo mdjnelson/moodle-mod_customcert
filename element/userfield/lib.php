@@ -87,7 +87,7 @@ class customcert_element_userfield extends customcert_element_base {
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        $this->element->userfield = (!empty($this->element->data)) ? $this->element->data : '';
+        $this->element->userfield = $this->element->data;
         parent::definition_after_data($mform);
     }
 }

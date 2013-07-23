@@ -61,7 +61,10 @@ class mod_customcert_edit_element_form extends moodleform {
      * Fill in the current page data for this customcert.
      */
     public function definition_after_data() {
-        $this->element->definition_after_data($this->_form);
+        // We only want to call definition_after_data if we are editing an element.
+        if ($this->_customdata['action'] == 'edit') {
+            $this->element->definition_after_data($this->_form);
+        }
     }
 
     /**

@@ -106,17 +106,9 @@ class customcert_element_grade extends customcert_element_base {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        $gradeitem = '';
-        $gradeformat = '';
-
-        if (!empty($this->element->data)) {
-            $gradeinfo = json_decode($this->element->data);
-            $gradeitem = $gradeinfo->gradeitem;
-            $gradeformat = $gradeinfo->gradeformat;
-        }
-
-        $this->element->gradeitem = $gradeitem;
-        $this->element->gradeformat = $gradeformat;
+        $gradeinfo = json_decode($this->element->data);
+        $this->element->gradeitem = $gradeinfo->gradeitem;
+        $this->element->gradeformat = $gradeinfo->gradeformat;
 
         parent::definition_after_data($mform);
     }

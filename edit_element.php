@@ -62,7 +62,7 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_title(get_string('editcustomcert', 'customcert', format_string($customcert->name)));
 $PAGE->set_url($pageurl);
 
-$mform = new mod_customcert_edit_element_form($pageurl, array('element' => $element, 'cmid' => $cmid));
+$mform = new mod_customcert_edit_element_form($pageurl, array('element' => $element, 'cmid' => $cmid, 'action' => $action));
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
