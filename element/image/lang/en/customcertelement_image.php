@@ -25,8 +25,8 @@
 $string['height'] = 'Height';
 $string['height_help'] = 'Height of the image in the page. If equal to zero, it is automatically calculated.';
 $string['image'] = 'Image';
-$string['invalidheight'] = 'The height has to be a valid number greater than 0.';
-$string['invalidwidth'] = 'The width has to be a valid number greater than 0.';
+$string['invalidheight'] = 'The height has to be a valid number greater than or equal to 0.';
+$string['invalidwidth'] = 'The width has to be a valid number greater than or equal to 0.';
 $string['pluginname'] = 'Image';
 $string['width'] = 'Width';
 $string['width_help'] = 'Width of the image in the page. If equal to zero, it is automatically calculated.';
