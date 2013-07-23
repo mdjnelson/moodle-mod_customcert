@@ -39,7 +39,7 @@ class mod_customcert_edit_element_form extends moodleform {
     /**
      * Form definition.
      */
-    function definition() {
+    public function definition() {
         $mform =& $this->_form;
 
         $element = $this->_customdata['element'];
@@ -60,7 +60,7 @@ class mod_customcert_edit_element_form extends moodleform {
     /**
      * Fill in the current page data for this customcert.
      */
-    function definition_after_data() {
+    public function definition_after_data() {
         $this->element->definition_after_data($this->_form);
     }
 

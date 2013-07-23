@@ -49,7 +49,7 @@ class mod_customcert_edit_form extends moodleform {
     /**
      * Form definition.
      */
-    function definition() {
+    public function definition() {
         global $DB;
 
         $this->id = $this->_customdata['customcertid'];
@@ -94,7 +94,7 @@ class mod_customcert_edit_form extends moodleform {
     /**
      * Fill in the current page data for this customcert.
      */
-    function definition_after_data() {
+    public function definition_after_data() {
         global $DB;
 
         $mform = $this->_form;

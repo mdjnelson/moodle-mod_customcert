@@ -31,7 +31,7 @@ class mod_customcert_mod_form extends moodleform_mod {
     /**
      * Form definition.
      */
-    function definition() {
+    public function definition() {
         global $CFG;
 
         $mform =& $this->_form;

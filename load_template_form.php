@@ -30,7 +30,7 @@ class mod_customcert_load_template_form extends moodleform {
     /**
      * Form definition.
      */
-    function definition() {
+    public function definition() {
         $mform =& $this->_form;
 
         $mform->addElement('header', 'loadtemplateheader', get_string('loadtemplate', 'customcert'));

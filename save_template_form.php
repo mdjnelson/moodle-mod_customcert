@@ -30,7 +30,7 @@ class mod_customcert_save_template_form extends moodleform {
     /**
      * Form definition.
      */
-    function definition() {
+    public function definition() {
         $mform =& $this->_form;
 
         $mform->addElement('header', 'savetemplateheader', get_string('savetemplate', 'customcert'));
