@@ -57,9 +57,9 @@ class customcert_element_date extends customcert_element_base {
         $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
-	}
+    }
 
-	/**
+    /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
@@ -69,8 +69,8 @@ class customcert_element_date extends customcert_element_base {
     public function save_unique_data($data) {
         // Array of data we will be storing in the database.
         $arrtostore = array(
-        	'dateitem' => $data->dateitem,
-        	'dateformat' => $data->dateformat
+            'dateitem' => $data->dateitem,
+            'dateformat' => $data->dateformat
         );
 
         // Encode these variables before saving into the DB.
@@ -169,7 +169,7 @@ class customcert_element_date extends customcert_element_base {
         parent::definition_after_data($mform);
     }
 
-	/**
+    /**
      * Helper function to return all the date formats.
      *
      * @return array the list of date formats
@@ -196,9 +196,12 @@ class customcert_element_date extends customcert_element_base {
         if (!in_array(($day % 100), array(11, 12, 13))) {
             switch ($day % 10) {
                 // Handle 1st, 2nd, 3rd.
-                case 1: return get_string('numbersuffix_st', 'customcertelement_date');
-                case 2: return get_string('numbersuffix_nd', 'customcertelement_date');
-                case 3: return get_string('numbersuffix_rd', 'customcertelement_date');
+                case 1:
+                    return get_string('numbersuffix_st', 'customcertelement_date');
+                case 2:
+                    return get_string('numbersuffix_nd', 'customcertelement_date');
+                case 3:
+                    return get_string('numbersuffix_rd', 'customcertelement_date');
             }
         }
         return 'th';

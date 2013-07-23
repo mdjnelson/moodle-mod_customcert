@@ -57,9 +57,9 @@ class customcert_element_grade extends customcert_element_base {
         $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
 
         parent::render_form_elements($mform);
-	}
+    }
 
-	/**
+    /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
@@ -155,13 +155,13 @@ class customcert_element_grade extends customcert_element_base {
         for ($i = 0; $i <= count($sections) - 1; $i++) {
             // Confirm the index exists, should always be true.
             if (isset($sections[$i])) {
-            	// Get the individual section.
+                // Get the individual section.
                 $section = $sections[$i];
                 // Get the mods for this section.
                 $sectionmods = explode(",", $section->sequence);
                 // Loop through the section mods.
                 foreach ($sectionmods as $sectionmod) {
-                	// Should never happen unless DB is borked.
+                    // Should never happen unless DB is borked.
                     if (empty($mods[$sectionmod])) {
                         continue;
                     }
@@ -170,8 +170,8 @@ class customcert_element_grade extends customcert_element_base {
                     $instance = $DB->get_record($mod->modname, array('id' => $mod->instance));
                     // Get the grade items for this activity.
                     if ($grade_items = grade_get_grade_items_for_activity($mod)) {
-                        $mod_item = grade_get_grades($COURSE->id, 'mod', $mod->modname, $mod->instance);
-                        $gradeitem = reset($mod_item->items);
+                        $moditem = grade_get_grades($COURSE->id, 'mod', $mod->modname, $mod->instance);
+                        $gradeitem = reset($moditem->items);
                         if (isset($gradeitem->grademax)) {
                             $modules[$mod->id] = $sectionlabel . ' ' . $section->section . ' : ' . $instance->name;
                         }
