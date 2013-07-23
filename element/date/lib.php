@@ -96,30 +96,35 @@ class customcert_element_date extends customcert_element_base {
         $dateitem = $dateinfo->dateitem;
         $dateformat = $dateinfo->dateformat;
 
-        // Get the page.
-        $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
-        // Now we can get the issue for this user.
-        $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
-
-        if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
-            $date = $issue->timecreated;
-        } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
-            // Get the enrolment end date.
-            $sql = "SELECT MAX(c.timecompleted) as timecompleted
-                    FROM {course_completions} c
-                    WHERE c.userid = :userid
-                    AND c.course = :courseid";
-            if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $COURSE->id))) {
-                if (!empty($timecompleted->timecompleted)) {
-                    $date = $timecompleted->timecompleted;
-                }
-            }
+        // If we are previewing this certificate then just show a demonstration date.
+        if ($preview) {
+            $date = time();
         } else {
-            $gradeitem = new stdClass();
-            $gradeitem->gradeitem = $dateitem;
-            $gradeitem->gradeformat = GRADE_DISPLAY_TYPE_PERCENTAGE;
-            if ($modinfo = customcert_element_grade::get_grade($gradeitem, $issue->userid)) {
-                $date = $modinfo->dategraded;
+            // Get the page.
+            $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            // Now we can get the issue for this user.
+            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
+
+            if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
+                $date = $issue->timecreated;
+            } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
+                // Get the enrolment end date.
+                $sql = "SELECT MAX(c.timecompleted) as timecompleted
+                        FROM {course_completions} c
+                        WHERE c.userid = :userid
+                        AND c.course = :courseid";
+                if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $COURSE->id))) {
+                    if (!empty($timecompleted->timecompleted)) {
+                        $date = $timecompleted->timecompleted;
+                    }
+                }
+            } else {
+                $gradeitem = new stdClass();
+                $gradeitem->gradeitem = $dateitem;
+                $gradeitem->gradeformat = GRADE_DISPLAY_TYPE_PERCENTAGE;
+                if ($modinfo = customcert_element_grade::get_grade($gradeitem, $issue->userid)) {
+                    $date = $modinfo->dategraded;
+                }
             }
         }
 

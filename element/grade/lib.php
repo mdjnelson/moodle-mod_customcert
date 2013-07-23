@@ -94,8 +94,14 @@ class customcert_element_grade extends customcert_element_base {
         // Decode the information stored in the database.
         $gradeinfo = json_decode($this->element->data);
 
-        // Get the grade for the grade item.
-        $grade = self::get_grade($gradeinfo, $USER->id);
+        // If we are previewing this certificate then just show a demonstration grade.
+        if ($preview) {
+            $grade = get_string('previewgrade', 'customcertelement_grade') . ": 50%";
+        } else {
+            // Get the grade for the grade item.
+            $grade = self::get_grade($gradeinfo, $USER->id);
+        }
+
         parent::render_content($pdf, $grade);
     }
 

@@ -33,3 +33,4 @@ $string['gradepercent'] = 'Percentage Grade';
 $string['gradepoints'] = 'Points Grade';
 $string['gradeletter'] = 'Letter Grade';
 $string['pluginname'] = 'Grade';
+$string['previewgrade'] = 'Preview grade';
