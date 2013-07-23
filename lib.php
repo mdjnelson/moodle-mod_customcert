@@ -397,7 +397,7 @@ function customcert_get_elements() {
         }
     }
 
-    collatorlib::asort($options);
+    core_collator::asort($options);
     return $options;
 }
 

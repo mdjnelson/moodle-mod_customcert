@@ -36,7 +36,7 @@ class customcert_element_userfield extends customcert_element_base {
     public function render_form_elements($mform) {
         // Get the user fields.
         $userfields = condition_info::get_condition_user_fields();
-        collatorlib::asort($userfields);
+        core_collator::asort($userfields);
 
         // Create the select box where the user field is selected.
         $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $userfields);
