@@ -231,15 +231,10 @@ class mod_customcert_edit_form extends moodleform {
                 $deletelink = html_writer::tag('a', get_string('delete', 'customcert'), array('href' => $deletelink->out(false)));
                 $row->cells[] = $deletelink;
                 // Link to edit this element.
-                $params = array();
-                $params['id'] = $element->id;
-                $params['cmid'] = $this->_customdata['cmid'];
-                $params['action'] = 'edit';
-                $nopopupeditlink = new moodle_url('/mod/customcert/edit_element.php', $params);
-                $params['popup'] = 1;
-                $popupeditlink = new moodle_url('/mod/customcert/edit_element.php', $params);
-                $action = new popup_action('click', $popupeditlink, 'edit_element_popup', array('height' => 400, 'width' => 600));
-                $editlink = $OUTPUT->action_link($nopopupeditlink->out(false), get_string('edit'), $action);
+                $editlink = new moodle_url('/mod/customcert/edit_element.php', array('id' => $element->id,
+                                                                                     'cmid' => $this->_customdata['cmid'],
+                                                                                     'action' => 'edit'));
+                $editlink = html_writer::tag('a', get_string('edit'), array('href' => $editlink->out(false)));
                 $row->cells[] = $editlink;
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {

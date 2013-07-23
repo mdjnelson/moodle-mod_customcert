@@ -28,7 +28,6 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
 
 $cmid = required_param('cmid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
-$popup = optional_param('popup', '0', PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
@@ -39,7 +38,7 @@ if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
     $element = $DB->get_record('customcert_elements', array('id' => $id), '*', MUST_EXIST);
-    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('id' => $id, 'cmid' => $cmid, 'action' => $action, 'popup' => $popup));
+    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('id' => $id, 'cmid' => $cmid, 'action' => $action));
 } else { // Must be adding an element.
     // Page id must be supplied in order to add an element.
     $pageid = required_param('pageid', PARAM_INT);
@@ -52,7 +51,6 @@ if ($action == 'edit') {
     $params['action'] = 'add';
     $params['element'] = $element->element;
     $params['pageid'] = $pageid;
-    $params['popup'] = $popup;
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', $params);
 }
 
@@ -60,12 +58,7 @@ require_login($course, false, $cm);
 
 require_capability('mod/customcert:manage', $context);
 
-if ($popup) {
-    $PAGE->set_pagelayout('popup');
-} else {
-    $PAGE->set_heading($course->fullname);
-}
-
+$PAGE->set_heading($course->fullname);
 $PAGE->set_title(get_string('editcustomcert', 'customcert', format_string($customcert->name)));
 $PAGE->set_url($pageurl);
 
@@ -73,12 +66,8 @@ $mform = new mod_customcert_edit_element_form($pageurl, array('element' => $elem
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
-    if ($popup) {
-        close_window();
-    } else {
-        $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
-        redirect($url);
-    }
+    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    redirect($url);
 }
 
 if ($data = $mform->get_data()) {
@@ -94,12 +83,9 @@ if ($data = $mform->get_data()) {
     if ($e = customcert_get_element_instance($data)) {
         $e->save_form_elements($data);
     }
-    if ($popup) {
-        close_window();
-    } else {
-        $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
-        redirect($url);
-    }
+
+    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    redirect($url);
 }
 
 echo $OUTPUT->header();
