@@ -351,11 +351,7 @@ abstract class customcert_element_base {
      * @return bool returns true if the colour is valid, false otherwise
      */
     protected function validate_colour($colour) {
-        /**
-         * List of valid HTML colour names
-         *
-         * @var array
-         */
+         // List of valid HTML colour names.
          $colournames = array(
             'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',
             'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
