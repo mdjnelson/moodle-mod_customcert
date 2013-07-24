@@ -184,7 +184,7 @@ class customcert_element_grade extends customcert_element_base {
                     $mod->courseid = $COURSE->id;
                     $instance = $DB->get_record($mod->modname, array('id' => $mod->instance));
                     // Get the grade items for this activity.
-                    if ($grade_items = grade_get_grade_items_for_activity($mod)) {
+                    if ($gradeitems = grade_get_grade_items_for_activity($mod)) {
                         $moditem = grade_get_grades($COURSE->id, 'mod', $mod->modname, $mod->instance);
                         $gradeitem = reset($moditem->items);
                         if (isset($gradeitem->grademax)) {
