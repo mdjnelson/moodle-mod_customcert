@@ -233,11 +233,11 @@ class customcert_element_grade extends customcert_element_base {
                 $courseitem->gradetype = GRADE_TYPE_VALUE;
                 $grade = new grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));
                 $coursegrade = grade_format_gradevalue($grade->finalgrade, $courseitem, true, $gradeformat, 2);
-                return get_string('coursegrade', 'customcertelement_grade') . ':  ' . $coursegrade;
+                return $coursegrade;
             }
         } else { // Get the module grade.
             if ($modinfo = self::get_mod_grade($gradeitem, $gradeformat, $userid)) {
-                return get_string('grade', 'customcertelement_grade') . ':  ' . $modinfo->gradetodisplay;
+                return $modinfo->gradetodisplay;
             }
         }
 
