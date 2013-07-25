@@ -49,7 +49,7 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         // The pages.
         $pages = new backup_nested_element('pages');
         $page = new backup_nested_element('page', array('id'), array(
-            'customcertid', 'orientation', 'width', 'height', 'pagenumber',
+            'customcertid', 'width', 'height', 'pagenumber',
             'timecreated', 'timemodified'));
 
         // The elements.

@@ -111,9 +111,6 @@ class mod_customcert_edit_form extends moodleform {
             if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $this->id))) {
                 // Loop through the pages.
                 foreach ($pages as $p) {
-                    // Set the orientation.
-                    $element = $mform->getElement('orientation_' . $p->id);
-                    $element->setValue($p->orientation);
                     // Set the width.
                     $element = $mform->getElement('pagewidth_' . $p->id);
                     $element->setValue($p->width);
@@ -182,12 +179,6 @@ class mod_customcert_edit_form extends moodleform {
             $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'movedown' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
         }
-
-        $orientationoptions = array('L' => get_string('landscape', 'customcert'),
-                                    'P' => get_string('portrait', 'customcert'));
-        $mform->addElement('select', 'orientation_' . $page->id, get_string('orientation', 'customcert'), $orientationoptions);
-        $mform->setDefault('orientation_' . $page->id, 'P');
-        $mform->addHelpButton('orientation_' . $page->id, 'orientation', 'customcert');
 
         $mform->addElement('text', 'pagewidth_' . $page->id, get_string('width', 'customcert'));
         $mform->setType('pagewidth_' . $page->id, PARAM_INT);

@@ -489,13 +489,11 @@ function customcert_save_page_data($data) {
         // Loop through existing pages.
         foreach ($pages as $page) {
             // Get the name of the fields we want from the form.
-            $orientation = 'orientation_' . $page->id;
             $width = 'pagewidth_' . $page->id;
             $height = 'pageheight_' . $page->id;
             // Create the page data to update the DB with.
             $p = new stdClass();
             $p->id = $page->id;
-            $p->orientation = $data->$orientation;
             $p->width = $data->$width;
             $p->height = $data->$height;
             $p->timemodified = $time;
@@ -550,7 +548,6 @@ function customcert_add_page($data) {
     // New page creation.
     $page = new stdClass();
     $page->customcertid = $data->id;
-    $page->orientation = 'P';
     $page->width = '210';
     $page->height = '297';
     $page->pagenumber = $pagenumber;
@@ -813,7 +810,12 @@ function customcert_generate_grid_pdf($pageid) {
     $pdf->SetAutoPageBreak(true, 0);
 
     // Add the page to the PDF.
-    $pdf->AddPage($page->orientation, array($page->width, $page->height));
+    if ($page->width > $page->height) {
+        $orientation = 'L';
+    } else {
+        $orientation = 'P';
+    }
+    $pdf->AddPage($orientation, array($page->width, $page->height));
 
     // The cell width.
     $cellwidth = 10;
@@ -889,7 +891,12 @@ function customcert_generate_pdf($customcert, $preview = false) {
         // Loop through the pages and display their content.
         foreach ($pages as $page) {
             // Add the page to the PDF.
-            $pdf->AddPage($page->orientation, array($page->width, $page->height));
+            if ($page->width > $page->height) {
+                $orientation = 'L';
+            } else {
+                $orientation = 'P';
+            }
+            $pdf->AddPage($orientation, array($page->width, $page->height));
             // Get the elements for the page.
             if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
                 // Loop through and display.
