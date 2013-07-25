@@ -789,6 +789,77 @@ function customcert_generate_code() {
 }
 
 /**
+ * Generate the grid PDF to show the layout of the PDF.
+ *
+ * @param int $pageid the customcert page
+ */
+function customcert_generate_grid_pdf($pageid) {
+    global $CFG, $DB;
+
+    require_once($CFG->libdir . '/pdflib.php');
+
+    // Get the page.
+    $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
+
+    // Set the PDF name.
+    $pdfname = get_string('gridpdfname', 'customcert', $page->id);
+
+    // Create the pdf object.
+    $pdf = new pdf();
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->SetTitle($pdfname);
+    $pdf->SetMargins(0, 0);
+    $pdf->SetAutoPageBreak(true, 0);
+
+    // Add the page to the PDF.
+    $pdf->AddPage($page->orientation, array($page->width, $page->height));
+
+    // The cell width.
+    $cellwidth = 10;
+    $cellheight = 10;
+
+    // The increments we want to go up in.
+    $inc = 20;
+    $decpos = 4;
+
+    // Draw first lines before we increment from here.
+    $pdf->Line(($inc / 2) + 2, 0, ($inc / 2) + 2, $page->height);
+    $pdf->Line(0, ($inc / 2), $page->width, ($inc / 2));
+
+    // Now we want to start drawing the lines to make the grid.
+    // Draw the horizontal lines.
+    for ($h = $inc; $h <= $page->height; $h += $inc) {
+        // Dirty hack cause the printer keeps cutting off characters
+        // near the end of the page for some BS reason.
+        if (strlen($h) <= 2) {
+            $lmargin = 5;
+        } else {
+            $lmargin = 4;
+        }
+        // Write the distance we are at.
+        $pdf->writeHTMLCell($cellwidth, $cellheight, $lmargin, $h - $decpos, $h);
+
+        // Get the location we are going to draw the line and then draw it.
+        $hline = $h + ($inc / 2);
+        $pdf->Line(0, $hline, $page->width, $hline);
+    }
+
+    // Draw the vertical lines.
+    for ($w = $inc; $w <= $page->width; $w += $inc) {
+        // Write the distance we are at.
+        $pdf->writeHTMLCell($cellwidth, $cellheight, $w - $decpos, 3, $w);
+
+        // Get the location we are going to draw the line and then draw it.
+        $wline = $w + ($inc / 2);
+        $pdf->Line($wline, 0, $wline, $page->height);
+    }
+
+    $pdf->Output($pdfname . '.pdf', 'D');
+    exit();
+}
+
+/**
  * Generate the PDF for the specified customcert and user.
  *
  * @param stdClass $customcert
@@ -810,6 +881,8 @@ function customcert_generate_pdf($customcert, $preview = false) {
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetTitle($customcert->name);
+        $pdf->SetMargins(0, 0);
+        $pdf->SetAutoPageBreak(true, 0);
         // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
         $filename = rtrim($customcert->name, '.');
         $filename = clean_filename($filename . '.pdf');

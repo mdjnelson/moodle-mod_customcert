@@ -162,7 +162,7 @@ class mod_customcert_edit_form extends moodleform {
      * Adds the page elements to the form.
      *
      * @param stdClass $page the customcert page
-     **/
+     */
     private function add_customcert_page_elements($page) {
         global $DB, $OUTPUT;
 
@@ -200,6 +200,8 @@ class mod_customcert_edit_form extends moodleform {
         $mform->setDefault('pageheight_' . $page->id, '297');
         $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
         $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
+
+        $mform->addElement('submit', 'downloadgrid_' . $page->id, get_string('downloadgrid', 'customcert'));
 
         $group = array();
         $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());
