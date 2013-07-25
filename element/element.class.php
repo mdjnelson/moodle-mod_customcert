@@ -173,9 +173,7 @@ abstract class customcert_element_base {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
-    public function render($pdf, $preview) {
-        // Must be overridden.
-    }
+    public abstract function render($pdf, $preview);
 
     /**
      * Common behaviour for rendering specified content on the pdf.
