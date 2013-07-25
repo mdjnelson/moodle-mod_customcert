@@ -257,9 +257,9 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
  * @return string the user complete information
  */
 function customcert_user_complete($course, $user, $mod, $customcert) {
-   global $DB, $OUTPUT;
+    global $DB, $OUTPUT;
 
-   if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
+    if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
         echo $OUTPUT->box_start();
         echo get_string('issued', 'customcert') . ": ";
         echo userdate($issue->timecreated);
@@ -284,14 +284,20 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
  */
 function customcert_supports($feature) {
     switch ($feature) {
-        case FEATURE_GROUPS:                  return true;
-        case FEATURE_GROUPINGS:               return true;
-        case FEATURE_GROUPMEMBERSONLY:        return true;
-        case FEATURE_MOD_INTRO:               return true;
-        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
-        case FEATURE_BACKUP_MOODLE2:          return true;
-
-        default: return null;
+        case FEATURE_GROUPS:
+            return true;
+        case FEATURE_GROUPINGS:
+            return true;
+        case FEATURE_GROUPMEMBERSONLY:
+            return true;
+        case FEATURE_MOD_INTRO:
+            return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
+            return true;
+        case FEATURE_BACKUP_MOODLE2:
+            return true;
+        default:
+            return null;
     }
 }
 
@@ -749,7 +755,7 @@ function customcert_get_conditional_issues_sql($cm, $groupmode) {
             $allowedusers = $groupusers;
         } else if ($restricttogroup && $restricttogrouping) {
             $allowedusers = array_intersect($groupusers, $groupingusers);
-        } else  {
+        } else {
             $allowedusers = $groupingusers;
         }
 
