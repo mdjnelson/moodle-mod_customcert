@@ -28,7 +28,8 @@ $string['awardedto'] = 'Awarded to';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
 $string['coursetimereq'] = 'Required minutes in course';
-$string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive the certificate.';
+$string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
+the certificate.';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
 $string['customcert:manage'] = 'Manage a custom certificate';
 $string['customcert:view'] = 'View a custom certificate';
@@ -41,7 +42,8 @@ $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate
 $string['description'] = 'Description';
 $string['editcustomcert'] = 'Edit custom certificate';
 $string['elementname'] = 'Element name';
-$string['elementname_help'] = 'This will be the name used to identify this element when editing a custom certificate. For example, you may have multiple images on a page and will want to distinguish between them quickly when editing the certificate. Note: this will not displayed on the PDF.';
+$string['elementname_help'] = 'This will be the name used to identify this element when editing a custom certificate. For example, you may have multiple images on a
+page and will want to distinguish between them quickly when editing the certificate. Note: this will not displayed on the PDF.';
 $string['elements'] = 'Elements';
 $string['elements_help'] = 'These are the list of elements that will be displayed on this PDF page.';
 $string['errorloadingelement'] = 'Error loading the element "{$a}"';
