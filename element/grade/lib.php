@@ -84,7 +84,7 @@ class customcert_element_grade extends customcert_element_base {
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
-        global $USER;
+        global $COURSE, $USER;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
@@ -96,7 +96,8 @@ class customcert_element_grade extends customcert_element_base {
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
-            $grade = get_string('previewgrade', 'customcertelement_grade') . ": 50%";
+            $courseitem = grade_item::fetch_course_item($COURSE->id);
+            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
         } else {
             // Get the grade for the grade item.
             $grade = self::get_grade($gradeinfo, $USER->id);
