@@ -362,10 +362,11 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * Handles uploading an image for the customcert module.
  *
  * @param int $draftitemid the draft area containing the files
+ * @param int $contextid the context we are storing this image in
  */
-function customcert_upload_imagefiles($draftitemid) {
+function customcert_upload_imagefiles($draftitemid, $contextid) {
     // Save the file if it exists that is currently in the draft area.
-    file_save_draft_area_files($draftitemid, context_system::instance()->id, 'mod_customcert', 'image', 0);
+    file_save_draft_area_files($draftitemid, $contextid, 'mod_customcert', 'image', 0);
 }
 
 /**

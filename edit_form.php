@@ -101,7 +101,7 @@ class mod_customcert_edit_form extends moodleform {
 
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, context_system::instance()->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        file_prepare_draft_area($draftitemid, context_course::instance($this->_customdata['course']->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
         $element = $mform->getElement('customcertimage');
         $element->setValue($draftitemid);
 

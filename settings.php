@@ -1,5 +1,5 @@
 <?php
-// This file is part of the customcert module for Moodle - http://moodle.org/
+// This file is part of the Certificate module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,15 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains the version information for the image plugin.
+ * Creates a link to the upload form on the settings page.
  *
- * @package    customcertelement_image
+ * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2013090900;
-$plugin->requires  = 2012120300; // Requires this Moodle version.
-$plugin->component = 'customcertelement_image';
+require_once($CFG->dirroot.'/mod/customcert/adminsetting.class.php');
+
+$settings->add(new mod_customcert_admin_setting_upload('customcert/uploadimage',
+    get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'), ''));

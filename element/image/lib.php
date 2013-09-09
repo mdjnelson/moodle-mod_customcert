@@ -141,17 +141,28 @@ class customcert_element_image extends customcert_element_base {
      * @return array the list of images that can be used
      */
     public static function get_images() {
+        global $COURSE;
+
         // Create file storage object.
         $fs = get_file_storage();
 
         // The array used to store the images.
         $arrfiles = array();
-        $arrfiles[0] = get_string('noimage', 'customcert');
+        // Loop through the files uploaded in the system context.
         if ($files = $fs->get_area_files(context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$hash] = $file->get_filename();
             }
         }
+        // Loop through the files uploaded in the course context.
+        if ($files = $fs->get_area_files(context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false, 'filename', false)) {
+            foreach ($files as $hash => $file) {
+                $arrfiles[$hash] = $file->get_filename();
+            }
+        }
+
+        customcert_perform_asort($arrfiles);
+        $arrfiles = array_merge(array('0' => get_string('noimage', 'customcert')), $arrfiles);
 
         return $arrfiles;
     }
