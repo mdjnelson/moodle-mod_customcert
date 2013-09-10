@@ -30,7 +30,7 @@ $download = optional_param('download', '', PARAM_ALPHA);
 
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', CUSTOMCERT_PER_PAGE, PARAM_INT);
-$pageurl = $url = new moodle_url('/mod/customcert/report.php', array('id'=>$id, 'page' => $page, 'perpage' => $perpage));
+$pageurl = $url = new moodle_url('/mod/customcert/report.php', array('id' => $id, 'page' => $page, 'perpage' => $perpage));
 
 // Ensure the perpage variable does not exceed the max allowed if
 // the user has not specified they wish to view all customcerts.
@@ -89,7 +89,7 @@ echo $OUTPUT->heading(get_string('modulenameplural', 'customcert'));
 groups_print_activity_menu($cm, $url);
 // If perpage is not set to 0 (displaying all issues), we may need a paging bar.
 if ($perpage !== 0) {
-    echo $OUTPUT->paging_bar(count($users), $page, $perpage, $url);
+    echo $OUTPUT->paging_bar(count((array) $users), $page, $perpage, $url);
 }
 echo '<br />';
 echo html_writer::table($table);
