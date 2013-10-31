@@ -37,6 +37,9 @@ class mod_customcert_admin_setting_upload extends admin_setting_configtext {
      * @return string
      */
     public function output_html($data, $query = '') {
+        // Create a dummy variable for this field to avoid being redirected back to the upgrade settings page.
+        $this->config_write($this->name, '');
+
         return format_admin_setting($this, $this->visiblename,
             html_writer::link(new moodle_url('/mod/customcert/upload_image.php'), get_string('upload')),
                 $this->description, true, '', null, $query);
