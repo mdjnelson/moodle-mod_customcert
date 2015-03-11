@@ -45,6 +45,16 @@ $PAGE->set_cm($cm);
 $PAGE->set_title(format_string($customcert->name));
 $PAGE->set_heading(format_string($course->fullname));
 
+// Check if the user can view the certificate based on time spent in course.
+if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $context)) {
+    if (customcert_get_course_time($course->id) < ($customcert->requiredtime * 60)) {
+        $a = new stdClass;
+        $a->requiredtime = $customcert->requiredtime;
+        notice(get_string('requiredtimenotmet', 'certificate', $a), "$CFG->wwwroot/course/view.php?id=$course->id");
+        die;
+    }
+}
+
 // Check that no action was passed, if so that means we are not outputting to PDF.
 if (empty($action)) {
     // Get the current groups mode.

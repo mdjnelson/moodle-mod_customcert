@@ -326,30 +326,59 @@ function customcert_get_templates() {
  * @return int the total time spent in seconds
  */
 function customcert_get_course_time($courseid) {
-    global $CFG, $USER;
+    global $CFG, $DB, $USER;
 
-    set_time_limit(0);
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers();
+    $enabledreaders = get_config('tool_log', 'enabled_stores');
+    $enabledreaders = explode(',', $enabledreaders);
 
+    // Go through all the readers until we find one that we can use.
+    foreach ($enabledreaders as $enabledreader) {
+        $reader = $readers[$enabledreader];
+        if ($reader instanceof \logstore_legacy\log\store) {
+            $logtable = 'log';
+            $coursefield = 'course';
+            $timefield = 'time';
+            break;
+        } else if ($reader instanceof \core\log\sql_internal_reader) {
+            $logtable = $reader->get_internal_log_table_name();
+            $coursefield = 'courseid';
+            $timefield = 'timecreated';
+            break;
+        }
+    }
+
+    // If we didn't find a reader then return 0.
+    if (!isset($logtable)) {
+        return 0;
+    }
+
+    $sql = "SELECT id, $timefield
+              FROM {{$logtable}}
+             WHERE userid = :userid
+               AND $coursefield = :courseid
+          ORDER BY $timefield ASC";
+    $params = array('userid' => $USER->id, 'courseid' => $courseid);
     $totaltime = 0;
-    $sql = "l.course = :courseid AND l.userid = :userid";
-    if ($logs = get_logs($sql, array('courseid' => $courseid, 'userid' => $USER->id), 'l.time ASC', '', '', $totalcount)) {
+    if ($logs = $DB->get_recordset_sql($sql, $params)) {
         foreach ($logs as $log) {
             if (!isset($login)) {
-                // For the first time $login is not set so the first log is also the first login.
-                $login = $log->time;
-                $lasthit = $log->time;
+                // For the first time $login is not set so the first log is also the first login
+                $login = $log->$timefield;
+                $lasthit = $log->$timefield;
                 $totaltime = 0;
             }
-            $delay = $log->time - $lasthit;
+            $delay = $log->$timefield - $lasthit;
             if ($delay > ($CFG->sessiontimeout * 60)) {
                 // The difference between the last log and the current log is more than
-                // the timeout register session value meaning we have found a session.
-                $login = $log->time;
+                // the timeout Register session value so that we have found a session!
+                $login = $log->$timefield;
             } else {
                 $totaltime += $delay;
             }
-            // Now the actual log became the previous log for the next cycle.
-            $lasthit = $log->time;
+            // Now the actual log became the previous log for the next cycle
+            $lasthit = $log->$timefield;
         }
 
         return $totaltime;
@@ -357,7 +386,6 @@ function customcert_get_course_time($courseid) {
 
     return 0;
 }
-
 
 /**
  * Returns a list of issued customcerts.
