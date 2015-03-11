@@ -119,7 +119,7 @@ function customcert_get_elements() {
         }
     }
 
-    customcert_perform_asort($options);
+    core_collator::asort($options);
     return $options;
 }
 
@@ -712,17 +712,4 @@ function customcert_generate_report_file($customcert, $users, $type) {
     }
     // Close the workbook.
     $workbook->close();
-}
-
-/**
- * Perform asort on a given array.
- *
- * @param array $fields
- */
-function customcert_perform_asort(&$fields) {
-    if (class_exists('core_collator')) {
-        core_collator::asort($fields);
-    } else {
-        collatorlib::asort($fields);
-    }
 }

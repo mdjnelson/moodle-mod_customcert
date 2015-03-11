@@ -61,7 +61,7 @@ class customcert_element_userfield extends customcert_element_base {
         }
         // Combine the two.
         $fields = $userfields + $customfields;
-        customcert_perform_asort($fields);
+        core_collator::asort($fields);
 
         // Create the select box where the user field is selected.
         $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $fields);

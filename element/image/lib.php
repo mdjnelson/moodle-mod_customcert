@@ -161,7 +161,7 @@ class customcert_element_image extends customcert_element_base {
             }
         }
 
-        customcert_perform_asort($arrfiles);
+        core_collator::asort($arrfiles);
         $arrfiles = array_merge(array('0' => get_string('noimage', 'customcert')), $arrfiles);
 
         return $arrfiles;
