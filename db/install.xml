@@ -1,119 +1,119 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/customcert/db" VERSION="20130426" COMMENT="XMLDB file for Moodle mod/customcert"
+<XMLDB PATH="mod/customcert/db" VERSION="20150311" COMMENT="XMLDB file for Moodle mod/customcert"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="customcert" COMMENT="Defines customcerts" NEXT="customcert_issues">
+    <TABLE NAME="customcert" COMMENT="Defines customcerts">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="course"/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="course" NEXT="intro"/>
-        <FIELD NAME="intro" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="introformat"/>
-        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="intro" NEXT="requiredtime"/>
-        <FIELD NAME="requiredtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="introformat" NEXT="protection"/>
-        <FIELD NAME="protection" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="requiredtime" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="protection"  NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intro" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="requiredtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="protection" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_issues" COMMENT="Stores each issue of a customcert" PREVIOUS="customcert" NEXT="customcert_pages">
+    <TABLE NAME="customcert_issues" COMMENT="Stores each issue of a customcert">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="userid"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="customcertid"/>
-        <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="userid" NEXT="code"/>
-        <FIELD NAME="code" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="customcertid" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="code"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="code" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_issues" NEXT="customcert"/>
-        <KEY NAME="customcert" TYPE="foreign" FIELDS="customcertid" REFTABLE="customcert" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_issues"/>
+        <KEY NAME="customcert" TYPE="foreign" FIELDS="customcertid" REFTABLE="customcert" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_pages" COMMENT="Stores each page of a custom cert" PREVIOUS="customcert_issues" NEXT="customcert_elements">
+    <TABLE NAME="customcert_pages" COMMENT="Stores each page of a custom cert">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="customcertid"/>
-        <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="width"/>
-        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="customcertid" NEXT="height"/>
-        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="width" NEXT="pagenumber"/>
-        <FIELD NAME="pagenumber" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="height" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="pagenumber"  NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="pagenumber" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_pages" NEXT="customcert"/>
-        <KEY NAME="customcert" TYPE="foreign" FIELDS="customcertid" REFTABLE="customcert" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_pages"/>
+        <KEY NAME="customcert" TYPE="foreign" FIELDS="customcertid" REFTABLE="customcert" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_elements" COMMENT="Stores the elements for a given page" PREVIOUS="customcert_pages" NEXT="customcert_template">
+    <TABLE NAME="customcert_elements" COMMENT="Stores the elements for a given page">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="pageid"/>
-        <FIELD NAME="pageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="pageid" NEXT="element"/>
-        <FIELD NAME="element" TYPE="text" LENGTH="big" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="data"/>
-        <FIELD NAME="data" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" PREVIOUS="element" NEXT="font"/>
-        <FIELD NAME="font" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="data" NEXT="size"/>
-        <FIELD NAME="size" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="font" NEXT="colour"/>
-        <FIELD NAME="colour" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="size" NEXT="posx"/>
-        <FIELD NAME="posx" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="colour" NEXT="posy"/>
-        <FIELD NAME="posy" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="posx" NEXT="sequence"/>
-        <FIELD NAME="sequence" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="posy" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="sequence" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="pageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="element" TYPE="text" LENGTH="big" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="data" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="font" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="size" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="colour" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="posx" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="posy" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sequence" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_elements" NEXT="page"/>
-        <KEY NAME="page" TYPE="foreign" FIELDS="pageid" REFTABLE="customcert_pages" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_elements"/>
+        <KEY NAME="page" TYPE="foreign" FIELDS="pageid" REFTABLE="customcert_pages" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_template" COMMENT="Stores each customcert template" PREVIOUS="customcert_elements" NEXT="customcert_template_pages">
+    <TABLE NAME="customcert_template" COMMENT="Stores each customcert template">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="name" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_template"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_template_pages" COMMENT="Stores each page of a customcert template" PREVIOUS="customcert_template" NEXT="customcert_template_elements">
+    <TABLE NAME="customcert_template_pages" COMMENT="Stores each page of a customcert template">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="templateid"/>
-        <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="width"/>
-        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="templateid" NEXT="height"/>
-        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="width" NEXT="pagenumber"/>
-        <FIELD NAME="pagenumber" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="height" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="pagenumber"  NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="templateid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="width" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="height" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="pagenumber" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_template_pages" NEXT="template"/>
-        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_template" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_template_pages"/>
+        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_template" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_template_elements" COMMENT="Stores the elements for a given customcert template page" PREVIOUS="customcert_template_pages">
+    <TABLE NAME="customcert_template_elements" COMMENT="Stores the elements for a given customcert template page">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="templatepageid"/>
-        <FIELD NAME="templatepageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="templatepageid" NEXT="element"/>
-        <FIELD NAME="element" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="data"/>
-        <FIELD NAME="data" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" PREVIOUS="element" NEXT="font"/>
-        <FIELD NAME="font" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="data" NEXT="size"/>
-        <FIELD NAME="size" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="font" NEXT="colour"/>
-        <FIELD NAME="colour" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="size" NEXT="posx"/>
-        <FIELD NAME="posx" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="colour" NEXT="posy"/>
-        <FIELD NAME="posy" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="posx" NEXT="sequence"/>
-        <FIELD NAME="sequence" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="posy" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="sequence" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="templatepageid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="element" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="data" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="font" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="size" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="colour" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="posx" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="posy" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sequence" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_template_elements" NEXT="templatepage"/>
-        <KEY NAME="templatepage" TYPE="foreign" FIELDS="templatepageid" REFTABLE="customcert_template_pages" REFFIELDS="id" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_template_elements"/>
+        <KEY NAME="templatepage" TYPE="foreign" FIELDS="templatepageid" REFTABLE="customcert_template_pages" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>
