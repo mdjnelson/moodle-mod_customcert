@@ -52,7 +52,10 @@ $context = context_module::instance($cm->id);
 require_capability('mod/customcert:manage', $context);
 
 // Get the users who have been issued.
-$users = customcert_get_issues($customcert->id, groups_get_activity_groupmode($cm), $cm, $page, $perpage);
+if ($groupmode = groups_get_activity_groupmode($cm)) {
+    groups_get_activity_group($cm, true);
+}
+$users = customcert_get_issues($customcert->id, $groupmode, $cm, $page, $perpage);
 
 if ($download) {
     customcert_generate_report_file($customcert, $users, $download);

@@ -402,6 +402,11 @@ function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) 
     // Get the conditional SQL.
     list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
 
+    // If it is empty then return an empty array.
+    if (empty($conditionsparams)) {
+        return array();
+    }
+
     // Add the conditional SQL and the customcertid to form all used parameters.
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
@@ -431,6 +436,11 @@ function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
     // Get the conditional SQL.
     list($conditionssql, $conditionsparams) = customcert_get_conditional_issues_sql($cm, $groupmode);
 
+    // If it is empty then return 0.
+    if (empty($conditionsparams)) {
+        return 0;
+    }
+
     // Add the conditional SQL and the customcertid to form all used parameters.
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
@@ -453,53 +463,56 @@ function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
  * @return array the conditional variables
  */
 function customcert_get_conditional_issues_sql($cm, $groupmode) {
-    global $CFG, $DB;
+    global $DB, $USER;
 
     // Get all users that can manage this customcert to exclude them from the report.
     $context = context_module::instance($cm->id);
     $conditionssql = '';
     $conditionsparams = array();
-    if ($certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'))) {
-        list($sql, $params) = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
-        $conditionssql .= "AND NOT u.id $sql \n";
-        $conditionsparams += $params;
-    }
 
-    $restricttogroup = false;
+    // Get all users that can manage this certificate to exclude them from the report.
+    $certmanagers = array_keys(get_users_by_capability($context, 'mod/certificate:manage', 'u.id'));
+    $certmanagers = array_merge($certmanagers, array_keys(get_admins()));
+    list($sql, $params) = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
+    $conditionssql .= "AND NOT u.id $sql \n";
+    $conditionsparams += $params;
+
     if ($groupmode) {
+        $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
         $currentgroup = groups_get_activity_group($cm);
+
+        // If we are viewing all participants and the user does not have access to all groups then return nothing.
+        if (!$currentgroup && !$canaccessallgroups) {
+            return array('', array());
+        }
+
         if ($currentgroup) {
-            $restricttogroup = true;
+            if (!$canaccessallgroups) {
+                // Guest users do not belong to any groups.
+                if (isguestuser()) {
+                    return array('', array());
+                }
+
+                // Check that the user belongs to the group we are viewing.
+                $usersgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid);
+                if ($usersgroups) {
+                    if (!isset($usersgroups[$currentgroup])) {
+                        return array('', array());
+                    }
+                } else { // They belong to no group, so return an empty array.
+                    return array('', array());
+                }
+            }
+
             $groupusers = array_keys(groups_get_members($currentgroup, 'u.*'));
             if (empty($groupusers)) {
-                return array();
+                return array('', array());
             }
+
+            list($sql, $params) = $DB->get_in_or_equal($groupusers, SQL_PARAMS_NAMED, 'grp');
+            $conditionssql .= "AND u.id $sql ";
+            $conditionsparams += $params;
         }
-    }
-
-    $restricttogrouping = false;
-
-    // If groupmembersonly used, remove users who are not in any group.
-    if (!empty($CFG->enablegroupings) and $cm->groupmembersonly) {
-        if ($groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id')) {
-            $restricttogrouping = true;
-        } else {
-            return array();
-        }
-    }
-
-    if ($restricttogroup || $restricttogrouping) {
-        if ($restricttogroup) {
-            $allowedusers = $groupusers;
-        } else if ($restricttogroup && $restricttogrouping) {
-            $allowedusers = array_intersect($groupusers, $groupingusers);
-        } else {
-            $allowedusers = $groupingusers;
-        }
-
-        list($sql, $params) = $DB->get_in_or_equal($allowedusers, SQL_PARAMS_NAMED, 'grp');
-        $conditionssql .= "AND u.id $sql \n";
-        $conditionsparams += $params;
     }
 
     return array($conditionssql, $conditionsparams);

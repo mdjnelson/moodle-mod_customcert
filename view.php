@@ -58,22 +58,19 @@ if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $cont
 // Check that no action was passed, if so that means we are not outputting to PDF.
 if (empty($action)) {
     // Get the current groups mode.
-    groups_print_activity_menu($cm, $pageurl);
-    $currentgroup = groups_get_activity_group($cm);
-    $groupmode = groups_get_activity_groupmode($cm);
+    if ($groupmode = groups_get_activity_groupmode($cm)) {
+        groups_get_activity_group($cm, true);
+    }
 
     // Generate the link to the report if there are issues to display.
     $reportlink = '';
     if (has_capability('mod/customcert:manage', $context)) {
         // Get the total number of issues.
         $numissues = customcert_get_number_of_issues($customcert->id, $cm, $groupmode);
-        // If the number of issues is greater than 0 display a link to the report.
-        if ($numissues > 0) {
-            $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
-            $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
-                array('href' => $href->out()));
-            $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
-        }
+        $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
+        $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
+            array('href' => $href->out()));
+        $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
     }
 
     // Generate the intro content if it exists.
@@ -111,6 +108,7 @@ if (empty($action)) {
 
     // Output all the page data.
     echo $OUTPUT->header();
+    groups_print_activity_menu($cm, $pageurl);
     echo $reportlink;
     echo $intro;
     echo $issuelist;
