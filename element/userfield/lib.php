@@ -17,7 +17,6 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
-require_once($CFG->libdir . '/conditionlib.php');
 
 /**
  * The customcert element userfield's core interaction API.
@@ -34,12 +33,38 @@ class customcert_element_userfield extends customcert_element_base {
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        // Get the user fields.
-        $userfields = condition_info::get_condition_user_fields();
-        customcert_perform_asort($userfields);
+        // Get the user profile fields.
+        $userfields = array(
+            'firstname' => get_user_field_name('firstname'),
+            'lastname' => get_user_field_name('lastname'),
+            'email' => get_user_field_name('email'),
+            'city' => get_user_field_name('city'),
+            'country' => get_user_field_name('country'),
+            'url' => get_user_field_name('url'),
+            'icq' => get_user_field_name('icq'),
+            'skype' => get_user_field_name('skype'),
+            'aim' => get_user_field_name('aim'),
+            'yahoo' => get_user_field_name('yahoo'),
+            'msn' => get_user_field_name('msn'),
+            'idnumber' => get_user_field_name('idnumber'),
+            'institution' => get_user_field_name('institution'),
+            'department' => get_user_field_name('department'),
+            'phone1' => get_user_field_name('phone1'),
+            'phone2' => get_user_field_name('phone2'),
+            'address' => get_user_field_name('address')
+        );
+        // Get the user custom fields.
+        $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
+        $customfields = array();
+        foreach ($arrcustomfields as $key => $customfield) {
+            $customfields[$customfield->id] = $key;
+        }
+        // Combine the two.
+        $fields = $userfields + $customfields;
+        customcert_perform_asort($fields);
 
         // Create the select box where the user field is selected.
-        $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $userfields);
+        $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $fields);
         $mform->setType('userfield', PARAM_ALPHANUM);
         $mform->addHelpButton('userfield', 'userfield', 'customcertelement_userfield');
 
