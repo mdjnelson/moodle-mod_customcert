@@ -30,7 +30,7 @@ $id = required_param('id', PARAM_INT); // Course ID.
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 
 // Requires a login.
-require_course_login($course);
+require_login($course);
 
 // Set up the page variables.
 $PAGE->set_pagelayout('incourse');

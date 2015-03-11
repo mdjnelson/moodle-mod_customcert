@@ -45,7 +45,7 @@ $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST)
 $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
 
 // Requires a course login.
-require_course_login($course->id, false, $cm);
+require_login($course, false, $cm);
 
 // Check capabilities.
 $context = context_module::instance($cm->id);
