@@ -212,8 +212,8 @@ abstract class customcert_element_base {
         $sequence = 1;
         // Check if there already elements that exist, if so, overwrite value.
         $sql = "SELECT MAX(sequence) as maxsequence
-                FROM {customcert_elements}
-                WHERE pageid = :id";
+                  FROM {customcert_elements}
+                 WHERE pageid = :id";
         // Get the current max sequence on this page and add 1 to get the new sequence.
         if ($maxseq = $DB->get_record_sql($sql, array('id' => $pageid))) {
             $sequence = $maxseq->maxsequence + 1;

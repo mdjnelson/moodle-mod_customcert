@@ -44,10 +44,10 @@ require_capability('mod/customcert:manage', $context);
 if ($confirm) {
     // First, remove all the existing elements and pages.
     $sql = "SELECT e.*
-            FROM {customcert_elements} e
-            INNER JOIN {customcert_pages} p
-            ON e.pageid = p.id
-            WHERE p.customcertid = :customcertid";
+              FROM {customcert_elements} e
+        INNER JOIN {customcert_pages} p
+                ON e.pageid = p.id
+             WHERE p.customcertid = :customcertid";
     if ($elements = $DB->get_records_sql($sql, array('customcertid' => $customcert->id))) {
         foreach ($elements as $element) {
             // Get an instance of the element class.

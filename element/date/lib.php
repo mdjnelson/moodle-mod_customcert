@@ -110,9 +110,9 @@ class customcert_element_date extends customcert_element_base {
             } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
                 // Get the enrolment end date.
                 $sql = "SELECT MAX(c.timecompleted) as timecompleted
-                        FROM {course_completions} c
-                        WHERE c.userid = :userid
-                        AND c.course = :courseid";
+                          FROM {course_completions} c
+                         WHERE c.userid = :userid
+                           AND c.course = :courseid";
                 if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $COURSE->id))) {
                     if (!empty($timecompleted->timecompleted)) {
                         $date = $timecompleted->timecompleted;

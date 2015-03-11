@@ -252,8 +252,8 @@ function customcert_add_page($data) {
     $pagenumber = 1;
     // Get the max page number.
     $sql = "SELECT MAX(pagenumber) as maxpage
-            FROM {customcert_pages} cp
-            WHERE cp.customcertid = :customcertid";
+              FROM {customcert_pages} cp
+             WHERE cp.customcertid = :customcertid";
     if ($maxpage = $DB->get_record_sql($sql, array('customcertid' => $data->id))) {
         $pagenumber = $maxpage->maxpage + 1;
     }
@@ -301,11 +301,10 @@ function customcert_delete_page($pageid) {
     // Now we want to decrease the page number values of
     // the pages that are greater than the page we deleted.
     $sql = "UPDATE {customcert_pages}
-            SET pagenumber = pagenumber - 1
-            WHERE customcertid = :customcertid
-            AND pagenumber > :pagenumber";
-    $DB->execute($sql, array('customcertid' => $page->customcertid,
-        'pagenumber' => $page->pagenumber));
+               SET pagenumber = pagenumber - 1
+             WHERE customcertid = :customcertid
+               AND pagenumber > :pagenumber";
+    $DB->execute($sql, array('customcertid' => $page->customcertid, 'pagenumber' => $page->pagenumber));
 }
 
 /**
@@ -407,17 +406,15 @@ function customcert_get_issues($customcertid, $groupmode, $cm, $page, $perpage) 
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
     // Return the issues.
-    return $DB->get_records_sql("SELECT u.*, ci.code, ci.timecreated
-                                 FROM {user} u
-                                 INNER JOIN {customcert_issues} ci
-                                 ON u.id = ci.userid
-                                 WHERE u.deleted = 0
-                                 AND ci.customcertid = :customcertid
-                                 $conditionssql
-                                 ORDER BY " . $DB->sql_fullname(),
-        $allparams,
-        $page * $perpage,
-        $perpage);
+    $sql = "SELECT u.*, ci.code, ci.timecreated
+              FROM {user} u
+        INNER JOIN {customcert_issues} ci
+                ON u.id = ci.userid
+             WHERE u.deleted = 0
+               AND ci.customcertid = :customcertid
+                   $conditionssql
+          ORDER BY " . $DB->sql_fullname();
+    return $DB->get_records_sql($sql, $allparams, $page * $perpage, $perpage);
 }
 
 /**
@@ -438,14 +435,14 @@ function customcert_get_number_of_issues($customcertid, $cm, $groupmode) {
     $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
     // Return the number of issues.
-    return $DB->count_records_sql("SELECT COUNT(u.id) as count
-                                   FROM {user} u
-                                   INNER JOIN {customcert_issues} ci
-                                   ON u.id = ci.userid
-                                   WHERE u.deleted = 0
-                                   AND ci.customcertid = :customcertid
-                                   $conditionssql",
-        $allparams);
+    $sql = "SELECT COUNT(u.id) as count
+              FROM {user} u
+        INNER JOIN {customcert_issues} ci
+                ON u.id = ci.userid
+             WHERE u.deleted = 0
+               AND ci.customcertid = :customcertid
+                   $conditionssql";
+    return $DB->count_records_sql($sql, $allparams);
 }
 
 /**

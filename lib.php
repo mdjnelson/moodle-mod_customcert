@@ -90,10 +90,10 @@ function customcert_delete_instance($id) {
 
     // Delete the elements.
     $sql = "SELECT e.*
-            FROM {customcert_elements} e
-            INNER JOIN {customcert_pages} p
-            ON e.pageid = p.id
-            WHERE p.customcertid = :customcertid";
+              FROM {customcert_elements} e
+        INNER JOIN {customcert_pages} p
+                ON e.pageid = p.id
+             WHERE p.customcertid = :customcertid";
     if ($elements = $DB->get_records_sql($sql, array('customcertid' => $id))) {
         foreach ($elements as $element) {
             // Get an instance of the element class.
@@ -137,8 +137,8 @@ function customcert_reset_userdata($data) {
 
     if (!empty($data->reset_customcert)) {
         $sql = "SELECT cert.id
-                FROM {customcert} cert
-                WHERE cert.course = :courseid";
+                  FROM {customcert} cert
+                 WHERE cert.course = :courseid";
         $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", array('courseid' => $data->courseid));
         $status[] = array('component' => $componentstr, 'item' => get_string('customcertremoved', 'customcert'), 'error' => false);
     }
