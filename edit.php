@@ -23,7 +23,7 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/lib.php');
+require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 require_once($CFG->dirroot . '/mod/customcert/edit_form.php');
 require_once($CFG->dirroot . '/mod/customcert/load_template_form.php');
 require_once($CFG->dirroot . '/mod/customcert/save_template_form.php');

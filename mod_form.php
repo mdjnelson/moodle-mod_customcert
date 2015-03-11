@@ -17,7 +17,7 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/customcert/lib.php');
+require_once($CFG->dirroot.'/mod/customcert/locallib.php');
 
 /**
  * Instance add/edit form.

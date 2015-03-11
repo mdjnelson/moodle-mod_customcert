@@ -23,7 +23,7 @@
  */
 
 require('../../config.php');
-require_once($CFG->dirroot.'/mod/customcert/lib.php');
+require_once($CFG->dirroot.'/mod/customcert/locallib.php');
 require_once($CFG->dirroot.'/mod/customcert/upload_image_form.php');
 
 require_login();
