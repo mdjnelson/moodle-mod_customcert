@@ -158,9 +158,6 @@ $mform = new mod_customcert_edit_form('', array('customcertid' => $customcert->i
                                                 'course' => $course));
 
 if ($data = $mform->get_data()) {
-    // Handle file uploads.
-    customcert_upload_imagefiles($data->customcertimage, context_course::instance($course->id)->id);
-
     // Save any page data.
     customcert_save_page_data($data);
 

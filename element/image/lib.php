@@ -33,6 +33,8 @@ class customcert_element_image extends customcert_element_base {
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
+        global $COURSE;
+
         $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
 
         $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
@@ -46,6 +48,12 @@ class customcert_element_image extends customcert_element_base {
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
         parent::render_form_element_position($mform);
+
+        $filemanageroptions = array('maxbytes' => $COURSE->maxbytes,
+            'subdirs' => 1,
+            'accepted_types' => 'image');
+
+        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $filemanageroptions);
     }
 
     /**
@@ -73,6 +81,21 @@ class customcert_element_image extends customcert_element_base {
         $errors += $this->validate_form_element_position($data);
 
         return $errors;
+    }
+
+    /**
+     * Handles saving the form elements created by this element.
+     * Can be overridden if more functionality is needed.
+     *
+     * @param stdClass $data the form data
+     */
+    public function save_form_elements($data) {
+        global $COURSE;
+
+        // Handle file uploads.
+        customcert_upload_imagefiles($data->customcertimage, context_course::instance($COURSE->id)->id);
+
+        parent::save_form_elements($data);
     }
 
     /**
@@ -126,11 +149,23 @@ class customcert_element_image extends customcert_element_base {
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
+        global $COURSE;
+
         // Set the image, width and height for this element.
         $imageinfo = json_decode($this->element->data);
         $this->element->image = $imageinfo->pathnamehash;
         $this->element->width = $imageinfo->width;
         $this->element->height = $imageinfo->height;
+
+        // Editing existing instance - copy existing files into draft area.
+        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
+        $filemanageroptions = array('maxbytes' => $COURSE->maxbytes,
+            'subdirs' => 1,
+            'accepted_types' => 'image');
+        file_prepare_draft_area($draftitemid, context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0,
+            $filemanageroptions);
+        $element = $mform->getElement('customcertimage');
+        $element->setValue($draftitemid);
 
         parent::definition_after_data($mform);
     }

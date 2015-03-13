@@ -42,20 +42,12 @@ class mod_customcert_edit_form extends moodleform {
     private $numpages = 1;
 
     /**
-     * The filemanager options.
-     */
-    private $filemanageroptions = array();
-
-    /**
      * Form definition.
      */
     public function definition() {
         global $DB;
 
         $this->id = $this->_customdata['customcertid'];
-        $this->filemanageroptions = array('maxbytes' => $this->_customdata['course']->maxbytes,
-                                          'subdirs' => 1,
-                                          'accepted_types' => 'image');
 
         $mform =& $this->_form;
 
@@ -70,10 +62,6 @@ class mod_customcert_edit_form extends moodleform {
         $mform->closeHeaderBefore('addcertpage');
 
         $mform->addElement('submit', 'addcertpage', get_string('addcertpage', 'customcert'));
-
-        $mform->addElement('header', 'uploadimage', get_string('uploadimage', 'customcert'));
-
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
 
         $mform->closeHeaderBefore('submitbtn');
 
@@ -98,12 +86,6 @@ class mod_customcert_edit_form extends moodleform {
         global $DB;
 
         $mform = $this->_form;
-
-        // Editing existing instance - copy existing files into draft area.
-        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, context_course::instance($this->_customdata['course']->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
-        $element = $mform->getElement('customcertimage');
-        $element->setValue($draftitemid);
 
         // Check that we are updating a current customcert.
         if ($this->id) {
