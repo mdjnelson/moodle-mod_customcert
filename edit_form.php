@@ -205,8 +205,8 @@ class mod_customcert_edit_form extends moodleform {
             $numelements = count($elements);
             // Create a table to display these elements.
             $table = new html_table();
-            $table->head  = array(get_string('name', 'customcert'), get_string('type', 'customcert'), '', '');
-            $table->align = array('left', 'left', 'center', 'center');
+            $table->head  = array(get_string('name', 'customcert'), get_string('type', 'customcert'), '');
+            $table->align = array('left', 'left', 'center');
             // If we have more than one element then we can change the order, so add extra column for the up and down arrow.
             if ($numelements > 1) {
                 $table->head[] = '';
@@ -217,16 +217,14 @@ class mod_customcert_edit_form extends moodleform {
                 $row = new html_table_row();
                 $row->cells[] = $element->name;
                 $row->cells[] = $element->element;
-                // Link to delete the element.
-                $deletelink = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'deleteelement' => $element->id));
-                $deletelink = html_writer::tag('a', get_string('delete', 'customcert'), array('href' => $deletelink->out(false)));
-                $row->cells[] = $deletelink;
                 // Link to edit this element.
                 $editlink = new moodle_url('/mod/customcert/edit_element.php', array('id' => $element->id,
-                                                                                     'cmid' => $this->_customdata['cmid'],
-                                                                                     'action' => 'edit'));
-                $editlink = html_writer::tag('a', get_string('edit'), array('href' => $editlink->out(false)));
-                $row->cells[] = $editlink;
+                    'cmid' => $this->_customdata['cmid'],
+                    'action' => 'edit'));
+                $icons = $OUTPUT->action_icon($editlink, new pix_icon('t/edit', get_string('edit')));
+                // Link to delete the element.
+                $deletelink = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'deleteelement' => $element->id));
+                $icons .= $OUTPUT->action_icon($deletelink, new pix_icon('t/delete', get_string('delete', 'customcert')));
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {
                     // Only display the move up arrow if it is not the first.
@@ -240,8 +238,9 @@ class mod_customcert_edit_form extends moodleform {
                         $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $this->_customdata['cmid'], 'emovedown' => $element->id));
                         $moveicons .= $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown')));
                     }
-                    $row->cells[] = $moveicons;
+                    $icons .= $moveicons;
                 }
+                $row->cells[] = $icons;
                 $table->data[] = $row;
             }
             // Add the table to the form.
