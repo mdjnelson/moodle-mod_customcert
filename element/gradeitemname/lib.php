@@ -49,7 +49,11 @@ class customcert_element_gradeitemname extends customcert_element_base {
      * @return string the text
      */
     public function save_unique_data($data) {
-        return $data->gradeitem;
+        if (!empty($data->gradeitem)) {
+            return $data->gradeitem;
+        }
+
+        return '';
     }
 
     /**
@@ -61,14 +65,17 @@ class customcert_element_gradeitemname extends customcert_element_base {
     public function render($pdf, $preview) {
         global $DB;
 
-        // Get the course module information.
-        $cm = $DB->get_record('course_modules', array('id' => $this->element->data), '*', MUST_EXIST);
-        $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
+        // Check that the grade item is not empty.
+        if (!empty($this->element->data)) {
+            // Get the course module information.
+            $cm = $DB->get_record('course_modules', array('id' => $this->element->data), '*', MUST_EXIST);
+            $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
 
-        // Get the name of the item.
-        $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+            // Get the name of the item.
+            $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
 
-        parent::render_content($pdf, $itemname);
+            parent::render_content($pdf, $itemname);
+        }
     }
 
     /**
