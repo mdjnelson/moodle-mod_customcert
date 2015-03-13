@@ -60,7 +60,7 @@ class customcert_element_teachername extends customcert_element_base {
     public function render($pdf, $preview) {
         global $DB;
 
-        $teacher = $DB->get_record('user', array('id' => $this->element->data), 'id, firstname, lastname');
+        $teacher = $DB->get_record('user', array('id' => $this->element->data));
         $teachername = fullname($teacher);
 
         parent::render_content($pdf, $teachername);
@@ -79,7 +79,7 @@ class customcert_element_teachername extends customcert_element_base {
         $teachers = array();
 
         // Now return all users who can manage the customcert in this context.
-        if ($users = get_users_by_capability(context_module::instance($cmid), 'mod/customcert:manage', 'u.id, u.firstname, u.lastname')) {
+        if ($users = get_users_by_capability(context_module::instance($cmid), 'mod/customcert:manage')) {
             foreach ($users as $user) {
                 $teachers[$user->id] = fullname($user);
             }
