@@ -71,7 +71,7 @@ function customcert_update_instance($data, $mform) {
  * @return bool true if successful
  */
 function customcert_delete_instance($id) {
-    global $DB;
+    global $CFG, $DB;
 
     // Ensure the customcert exists.
     if (!$DB->get_record('customcert', array('id' => $id))) {
@@ -95,10 +95,14 @@ function customcert_delete_instance($id) {
                 ON e.pageid = p.id
              WHERE p.customcertid = :customcertid";
     if ($elements = $DB->get_records_sql($sql, array('customcertid' => $id))) {
+        require_once($CFG->dirroot . '/mod/customcert/locallib.php');
         foreach ($elements as $element) {
             // Get an instance of the element class.
             if ($e = customcert_get_element_instance($element)) {
-                return $e->delete_element();
+                $e->delete_element();
+            } else {
+                // The plugin files are missing, so just remove the entry from the DB.
+                $DB->delete_records('customcert_elements', array('id' => $element->id));
             }
         }
     }
