@@ -322,6 +322,9 @@ function customcert_delete_page($pageid) {
             // Get an instance of the element class.
             if ($e = customcert_get_element_instance($element)) {
                 $e->delete_element();
+            } else {
+                // The plugin files are missing, so just remove the entry from the DB.
+                $DB->delete_records('customcert_elements', array('id' => $element->id));
             }
         }
     }
