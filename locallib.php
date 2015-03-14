@@ -275,6 +275,34 @@ function customcert_add_page($data) {
 }
 
 /**
+ * Handles deleting an element from the customcert.
+ *
+ * @param int $elementid the customcert page
+ */
+function customcert_delete_element($elementid) {
+    global $DB;
+
+    // Ensure element exists and delete it.
+    $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+
+    // Get an instance of the element class.
+    if ($e = customcert_get_element_instance($element)) {
+        $e->delete_element();
+    } else {
+        // The plugin files are missing, so just remove the entry from the DB.
+        $DB->delete_records('customcert_elements', array('id' => $elementid));
+    }
+
+    // Now we want to decrease the sequence numbers of the elements
+    // that are greater than the element we deleted.
+    $sql = "UPDATE {customcert_elements}
+               SET sequence = sequence - 1
+             WHERE pageid = :pageid
+               AND sequence > :sequence";
+    $DB->execute($sql, array('pageid' => $element->pageid, 'sequence' => $element->sequence));
+}
+
+/**
  * Handles deleting a page from the customcert.
  *
  * @param int $pageid the customcert page

@@ -118,12 +118,7 @@ if ((!empty($moveup)) || (!empty($movedown))) {
     }
 } else if (!empty($deleteelement)) { // Check if we are deleting an element.
     if (!empty($confirm)) { // Check they have confirmed the deletion.
-        // Ensure element exists and delete it.
-        $element = $DB->get_record('customcert_elements', array('id' => $deleteelement), '*', MUST_EXIST);
-        // Get an instance of the element class.
-        if ($e = customcert_get_element_instance($element)) {
-            $e->delete_element();
-        }
+        customcert_delete_element($deleteelement);
     } else {
         // Set deletion flag to true.
         $deleting = true;
