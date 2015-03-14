@@ -25,5 +25,5 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 $plugin->version   = 2013072301;
-$plugin->requires  = 2012120300; // Requires this Moodle version.
+$plugin->requires  = 2014051200; // Requires this Moodle version (2.7).
 $plugin->component = 'customcertelement_categoryname';
