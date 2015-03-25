@@ -95,7 +95,9 @@ class restore_customcert_activity_task extends restore_activity_task {
      * was available at the time.
      */
     public function after_restore() {
-        global $DB;
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 
         // Get the customcert elements.
         $sql = "SELECT e.*
