@@ -2,6 +2,10 @@
     text-align:right;
 }
 
+#page-mod-customcert-edit #id_replace {
+    margin-left: 10px;
+}
+
 #page-mod-customcert-report .centre {
     margin-left: auto;
     margin-right: auto;
