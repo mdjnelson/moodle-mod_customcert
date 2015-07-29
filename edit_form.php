@@ -99,6 +99,9 @@ class mod_customcert_edit_form extends moodleform {
                     // Set the height.
                     $element = $mform->getElement('pageheight_' . $p->id);
                     $element->setValue($p->height);
+                    // Set the margin.
+                    $element = $mform->getElement('pagemargin_' . $p->id);
+                    $element->setValue($p->margin);
                 }
             }
         }
@@ -114,7 +117,7 @@ class mod_customcert_edit_form extends moodleform {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        // Go through the data and check any width or height values.
+        // Go through the data and check any width, height or margin  values.
         foreach ($data as $key => $value) {
             if (strpos($key, 'pagewidth_') !== false) {
                 $page = str_replace('pagewidth_', '', $key);
@@ -130,6 +133,12 @@ class mod_customcert_edit_form extends moodleform {
                 // Validate that the height is a valid value.
                 if ((!isset($data[$heightid])) || (!is_numeric($data[$heightid])) || ($data[$heightid] <= 0)) {
                     $errors[$heightid] = get_string('invalidheight', 'customcert');
+                }
+            }
+            if (strpos($key, 'pagemargin_') !== false) {
+                // Validate that the margin is a valid value.
+                if (isset($data[$key]) && ($data[$key] < 0)) {
+                    $errors[$key] = get_string('invalidmargin', 'customcert');
                 }
             }
         }
@@ -173,6 +182,10 @@ class mod_customcert_edit_form extends moodleform {
         $mform->setDefault('pageheight_' . $page->id, '297');
         $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
         $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
+
+        $mform->addElement('text', 'pagemargin_' . $page->id, get_string('margin', 'customcert'));
+        $mform->setType('pagemargin_' . $page->id, PARAM_INT);
+        $mform->addHelpButton('pagemargin_' . $page->id, 'margin', 'customcert');
 
         $mform->addElement('submit', 'downloadgrid_' . $page->id, get_string('downloadgrid', 'customcert'));
 
