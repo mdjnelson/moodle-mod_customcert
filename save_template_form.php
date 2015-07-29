@@ -38,6 +38,7 @@ class mod_customcert_save_template_form extends moodleform {
         $group = array();
         $group[] = $mform->createElement('text', 'name');
         $group[] = $mform->createElement('submit', 'savetemplatesubmit', get_string('save', 'customcert'));
+        $group[] = $mform->createElement('checkbox', 'replace', null, get_string('replacetemplate', 'customcert'));
 
         $mform->addElement('group', 'savetemplategroup', get_string('templatename', 'customcert'), $group, '', false);
 
@@ -66,9 +67,11 @@ class mod_customcert_save_template_form extends moodleform {
 
         $errors = parent::validation($data, $files);
 
-        // Ensure the name does not already exist.
-        if ($DB->record_exists('customcert_template', array('name' => $data['name']))) {
-            $errors['savetemplategroup'] = get_string('templatenameexists', 'customcert');
+        if (empty($data['replace'])) {
+            // Ensure the name does not already exist.
+            if ($DB->record_exists('customcert_template', array('name' => $data['name']))) {
+                $errors['savetemplategroup'] = get_string('templatenameexists', 'customcert');
+            }
         }
 
         return $errors;
