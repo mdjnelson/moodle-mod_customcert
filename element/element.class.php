@@ -113,6 +113,7 @@ abstract class customcert_element_base {
         $element->colour = (isset($data->colour)) ? $data->colour : null;
         $element->posx = (isset($data->posx)) ? $data->posx : null;
         $element->posy = (isset($data->posy)) ? $data->posy : null;
+        $element->width = (isset($data->width)) ? $data->width : null;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
@@ -183,7 +184,7 @@ abstract class customcert_element_base {
         $this->set_font($pdf);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
-        $pdf->writeHTMLCell(0, 0, $this->element->posx, $this->element->posy, $content);
+        $pdf->writeHTMLCell($this->element->width, 0, $this->element->posx, $this->element->posy, $content);
     }
 
     /**
@@ -266,6 +267,11 @@ abstract class customcert_element_base {
         $mform->setType('posy', PARAM_INT);
         $mform->setDefault('posy', '0');
         $mform->addHelpButton('posy', 'posy', 'customcert');
+
+        $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
+        $mform->setType('width', PARAM_INT);
+        $mform->setDefault('width', '');
+        $mform->addHelpButton('width', 'elementwidth', 'customcert');
     }
 
     /**
@@ -302,6 +308,11 @@ abstract class customcert_element_base {
         // Check if posy is not set, or not numeric or less than 0.
         if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
             $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
+        }
+
+        // Check if width is less than 0.
+        if (isset($data['width']) && $data['width'] < 0) {
+            $errors['width'] = get_string('invalidelementwidth', 'customcert');
         }
 
         return $errors;
