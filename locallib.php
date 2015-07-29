@@ -644,6 +644,11 @@ function customcert_generate_grid_pdf($pageid) {
         $pdf->Line($wline, 0, $wline, $page->height);
     }
 
+    // Draw the margin line.
+    if (!empty($page->margin)) {
+        $pdf->Line($page->width - $page->margin, 0, $page->width - $page->margin, $page->height, array('dash' => '2'));
+    }
+
     $pdf->Output($pdfname . '.pdf', 'D');
     exit();
 }
