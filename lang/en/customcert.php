@@ -86,6 +86,7 @@ $string['posx_help'] = 'This is the position in mm from the top left corner you 
 $string['posy'] = 'Postion Y';
 $string['posy_help'] = 'This is the position in mm from the top left corner you wish the element to display in the y direction.';
 $string['receiveddate'] = 'Received date';
+$string['replacetemplate'] = 'Replace';
 $string['report'] = 'Report';
 $string['save'] = 'Save';
 $string['savechangespreview'] = 'Save changes and preview';
