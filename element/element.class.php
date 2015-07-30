@@ -114,6 +114,8 @@ abstract class customcert_element_base {
         $element->posx = (isset($data->posx)) ? $data->posx : null;
         $element->posy = (isset($data->posy)) ? $data->posy : null;
         $element->width = (isset($data->width)) ? $data->width : null;
+        $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
+        $element->align = (isset($data->align)) ? $data->align : null;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
@@ -184,7 +186,36 @@ abstract class customcert_element_base {
         $this->set_font($pdf);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
-        $pdf->writeHTMLCell($this->element->width, 0, $this->element->posx, $this->element->posy, $content);
+
+        $x = $this->element->posx;
+        $y = $this->element->posy;
+        $w = $this->element->width;
+        $align = $this->element->align;
+        $refpoint = $this->element->refpoint;
+        $actualwidth = $pdf->GetStringWidth($content);
+
+        if ($w and $w < $actualwidth) {
+            $actualwidth = $w;
+        }
+
+        switch ($refpoint) {
+            case CUSTOMCERT_REF_POINT_TOPRIGHT:
+                $x = $this->element->posx - $actualwidth;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx;
+                }
+                break;
+            case CUSTOMCERT_REF_POINT_TOPCENTER:
+                $x = $this->element->posx - $actualwidth / 2;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx * 2;
+                }
+                break;
+        }
+
+        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, true, true, $align);
     }
 
     /**
@@ -272,6 +303,27 @@ abstract class customcert_element_base {
         $mform->setType('width', PARAM_INT);
         $mform->setDefault('width', '');
         $mform->addHelpButton('width', 'elementwidth', 'customcert');
+
+        $refpointoptions = array();
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPRIGHT] = get_string('topright', 'customcert');
+
+        $mform->addElement('select', 'refpoint', get_string('refpoint', 'customcert'), $refpointoptions);
+        $mform->setType('refpoint', PARAM_INT);
+        $mform->setDefault('refpoint', '');
+        $mform->addHelpButton('refpoint', 'refpoint', 'customcert');
+
+        $alignoptions = array();
+        $alignoptions[''] = get_string('alignnone', 'customcert');
+        $alignoptions['L'] = get_string('alignleft', 'customcert');
+        $alignoptions['C'] = get_string('aligncenter', 'customcert');
+        $alignoptions['R'] = get_string('alignright', 'customcert');
+
+        $mform->addElement('select', 'align', get_string('align', 'customcert'), $alignoptions);
+        $mform->setType('align', PARAM_ALPHA);
+        $mform->setDefault('align', '');
+        $mform->addHelpButton('align', 'align', 'customcert');
     }
 
     /**
