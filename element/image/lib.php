@@ -47,7 +47,15 @@ class customcert_element_image extends customcert_element_base {
         $mform->setDefault('height', 0);
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
-        parent::render_form_element_position($mform);
+        $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
+        $mform->setType('posx', PARAM_INT);
+        $mform->setDefault('posx', '0');
+        $mform->addHelpButton('posx', 'posx', 'customcert');
+
+        $mform->addElement('text', 'posy', get_string('posy', 'customcert'), array('size' => 10));
+        $mform->setType('posy', PARAM_INT);
+        $mform->setDefault('posy', '0');
+        $mform->addHelpButton('posy', 'posy', 'customcert');
 
         $filemanageroptions = array('maxbytes' => $COURSE->maxbytes,
             'subdirs' => 1,
