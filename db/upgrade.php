@@ -28,7 +28,7 @@ function xmldb_customcert_upgrade($oldversion=0) {
     global $CFG, $DB;
     $dbman = $DB->get_manager();
 
-    if ($oldversion < 2015072700) {
+    if ($oldversion < 2015073000) {
         // Add the margin fields to customcert_pages table
         $table = new xmldb_table('customcert_pages');
         $field = new xmldb_field('margin', XMLDB_TYPE_INTEGER, 10, null, null, null, 0, 'height');
@@ -43,22 +43,44 @@ function xmldb_customcert_upgrade($oldversion=0) {
             $dbman->add_field($table, $field);
         }
 
-        // Add the width fields to customcert_elements table
+        // Retrieve the customcert_elements table to add some elements to it
         $table = new xmldb_table('customcert_elements');
+        // Add the width fields to customcert_elements table
         $field = new xmldb_field('width', XMLDB_TYPE_INTEGER, 10, null, null, null, 0, 'posy');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+        // Add the refpoint fields to customcert_elements table.
+        $field = new xmldb_field('refpoint', XMLDB_TYPE_INTEGER, 4, null, null, null, 0, 'width');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Add the align fields to customcert_elements table.
+        $field = new xmldb_field('align', XMLDB_TYPE_CHAR, 1, null, null, null, 0, 'refpoint');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
 
-        // Add the width fields to customcert_template_elements table
+        // Retrieve the customcert_template_elements table to add some elements to it
         $table = new xmldb_table('customcert_template_elements');
+        // Add the width fields to customcert_template_elements table
         $field = new xmldb_field('width', XMLDB_TYPE_INTEGER, 10, null, null, null, 0, 'posy');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Add the refpoint fields to customcert_template_elements table.
+        $field = new xmldb_field('refpoint', XMLDB_TYPE_INTEGER, 4, null, null, null, 0, 'width');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Add the align fields to customcert_template_elements table.
+        $field = new xmldb_field('align', XMLDB_TYPE_CHAR, 1, null, null, null, 0, 'refpoint');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         // Customcert savepoint reached.
-        upgrade_mod_savepoint(true, 2015072700, 'customcert');
+        upgrade_mod_savepoint(true, 2015073000, 'customcert');
     }
 
     return true;

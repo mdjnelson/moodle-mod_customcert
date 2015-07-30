@@ -54,8 +54,9 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
 
         // The elements.
         $element = new backup_nested_element('element', array('id'), array(
-            'pageid', 'name', 'element', 'data', 'font', 'size', 'colour', 'width',
-            'posx', 'posy', 'sequence', 'timecreated', 'timemodified'));
+            'pageid', 'name', 'element', 'data', 'font', 'size',
+            'colour', 'width', 'refpoint', 'align', 'posx',
+            'posy', 'sequence', 'timecreated', 'timemodified'));
 
         // Build the tree.
         $customcert->add_child($issues);

@@ -51,6 +51,21 @@ define('CUSTOMCERT_PER_PAGE', 20);
 define('CUSTOMCERT_MAX_PER_PAGE', 300);
 
 /**
+ * @var int the top-left of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPLEFT', 0);
+
+/**
+ * @var int the top-center of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPCENTER', 1);
+
+/**
+ * @var int the top-left of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPRIGHT', 2);
+
+/**
  * Handles setting the protection field for the customcert
  *
  * @param stdClass $data
