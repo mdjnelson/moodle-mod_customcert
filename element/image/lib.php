@@ -152,6 +152,49 @@ class customcert_element_image extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        // If there is no element data, we have nothing to display.
+        if (empty($this->element->data)) {
+            return;
+        }
+
+        $imageinfo = json_decode($this->element->data);
+
+        // Get the image.
+        $fs = get_file_storage();
+        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
+            $url = moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
+                $file->get_filepath(), $file->get_filename());
+            $fileimageinfo = $file->get_imageinfo();
+            $whratio = $fileimageinfo['width'] / $fileimageinfo['height'];
+            // The size of the images to use in the CSS style.
+            $style = '';
+            if ($imageinfo->width === 0 && $imageinfo->height === 0) {
+                $style .= 'width: ' . $fileimageinfo['width'] . 'px; ';
+                $style .= 'height: ' . $fileimageinfo['height'] . 'px';
+            } else if ($imageinfo->width === 0) { // Then the height must be set.
+                // We must get the width based on the height to keep the ratio.
+                $style .= 'width: ' . ($imageinfo->height * $whratio) . 'mm; ';
+                $style .= 'height: ' . $imageinfo->height . 'mm';
+            } else if ($imageinfo->height === 0) { // Then the width must be set.
+                $style .= 'width: ' . $imageinfo->width . 'mm; ';
+                // We must get the height based on the width to keep the ratio.
+                $style .= 'height: ' . ($imageinfo->width / $whratio) . 'mm';
+            } else { // Must both be set.
+                $style .= 'width: ' . $imageinfo->width . 'mm; ';
+                $style .= 'height: ' . $imageinfo->height . 'mm';
+            }
+
+            return html_writer::tag('img', '', array('src' => $url, 'style' => $style));
+        }
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

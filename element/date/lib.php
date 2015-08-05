@@ -153,6 +153,44 @@ class customcert_element_date extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        // If there is no element data, we have nothing to display.
+        if (empty($this->element->data)) {
+            return;
+        }
+
+        // Decode the information stored in the database.
+        $dateinfo = json_decode($this->element->data);
+        $dateformat = $dateinfo->dateformat;
+
+        $date = time();
+        switch ($dateformat) {
+            case 1:
+                $certificatedate = userdate($date, '%B %d, %Y');
+                break;
+            case 2:
+                $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
+                $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
+                break;
+            case 3:
+                $certificatedate = userdate($date, '%d %B %Y');
+                break;
+            case 4:
+                $certificatedate = userdate($date, '%B %Y');
+                break;
+            default:
+                $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
+        }
+
+        return parent::render_html_content($certificatedate);
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

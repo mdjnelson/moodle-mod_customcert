@@ -183,7 +183,8 @@ abstract class customcert_element_base {
      * @param string $content the content to render
      */
     public function render_content($pdf, $content) {
-        $this->set_font($pdf);
+        list($font, $attr) = $this->get_font();
+        $pdf->setFont($font, $attr, $this->element->size);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
@@ -224,6 +225,35 @@ abstract class customcert_element_base {
         }
         $pdf->setCellPaddings(0, 0, 0, 0);
         $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
+    }
+
+    /**
+     * Render the element in html.
+     *
+     * Must be overridden.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public abstract function render_html();
+
+    /**
+     * Common behaviour for rendering specified content on the drag and drop page.
+     *
+     * @param string $content the content to render
+     * @return string the html
+     */
+    public function render_html_content($content) {
+        list($font, $attr) = $this->get_font();
+        $fontstyle = 'font-family: ' . $font;
+        if (strpos($attr, 'B') !== false) {
+            $fontstyle .= ': font-weight: bold';
+        }
+        if (strpos($attr, 'I') !== false) {
+            $fontstyle .= ': font-style: italic';
+        }
+        $style = $fontstyle . '; color: ' . $this->element->colour . '; font-size: ' . $this->element->size . 'pt';
+        return html_writer::tag('span', $content, array('style' => $style));
     }
 
     /**
@@ -379,11 +409,11 @@ abstract class customcert_element_base {
     }
 
     /**
-     * Sets the font for the element.
+     * Returns the font used for this element.
      *
-     * @param pdf $pdf the pdf object
+     * @return array the font and font attributes
      */
-    public function set_font($pdf) {
+    public function get_font() {
         // Variable for the font.
         $font = $this->element->font;
         // Get the last two characters of the font name.
@@ -408,7 +438,7 @@ abstract class customcert_element_base {
             $font = substr($font, 0, -1);
             $attr .= 'B';
         }
-        $pdf->setFont($font, $attr, $this->element->size);
+        return array($font, $attr);
     }
 
     /**
