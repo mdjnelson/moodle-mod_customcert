@@ -40,4 +40,18 @@ class customcert_element_categoryname extends customcert_element_base {
 
         parent::render_content($pdf, $categoryname);
     }
+
+    /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+            global $DB, $COURSE;
+
+        $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
+
+        return parent::render_html_content($categoryname);
+    }
 }

@@ -107,6 +107,29 @@ class customcert_element_grade extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        global $COURSE;
+
+        // If there is no element data, we have nothing to display.
+        if (empty($this->element->data)) {
+            return;
+        }
+
+        // Decode the information stored in the database.
+        $gradeinfo = json_decode($this->element->data);
+
+        $courseitem = grade_item::fetch_course_item($COURSE->id);
+        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
+
+        return parent::render_html_content($grade);
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

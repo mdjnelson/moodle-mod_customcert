@@ -48,4 +48,16 @@ class customcert_element_code extends customcert_element_base {
 
         parent::render_content($pdf, $code);
     }
+
+    /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        $code = customcert_generate_code();
+
+        return parent::render_html_content($code);
+    }
 }

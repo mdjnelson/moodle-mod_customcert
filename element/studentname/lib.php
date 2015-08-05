@@ -38,4 +38,16 @@ class customcert_element_studentname extends customcert_element_base {
 
         parent::render_content($pdf, fullname($USER));
     }
+
+    /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        global $USER;
+
+        return parent::render_html_content(fullname($USER));
+    }
 }
