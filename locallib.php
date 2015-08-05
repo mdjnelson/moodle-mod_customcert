@@ -51,6 +51,21 @@ define('CUSTOMCERT_PER_PAGE', 20);
 define('CUSTOMCERT_MAX_PER_PAGE', 300);
 
 /**
+ * @var int the top-left of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPLEFT', 0);
+
+/**
+ * @var int the top-center of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPCENTER', 1);
+
+/**
+ * @var int the top-left of element
+ */
+define('CUSTOMCERT_REF_POINT_TOPRIGHT', 2);
+
+/**
  * Handles setting the protection field for the customcert
  *
  * @param stdClass $data
@@ -207,11 +222,13 @@ function customcert_save_page_data($data) {
             // Get the name of the fields we want from the form.
             $width = 'pagewidth_' . $page->id;
             $height = 'pageheight_' . $page->id;
+            $margin = 'pagemargin_' . $page->id;
             // Create the page data to update the DB with.
             $p = new stdClass();
             $p->id = $page->id;
             $p->width = $data->$width;
             $p->height = $data->$height;
+            $p->margin = $data->$margin;
             $p->timemodified = $time;
             // Update the page.
             $DB->update_record('customcert_pages', $p);
@@ -642,6 +659,11 @@ function customcert_generate_grid_pdf($pageid) {
         $pdf->Line($wline, 0, $wline, $page->height);
     }
 
+    // Draw the margin line.
+    if (!empty($page->margin)) {
+        $pdf->Line($page->width - $page->margin, 0, $page->width - $page->margin, $page->height, array('dash' => '2'));
+    }
+
     $pdf->Output($pdfname . '.pdf', 'D');
     exit();
 }
@@ -668,7 +690,6 @@ function customcert_generate_pdf($customcert, $preview = false) {
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
         $pdf->SetTitle($customcert->name);
-        $pdf->SetMargins(0, 0);
         $pdf->SetAutoPageBreak(true, 0);
         // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
         $filename = rtrim($customcert->name, '.');
@@ -682,6 +703,7 @@ function customcert_generate_pdf($customcert, $preview = false) {
                 $orientation = 'P';
             }
             $pdf->AddPage($orientation, array($page->width, $page->height));
+            $pdf->SetMargins(0, 0, $page->margin);
             // Get the elements for the page.
             if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
                 // Loop through and display.

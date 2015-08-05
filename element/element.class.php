@@ -113,6 +113,9 @@ abstract class customcert_element_base {
         $element->colour = (isset($data->colour)) ? $data->colour : null;
         $element->posx = (isset($data->posx)) ? $data->posx : null;
         $element->posy = (isset($data->posy)) ? $data->posy : null;
+        $element->width = (isset($data->width)) ? $data->width : null;
+        $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
+        $element->align = (isset($data->align)) ? $data->align : null;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
@@ -183,7 +186,44 @@ abstract class customcert_element_base {
         $this->set_font($pdf);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
-        $pdf->writeHTMLCell(0, 0, $this->element->posx, $this->element->posy, $content);
+
+        $x = $this->element->posx;
+        $y = $this->element->posy;
+        $w = $this->element->width;
+        $align = $this->element->align;
+        $refpoint = $this->element->refpoint;
+        $actualwidth = $pdf->GetStringWidth($content);
+
+        if ($w and $w < $actualwidth) {
+            $actualwidth = $w;
+        }
+
+        switch ($refpoint) {
+            case CUSTOMCERT_REF_POINT_TOPRIGHT:
+                $x = $this->element->posx - $actualwidth;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx;
+                } else {
+                    $w = $actualwidth;
+                }
+                break;
+            case CUSTOMCERT_REF_POINT_TOPCENTER:
+                $x = $this->element->posx - $actualwidth / 2;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx * 2;
+                } else {
+                    $w = $actualwidth;
+                }
+                break;
+        }
+
+        if ($w) {
+            $w += 0.0001;
+        }
+        $pdf->setCellPaddings(0, 0, 0, 0);
+        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
     }
 
     /**
@@ -266,6 +306,32 @@ abstract class customcert_element_base {
         $mform->setType('posy', PARAM_INT);
         $mform->setDefault('posy', '0');
         $mform->addHelpButton('posy', 'posy', 'customcert');
+
+        $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
+        $mform->setType('width', PARAM_INT);
+        $mform->setDefault('width', '');
+        $mform->addHelpButton('width', 'elementwidth', 'customcert');
+
+        $refpointoptions = array();
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPRIGHT] = get_string('topright', 'customcert');
+
+        $mform->addElement('select', 'refpoint', get_string('refpoint', 'customcert'), $refpointoptions);
+        $mform->setType('refpoint', PARAM_INT);
+        $mform->setDefault('refpoint', '');
+        $mform->addHelpButton('refpoint', 'refpoint', 'customcert');
+
+        $alignoptions = array();
+        $alignoptions[''] = get_string('alignnone', 'customcert');
+        $alignoptions['L'] = get_string('alignleft', 'customcert');
+        $alignoptions['C'] = get_string('aligncenter', 'customcert');
+        $alignoptions['R'] = get_string('alignright', 'customcert');
+
+        $mform->addElement('select', 'align', get_string('align', 'customcert'), $alignoptions);
+        $mform->setType('align', PARAM_ALPHA);
+        $mform->setDefault('align', '');
+        $mform->addHelpButton('align', 'align', 'customcert');
     }
 
     /**
@@ -302,6 +368,11 @@ abstract class customcert_element_base {
         // Check if posy is not set, or not numeric or less than 0.
         if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
             $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
+        }
+
+        // Check if width is less than 0.
+        if (isset($data['width']) && $data['width'] < 0) {
+            $errors['width'] = get_string('invalidelementwidth', 'customcert');
         }
 
         return $errors;
