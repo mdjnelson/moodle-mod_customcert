@@ -204,6 +204,8 @@ abstract class customcert_element_base {
                 if ($x < 0) {
                     $x = 0;
                     $w = $this->element->posx;
+                } else {
+                    $w = $actualwidth;
                 }
                 break;
             case CUSTOMCERT_REF_POINT_TOPCENTER:
@@ -211,10 +213,16 @@ abstract class customcert_element_base {
                 if ($x < 0) {
                     $x = 0;
                     $w = $this->element->posx * 2;
+                } else {
+                    $w = $actualwidth;
                 }
                 break;
         }
 
+        if ($w) {
+            $w += 0.0001;
+        }
+        $pdf->setCellPaddings(0, 0, 0, 0);
         $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
     }
 
