@@ -227,6 +227,42 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
 }
 
 /**
+ * Serves certificate issues and other files.
+ *
+ * @param stdClass $course
+ * @param stdClass $cm
+ * @param context $context
+ * @param string $filearea
+ * @param array $args
+ * @param bool $forcedownload
+ * @return bool|nothing false if file not found, does not return anything if found - just send the file
+ */
+function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+    global $CFG;
+
+    require_once($CFG->libdir . '/filelib.php');
+
+    // We are positioning the elements.
+    if ($filearea === 'image') {
+        if ($context->contextlevel == CONTEXT_MODULE) {
+            require_login($course, false, $cm);
+        } else if ($context->contextlevel == CONTEXT_SYSTEM && !has_capability('mod/certificate:manage', $context)) {
+            return false;
+        }
+
+        $relativepath = implode('/', $args);
+        $fullpath = '/' . $context->id . '/mod_customcert/image/' . $relativepath;
+
+        $fs = get_file_storage();
+        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+            return false;
+        }
+
+        send_stored_file($file, 0, 0, $forcedownload);
+    }
+}
+
+/**
  * @uses FEATURE_GROUPS
  * @uses FEATURE_GROUPINGS
  * @uses FEATURE_GROUPMEMBERSONLY

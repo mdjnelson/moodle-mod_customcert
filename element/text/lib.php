@@ -62,6 +62,16 @@ class customcert_element_text extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        return parent::render_html_content($this->element->data);
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

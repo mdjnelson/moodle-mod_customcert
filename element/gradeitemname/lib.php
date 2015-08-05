@@ -79,6 +79,28 @@ class customcert_element_gradeitemname extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        global $DB;
+
+        // Check that the grade item is not empty.
+        if (!empty($this->element->data)) {
+            // Get the course module information.
+            $cm = $DB->get_record('course_modules', array('id' => $this->element->data), '*', MUST_EXIST);
+            $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
+
+            // Get the name of the item.
+            $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+
+            return parent::render_html_content($itemname);
+        }
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

@@ -58,6 +58,16 @@ class customcert_element_border extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        return '';
+    }
+
+    /**
      * Performs validation on the element values.
      *
      * @param array $data the submitted data

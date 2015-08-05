@@ -41,12 +41,23 @@ require_capability('mod/customcert:manage', $context);
 // Store the current time in a variable.
 $time = time();
 
-// Create the template.
-$template = new stdClass();
-$template->name = $name;
-$template->timecreated = $time;
+if (!$template = $DB->get_record('customcert_template', array('name' => $name))) {
+    // Create the template.
+    $template = new stdClass();
+    $template->name = $name;
+    $template->timecreated = $time;
+}
+
 $template->timemodified = $time;
-$template->id = $DB->insert_record('customcert_template', $template);
+
+if (empty($template->id)) {
+    $template->id = $DB->insert_record('customcert_template', $template);
+} else {
+    $DB->update_record('customcert_template', $template);
+    $templatepages = $DB->get_records_menu('customcert_template_pages', array('templateid' => $template->id));
+    $DB->delete_records_list('customcert_template_elements', 'templatepageid', array_keys($templatepages));
+    $DB->delete_records('customcert_template_pages', array('templateid' => $template->id));
+}
 
 // Get the pages of the customcert we are copying.
 if ($pages = $DB->get_records('customcert_pages', array('customcertid' => $customcert->id))) {

@@ -67,6 +67,21 @@ class customcert_element_teachername extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        global $DB;
+
+        $teacher = $DB->get_record('user', array('id' => $this->element->data));
+        $teachername = fullname($teacher);
+
+        return parent::render_html_content($teachername);
+    }
+
+    /**
      * Helper function to return the teachers for this course.
      *
      * @return array the list of teachers

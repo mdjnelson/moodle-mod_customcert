@@ -107,6 +107,30 @@ class customcert_element_userfield extends customcert_element_base {
     }
 
     /**
+     * Render the element in html.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public function render_html() {
+        global $DB, $USER;
+
+        // The user field to display.
+        $field = $this->element->data;
+        // The value to display on the PDF.
+        $value = '';
+        if (is_number($field)) { // Must be a custom user profile field.
+            if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
+                $value = $USER->profile[$field->shortname];
+            }
+        } else if (!empty($USER->$field)) { // Field in the user table.
+            $value = $USER->$field;
+        }
+
+        return parent::render_html_content($value);
+    }
+
+    /**
      * Sets the data on the form when editing an element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance

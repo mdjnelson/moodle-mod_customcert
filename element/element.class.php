@@ -113,6 +113,9 @@ abstract class customcert_element_base {
         $element->colour = (isset($data->colour)) ? $data->colour : null;
         $element->posx = (isset($data->posx)) ? $data->posx : null;
         $element->posy = (isset($data->posy)) ? $data->posy : null;
+        $element->width = (isset($data->width)) ? $data->width : null;
+        $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
+        $element->align = (isset($data->align)) ? $data->align : null;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
@@ -180,10 +183,77 @@ abstract class customcert_element_base {
      * @param string $content the content to render
      */
     public function render_content($pdf, $content) {
-        $this->set_font($pdf);
+        list($font, $attr) = $this->get_font();
+        $pdf->setFont($font, $attr, $this->element->size);
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
-        $pdf->writeHTMLCell(0, 0, $this->element->posx, $this->element->posy, $content);
+
+        $x = $this->element->posx;
+        $y = $this->element->posy;
+        $w = $this->element->width;
+        $align = $this->element->align;
+        $refpoint = $this->element->refpoint;
+        $actualwidth = $pdf->GetStringWidth($content);
+
+        if ($w and $w < $actualwidth) {
+            $actualwidth = $w;
+        }
+
+        switch ($refpoint) {
+            case CUSTOMCERT_REF_POINT_TOPRIGHT:
+                $x = $this->element->posx - $actualwidth;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx;
+                } else {
+                    $w = $actualwidth;
+                }
+                break;
+            case CUSTOMCERT_REF_POINT_TOPCENTER:
+                $x = $this->element->posx - $actualwidth / 2;
+                if ($x < 0) {
+                    $x = 0;
+                    $w = $this->element->posx * 2;
+                } else {
+                    $w = $actualwidth;
+                }
+                break;
+        }
+
+        if ($w) {
+            $w += 0.0001;
+        }
+        $pdf->setCellPaddings(0, 0, 0, 0);
+        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
+    }
+
+    /**
+     * Render the element in html.
+     *
+     * Must be overridden.
+     *
+     * This function is used to render the element when we are using the
+     * drag and drop interface to position it.
+     */
+    public abstract function render_html();
+
+    /**
+     * Common behaviour for rendering specified content on the drag and drop page.
+     *
+     * @param string $content the content to render
+     * @return string the html
+     */
+    public function render_html_content($content) {
+        list($font, $attr) = $this->get_font();
+        $fontstyle = 'font-family: ' . $font;
+        if (strpos($attr, 'B') !== false) {
+            $fontstyle .= ': font-weight: bold';
+        }
+        if (strpos($attr, 'I') !== false) {
+            $fontstyle .= ': font-style: italic';
+        }
+        $style = $fontstyle . '; color: ' . $this->element->colour . '; font-size: ' . $this->element->size . 'pt';
+        return html_writer::tag('span', $content, array('style' => $style));
     }
 
     /**
@@ -266,6 +336,32 @@ abstract class customcert_element_base {
         $mform->setType('posy', PARAM_INT);
         $mform->setDefault('posy', '0');
         $mform->addHelpButton('posy', 'posy', 'customcert');
+
+        $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
+        $mform->setType('width', PARAM_INT);
+        $mform->setDefault('width', '');
+        $mform->addHelpButton('width', 'elementwidth', 'customcert');
+
+        $refpointoptions = array();
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
+        $refpointoptions[CUSTOMCERT_REF_POINT_TOPRIGHT] = get_string('topright', 'customcert');
+
+        $mform->addElement('select', 'refpoint', get_string('refpoint', 'customcert'), $refpointoptions);
+        $mform->setType('refpoint', PARAM_INT);
+        $mform->setDefault('refpoint', '');
+        $mform->addHelpButton('refpoint', 'refpoint', 'customcert');
+
+        $alignoptions = array();
+        $alignoptions[''] = get_string('alignnone', 'customcert');
+        $alignoptions['L'] = get_string('alignleft', 'customcert');
+        $alignoptions['C'] = get_string('aligncenter', 'customcert');
+        $alignoptions['R'] = get_string('alignright', 'customcert');
+
+        $mform->addElement('select', 'align', get_string('align', 'customcert'), $alignoptions);
+        $mform->setType('align', PARAM_ALPHA);
+        $mform->setDefault('align', '');
+        $mform->addHelpButton('align', 'align', 'customcert');
     }
 
     /**
@@ -304,15 +400,20 @@ abstract class customcert_element_base {
             $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
         }
 
+        // Check if width is less than 0.
+        if (isset($data['width']) && $data['width'] < 0) {
+            $errors['width'] = get_string('invalidelementwidth', 'customcert');
+        }
+
         return $errors;
     }
 
     /**
-     * Sets the font for the element.
+     * Returns the font used for this element.
      *
-     * @param pdf $pdf the pdf object
+     * @return array the font and font attributes
      */
-    public function set_font($pdf) {
+    public function get_font() {
         // Variable for the font.
         $font = $this->element->font;
         // Get the last two characters of the font name.
@@ -337,7 +438,7 @@ abstract class customcert_element_base {
             $font = substr($font, 0, -1);
             $attr .= 'B';
         }
-        $pdf->setFont($font, $attr, $this->element->size);
+        return array($font, $attr);
     }
 
     /**
