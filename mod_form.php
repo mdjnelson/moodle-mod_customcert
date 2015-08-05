@@ -46,7 +46,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         }
         $mform->addRule('name', null, 'required', null, 'client');
 
-        $this->add_intro_editor(false, get_string('description', 'customcert'));
+        $this->standard_intro_elements(get_string('description', 'customcert'));
 
         $mform->addElement('header', 'options', get_string('options', 'customcert'));
 
