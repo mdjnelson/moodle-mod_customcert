@@ -215,7 +215,7 @@ abstract class customcert_element_base {
                 break;
         }
 
-        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, true, true, $align);
+        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
     }
 
     /**
