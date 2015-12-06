@@ -48,7 +48,7 @@ class customcert_element_categoryname extends customcert_element_base {
      * drag and drop interface to position it.
      */
     public function render_html() {
-            global $DB, $COURSE;
+        global $DB, $COURSE;
 
         $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
 

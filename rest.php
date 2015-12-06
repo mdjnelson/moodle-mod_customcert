@@ -43,14 +43,11 @@ $elements = $DB->get_records_sql('SELECT * FROM {customcert_elements} e
 require_login($course, false, $cm);
 require_capability('mod/customcert:manage', $context);
 
-// Loop through the data
+// Loop through the data.
 foreach ($values as $value) {
-//    if (array_key_exists($value->id, $elements)) {
-        // Perform the update.
-        $element = new stdClass();
-        $element->id = $value->id;
-        $element->posx = $value->posx;
-        $element->posy = $value->posy;
-        $DB->update_record('customcert_elements', $element);
-//    }
+    $element = new stdClass();
+    $element->id = $value->id;
+    $element->posx = $value->posx;
+    $element->posy = $value->posy;
+    $DB->update_record('customcert_elements', $element);
 }

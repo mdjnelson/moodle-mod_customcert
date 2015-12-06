@@ -55,9 +55,9 @@ $PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($cm->id, 
 // Create the buttons to save the position of the elements.
 $html = html_writer::start_tag('div', array('class' => 'buttons'));
 $html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id)),
-        get_string('savepositions', 'customcert'), 'get', array('class' => 'savepositionsbtn'));
+        get_string('saveandclose', 'customcert'), 'get', array('class' => 'savepositionsbtn'));
 $html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', array('id' => $pid)),
-        get_string('applypositions', 'customcert'), 'get', array('class' => 'applypositionsbtn'));
+        get_string('saveandcontinue', 'customcert'), 'get', array('class' => 'applypositionsbtn'));
 $html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id)),
         get_string('cancel'), 'get', array('class' => 'cancelbtn'));
 $html .= html_writer::end_tag('div');
