@@ -163,12 +163,8 @@ if ($data = $mform->get_data()) {
 
     // Loop through the data.
     foreach ($data as $key => $value) {
-        // Check if they wanted to download the grid PDF.
-        if (strpos($key, 'downloadgrid_') !== false) {
-            // Get the page id.
-            $pageid = str_replace('downloadgrid_', '', $key);
-            customcert_generate_grid_pdf($pageid);
-        } else if (strpos($key, 'addelement_') !== false) { // Check if they chose to add an element to a page.
+        // Check if they chose to add an element to a page.
+        if (strpos($key, 'addelement_') !== false) {
             // Get the page id.
             $pageid = str_replace('addelement_', '', $key);
             // Get the element.

@@ -47,7 +47,6 @@ $string['deleteelement'] = 'Delete element';
 $string['deleteelementconfirm'] = 'Are you sure you want to delete this element?';
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['description'] = 'Description';
-$string['downloadgrid'] = 'Download grid';
 $string['editcustomcert'] = 'Edit custom certificate';
 $string['elementname'] = 'Element name';
 $string['elementname_help'] = 'This will be the name used to identify this element when editing a custom certificate. For example, you may have multiple images on a

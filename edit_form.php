@@ -187,8 +187,6 @@ class mod_customcert_edit_form extends moodleform {
         $mform->setType('pagemargin_' . $page->id, PARAM_INT);
         $mform->addHelpButton('pagemargin_' . $page->id, 'margin', 'customcert');
 
-        $mform->addElement('submit', 'downloadgrid_' . $page->id, get_string('downloadgrid', 'customcert'));
-
         $group = array();
         $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());
         $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
