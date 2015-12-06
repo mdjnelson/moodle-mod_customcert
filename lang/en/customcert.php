@@ -24,12 +24,6 @@
 
 $string['addcertpage'] = 'Add another certificate page';
 $string['addelement'] = 'Add element';
-$string['align'] = 'Alignment';
-$string['align_help'] = 'Alignment Help';
-$string['aligncenter'] = 'Center';
-$string['alignleft'] = 'Left align';
-$string['alignnone'] = 'No alignment';
-$string['alignright'] = 'Right align';
 $string['applypositions'] = 'Save positions & continue';
 $string['awardedto'] = 'Awarded to';
 $string['code'] = 'Code';

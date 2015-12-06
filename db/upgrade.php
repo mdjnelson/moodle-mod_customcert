@@ -83,5 +83,22 @@ function xmldb_customcert_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2015073000, 'customcert');
     }
 
+    if ($oldversion < 2015120800) {
+        // Remove the align column from both the 'customcert_elements' and 'customcert_template_elements' table.
+        $table = new xmldb_table('customcert_elements');
+        $field = new xmldb_field('align');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        $table = new xmldb_table('customcert_template_elements');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2015120800, 'customcert');
+    }
+
     return true;
 }

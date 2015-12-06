@@ -115,7 +115,6 @@ abstract class customcert_element_base {
         $element->posy = (isset($data->posy)) ? $data->posy : null;
         $element->width = (isset($data->width)) ? $data->width : null;
         $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
-        $element->align = (isset($data->align)) ? $data->align : null;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
@@ -191,7 +190,6 @@ abstract class customcert_element_base {
         $x = $this->element->posx;
         $y = $this->element->posy;
         $w = $this->element->width;
-        $align = $this->element->align;
         $refpoint = $this->element->refpoint;
         $actualwidth = $pdf->GetStringWidth($content);
 
@@ -224,7 +222,7 @@ abstract class customcert_element_base {
             $w += 0.0001;
         }
         $pdf->setCellPaddings(0, 0, 0, 0);
-        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true, $align);
+        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true);
     }
 
     /**
@@ -351,17 +349,6 @@ abstract class customcert_element_base {
         $mform->setType('refpoint', PARAM_INT);
         $mform->setDefault('refpoint', '');
         $mform->addHelpButton('refpoint', 'refpoint', 'customcert');
-
-        $alignoptions = array();
-        $alignoptions[''] = get_string('alignnone', 'customcert');
-        $alignoptions['L'] = get_string('alignleft', 'customcert');
-        $alignoptions['C'] = get_string('aligncenter', 'customcert');
-        $alignoptions['R'] = get_string('alignright', 'customcert');
-
-        $mform->addElement('select', 'align', get_string('align', 'customcert'), $alignoptions);
-        $mform->setType('align', PARAM_ALPHA);
-        $mform->setDefault('align', '');
-        $mform->addHelpButton('align', 'align', 'customcert');
     }
 
     /**
