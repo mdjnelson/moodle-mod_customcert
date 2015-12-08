@@ -9,6 +9,11 @@ M.mod_customcert.rearrange = {
     cmid : 0,
 
     /**
+     * The customcert page we are displaying.
+     */
+    page : Array(),
+
+    /**
      * The custom certificate elements to display.
      */
     elements : Array(),
@@ -39,6 +44,17 @@ M.mod_customcert.rearrange = {
     elementxy : 0,
 
     /**
+     * Store the left boundary of the pdf div.
+     */
+    pdfleftboundary : 0,
+
+    /**
+     * Store the right boundary of the pdf div.
+     */
+    pdfrightboundary : 0,
+
+
+    /**
      * The number of pixels in a mm.
      */
     pixelsinmm : 3.779527559055, //'3.779528',
@@ -47,11 +63,15 @@ M.mod_customcert.rearrange = {
      * Initialise.
      *
      * @param Y
+     * @param cmid
+     * @param page
      * @param elements
      */
-    init : function(Y, cmid, elements) {
+    init : function(Y, cmid, page, elements) {
         // Set the course module id.
         this.cmid = cmid;
+        // Set the page.
+        this.page = page;
         // Set the elements.
         this.elements = elements;
 
@@ -60,6 +80,17 @@ M.mod_customcert.rearrange = {
         this.pdfy = Y.one('#pdf').getY();
         this.pdfwidth = parseFloat(Y.one('#pdf').getComputedStyle('width'), 10);
         this.pdfheight = parseFloat(Y.one('#pdf').getComputedStyle('height'), 10);
+
+        // Set the boundaries.
+        this.pdfleftboundary = this.pdfx;
+        if (this.page['leftmargin']) {
+            this.pdfleftboundary += parseInt(this.page['leftmargin'] * this.pixelsinmm);
+        }
+
+        this.pdfrightboundary = this.pdfx + this.pdfwidth;
+        if (this.page['rightmargin']) {
+            this.pdfrightboundary -= parseInt(this.page['rightmargin'] * this.pixelsinmm);
+        }
 
         this.set_data(Y);
         this.set_positions(Y);
@@ -248,7 +279,7 @@ M.mod_customcert.rearrange = {
         var bottom = top + nodeheight;
 
         // Check if it is out of bounds horizontally.
-        if ((left < this.pdfx) || (right > (this.pdfx + this.pdfwidth)))  {
+        if ((left < this.pdfleftboundary) || (right > this.pdfrightboundary))  {
             return true;
         }
 

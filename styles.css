@@ -57,3 +57,11 @@
      border-style:solid;
      border-width:1px;
 }
+
+#page-mod-customcert-position div#leftmargin {
+    border-left: 1px dotted black;
+}
+
+#page-mod-customcert-position div#rightmargin {
+    border-right: 1px dotted black;
+}

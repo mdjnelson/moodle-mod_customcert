@@ -100,5 +100,34 @@ function xmldb_customcert_upgrade($oldversion=0) {
         upgrade_mod_savepoint(true, 2015120800, 'customcert');
     }
 
+    if ($oldversion < 2015120801) {
+        // Rename the 'margin' field to 'rightmargin' in the 'customcert_pages' and 'customcert_template_pages' tables.
+        $table = new xmldb_table('customcert_pages');
+        $field = new xmldb_field('margin', XMLDB_TYPE_INTEGER, 10, null, null, null, 0, 'height');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->rename_field($table, $field, 'rightmargin');
+        }
+
+        $table = new xmldb_table('customcert_template_pages');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->rename_field($table, $field, 'rightmargin');
+        }
+
+        // Add 'leftmargin' fields to the 'customcert_pages' and 'customcert_template_pages' tables.
+        $table = new xmldb_table('customcert_pages');
+        $field = new xmldb_field('leftmargin', XMLDB_TYPE_INTEGER, 10, null, null, null, 0, 'height');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('customcert_template_pages');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2015120801, 'customcert');
+    }
+
     return true;
 }

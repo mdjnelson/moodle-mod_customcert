@@ -50,7 +50,7 @@ $module = array(
     'fullpath' => '/mod/customcert/yui/src/rearrange.js',
     'requires' => array('dd-delegate', 'dd-drag')
 );
-$PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($cm->id, $elements), false, $module);
+$PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($cm->id, $page, $elements), false, $module);
 
 // Create the buttons to save the position of the elements.
 $html = html_writer::start_tag('div', array('class' => 'buttons'));
@@ -62,19 +62,14 @@ $html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array
         get_string('cancel'), 'get', array('class' => 'cancelbtn'));
 $html .= html_writer::end_tag('div');
 
-$style = 'height: ' . $page->height . 'mm; line-height: normal;';
-if ($page->margin) {
-    $style .= 'width: ' . ($page->width - $page->margin) . 'mm;';
-    $style .= 'background-image: url(' . new moodle_url('/mod/customcert/pix/dash') . ');';
-    $style .= 'background-repeat: repeat-y;';
-    $style .= 'background-position-x: ' . ($page->width - $page->margin) . 'mm;';
-    $style .= 'padding-right: ' . $page->margin . 'mm;';
-} else {
-    $style .= 'width: ' . $page->width . 'mm;';
-}
-
 // Create the div that represents the PDF.
+$style = 'height: ' . $page->height . 'mm; line-height: normal; width: ' . $page->width . 'mm;';
+$marginstyle = 'height: ' . $page->height . 'mm; width:1px; float:left; position:relative;';
 $html .= html_writer::start_tag('div', array('id' => 'pdf', 'style' => $style));
+if ($page->leftmargin) {
+    $position = 'left:' . $page->leftmargin . 'mm;';
+    $html .= "<div id='leftmargin' style='$position $marginstyle'></div>";
+}
 if ($elements) {
     foreach ($elements as $element) {
         // Get an instance of the element class.
@@ -93,6 +88,10 @@ if ($elements) {
             $html .= html_writer::tag('div', $e->render_html(), array('class' => $class, 'id' => 'element-' . $element->id));
         }
     }
+}
+if ($page->rightmargin) {
+    $position = 'left:' . ($page->width - $page->rightmargin) . 'mm;';
+    $html .= "<div id='rightmargin' style='$position $marginstyle'></div>";
 }
 $html .= html_writer::end_tag('div');
 

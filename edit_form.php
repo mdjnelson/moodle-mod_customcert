@@ -99,9 +99,12 @@ class mod_customcert_edit_form extends moodleform {
                     // Set the height.
                     $element = $mform->getElement('pageheight_' . $p->id);
                     $element->setValue($p->height);
-                    // Set the margin.
-                    $element = $mform->getElement('pagemargin_' . $p->id);
-                    $element->setValue($p->margin);
+                    // Set the left margin.
+                    $element = $mform->getElement('pageleftmargin_' . $p->id);
+                    $element->setValue($p->leftmargin);
+                    // Set the right margin.
+                    $element = $mform->getElement('pagerightmargin_' . $p->id);
+                    $element->setValue($p->rightmargin);
                 }
             }
         }
@@ -135,8 +138,14 @@ class mod_customcert_edit_form extends moodleform {
                     $errors[$heightid] = get_string('invalidheight', 'customcert');
                 }
             }
-            if (strpos($key, 'pagemargin_') !== false) {
-                // Validate that the margin is a valid value.
+            if (strpos($key, 'pageleftmargin_') !== false) {
+                // Validate that the left margin is a valid value.
+                if (isset($data[$key]) && ($data[$key] < 0)) {
+                    $errors[$key] = get_string('invalidmargin', 'customcert');
+                }
+            }
+            if (strpos($key, 'pagerightmargin_') !== false) {
+                // Validate that the right margin is a valid value.
                 if (isset($data[$key]) && ($data[$key] < 0)) {
                     $errors[$key] = get_string('invalidmargin', 'customcert');
                 }
@@ -183,9 +192,13 @@ class mod_customcert_edit_form extends moodleform {
         $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
         $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
 
-        $mform->addElement('text', 'pagemargin_' . $page->id, get_string('margin', 'customcert'));
-        $mform->setType('pagemargin_' . $page->id, PARAM_INT);
-        $mform->addHelpButton('pagemargin_' . $page->id, 'margin', 'customcert');
+        $mform->addElement('text', 'pageleftmargin_' . $page->id, get_string('leftmargin', 'customcert'));
+        $mform->setType('pageleftmargin_' . $page->id, PARAM_INT);
+        $mform->addHelpButton('pageleftmargin_' . $page->id, 'leftmargin', 'customcert');
+
+        $mform->addElement('text', 'pagerightmargin_' . $page->id, get_string('rightmargin', 'customcert'));
+        $mform->setType('pagerightmargin_' . $page->id, PARAM_INT);
+        $mform->addHelpButton('pagerightmargin_' . $page->id, 'rightmargin', 'customcert');
 
         $group = array();
         $group[] = $mform->createElement('select', 'element_' . $page->id, '', customcert_get_elements());

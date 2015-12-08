@@ -222,13 +222,15 @@ function customcert_save_page_data($data) {
             // Get the name of the fields we want from the form.
             $width = 'pagewidth_' . $page->id;
             $height = 'pageheight_' . $page->id;
-            $margin = 'pagemargin_' . $page->id;
+            $leftmargin = 'pageleftmargin_' . $page->id;
+            $rightmargin = 'pagerightmargin_' . $page->id;
             // Create the page data to update the DB with.
             $p = new stdClass();
             $p->id = $page->id;
             $p->width = $data->$width;
             $p->height = $data->$height;
-            $p->margin = $data->$margin;
+            $p->leftmargin = $data->$leftmargin;
+            $p->rightmargin = $data->$rightmargin;
             $p->timemodified = $time;
             // Update the page.
             $DB->update_record('customcert_pages', $p);
@@ -622,7 +624,7 @@ function customcert_generate_pdf($customcert, $preview = false) {
                 $orientation = 'P';
             }
             $pdf->AddPage($orientation, array($page->width, $page->height));
-            $pdf->SetMargins(0, 0, $page->margin);
+            $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
             // Get the elements for the page.
             if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
                 // Loop through and display.
