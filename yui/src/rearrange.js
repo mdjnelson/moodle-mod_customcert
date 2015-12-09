@@ -309,11 +309,16 @@ M.mod_customcert.rearrange = {
             on: {
                 failure: function(tid, response) {
                     this.ajax_failure(response);
-                    e.preventDefault();
+                },
+                success: function() {
+                    var formNode = e.currentTarget.ancestor('form', true);
+                    window.location = formNode.getAttribute('action') + '?' + Y.QueryString.stringify({cmid:formNode.one('[name=cmid]').get('value')});
                 }
             },
             context: this
-        })
+        });
+
+        e.preventDefault();
 
     },
 
