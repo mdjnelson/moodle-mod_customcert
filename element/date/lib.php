@@ -160,9 +160,11 @@ class customcert_element_date extends customcert_element_base {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        $dateinfo = json_decode($this->element->data);
-        $this->element->dateitem = $dateinfo->dateitem;
-        $this->element->dateformat = $dateinfo->dateformat;
+        if (!empty($this->element->data)) {
+            $dateinfo = json_decode($this->element->data);
+            $this->element->dateitem = $dateinfo->dateitem;
+            $this->element->dateformat = $dateinfo->dateformat;
+        }
 
         parent::definition_after_data($mform);
     }

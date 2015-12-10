@@ -216,10 +216,12 @@ class customcert_element_image extends customcert_element_base {
         global $COURSE;
 
         // Set the image, width and height for this element.
-        $imageinfo = json_decode($this->element->data);
-        $this->element->image = $imageinfo->pathnamehash;
-        $this->element->width = $imageinfo->width;
-        $this->element->height = $imageinfo->height;
+        if (!empty($this->element->data)) {
+            $imageinfo = json_decode($this->element->data);
+            $this->element->image = $imageinfo->pathnamehash;
+            $this->element->width = $imageinfo->width;
+            $this->element->height = $imageinfo->height;
+        }
 
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');

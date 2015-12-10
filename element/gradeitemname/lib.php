@@ -106,7 +106,9 @@ class customcert_element_gradeitemname extends customcert_element_base {
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        $this->element->gradeitem = $this->element->data;
+        if (!empty($this->element->data)) {
+            $this->element->gradeitem = $this->element->data;
+        }
         parent::definition_after_data($mform);
     }
 }
