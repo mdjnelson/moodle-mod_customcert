@@ -27,14 +27,31 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
  */
 class customcert_element_image extends customcert_element_base {
 
+    private $filemanageroptions = array();
+
+    /**
+     * Constructor.
+     *
+     * @param stdClass $element the element data
+     */
+    public function __construct($element) {
+        global $COURSE;
+
+        $this->filemanageroptions = array(
+            'maxbytes' => $COURSE->maxbytes,
+            'subdirs' => 1,
+            'accepted_types' => 'image'
+        );
+
+        parent::__construct($element);
+    }
+
     /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        global $COURSE;
-
         $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
 
         $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
@@ -57,11 +74,7 @@ class customcert_element_image extends customcert_element_base {
         $mform->setDefault('posy', '0');
         $mform->addHelpButton('posy', 'posy', 'customcert');
 
-        $filemanageroptions = array('maxbytes' => $COURSE->maxbytes,
-            'subdirs' => 1,
-            'accepted_types' => 'image');
-
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $filemanageroptions);
+        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
     }
 
     /**
@@ -210,11 +223,7 @@ class customcert_element_image extends customcert_element_base {
 
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        $filemanageroptions = array('maxbytes' => $COURSE->maxbytes,
-            'subdirs' => 1,
-            'accepted_types' => 'image');
-        file_prepare_draft_area($draftitemid, context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0,
-            $filemanageroptions);
+        file_prepare_draft_area($draftitemid, context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
         $element = $mform->getElement('customcertimage');
         $element->setValue($draftitemid);
 
