@@ -282,23 +282,24 @@ class customcert_element_grade extends customcert_element_base {
         $cm = $DB->get_record('course_modules', array('id' => $moduleid), '*', MUST_EXIST);
         $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
 
-        if ($gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid)) {
-            $gradeitem = new grade_item();
-            $gradeitem->gradetype = GRADE_TYPE_VALUE;
-            $gradeitem->courseid = $cm->course;
-            $gradeitemproperties = reset($gradeitem->items);
-            foreach ($gradeitemproperties as $key => $value) {
-                $gradeitem->$key = $value;
+        $gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid);
+        if (!empty($gradeitem)) {
+            $item = new grade_item();
+            $item->gradetype = GRADE_TYPE_VALUE;
+            $item->courseid = $cm->course;
+            $itemproperties = reset($gradeitem->items);
+            foreach ($itemproperties as $key => $value) {
+                $item->$key = $value;
             }
             // Grade for the user.
-            $grade = $gradeitem->grades[$userid]->grade;
+            $grade = $item->grades[$userid]->grade;
             // Create the object we will be returning.
             $modinfo = new stdClass;
             $modinfo->name = $DB->get_field($module->name, 'name', array('id' => $cm->instance));
-            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $gradeitem, true, $gradeformat, 2);
+            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $item, true, $gradeformat, 2);
 
             if ($grade) {
-                $modinfo->dategraded = $gradeitem->grades[$userid]->dategraded;
+                $modinfo->dategraded = $item->grades[$userid]->dategraded;
             } else {
                 $modinfo->dategraded = time();
             }
