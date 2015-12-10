@@ -130,25 +130,7 @@ class customcert_element_date extends customcert_element_base {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            switch ($dateformat) {
-                case 1:
-                    $certificatedate = userdate($date, '%B %d, %Y');
-                    break;
-                case 2:
-                    $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
-                    $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                    break;
-                case 3:
-                    $certificatedate = userdate($date, '%d %B %Y');
-                    break;
-                case 4:
-                    $certificatedate = userdate($date, '%B %Y');
-                    break;
-                default:
-                    $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
-            }
-
-            parent::render_content($pdf, $certificatedate);
+            parent::render_content($pdf, $this->get_date_format_string($date, $dateformat));
         }
     }
 
@@ -168,26 +150,7 @@ class customcert_element_date extends customcert_element_base {
         $dateinfo = json_decode($this->element->data);
         $dateformat = $dateinfo->dateformat;
 
-        $date = time();
-        switch ($dateformat) {
-            case 1:
-                $certificatedate = userdate($date, '%B %d, %Y');
-                break;
-            case 2:
-                $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
-                $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                break;
-            case 3:
-                $certificatedate = userdate($date, '%d %B %Y');
-                break;
-            case 4:
-                $certificatedate = userdate($date, '%B %Y');
-                break;
-            default:
-                $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
-        }
-
-        return parent::render_html_content($certificatedate);
+        return parent::render_html_content($this->get_date_format_string(time(), $dateformat));
     }
 
     /**
@@ -236,6 +199,35 @@ class customcert_element_date extends customcert_element_base {
         $dateformats[5] = get_string('userdateformat', 'customcertelement_date');
 
         return $dateformats;
+    }
+
+    /**
+     * Returns the date in a readable format.
+     *
+     * @param int $date
+     * @param string $dateformat
+     * @return string
+     */
+    private function get_date_format_string($date, $dateformat) {
+        switch ($dateformat) {
+            case 1:
+                $certificatedate = userdate($date, '%B %d, %Y');
+                break;
+            case 2:
+                $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
+                $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
+                break;
+            case 3:
+                $certificatedate = userdate($date, '%d %B %Y');
+                break;
+            case 4:
+                $certificatedate = userdate($date, '%B %Y');
+                break;
+            default:
+                $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
+        }
+
+        return $certificatedate;
     }
 
     /**
