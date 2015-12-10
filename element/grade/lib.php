@@ -124,7 +124,12 @@ class customcert_element_grade extends customcert_element_base {
         $gradeinfo = json_decode($this->element->data);
 
         $courseitem = grade_item::fetch_course_item($COURSE->id);
-        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
+        // Define how many decimals to display.
+        $decimals = 2;
+        if ($gradeinfo->gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
+            $decimals = 0;
+        }
+        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, $decimals);
 
         return parent::render_html_content($grade);
     }
@@ -293,10 +298,16 @@ class customcert_element_grade extends customcert_element_base {
             }
             // Grade for the user.
             $grade = $item->grades[$userid]->grade;
+            // Define how many decimals to display.
+            $decimals = 2;
+            if ($gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
+                $decimals = 0;
+            }
+
             // Create the object we will be returning.
             $modinfo = new stdClass;
             $modinfo->name = $DB->get_field($module->name, 'name', array('id' => $cm->instance));
-            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $item, true, $gradeformat, 2);
+            $modinfo->gradetodisplay = grade_format_gradevalue($grade, $item, true, $gradeformat, $decimals);
 
             if ($grade) {
                 $modinfo->dategraded = $item->grades[$userid]->dategraded;
