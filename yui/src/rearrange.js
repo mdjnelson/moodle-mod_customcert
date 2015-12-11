@@ -142,8 +142,6 @@ M.mod_customcert.rearrange = {
 
             Y.one('#element-' + element['id']).setX(posx);
             Y.one('#element-' + element['id']).setY(posy);
-
-            this.resize_if_required(Y.one('#element-' + element['id']));
         }
     },
 
@@ -181,84 +179,11 @@ M.mod_customcert.rearrange = {
         // if not, set it back to where it was.
         del.on('drag:end', function() {
             var node = del.get('currentNode');
-            this.resize_if_required(node);
             if (this.is_out_of_bounds(node)) {
                 node.setXY(this.elementxy);
                 node.setStyle('width', this.elementwidth);
             }
         }, this);
-    },
-
-    /**
-     * Resizes the element if required.
-     *
-     * @param node
-     * @returns {boolean}
-     */
-    resize_if_required : function(node) {
-        var refpoint = node.getData('refpoint');
-        var maxwidth = node.getData('width') * this.pixelsinmm;
-        var maxallowedwidth = 0;
-        var oldwidth = 0;
-
-        // Get the width and height of the node.
-        var nodewidth = parseFloat(node.getComputedStyle('width'), 10);
-        var nodeheight = parseFloat(node.getComputedStyle('height'), 10);
-
-        // Store the positions of each edge of the node.
-        var left = node.getX();
-        var right = left + nodewidth;
-        var top = node.getY();
-        var bottom = top + nodeheight;
-
-        node.setStyle('width', 'initial');
-
-        oldwidth = nodewidth;
-        nodewidth = parseFloat(node.getComputedStyle('width'), 10);
-
-        switch (refpoint) {
-            case '1':   // Top-center
-                left = left + (oldwidth - nodewidth) / 2;
-                if (maxwidth && nodewidth > maxwidth) {
-                    left = left + (nodewidth - maxwidth) / 2;
-                    nodewidth = maxwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-                maxallowedwidth = 2 * Math.min(left + nodewidth / 2 - this.pdfx, this.pdfx + this.pdfwidth - (left + nodewidth / 2));
-                if (maxallowedwidth > 0 && nodewidth > maxallowedwidth) {
-                    left = left + (nodewidth - maxallowedwidth) / 2;
-                    nodewidth = maxallowedwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-                break;
-            case '2':   // Top-right
-                left = left + oldwidth - nodewidth;
-                if (maxwidth && nodewidth > maxwidth) {
-                    left = left + nodewidth - maxwidth;
-                    nodewidth = maxwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-                maxallowedwidth = left + nodewidth - this.pdfx;
-                if (maxallowedwidth > 0 && nodewidth > maxallowedwidth) {
-                    left = this.pdfx;
-                    nodewidth = maxallowedwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-                break;
-            case '0':   // Top-left
-            default:
-                if (maxwidth && nodewidth > maxwidth) {
-                    nodewidth = maxwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-                maxallowedwidth = this.pdfx + this.pdfwidth - left;
-                if (maxallowedwidth > 0 && nodewidth > maxallowedwidth) {
-                    nodewidth = maxallowedwidth;
-                    node.setStyle('width', nodewidth + 'px');
-                }
-        }
-
-        node.setX(left);
     },
 
     /**
