@@ -51,7 +51,7 @@ $capabilities = array(
 
     'mod/customcert:manage' => array(
 
-        'captype' => 'read',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
