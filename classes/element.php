@@ -22,14 +22,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace mod_customcert;
+
+defined('MOODLE_INTERNAL') || die();
 
 /**
- * Class customcert_element_base
+ * Class element
  *
  * All customercert element plugins are based on this class.
  */
-abstract class customcert_element_base {
+abstract class element {
 
     /**
      * The data for the element we are adding.
@@ -39,7 +41,7 @@ abstract class customcert_element_base {
     /**
      * Constructor.
      *
-     * @param stdClass $element the element data
+     * @param \stdClass $element the element data
      */
     public function __construct($element) {
         $this->element = clone($element);
@@ -49,7 +51,7 @@ abstract class customcert_element_base {
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance.
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
         // Render the common elements.
@@ -62,8 +64,7 @@ abstract class customcert_element_base {
      * Sets the data on the form when editing an element.
      * Can be overridden if more functionality is needed.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
-     * @param array the form elements to set
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Loop through the properties of the element and set the values
@@ -99,13 +100,13 @@ abstract class customcert_element_base {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      */
     public function save_form_elements($data) {
         global $DB;
 
         // Get the data from the form.
-        $element = new stdClass();
+        $element = new \stdClass();
         $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
         $element->font = (isset($data->font)) ? $data->font : null;
@@ -135,7 +136,7 @@ abstract class customcert_element_base {
      * customcert column.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      * @return string the unique data to save
      */
     public function save_unique_data($data) {
@@ -147,7 +148,7 @@ abstract class customcert_element_base {
      * to a template to be loaded later.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      * @return bool returns true if the data was saved to the template, false otherwise
      */
     public function save_data_to_template($data) {
@@ -159,7 +160,7 @@ abstract class customcert_element_base {
      * from a template to an existing customcert.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      * @return bool returns true if the data was loaded from the template, false otherwise
      */
     public function load_data_from_template($data) {
@@ -170,7 +171,7 @@ abstract class customcert_element_base {
      * Handles rendering the element on the pdf.
      * Must be overridden.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
     public abstract function render($pdf, $preview);
@@ -178,13 +179,13 @@ abstract class customcert_element_base {
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param string $content the content to render
      */
     public function render_content($pdf, $content) {
         list($font, $attr) = $this->get_font();
         $pdf->setFont($font, $attr, $this->element->size);
-        $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
+        $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
         $x = $this->element->posx;
@@ -251,7 +252,7 @@ abstract class customcert_element_base {
             $fontstyle .= ': font-style: italic';
         }
         $style = $fontstyle . '; color: ' . $this->element->colour . '; font-size: ' . $this->element->size . 'pt';
-        return html_writer::tag('span', $content, array('style' => $style));
+        return \html_writer::tag('span', $content, array('style' => $style));
     }
 
     /**
@@ -293,7 +294,7 @@ abstract class customcert_element_base {
     /**
      * Helper function to render the font elements.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance.
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_element_font($mform) {
         $mform->addElement('select', 'font', get_string('font', 'customcert'), customcert_get_fonts());
@@ -310,7 +311,7 @@ abstract class customcert_element_base {
     /**
      * Helper function to render the colour elements.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance.
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_element_colour($mform) {
         $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
@@ -322,7 +323,7 @@ abstract class customcert_element_base {
     /**
      * Helper function to render the position elements.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance.
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
      */
     public function render_form_element_position($mform) {
         $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
@@ -435,7 +436,7 @@ abstract class customcert_element_base {
      * data will need to be updated if we are restoring the course as the course module id will
      * be different in the new course.
      *
-     * @param restore_customcert_activity_task $restore
+     * @param \restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
 

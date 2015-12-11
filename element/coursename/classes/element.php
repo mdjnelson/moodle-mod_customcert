@@ -14,29 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace customcertelement_coursename;
 
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+defined('MOODLE_INTERNAL') || die();
 
 /**
- * The customcert element studentname's core interaction API.
+ * The customcert element coursename's core interaction API.
  *
- * @package    customcertelement_studentname
+ * @package    customcertelement_coursename
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customcert_element_studentname extends customcert_element_base {
+class element extends \mod_customcert\element {
 
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
-        global $USER;
+        global $COURSE;
 
-        parent::render_content($pdf, fullname($USER));
+        parent::render_content($pdf, $COURSE->fullname);
     }
 
     /**
@@ -46,8 +46,8 @@ class customcert_element_studentname extends customcert_element_base {
      * drag and drop interface to position it.
      */
     public function render_html() {
-        global $USER;
+        global $COURSE;
 
-        return parent::render_html_content(fullname($USER));
+        return parent::render_html_content($COURSE->fullname);
     }
 }

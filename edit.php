@@ -27,7 +27,6 @@ require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 require_once($CFG->dirroot . '/mod/customcert/edit_form.php');
 require_once($CFG->dirroot . '/mod/customcert/load_template_form.php');
 require_once($CFG->dirroot . '/mod/customcert/save_template_form.php');
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
 
 $cmid = required_param('cmid', PARAM_INT);
 $moveup = optional_param('moveup', 0, PARAM_INT);

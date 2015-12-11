@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace customcertelement_teachername;
 
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * The customcert element teachername's core interaction API.
@@ -25,12 +25,12 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customcert_element_teachername extends customcert_element_base {
+class element extends \mod_customcert\element {
 
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'teacher', get_string('teacher', 'customcertelement_teachername'),
@@ -44,7 +44,7 @@ class customcert_element_teachername extends customcert_element_base {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      * @return string the text
      */
     public function save_unique_data($data) {
@@ -54,7 +54,7 @@ class customcert_element_teachername extends customcert_element_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
@@ -94,7 +94,7 @@ class customcert_element_teachername extends customcert_element_base {
         $teachers = array();
 
         // Now return all users who can manage the customcert in this context.
-        if ($users = get_users_by_capability(context_module::instance($cmid), 'mod/customcert:manage')) {
+        if ($users = get_users_by_capability(\context_module::instance($cmid), 'mod/customcert:manage')) {
             foreach ($users as $user) {
                 $teachers[$user->id] = fullname($user);
             }
@@ -106,7 +106,7 @@ class customcert_element_teachername extends customcert_element_base {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

@@ -24,7 +24,6 @@
 
 require_once('../../config.php');
 require_once($CFG->dirroot . '/mod/customcert/edit_element_form.php');
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
 
 $cmid = required_param('cmid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);

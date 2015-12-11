@@ -121,13 +121,13 @@ function customcert_get_elements() {
             if (!$elementfolder->isDir() || $elementfolder->isDot()) {
                 continue;
             }
-            // Check that the standard class file exists, if not we do
+            // Check that the standard class exists, if not we do
             // not want to display it as an option as it will not work.
             $foldername = $elementfolder->getFilename();
-            $classfile = "$elementdir/$foldername/lib.php";
-            if (file_exists($classfile)) {
-                // Need to require this file in case if we choose to add this element.
-                require_once($classfile);
+            // Get the class name.
+            $classname = '\\customcertelement_' . $foldername . '\\element';
+            // Ensure the necessary class exists.
+            if (class_exists($classname)) {
                 $component = "customcertelement_{$foldername}";
                 $options[$foldername] = get_string('pluginname', $component);
             }
@@ -246,13 +246,11 @@ function customcert_save_page_data($data) {
  *         class does not exists.
  */
 function customcert_get_element_instance($element) {
-    global $CFG;
+    // Get the class name.
+    $classname = '\\customcertelement_' . $element->element . '\\element';
 
-    $classfile = "$CFG->dirroot/mod/customcert/element/{$element->element}/lib.php";
-    // Ensure this necessary file exists.
-    if (file_exists($classfile)) {
-        require_once($classfile);
-        $classname = "customcert_element_{$element->element}";
+    // Ensure the necessary class exists.
+    if (class_exists($classname)) {
         return new $classname($element);
     }
 

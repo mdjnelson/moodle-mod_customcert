@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace customcertelement_grade;
 
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/grade/constants.php');
 require_once($CFG->dirroot . '/grade/lib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
@@ -33,12 +34,12 @@ define('CUSTOMCERT_GRADE_COURSE', '0');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customcert_element_grade extends customcert_element_base {
+class element extends \mod_customcert\element {
 
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the grade items we can display.
@@ -63,7 +64,7 @@ class customcert_element_grade extends customcert_element_base {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param stdClass $data the form data.
+     * @param \stdClass $data the form data.
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -80,7 +81,7 @@ class customcert_element_grade extends customcert_element_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
@@ -96,7 +97,7 @@ class customcert_element_grade extends customcert_element_base {
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
-            $courseitem = grade_item::fetch_course_item($COURSE->id);
+            $courseitem = \grade_item::fetch_course_item($COURSE->id);
             $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
         } else {
             // Get the grade for the grade item.
@@ -123,7 +124,7 @@ class customcert_element_grade extends customcert_element_base {
         // Decode the information stored in the database.
         $gradeinfo = json_decode($this->element->data);
 
-        $courseitem = grade_item::fetch_course_item($COURSE->id);
+        $courseitem = \grade_item::fetch_course_item($COURSE->id);
         // Define how many decimals to display.
         $decimals = 2;
         if ($gradeinfo->gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
@@ -137,7 +138,7 @@ class customcert_element_grade extends customcert_element_base {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
@@ -156,13 +157,13 @@ class customcert_element_grade extends customcert_element_base {
      * We will want to update the course module the grade element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param restore_customcert_activity_task $restore
+     * @param \restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;
 
         $gradeinfo = json_decode($this->element->data);
-        if ($newitem = restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $gradeinfo->gradeitem)) {
+        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $gradeinfo->gradeitem)) {
             $gradeinfo->gradeitem = $newitem->newitemid;
             $DB->set_field('customcert_elements', 'data', self::save_unique_data($gradeinfo), array('id' => $this->element->id));
         }
@@ -245,7 +246,7 @@ class customcert_element_grade extends customcert_element_base {
     /**
      * Helper function to return the grade to display.
      *
-     * @param stdClass $gradeinfo
+     * @param \stdClass $gradeinfo
      * @param int $userid
      * @return string the grade result
      */
@@ -258,10 +259,10 @@ class customcert_element_grade extends customcert_element_base {
 
         // Check if we are displaying the course grade.
         if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
-            if ($courseitem = grade_item::fetch_course_item($COURSE->id)) {
+            if ($courseitem = \grade_item::fetch_course_item($COURSE->id)) {
                 // Set the grade type we want.
                 $courseitem->gradetype = GRADE_TYPE_VALUE;
-                $grade = new grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));
+                $grade = new \grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));
                 $coursegrade = grade_format_gradevalue($grade->finalgrade, $courseitem, true, $gradeformat, 2);
                 return $coursegrade;
             }
@@ -281,7 +282,7 @@ class customcert_element_grade extends customcert_element_base {
      * @param int $moduleid
      * @param int $gradeformat
      * @param int $userid
-     * @return stdClass the grade information
+     * @return \stdClass the grade information
      */
     public static function get_mod_grade($moduleid, $gradeformat, $userid) {
         global $DB;
@@ -291,7 +292,7 @@ class customcert_element_grade extends customcert_element_base {
 
         $gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid);
         if (!empty($gradeitem)) {
-            $item = new grade_item();
+            $item = new \grade_item();
             $item->gradetype = GRADE_TYPE_VALUE;
             $item->courseid = $cm->course;
             $itemproperties = reset($gradeitem->items);
@@ -307,7 +308,7 @@ class customcert_element_grade extends customcert_element_base {
             }
 
             // Create the object we will be returning.
-            $modinfo = new stdClass;
+            $modinfo = new \stdClass;
             $modinfo->name = $DB->get_field($module->name, 'name', array('id' => $cm->instance));
             $modinfo->gradetodisplay = grade_format_gradevalue($grade, $item, true, $gradeformat, $decimals);
 

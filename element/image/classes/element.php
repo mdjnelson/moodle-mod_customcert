@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace customcertelement_image;
 
-require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * The customcert element image's core interaction API.
@@ -25,14 +25,14 @@ require_once($CFG->dirroot . '/mod/customcert/element/element.class.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customcert_element_image extends customcert_element_base {
+class element extends \mod_customcert\element {
 
     private $filemanageroptions = array();
 
     /**
      * Constructor.
      *
-     * @param stdClass $element the element data
+     * @param \stdClass $element the element data
      */
     public function __construct($element) {
         global $COURSE;
@@ -49,7 +49,7 @@ class customcert_element_image extends customcert_element_base {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
@@ -108,13 +108,13 @@ class customcert_element_image extends customcert_element_base {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      */
     public function save_form_elements($data) {
         global $COURSE;
 
         // Handle file uploads.
-        customcert_upload_imagefiles($data->customcertimage, context_course::instance($COURSE->id)->id);
+        customcert_upload_imagefiles($data->customcertimage, \context_course::instance($COURSE->id)->id);
 
         parent::save_form_elements($data);
     }
@@ -123,7 +123,7 @@ class customcert_element_image extends customcert_element_base {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param stdClass $data the form data
+     * @param \stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -140,7 +140,7 @@ class customcert_element_image extends customcert_element_base {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param pdf $pdf the pdf object
+     * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
@@ -181,7 +181,7 @@ class customcert_element_image extends customcert_element_base {
         // Get the image.
         $fs = get_file_storage();
         if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
-            $url = moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
+            $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
                 $file->get_filepath(), $file->get_filename());
             $fileimageinfo = $file->get_imageinfo();
             $whratio = $fileimageinfo['width'] / $fileimageinfo['height'];
@@ -203,14 +203,14 @@ class customcert_element_image extends customcert_element_base {
                 $style .= 'height: ' . $imageinfo->height . 'mm';
             }
 
-            return html_writer::tag('img', '', array('src' => $url, 'style' => $style));
+            return \html_writer::tag('img', '', array('src' => $url, 'style' => $style));
         }
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert_edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         global $COURSE;
@@ -225,7 +225,7 @@ class customcert_element_image extends customcert_element_base {
 
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        file_prepare_draft_area($draftitemid, \context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
         $element = $mform->getElement('customcertimage');
         $element->setValue($draftitemid);
 
@@ -246,19 +246,19 @@ class customcert_element_image extends customcert_element_base {
         // The array used to store the images.
         $arrfiles = array();
         // Loop through the files uploaded in the system context.
-        if ($files = $fs->get_area_files(context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
+        if ($files = $fs->get_area_files(\context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$hash] = $file->get_filename();
             }
         }
         // Loop through the files uploaded in the course context.
-        if ($files = $fs->get_area_files(context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false, 'filename', false)) {
+        if ($files = $fs->get_area_files(\context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$hash] = $file->get_filename();
             }
         }
 
-        core_collator::asort($arrfiles);
+        \core_collator::asort($arrfiles);
         $arrfiles = array_merge(array('0' => get_string('noimage', 'customcert')), $arrfiles);
 
         return $arrfiles;
