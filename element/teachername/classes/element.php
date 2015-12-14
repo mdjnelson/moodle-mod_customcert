@@ -48,7 +48,9 @@ class element extends \mod_customcert\element {
      * @return string the text
      */
     public function save_unique_data($data) {
-        return $data->teacher;
+        if (!empty($data->teacher)) {
+            return $data->teacher;
+        }
     }
 
     /**
