@@ -39,8 +39,8 @@ class MoodleQuickForm_customcert_colourpicker extends HTML_QuickForm_text {
      * @param string $elementLabel
      * @param array $attributes
      */
-    function MoodleQuickForm_customcert_colourpicker($elementName = null, $elementLabel = null, $attributes = null) {
-        parent::HTML_QuickForm_text($elementName, $elementLabel, $attributes);
+    function __construct($elementName = null, $elementLabel = null, $attributes = null) {
+        parent::__construct($elementName, $elementLabel, $attributes);
     }
 
     /**
