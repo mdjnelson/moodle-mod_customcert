@@ -38,7 +38,7 @@ class element extends \mod_customcert\element {
 
         $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
 
-        parent::render_content($pdf, $categoryname);
+        \mod_customcert\element_helper::render_content($pdf, $this, $categoryname);
     }
 
     /**
@@ -46,12 +46,14 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         global $DB, $COURSE;
 
         $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
 
-        return parent::render_html_content($categoryname);
+        return \mod_customcert\element_helper::render_html_content($this, $categoryname);
     }
 }

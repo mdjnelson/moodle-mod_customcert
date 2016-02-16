@@ -23,20 +23,19 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 
 $id   = required_param('id', PARAM_INT);
 $download = optional_param('download', '', PARAM_ALPHA);
 
 $page = optional_param('page', 0, PARAM_INT);
-$perpage = optional_param('perpage', CUSTOMCERT_PER_PAGE, PARAM_INT);
+$perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
 $pageurl = $url = new moodle_url('/mod/customcert/report.php', array('id' => $id, 'page' => $page, 'perpage' => $perpage));
 
 // Ensure the perpage variable does not exceed the max allowed if
 // the user has not specified they wish to view all customcerts.
-if (CUSTOMCERT_PER_PAGE !== 0) {
-    if (($perpage > CUSTOMCERT_MAX_PER_PAGE) || ($perpage === 0)) {
-        $perpage = CUSTOMCERT_PER_PAGE;
+if (\mod_customcert\certificate::CUSTOMCERT_PER_PAGE !== 0) {
+    if (($perpage > \mod_customcert\certificate::CUSTOMCERT_MAX_PER_PAGE) || ($perpage === 0)) {
+        $perpage = \mod_customcert\certificate::CUSTOMCERT_PER_PAGE;
     }
 }
 
@@ -55,10 +54,10 @@ require_capability('mod/customcert:manage', $context);
 if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }
-$users = customcert_get_issues($customcert->id, $groupmode, $cm, $page, $perpage);
+$users = \mod_customcert\certificate::get_issues($customcert->id, $groupmode, $cm, $page, $perpage);
 
 if ($download) {
-    customcert_generate_report_file($customcert, $users, $download);
+    \mod_customcert\certificate::generate_report_file($customcert, $users, $download);
     exit;
 }
 
@@ -82,10 +81,11 @@ $btndownloadods = $OUTPUT->single_button(new moodle_url('report.php', array('id'
 $btndownloadxls = $OUTPUT->single_button(new moodle_url('report.php', array('id' => $cm->id, 'download' => 'xls')), get_string("downloadexcel"));
 $tablebutton->data[] = array($btndownloadods, $btndownloadxls);
 
-$PAGE->set_url($pageurl);
-$PAGE->navbar->add(get_string('report', 'customcert'));
-$PAGE->set_title(format_string($customcert->name) . ": " . get_string('report', 'customcert'));
-$PAGE->set_heading($course->fullname);
+// Set up the page.
+\mod_customcert\page_helper::page_setup($pageurl, $context, get_string('customcertreport', 'customcert'));
+
+// Additional page setup.
+$PAGE->navbar->add(get_string('customcertreport', 'customcert'));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('modulenameplural', 'customcert'));

@@ -23,7 +23,6 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -31,6 +30,7 @@ $action = optional_param('action', '', PARAM_ALPHA);
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
 
 // Ensure the user is allowed to view this page.
 require_login($course, false, $cm);
@@ -39,15 +39,11 @@ require_capability('mod/customcert:view', $context);
 
 // Initialise $PAGE.
 $pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
-$PAGE->set_url($pageurl);
-$PAGE->set_context($context);
-$PAGE->set_cm($cm);
-$PAGE->set_title(format_string($customcert->name));
-$PAGE->set_heading(format_string($course->fullname));
+\mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
 // Check if the user can view the certificate based on time spent in course.
 if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $context)) {
-    if (customcert_get_course_time($course->id) < ($customcert->requiredtime * 60)) {
+    if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
         $a = new stdClass;
         $a->requiredtime = $customcert->requiredtime;
         notice(get_string('requiredtimenotmet', 'certificate', $a), "$CFG->wwwroot/course/view.php?id=$course->id");
@@ -66,7 +62,7 @@ if (empty($action)) {
     $reportlink = '';
     if (has_capability('mod/customcert:manage', $context)) {
         // Get the total number of issues.
-        $numissues = customcert_get_number_of_issues($customcert->id, $cm, $groupmode);
+        $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
         $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
         $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
             array('href' => $href->out()));
@@ -121,11 +117,12 @@ if (empty($action)) {
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcert->id;
         $customcertissue->userid = $USER->id;
-        $customcertissue->code = customcert_generate_code();
+        $customcertissue->code = \mod_customcert\certificate::generate_code();
         $customcertissue->timecreated =  time();
         // Insert the record into the database.
         $DB->insert_record('customcert_issues', $customcertissue);
     }
     // Now we want to generate the PDF.
-    customcert_generate_pdf($customcert);
+    $template = new \mod_customcert\template($template);
+    $template->generate_pdf();
 }

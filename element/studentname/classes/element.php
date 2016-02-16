@@ -36,7 +36,7 @@ class element extends \mod_customcert\element {
     public function render($pdf, $preview) {
         global $USER;
 
-        parent::render_content($pdf, fullname($USER));
+        \mod_customcert\element_helper::render_content($pdf, $this, fullname($USER));
     }
 
     /**
@@ -44,10 +44,12 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         global $USER;
 
-        return parent::render_html_content(fullname($USER));
+        return \mod_customcert\element_helper::render_html_content($this, fullname($USER));
     }
 }

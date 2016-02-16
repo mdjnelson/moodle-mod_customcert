@@ -28,20 +28,24 @@ if (!defined('AJAX_SCRIPT')) {
 
 require_once(__DIR__ . '/../../config.php');
 
-$cmid = required_param('cmid', PARAM_INT);
+$tid = required_param('tid', PARAM_INT);
 $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
-$cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$context = context_module::instance($cm->id);
-$elements = $DB->get_records_sql('SELECT * FROM {customcert_elements} e
-                                           JOIN {customcert_pages} p ON e.pageid = p.id
-                                          WHERE p.customcertid = ?', array($cm->instance));
+// Make sure the template exists.
+$template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
 
-// Check that the user is able to perform the change.
-require_login($course, false, $cm);
-require_capability('mod/customcert:manage', $context);
+// Set the template.
+$template = new \mod_customcert\template($template);
+// Perform checks.
+if ($cm = $template->get_cm()) {
+    $courseid = $cm->course;
+    require_login($courseid, false, $cm);
+} else {
+    require_login();
+}
+// Make sure the user has the required capabilities.
+$template->require_manage();
 
 // Loop through the data.
 foreach ($values as $value) {

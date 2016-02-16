@@ -34,13 +34,19 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 function customcert_add_instance($data, $mform) {
     global $DB;
 
-    $data->protection = customcert_set_protection($data);
+    // Create a template for this customcert to use.
+    $context = context_module::instance($data->coursemodule);
+    $template = \mod_customcert\template::create($data->name, $context->id);
+
+    // Add the data to the DB.
+    $data->templateid = $template->get_id();
+    $data->protection = \mod_customcert\certificate::set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
     $data->id = $DB->insert_record('customcert', $data);
 
     // Add a page to this customcert.
-    customcert_add_page($data);
+    $template->add_page();
 
     return $data->id;
 }
@@ -55,7 +61,7 @@ function customcert_add_instance($data, $mform) {
 function customcert_update_instance($data, $mform) {
     global $DB;
 
-    $data->protection = customcert_set_protection($data);
+    $data->protection = \mod_customcert\certificate::set_protection($data);
     $data->timemodified = time();
     $data->id = $data->instance;
 
@@ -74,7 +80,7 @@ function customcert_delete_instance($id) {
     global $CFG, $DB;
 
     // Ensure the customcert exists.
-    if (!$DB->get_record('customcert', array('id' => $id))) {
+    if (!$customcert = $DB->get_record('customcert', array('id' => $id))) {
         return false;
     }
 
@@ -88,28 +94,10 @@ function customcert_delete_instance($id) {
         return false;
     }
 
-    // Delete the elements.
-    $sql = "SELECT e.*
-              FROM {customcert_elements} e
-        INNER JOIN {customcert_pages} p
-                ON e.pageid = p.id
-             WHERE p.customcertid = :customcertid";
-    if ($elements = $DB->get_records_sql($sql, array('customcertid' => $id))) {
-        require_once($CFG->dirroot . '/mod/customcert/locallib.php');
-        foreach ($elements as $element) {
-            // Get an instance of the element class.
-            if ($e = customcert_get_element_instance($element)) {
-                $e->delete_element();
-            } else {
-                // The plugin files are missing, so just remove the entry from the DB.
-                $DB->delete_records('customcert_elements', array('id' => $element->id));
-            }
-        }
-    }
-
-    // Delete the pages.
-    if (!$DB->delete_records('customcert_pages', array('customcertid' => $id))) {
-        return false;
+    // Now, delete the template associated with this certificate.
+    if ($template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid))) {
+        $template = new \mod_customcert\template($template);
+        $template->delete();
     }
 
     // Delete the customcert issues.
@@ -130,7 +118,7 @@ function customcert_delete_instance($id) {
  * This function will remove all posts from the specified customcert
  * and clean up any related data.
  *
- * @param $data the data submitted from the reset course.
+ * @param stdClass $data the data submitted from the reset course.
  * @return array status array
  */
 function customcert_reset_userdata($data) {
@@ -235,7 +223,7 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
  * @param string $filearea
  * @param array $args
  * @param bool $forcedownload
- * @return bool|nothing false if file not found, does not return anything if found - just send the file
+ * @return bool|null false if file not found, does not return anything if found - just send the file
  */
 function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
     global $CFG;
@@ -278,8 +266,6 @@ function customcert_supports($feature) {
         case FEATURE_GROUPS:
             return true;
         case FEATURE_GROUPINGS:
-            return true;
-        case FEATURE_GROUPMEMBERSONLY:
             return true;
         case FEATURE_MOD_INTRO:
             return true;
@@ -327,7 +313,7 @@ function customcert_cron() {
  * @param navigation_node $customcertnode
  */
 function customcert_extend_settings_navigation(settings_navigation $settings, navigation_node $customcertnode) {
-    global $PAGE;
+    global $DB, $PAGE;
 
     $keys = $customcertnode->get_children_key_list();
     $beforekey = null;
@@ -339,8 +325,10 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     }
 
     if (has_capability('mod/customcert:manage', $PAGE->cm->context)) {
+        // Get the template id.
+        $templateid = $DB->get_field('customcert', 'templateid', array('id' => $PAGE->cm->instance));
         $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', array('cmid' => $PAGE->cm->id)),
+                new moodle_url('/mod/customcert/edit.php', array('tid' => $templateid)),
                 navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
                 new pix_icon('t/edit', ''));
         $customcertnode->add_node($node, $beforekey);

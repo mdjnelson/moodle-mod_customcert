@@ -30,7 +30,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the user profile fields.
@@ -103,7 +103,7 @@ class element extends \mod_customcert\element {
             $value = $USER->$field;
         }
 
-        parent::render_content($pdf, $value);
+        \mod_customcert\element_helper::render_content($pdf, $this, $value);
     }
 
     /**
@@ -127,13 +127,13 @@ class element extends \mod_customcert\element {
             $value = $USER->$field;
         }
 
-        return parent::render_html_content($value);
+        return \mod_customcert\element_helper::render_html_content($this, $value);
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

@@ -40,7 +40,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the possible date options.
@@ -129,7 +129,7 @@ class element extends \mod_customcert\element {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            parent::render_content($pdf, $this->get_date_format_string($date, $dateformat));
+            \mod_customcert\element_helper::render_content($pdf, $this, $this->get_date_format_string($date, $dateformat));
         }
     }
 
@@ -138,6 +138,8 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
@@ -149,13 +151,13 @@ class element extends \mod_customcert\element {
         $dateinfo = json_decode($this->element->data);
         $dateformat = $dateinfo->dateformat;
 
-        return parent::render_html_content($this->get_date_format_string(time(), $dateformat));
+        return \mod_customcert\element_helper::render_html_content($this, $this->get_date_format_string(time(), $dateformat));
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
@@ -209,7 +211,7 @@ class element extends \mod_customcert\element {
      * @param string $dateformat
      * @return string
      */
-    private function get_date_format_string($date, $dateformat) {
+    protected function get_date_format_string($date, $dateformat) {
         switch ($dateformat) {
             case 1:
                 $certificatedate = userdate($date, '%B %d, %Y');
@@ -238,7 +240,7 @@ class element extends \mod_customcert\element {
      * @param int $day the day of the month
      * @return string the suffix.
      */
-    private function get_ordinal_number_suffix($day) {
+    protected function get_ordinal_number_suffix($day) {
         if (!in_array(($day % 100), array(11, 12, 13))) {
             switch ($day % 10) {
                 // Handle 1st, 2nd, 3rd.

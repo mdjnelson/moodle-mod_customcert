@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_customcert;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->libdir.'/formslib.php');
@@ -25,10 +27,10 @@ require_once($CFG->libdir.'/formslib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_customcert_upload_image_form extends moodleform {
+class upload_image_form extends \moodleform {
 
     /** @var array the filemanager options */
-    private $filemanageroptions = array();
+    protected $filemanageroptions = array();
 
     /**
      * Form definition.
@@ -54,7 +56,7 @@ class mod_customcert_upload_image_form extends moodleform {
 
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, context_system::instance()->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        file_prepare_draft_area($draftitemid, \context_system::instance()->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
         $element = $mform->getElement('customcertimage');
         $element->setValue($draftitemid);
     }

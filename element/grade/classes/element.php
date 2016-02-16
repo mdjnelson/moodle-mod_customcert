@@ -39,7 +39,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the grade items we can display.
@@ -104,7 +104,7 @@ class element extends \mod_customcert\element {
             $grade = self::get_grade($gradeinfo, $USER->id);
         }
 
-        parent::render_content($pdf, $grade);
+        \mod_customcert\element_helper::render_content($pdf, $this, $grade);
     }
 
     /**
@@ -112,6 +112,8 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         global $COURSE;
@@ -132,13 +134,13 @@ class element extends \mod_customcert\element {
         }
         $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, $decimals);
 
-        return parent::render_html_content($grade);
+        return \mod_customcert\element_helper::render_html_content($this, $grade);
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.

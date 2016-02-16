@@ -23,7 +23,6 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 
 $id = required_param('id', PARAM_INT); // Course ID.
 
@@ -33,11 +32,13 @@ $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 require_login($course);
 
 // Set up the page variables.
+$pageurl = new moodle_url('/mod/customcert/index.php', array('id' => $course->id));
+\mod_customcert\page_helper::page_setup($pageurl, CONTEXT_COURSE::instance($id),
+    get_string('modulenameplural', 'customcert'));
+
+// Additional page setup needed.
 $PAGE->set_pagelayout('incourse');
-$PAGE->set_url('/mod/customcert/index.php', array('id' => $course->id));
 $PAGE->navbar->add(get_string('modulenameplural', 'customcert'));
-$PAGE->set_title(get_string('modulenameplural', 'customcert'));
-$PAGE->set_heading($course->fullname);
 
 // Get the customcerts, if there are none display a notice.
 if (!$customcerts = get_all_instances_in_course('customcert', $course)) {

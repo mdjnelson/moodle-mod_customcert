@@ -111,7 +111,7 @@ class restore_customcert_activity_task extends restore_activity_task {
             // Go through the elements for the certificate.
             foreach ($elements as $e) {
                 // Get an instance of the element class.
-                if ($e = customcert_get_element_instance($e)) {
+                if ($e = \mod_customcert\element::instance($e)) {
                     $e->after_restore($this);
                 }
             }

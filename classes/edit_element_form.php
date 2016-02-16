@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_customcert;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/customcert/locallib.php');
 require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 
-MoodleQuickForm::registerElementType('customcert_colourpicker',
+\MoodleQuickForm::registerElementType('customcert_colourpicker',
     $CFG->dirroot . '/mod/customcert/includes/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
 
 /**
@@ -30,12 +31,12 @@ MoodleQuickForm::registerElementType('customcert_colourpicker',
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_customcert_edit_element_form extends moodleform {
+class edit_element_form extends \moodleform {
 
     /**
-     * The element object.
+     * @var \mod_customcert\element The element object.
      */
-    private $element;
+    protected $element;
 
     /**
      * Form definition.
@@ -52,7 +53,7 @@ class mod_customcert_edit_element_form extends moodleform {
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
-        $this->element = customcert_get_element_instance($element);
+        $this->element = \mod_customcert\element::instance($element);
         $this->element->render_form_elements($mform);
 
         $this->add_action_buttons(true);

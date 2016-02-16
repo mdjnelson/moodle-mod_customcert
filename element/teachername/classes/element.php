@@ -30,7 +30,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'teacher', get_string('teacher', 'customcertelement_teachername'),
@@ -65,7 +65,7 @@ class element extends \mod_customcert\element {
         $teacher = $DB->get_record('user', array('id' => $this->element->data));
         $teachername = fullname($teacher);
 
-        parent::render_content($pdf, $teachername);
+        \mod_customcert\element_helper::render_content($pdf, $this, $teachername);
     }
 
     /**
@@ -73,6 +73,8 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         global $DB;
@@ -80,7 +82,7 @@ class element extends \mod_customcert\element {
         $teacher = $DB->get_record('user', array('id' => $this->element->data));
         $teachername = fullname($teacher);
 
-        return parent::render_html_content($teachername);
+        return \mod_customcert\element_helper::render_html_content($this, $teachername);
     }
 
     /**
@@ -88,15 +90,14 @@ class element extends \mod_customcert\element {
      *
      * @return array the list of teachers
      */
-    private function get_list_of_teachers() {
-        // When editing this element the cmid will be present in the URL.
-        $cmid = required_param('cmid', PARAM_INT);
+    protected function get_list_of_teachers() {
+        global $PAGE;
 
         // The list of teachers to return.
         $teachers = array();
 
         // Now return all users who can manage the customcert in this context.
-        if ($users = get_users_by_capability(\context_module::instance($cmid), 'mod/customcert:manage')) {
+        if ($users = get_users_by_capability($PAGE->context, 'mod/customcert:manage')) {
             foreach ($users as $user) {
                 $teachers[$user->id] = fullname($user);
             }
@@ -108,7 +109,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

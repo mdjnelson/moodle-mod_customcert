@@ -23,26 +23,28 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 
 // The page of the customcert we are editing.
-$pid = required_param('id', PARAM_INT);
+$pid = required_param('pid', PARAM_INT);
 
 $page = $DB->get_record('customcert_pages', array('id' => $pid), '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', array('id' => $page->templateid), '*', MUST_EXIST);
 $elements = $DB->get_records('customcert_elements', array('pageid' => $pid), 'sequence');
-$cm = get_coursemodule_from_instance('customcert', $page->customcertid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$context = context_module::instance($cm->id);
 
-require_login($course, false, $cm);
-
-require_capability('mod/customcert:manage', $context);
+// Set the template.
+$template = new \mod_customcert\template($template);
+// Perform checks.
+if ($cm = $template->get_cm()) {
+    require_login($cm->course, false, $cm);
+} else {
+    require_login();
+}
+// Make sure the user has the required capabilities.
+$template->require_manage();
 
 // Set the $PAGE settings.
-$PAGE->set_url(new moodle_url('/mod/customcert/rearrange.php', array('id' => $pid)));
-$PAGE->set_pagetype('mod-customcert-position');
-$PAGE->set_title(get_string('rearrangeelements', 'customcert'));
-$PAGE->set_heading($course->fullname);
+$pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid));
+\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('rearrangeelements', 'customcert'));
 
 // Include the JS we need.
 $module = array(
@@ -50,15 +52,15 @@ $module = array(
     'fullpath' => '/mod/customcert/yui/src/rearrange.js',
     'requires' => array('dd-delegate', 'dd-drag')
 );
-$PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($cm->id, $page, $elements), false, $module);
+$PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($template->get_id(), $page, $elements), false, $module);
 
 // Create the buttons to save the position of the elements.
 $html = html_writer::start_tag('div', array('class' => 'buttons'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id)),
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id())),
         get_string('saveandclose', 'customcert'), 'get', array('class' => 'savepositionsbtn'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', array('id' => $pid)),
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid)),
         get_string('saveandcontinue', 'customcert'), 'get', array('class' => 'applypositionsbtn'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id)),
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id())),
         get_string('cancel'), 'get', array('class' => 'cancelbtn'));
 $html .= html_writer::end_tag('div');
 
@@ -73,15 +75,15 @@ if ($page->leftmargin) {
 if ($elements) {
     foreach ($elements as $element) {
         // Get an instance of the element class.
-        if ($e = customcert_get_element_instance($element)) {
+        if ($e = \mod_customcert\element::instance($element)) {
             switch ($element->refpoint) {
-                case CUSTOMCERT_REF_POINT_TOPRIGHT:
+                case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPRIGHT:
                     $class = 'element refpoint-right';
                     break;
-                case CUSTOMCERT_REF_POINT_TOPCENTER:
+                case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPCENTER:
                     $class = 'element refpoint-center';
                     break;
-                case CUSTOMCERT_REF_POINT_TOPLEFT:
+                case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPLEFT:
                 default:
                 $class = 'element refpoint-left';
             }
@@ -96,7 +98,6 @@ if ($page->rightmargin) {
 $html .= html_writer::end_tag('div');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 4);
 echo $html;
 echo $OUTPUT->footer();

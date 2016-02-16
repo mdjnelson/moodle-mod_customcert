@@ -30,7 +30,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // We want to define the width of the border.
@@ -39,7 +39,7 @@ class element extends \mod_customcert\element {
         $mform->addHelpButton('width', 'width', 'customcertelement_border');
 
         // The only other thing to define is the colour we want the border to be.
-        parent::render_form_element_colour($mform);
+        \mod_customcert\element_helper::render_form_element_colour($mform);
     }
 
     /**
@@ -62,6 +62,8 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         return '';
@@ -84,7 +86,7 @@ class element extends \mod_customcert\element {
         }
 
         // Validate the colour.
-        $errors += $this->validate_form_element_colour($data);
+        $errors += \mod_customcert\element_helper::validate_form_element_colour($data);
 
         return $errors;
     }
@@ -92,7 +94,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

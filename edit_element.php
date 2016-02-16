@@ -23,50 +23,56 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/edit_element_form.php');
 
-$cmid = required_param('cmid', PARAM_INT);
+$tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-$cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-$context = context_module::instance($cm->id);
+$template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+
+// Set the template object.
+$template = new \mod_customcert\template($template);
+
+// Perform checks.
+if ($cm = $template->get_cm()) {
+    require_login($cm->course, false, $cm);
+} else {
+    require_login();
+}
+// Make sure the user has the required capabilities.
+$template->require_manage();
 
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
     $element = $DB->get_record('customcert_elements', array('id' => $id), '*', MUST_EXIST);
-    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('id' => $id, 'cmid' => $cmid, 'action' => $action));
+    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('id' => $id, 'tid' => $tid, 'action' => $action));
 } else { // Must be adding an element.
-    // Page id must be supplied in order to add an element.
+    // We need to supply what element we want added to what page.
     $pageid = required_param('pageid', PARAM_INT);
-    // Create the new element object, will have no data.
     $element = new stdClass();
     $element->element = required_param('element', PARAM_ALPHA);
-    // Set the page url.
-    $params = array();
-    $params['cmid'] = $cmid;
-    $params['action'] = 'add';
-    $params['element'] = $element->element;
-    $params['pageid'] = $pageid;
-    $pageurl = new moodle_url('/mod/customcert/edit_element.php', $params);
+    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('tid' => $tid, 'element' => $element->element,
+        'pageid' => $pageid, 'action' => $action));
 }
 
-require_login($course, false, $cm);
+// Set up the page.
+$title = get_string('editelement', 'customcert');
+\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
 
-require_capability('mod/customcert:manage', $context);
+// Additional page setup.
+if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
+    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php'));
+}
+$PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url('/mod/customcert/edit.php',
+    array('tid' => $tid)));
+$PAGE->navbar->add($title);
 
-$PAGE->set_heading($course->fullname);
-$PAGE->set_title(get_string('editcustomcert', 'customcert', format_string($customcert->name)));
-$PAGE->set_url($pageurl);
-
-$mform = new mod_customcert_edit_element_form($pageurl, array('element' => $element, 'course' => $course,
-    'cmid' => $cmid, 'action' => $action));
+$mform = new \mod_customcert\edit_element_form($pageurl, array('element' => $element));
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
-    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
     redirect($url);
 }
 
@@ -80,15 +86,15 @@ if ($data = $mform->get_data()) {
     // Set the element variable.
     $data->element = $element->element;
     // Get an instance of the element class.
-    if ($e = customcert_get_element_instance($data)) {
+    if ($e = \mod_customcert\element::instance($data)) {
         $e->save_form_elements($data);
     }
 
-    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
     redirect($url);
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
+echo $OUTPUT->heading(get_string('editelement', 'customcert'));
 $mform->display();
 echo $OUTPUT->footer();

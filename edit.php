@@ -23,12 +23,8 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
-require_once($CFG->dirroot . '/mod/customcert/edit_form.php');
-require_once($CFG->dirroot . '/mod/customcert/load_template_form.php');
-require_once($CFG->dirroot . '/mod/customcert/save_template_form.php');
 
-$cmid = required_param('cmid', PARAM_INT);
+$tid = optional_param('tid', 0, PARAM_INT);
 $moveup = optional_param('moveup', 0, PARAM_INT);
 $movedown = optional_param('movedown', 0, PARAM_INT);
 $emoveup = optional_param('emoveup', 0, PARAM_INT);
@@ -37,98 +33,96 @@ $deleteelement = optional_param('deleteelement', 0, PARAM_INT);
 $deletepage = optional_param('deletepage', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
-$cm = get_coursemodule_from_id('customcert', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-$context = context_module::instance($cm->id);
-
-require_login($course, false, $cm);
-
-require_capability('mod/customcert:manage', $context);
-
-// The form for loading a customcert templates.
-$templates = customcert_get_templates();
-$loadtemplateform = new mod_customcert_load_template_form('', array('cmid' => $cm->id, 'templates' => $templates));
-// The form for saving the current information as a template.
-$savetemplateform = new mod_customcert_save_template_form('', array('cmid' => $cm->id));
-
-// Check if they chose to load a customcert template and redirect.
-if ($data = $loadtemplateform->get_data()) {
-    $url = new moodle_url('/mod/customcert/load_template.php', array('cmid' => $cmid, 'tid' => $data->template));
-    redirect($url);
+// Edit an existing template.
+if ($tid) {
+    // Create the template object.
+    $template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+    $template = new \mod_customcert\template($template);
+    // Set the context.
+    $contextid = $template->get_contextid();
+    // Set the page url.
+    $pageurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+} else { // Adding a new template.
+    // Need to supply the contextid.
+    $contextid = required_param('contextid', PARAM_INT);
+    // Set the page url.
+    $pageurl = new moodle_url('/mod/customcert/edit.php', array('contextid' => $contextid));
 }
 
-// Check if they chose to save the current information and redirect.
-if ($data = $savetemplateform->get_data()) {
-    $url = new moodle_url('/mod/customcert/save_template.php', array('cmid' => $cmid, 'name' => $data->name));
-    redirect($url);
+$context = context::instance_by_id($contextid);
+if ($context->contextlevel == CONTEXT_MODULE) {
+    $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
+    require_login($cm->course, false, $cm);
+} else {
+    require_login();
+}
+require_capability('mod/customcert:manage', $context);
+
+// Set up the page.
+\mod_customcert\page_helper::page_setup($pageurl, $context, get_string('editcustomcert', 'customcert'));
+
+if ($context->contextlevel == CONTEXT_SYSTEM) {
+    // We are managing a template - add some navigation.
+    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php'));
+    $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
+}
+
+// The form for loading a customcert templates.
+if ($tid && $DB->count_records('customcert_templates', array('contextid' => CONTEXT_SYSTEM::instance()->id)) > 0) {
+    $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
+    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl);
 }
 
 // Flag to determine if we are deleting anything.
 $deleting = false;
 
-// Check if they are moving a custom certificate page.
-if ((!empty($moveup)) || (!empty($movedown))) {
-    // Check if we are moving a page up.
-    if (!empty($moveup)) {
-        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $moveup))) {
-            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber - 1));
+if ($tid) {
+    // Check if they are moving a custom certificate page.
+    if ((!empty($moveup)) || (!empty($movedown))) {
+        // Check if we are moving a page up.
+        if (!empty($moveup)) {
+            $template->move_page_up($moveup);
+        } else { // Must be moving a page down.
+            $template->move_page_down($movedown);
         }
-    } else { // Must be moving a page down.
-        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $movedown))) {
-            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber + 1));
+    } else if ((!empty($emoveup)) || (!empty($emovedown))) { // Check if we are moving a custom certificate element.
+        // Check if we are moving an element up.
+        if (!empty($emoveup)) {
+            $template->move_element_up($emoveup);
+        } else { // Must be moving a element down.
+            $template->move_element_down($emovedown);
         }
-    }
-    // Check that there is a page to move, and a page to swap it with.
-    if ($swapcertpage && $movecertpage) {
-        $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
-        $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
-    }
-} else if ((!empty($emoveup)) || (!empty($emovedown))) { // Check if we are moving a custom certificate element.
-    // Check if we are moving an element up.
-    if (!empty($emoveup)) {
-        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $emoveup))) {
-            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence - 1));
+    } else if (!empty($deletepage)) { // Check if we are deleting a page.
+        if (!empty($confirm)) { // Check they have confirmed the deletion.
+            $template->delete_page($deletepage);
+        } else {
+            // Set deletion flag to true.
+            $deleting = true;
+            // Create the message.
+            $message = get_string('deletepageconfirm', 'customcert');
+            // Create the link options.
+            $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+            $yesurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid,
+                'deletepage' => $deletepage,
+                'confirm' => 1,
+                'sesskey' => sesskey()));
         }
-    } else { // Must be moving a element down.
-        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $emovedown))) {
-            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence + 1));
+    } else if (!empty($deleteelement)) { // Check if we are deleting an element.
+        if (!empty($confirm)) { // Check they have confirmed the deletion.
+            $template->delete_element($deleteelement);
+        } else {
+            // Set deletion flag to true.
+            $deleting = true;
+            // Create the message.
+            $message = get_string('deleteelementconfirm', 'customcert');
+            // Create the link options.
+            $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+            $yesurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid,
+                'deleteelement' => $deleteelement,
+                'confirm' => 1,
+                'sesskey' => sesskey()));
         }
-    }
-    // Check that there is an element to move, and an element to swap it with.
-    if ($swapcertelement && $movecertelement) {
-        $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
-        $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
-    }
-} else if (!empty($deletepage)) { // Check if we are deleting a page.
-    if (!empty($confirm)) { // Check they have confirmed the deletion.
-        customcert_delete_page($deletepage);
-    } else {
-        // Set deletion flag to true.
-        $deleting = true;
-        // Create the message.
-        $message = get_string('deletepageconfirm', 'customcert');
-        // Create the link options.
-        $nourl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id));
-        $yesurl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id,
-            'deletepage' => $deletepage,
-            'confirm' => 1,
-            'sesskey' => sesskey()));
-    }
-} else if (!empty($deleteelement)) { // Check if we are deleting an element.
-    if (!empty($confirm)) { // Check they have confirmed the deletion.
-        customcert_delete_element($deleteelement);
-    } else {
-        // Set deletion flag to true.
-        $deleting = true;
-        // Create the message.
-        $message = get_string('deleteelementconfirm', 'customcert');
-        // Create the link options.
-        $nourl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id));
-        $yesurl = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cm->id,
-            'deleteelement' => $deleteelement,
-            'confirm' => 1,
-            'sesskey' => sesskey()));
     }
 }
 
@@ -138,8 +132,6 @@ if ($deleting) {
     $strheading = get_string('deleteconfirm', 'customcert');
     $PAGE->navbar->add($strheading);
     $PAGE->set_title($strheading);
-    $PAGE->set_heading($course->fullname);
-    $PAGE->set_url('/mod/customcert/edit.php', array('cmid' => $cmid));
     echo $OUTPUT->header();
     echo $OUTPUT->heading($strheading);
     echo $OUTPUT->confirm($message, $yesurl, $nourl);
@@ -147,17 +139,57 @@ if ($deleting) {
     exit();
 }
 
-$mform = new mod_customcert_edit_form('', array('customcertid' => $customcert->id,
-                                                'cmid' => $cm->id,
-                                                'course' => $course));
+if ($tid) {
+    $mform = new \mod_customcert\edit_form($pageurl, array('tid' => $tid));
+    // Set the name for the form.
+    $mform->set_data(array('name' => $template->get_name()));
+} else {
+    $mform = new \mod_customcert\edit_form($pageurl);
+}
 
 if ($data = $mform->get_data()) {
+    // If there is no id, then we are creating a template.
+    if (!$tid) {
+        $template = \mod_customcert\template::create($data->name, $contextid);
+
+        // Create a page for this template.
+        $pageid = $template->add_page();
+
+        // Associate all the data from the form to the newly created page.
+        $width = 'pagewidth_' . $pageid;
+        $height = 'pageheight_' . $pageid;
+        $leftmargin = 'pageleftmargin_' . $pageid;
+        $rightmargin = 'pagerightmargin_' . $pageid;
+        $rightmargin = 'pagerightmargin_' . $pageid;
+
+        // We may also have clicked to add an element, so these need changing as well.
+        if (isset($data->element_1) && isset($data->addelement_1)) {
+            $element = 'element_' . $pageid;
+            $addelement = 'addelement_' . $pageid;
+            $data->$element = $data->element_1;
+            $data->$addelement = $data->addelement_1;
+
+            // Need to remove the temporary element and add element placeholders so we
+            // don't try add an element to the wrong page.
+            unset($data->element_1);
+            unset($data->addelement_1);
+        }
+
+        $data->$width = $data->pagewidth_1;
+        $data->$height = $data->pageheight_1;
+        $data->$leftmargin = $data->pageleftmargin_1;
+        $data->$rightmargin = $data->pagerightmargin_1;
+    }
+
+    // Save any data for the template.
+    $template->save($data);
+
     // Save any page data.
-    customcert_save_page_data($data);
+    $template->save_page($data);
 
     // Check if we are adding a page.
     if (!empty($data->addcertpage)) {
-        customcert_add_page($data);
+        $template->add_page();
     }
 
     // Loop through the data.
@@ -171,7 +203,7 @@ if ($data = $mform->get_data()) {
             $element = $data->$element;
             // Create the URL to redirect to to add this element.
             $params = array();
-            $params['cmid'] = $cmid;
+            $params['tid'] = $template->get_id();
             $params['action'] = 'add';
             $params['element'] = $element;
             $params['pageid'] = $pageid;
@@ -182,23 +214,18 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-        customcert_generate_pdf($customcert, true);
+        $template->generate_pdf(true);
     }
 
     // Redirect to the editing page to show form with recent updates.
-    $url = new moodle_url('/mod/customcert/edit.php', array('cmid' => $cmid));
+    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id()));
     redirect($url);
 }
-
-$PAGE->set_title(get_string('editcustomcert', 'customcert', format_string($customcert->name)));
-$PAGE->set_heading($course->fullname);
-$PAGE->set_url('/mod/customcert/edit.php', array('cmid' => $cmid));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
 $mform->display();
-if (!empty($templates)) {
+if (isset($loadtemplateform)) {
     $loadtemplateform->display();
 }
-$savetemplateform->display();
 echo $OUTPUT->footer();

@@ -37,7 +37,7 @@ class element extends \mod_customcert\element {
         global $DB, $USER;
 
         if ($preview) {
-            $code = customcert_generate_code();
+            $code = \mod_customcert\certificate::generate_code();
         } else {
             // Get the page.
             $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
@@ -46,7 +46,7 @@ class element extends \mod_customcert\element {
             $code = $issue->code;
         }
 
-        parent::render_content($pdf, $code);
+        \mod_customcert\element_helper::render_content($pdf, $this, $code);
     }
 
     /**
@@ -54,10 +54,12 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
-        $code = customcert_generate_code();
+        $code = \mod_customcert\certificate::generate_code();
 
-        return parent::render_html_content($code);
+        return \mod_customcert\element_helper::render_html_content($this, $code);
     }
 }

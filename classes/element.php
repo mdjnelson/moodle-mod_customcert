@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
 abstract class element {
 
     /**
-     * The data for the element we are adding.
+     * @var \stdClass $element The data for the element we are adding.
      */
     public $element;
 
@@ -51,20 +51,20 @@ abstract class element {
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
+     * @param edit_element_form $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
         // Render the common elements.
-        $this->render_form_element_font($mform);
-        $this->render_form_element_colour($mform);
-        $this->render_form_element_position($mform);
+        element_helper::render_form_element_font($mform);
+        element_helper::render_form_element_colour($mform);
+        element_helper::render_form_element_position($mform);
     }
 
     /**
      * Sets the data on the form when editing an element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Loop through the properties of the element and set the values
@@ -90,8 +90,8 @@ abstract class element {
         $errors = array();
 
         // Common validation methods.
-        $errors += $this->validate_form_element_colour($data);
-        $errors += $this->validate_form_element_position($data);
+        $errors += element_helper::validate_form_element_colour($data);
+        $errors += element_helper::validate_form_element_position($data);
 
         return $errors;
     }
@@ -125,7 +125,7 @@ abstract class element {
         } else { // Must be adding a new one.
             $element->element = $data->element;
             $element->pageid = $data->pageid;
-            $element->sequence = $this->get_element_sequence($element->pageid);
+            $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
             $element->timecreated = time();
             $DB->insert_record('customcert_elements', $element);
         }
@@ -133,7 +133,7 @@ abstract class element {
 
     /**
      * This will handle how form data will be saved into the data column in the
-     * customcert column.
+     * customcert_elements table.
      * Can be overridden if more functionality is needed.
      *
      * @param \stdClass $data the form data
@@ -144,31 +144,19 @@ abstract class element {
     }
 
     /**
-     * This will handle how individual elements save their data
-     * to a template to be loaded later.
+     * This handles copying data from another element of the same type.
      * Can be overridden if more functionality is needed.
      *
      * @param \stdClass $data the form data
-     * @return bool returns true if the data was saved to the template, false otherwise
+     * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function save_data_to_template($data) {
-        return true;
-    }
-
-    /**
-     * This will handle how individual elements load their data
-     * from a template to an existing customcert.
-     * Can be overridden if more functionality is needed.
-     *
-     * @param \stdClass $data the form data
-     * @return bool returns true if the data was loaded from the template, false otherwise
-     */
-    public function load_data_from_template($data) {
+    public function copy_element($data) {
         return true;
     }
 
     /**
      * Handles rendering the element on the pdf.
+     *
      * Must be overridden.
      *
      * @param \pdf $pdf the pdf object
@@ -177,83 +165,17 @@ abstract class element {
     public abstract function render($pdf, $preview);
 
     /**
-     * Common behaviour for rendering specified content on the pdf.
-     *
-     * @param \pdf $pdf the pdf object
-     * @param string $content the content to render
-     */
-    public function render_content($pdf, $content) {
-        list($font, $attr) = $this->get_font();
-        $pdf->setFont($font, $attr, $this->element->size);
-        $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $fontcolour);
-        $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
-
-        $x = $this->element->posx;
-        $y = $this->element->posy;
-        $w = $this->element->width;
-        $refpoint = $this->element->refpoint;
-        $actualwidth = $pdf->GetStringWidth($content);
-
-        if ($w and $w < $actualwidth) {
-            $actualwidth = $w;
-        }
-
-        switch ($refpoint) {
-            case CUSTOMCERT_REF_POINT_TOPRIGHT:
-                $x = $this->element->posx - $actualwidth;
-                if ($x < 0) {
-                    $x = 0;
-                    $w = $this->element->posx;
-                } else {
-                    $w = $actualwidth;
-                }
-                break;
-            case CUSTOMCERT_REF_POINT_TOPCENTER:
-                $x = $this->element->posx - $actualwidth / 2;
-                if ($x < 0) {
-                    $x = 0;
-                    $w = $this->element->posx * 2;
-                } else {
-                    $w = $actualwidth;
-                }
-                break;
-        }
-
-        if ($w) {
-            $w += 0.0001;
-        }
-        $pdf->setCellPaddings(0, 0, 0, 0);
-        $pdf->writeHTMLCell($w, 0, $x, $y, $content, 0, 0, false, true);
-    }
-
-    /**
      * Render the element in html.
      *
      * Must be overridden.
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public abstract function render_html();
 
-    /**
-     * Common behaviour for rendering specified content on the drag and drop page.
-     *
-     * @param string $content the content to render
-     * @return string the html
-     */
-    public function render_html_content($content) {
-        list($font, $attr) = $this->get_font();
-        $fontstyle = 'font-family: ' . $font;
-        if (strpos($attr, 'B') !== false) {
-            $fontstyle .= ': font-weight: bold';
-        }
-        if (strpos($attr, 'I') !== false) {
-            $fontstyle .= ': font-style: italic';
-        }
-        $style = $fontstyle . '; color: ' . $this->element->colour . '; font-size: ' . $this->element->size . 'pt';
-        return \html_writer::tag('span', $content, array('style' => $style));
-    }
 
     /**
      * Handles deleting any data this element may have introduced.
@@ -261,172 +183,10 @@ abstract class element {
      *
      * @return bool success return true if deletion success, false otherwise
      */
-    public function delete_element() {
+    public function delete() {
         global $DB;
 
         return $DB->delete_records('customcert_elements', array('id' => $this->element->id));
-    }
-
-    /**
-     * Helper function that returns the sequence on a specified customcert page for a
-     * newly created element.
-     *
-     * @param int $pageid the id of the page we are adding this element to
-     * @return int the element number
-     */
-    public static function get_element_sequence($pageid) {
-        global $DB;
-
-        // Set the sequence of the element we are creating.
-        $sequence = 1;
-        // Check if there already elements that exist, if so, overwrite value.
-        $sql = "SELECT MAX(sequence) as maxsequence
-                  FROM {customcert_elements}
-                 WHERE pageid = :id";
-        // Get the current max sequence on this page and add 1 to get the new sequence.
-        if ($maxseq = $DB->get_record_sql($sql, array('id' => $pageid))) {
-            $sequence = $maxseq->maxsequence + 1;
-        }
-
-        return $sequence;
-    }
-
-    /**
-     * Helper function to render the font elements.
-     *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
-     */
-    public function render_form_element_font($mform) {
-        $mform->addElement('select', 'font', get_string('font', 'customcert'), customcert_get_fonts());
-        $mform->setType('font', PARAM_TEXT);
-        $mform->setDefault('font', 'times');
-        $mform->addHelpButton('font', 'font', 'customcert');
-
-        $mform->addElement('select', 'size', get_string('fontsize', 'customcert'), customcert_get_font_sizes());
-        $mform->setType('size', PARAM_INT);
-        $mform->setDefault('size', 12);
-        $mform->addHelpButton('size', 'fontsize', 'customcert');
-    }
-
-    /**
-     * Helper function to render the colour elements.
-     *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
-     */
-    public function render_form_element_colour($mform) {
-        $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
-        $mform->setType('colour', PARAM_RAW); // Need to validate that this is a valid colour.
-        $mform->setDefault('colour', '#000000');
-        $mform->addHelpButton('colour', 'fontcolour', 'customcert');
-    }
-
-    /**
-     * Helper function to render the position elements.
-     *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance.
-     */
-    public function render_form_element_position($mform) {
-        $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
-        $mform->setType('posx', PARAM_INT);
-        $mform->setDefault('posx', 0);
-        $mform->addHelpButton('posx', 'posx', 'customcert');
-
-        $mform->addElement('text', 'posy', get_string('posy', 'customcert'), array('size' => 10));
-        $mform->setType('posy', PARAM_INT);
-        $mform->setDefault('posy', 0);
-        $mform->addHelpButton('posy', 'posy', 'customcert');
-
-        $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
-        $mform->setType('width', PARAM_INT);
-        $mform->setDefault('width', 0);
-        $mform->addHelpButton('width', 'elementwidth', 'customcert');
-
-        $refpointoptions = array();
-        $refpointoptions[CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
-        $refpointoptions[CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
-        $refpointoptions[CUSTOMCERT_REF_POINT_TOPRIGHT] = get_string('topright', 'customcert');
-
-        $mform->addElement('select', 'refpoint', get_string('refpoint', 'customcert'), $refpointoptions);
-        $mform->setType('refpoint', PARAM_INT);
-        $mform->setDefault('refpoint', CUSTOMCERT_REF_POINT_TOPCENTER);
-        $mform->addHelpButton('refpoint', 'refpoint', 'customcert');
-    }
-
-    /**
-     * Helper function to performs validation on the colour element.
-     *
-     * @param array $data the submitted data
-     * @return array the validation errors
-     */
-    public function validate_form_element_colour($data) {
-        $errors = array();
-
-        // Validate the colour.
-        if (!$this->validate_colour($data['colour'])) {
-            $errors['colour'] = get_string('invalidcolour', 'customcert');
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Helper function to performs validation on the position elements.
-     *
-     * @param array $data the submitted data
-     * @return array the validation errors
-     */
-    public function validate_form_element_position($data) {
-        $errors = array();
-
-        // Check if posx is not set, or not numeric or less than 0.
-        if ((!isset($data['posx'])) || (!is_numeric($data['posx'])) || ($data['posx'] < 0)) {
-            $errors['posx'] = get_string('invalidposition', 'customcert', 'X');
-        }
-
-        // Check if posy is not set, or not numeric or less than 0.
-        if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
-            $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
-        }
-
-        // Check if width is less than 0.
-        if (isset($data['width']) && $data['width'] < 0) {
-            $errors['width'] = get_string('invalidelementwidth', 'customcert');
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Returns the font used for this element.
-     *
-     * @return array the font and font attributes
-     */
-    public function get_font() {
-        // Variable for the font.
-        $font = $this->element->font;
-        // Get the last two characters of the font name.
-        $fontlength = strlen($font);
-        $lastchar = $font[$fontlength - 1];
-        $secondlastchar = $font[$fontlength - 2];
-        // The attributes of the font.
-        $attr = '';
-        // Check if the last character is 'i'.
-        if ($lastchar == 'i') {
-            // Remove the 'i' from the font name.
-            $font = substr($font, 0, -1);
-            // Check if the second last char is b.
-            if ($secondlastchar == 'b') {
-                // Remove the 'b' from the font name.
-                $font = substr($font, 0, -1);
-                $attr .= 'B';
-            }
-            $attr .= 'I';
-        } else if ($lastchar == 'b') {
-            // Remove the 'b' from the font name.
-            $font = substr($font, 0, -1);
-            $attr .= 'B';
-        }
-        return array($font, $attr);
     }
 
     /**
@@ -438,58 +198,74 @@ abstract class element {
      *
      * @param \restore_customcert_activity_task $restore
      */
-    public function after_restore($restore) {
+    public function after_restore($restore) { }
 
+    /**
+     * Magic getter for read only access.
+     *
+     * @param string $name
+     */
+    public function __get($name) {
+        if (property_exists($this->element, $name)) {
+            return $this->element->$name;
+        }
     }
 
     /**
-     * Validates the colour selected.
+     * Returns an instance of the element class.
      *
-     * @param string $colour
-     * @return bool returns true if the colour is valid, false otherwise
+     * @param \stdClass $element the element
+     * @return \mod_customcert\element|bool returns the instance of the element class, or false if element
+     *         class does not exists.
      */
-    protected function validate_colour($colour) {
-         // List of valid HTML colour names.
-         $colournames = array(
-            'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',
-            'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
-            'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
-            'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson',
-            'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
-            'darkgrey', 'darkgreen', 'darkkhaki', 'darkmagenta',
-            'darkolivegreen', 'darkorange', 'darkorchid', 'darkred',
-            'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray',
-            'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
-            'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
-            'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro',
-            'ghostwhite', 'gold', 'goldenrod', 'gray', 'grey', 'green',
-            'greenyellow', 'honeydew', 'hotpink', 'indianred', 'indigo',
-            'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen',
-            'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan',
-            'lightgoldenrodyellow', 'lightgray', 'lightgrey', 'lightgreen',
-            'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue',
-            'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow',
-            'lime', 'limegreen', 'linen', 'magenta', 'maroon',
-            'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple',
-            'mediumseagreen', 'mediumslateblue', 'mediumspringgreen',
-            'mediumturquoise', 'mediumvioletred', 'midnightblue', 'mintcream',
-            'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive',
-            'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
-            'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip',
-            'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple', 'red',
-            'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown',
-            'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue',
-            'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan',
-            'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white',
-            'whitesmoke', 'yellow', 'yellowgreen'
-        );
+    public static function instance($element) {
+        // Get the class name.
+        $classname = '\\customcertelement_' . $element->element . '\\element';
 
-        if (preg_match('/^#?([[:xdigit:]]{3}){1,2}$/', $colour)) {
-            return true;
-        } else if (in_array(strtolower($colour), $colournames)) {
-            return true;
+        // Ensure the necessary class exists.
+        if (class_exists($classname)) {
+            return new $classname($element);
         }
 
         return false;
+    }
+
+    /**
+     * Return the list of possible elements to add.
+     *
+     * @return array the list of element types that can be used.
+     */
+    public static function get_available_types() {
+        global $CFG;
+
+        // Array to store the element types.
+        $options = array();
+
+        // Check that the directory exists.
+        $elementdir = "$CFG->dirroot/mod/customcert/element";
+        if (file_exists($elementdir)) {
+            // Get directory contents.
+            $elementfolders = new \DirectoryIterator($elementdir);
+            // Loop through the elements folder.
+            foreach ($elementfolders as $elementfolder) {
+                // If it is not a directory or it is '.' or '..', skip it.
+                if (!$elementfolder->isDir() || $elementfolder->isDot()) {
+                    continue;
+                }
+                // Check that the standard class exists, if not we do
+                // not want to display it as an option as it will not work.
+                $foldername = $elementfolder->getFilename();
+                // Get the class name.
+                $classname = '\\customcertelement_' . $foldername . '\\element';
+                // Ensure the necessary class exists.
+                if (class_exists($classname)) {
+                    $component = "customcertelement_{$foldername}";
+                    $options[$foldername] = get_string('pluginname', $component);
+                }
+            }
+        }
+
+        \core_collator::asort($options);
+        return $options;
     }
 }

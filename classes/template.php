@@ -1,0 +1,455 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Class represents a customcert template.
+ *
+ * @copyright  2015 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace mod_customcert;
+
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Class represents a customcert template.
+ *
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class template {
+
+    /**
+     * @var int $id The id of the template.
+     */
+    protected $id;
+
+    /**
+     * @var string $name The name of this template
+     */
+    protected $name;
+
+    /**
+     * @var int $contextid The context id of this template
+     */
+    protected $contextid;
+
+    /**
+     * The constructor.
+     *
+     * @param \stdClass $template
+     */
+    public function __construct($template) {
+        $this->id = $template->id;
+        $this->name = $template->name;
+        $this->contextid = $template->contextid;
+    }
+
+    /**
+     * Handles saving data.
+     *
+     * @param \stdClass $data the template data
+     */
+    public function save($data) {
+        global $DB;
+
+        $savedata = new \stdClass();
+        $savedata->id = $this->id;
+        $savedata->name = $data->name;
+        $savedata->timemodified= time();
+
+        $DB->update_record('customcert_templates', $savedata);
+    }
+
+    /**
+     * Handles adding another page to the template.
+     *
+     * @return int the id of the page
+     */
+    public function add_page() {
+        global $DB;
+
+        // Set the page number to 1 to begin with.
+        $pagenumber = 1;
+        // Get the max page number.
+        $sql = "SELECT MAX(pagenumber) as maxpage
+                  FROM {customcert_pages} cp
+                 WHERE cp.templateid = :templateid";
+        if ($maxpage = $DB->get_record_sql($sql, array('templateid' => $this->id))) {
+            $pagenumber = $maxpage->maxpage + 1;
+        }
+
+        // New page creation.
+        $page = new \stdClass();
+        $page->templateid = $this->id;
+        $page->width = '210';
+        $page->height = '297';
+        $page->pagenumber = $pagenumber;
+        $page->timecreated = time();
+        $page->timemodified = $page->timecreated;
+
+        // Insert the page.
+        return $DB->insert_record('customcert_pages', $page);
+    }
+
+    /**
+     * Handles saving page data.
+     *
+     * @param \stdClass $data the template data
+     */
+    public function save_page($data) {
+        global $DB;
+
+        // Set the time to a variable.
+        $time = time();
+
+        // Get the existing pages and save the page data.
+        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $data->tid))) {
+            // Loop through existing pages.
+            foreach ($pages as $page) {
+                // Get the name of the fields we want from the form.
+                $width = 'pagewidth_' . $page->id;
+                $height = 'pageheight_' . $page->id;
+                $leftmargin = 'pageleftmargin_' . $page->id;
+                $rightmargin = 'pagerightmargin_' . $page->id;
+                // Create the page data to update the DB with.
+                $p = new \stdClass();
+                $p->id = $page->id;
+                $p->width = $data->$width;
+                $p->height = $data->$height;
+                $p->leftmargin = $data->$leftmargin;
+                $p->rightmargin = $data->$rightmargin;
+                $p->timemodified = $time;
+                // Update the page.
+                $DB->update_record('customcert_pages', $p);
+            }
+        }
+    }
+
+    /**
+     * Handles deleting the template.
+     *
+     * @return bool return true if the deletion was successful, false otherwise
+     */
+    public function delete() {
+        global $CFG, $DB;
+
+        // Delete the elements.
+        $sql = "SELECT e.*
+                  FROM {customcert_elements} e
+            INNER JOIN {customcert_pages} p
+                    ON e.pageid = p.id
+                 WHERE p.templateid = :templateid";
+        if ($elements = $DB->get_records_sql($sql, array('templateid' => $this->id))) {
+            foreach ($elements as $element) {
+                // Get an instance of the element class.
+                if ($e = \mod_customcert\element::instance($element)) {
+                    $e->delete();
+                } else {
+                    // The plugin files are missing, so just remove the entry from the DB.
+                    $DB->delete_records('customcert_elements', array('id' => $element->id));
+                }
+            }
+        }
+
+        // Delete the pages.
+        if (!$DB->delete_records('customcert_pages', array('templateid' => $this->id))) {
+            return false;
+        }
+
+        // Now, finally delete the actual template.
+        if (!$DB->delete_records('customcert_templates', array('id' => $this->id))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Handles deleting a page from the template.
+     *
+     * @param int $pageid the template page
+     */
+    public function delete_page($pageid) {
+        global $DB;
+
+        // Get the page.
+        $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
+
+        // Delete this page.
+        $DB->delete_records('customcert_pages', array('id' => $page->id));
+
+        // The element may have some extra tasks it needs to complete to completely delete itself.
+        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+            foreach ($elements as $element) {
+                // Get an instance of the element class.
+                if ($e = \mod_customcert\element::instance($element)) {
+                    $e->delete();
+                } else {
+                    // The plugin files are missing, so just remove the entry from the DB.
+                    $DB->delete_records('customcert_elements', array('id' => $element->id));
+                }
+            }
+        }
+
+        // Now we want to decrease the page number values of
+        // the pages that are greater than the page we deleted.
+        $sql = "UPDATE {customcert_pages}
+                   SET pagenumber = pagenumber - 1
+                 WHERE templateid = :templateid
+                   AND pagenumber > :pagenumber";
+        $DB->execute($sql, array('templateid' => $this->id, 'pagenumber' => $page->pagenumber));
+    }
+
+    /**
+     * Handles deleting an element from the template.
+     *
+     * @param int $elementid the template page
+     */
+    public function delete_element($elementid) {
+        global $DB;
+
+        // Ensure element exists and delete it.
+        $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+
+        // Get an instance of the element class.
+        if ($e = \mod_customcert\element::instance($element)) {
+            $e->delete();
+        } else {
+            // The plugin files are missing, so just remove the entry from the DB.
+            $DB->delete_records('customcert_elements', array('id' => $elementid));
+        }
+
+        // Now we want to decrease the sequence numbers of the elements
+        // that are greater than the element we deleted.
+        $sql = "UPDATE {customcert_elements}
+                   SET sequence = sequence - 1
+                 WHERE pageid = :pageid
+                   AND sequence > :sequence";
+        $DB->execute($sql, array('pageid' => $element->pageid, 'sequence' => $element->sequence));
+    }
+
+    /**
+     * Generate the PDF for the template.
+     *
+     * @param bool $preview true if it is a preview, false otherwise
+     */
+    public function generate_pdf($preview = false) {
+        global $CFG, $DB;
+
+        require_once($CFG->libdir . '/pdflib.php');
+
+        // Get the pages for the template, there should always be at least one page for each template.
+        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'pagenumber ASC')) {
+            // Create the pdf object.
+            $pdf = new \pdf();
+
+            // If the template belongs to a certificate then we need to check what permissions we set for it.
+            if ($protection = $DB->get_field('customcert', 'protection', array('templateid' => $this->id))) {
+                if (!empty($protection)) {
+                    $protection = explode(', ', $protection);
+                    $pdf->SetProtection($protection);
+                }
+            }
+
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetTitle($this->name);
+            $pdf->SetAutoPageBreak(true, 0);
+            // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
+            $filename = rtrim($this->name, '.');
+            $filename = clean_filename($filename . '.pdf');
+            // Loop through the pages and display their content.
+            foreach ($pages as $page) {
+                // Add the page to the PDF.
+                if ($page->width > $page->height) {
+                    $orientation = 'L';
+                } else {
+                    $orientation = 'P';
+                }
+                $pdf->AddPage($orientation, array($page->width, $page->height));
+                $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
+                // Get the elements for the page.
+                if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
+                    // Loop through and display.
+                    foreach ($elements as $element) {
+                        // Get an instance of the element class.
+                        if ($e = \mod_customcert\element::instance($element)) {
+                            $e->render($pdf, $preview);
+                        }
+                    }
+                }
+            }
+            $pdf->Output($filename, 'D');
+        }
+    }
+
+    /**
+     * Handles moving the certificate page up.
+     *
+     * @param int $pageid
+     */
+    public function move_page_up($pageid) {
+        global $DB;
+
+        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $pageid))) {
+            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber - 1));
+        }
+
+        // Check that there is a page to move, and a page to swap it with.
+        if (isset($swapcertpage) && $movecertpage) {
+            $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
+            $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
+        }
+    }
+
+    /**
+     * Handles moving the certificate page down.
+     *
+     * @param int $pageid
+     */
+    public function move_page_down($pageid) {
+        global $DB;
+
+        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $pageid))) {
+            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber + 1));
+        }
+
+        // Check that there is a page to move, and a page to swap it with.
+        if (isset($swapcertpage) && $movecertpage) {
+            $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
+            $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
+        }
+    }
+
+    /**
+     * Handles moving the certificate element up.
+     *
+     * @param int $elementid
+     */
+    public function move_element_up($elementid) {
+        global $DB;
+
+        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $elementid))) {
+            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence - 1));
+        }
+
+        // Check that there is an element to move, and an element to swap it with.
+        if (isset($swapcertelement) && $movecertelement) {
+            $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
+            $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
+        }
+    }
+
+    /**
+     * Handles moving the certificate element down.
+     *
+     * @param int $elementid
+     */
+    public function move_element_down($elementid) {
+        global $DB;
+
+        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $elementid))) {
+            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence + 1));
+        }
+
+        // Check that there is an element to move, and an element to swap it with.
+        if (isset($swapcertelement) && $movecertelement) {
+            $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
+            $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
+        }
+    }
+
+    /**
+     * Returns the id of the template.
+     *
+     * @return int the id of the template
+     */
+    public function get_id() {
+        return $this->id;
+    }
+
+    /**
+     * Returns the name of the template.
+     *
+     * @return string the name of the template
+     */
+    public function get_name() {
+        return $this->name;
+    }
+
+    /**
+     * Returns the context id.
+     *
+     * @return int the context id
+     */
+    public function get_contextid() {
+        return $this->contextid;
+    }
+
+    /**
+     * Returns the context id.
+     *
+     * @return \context the context
+     */
+    public function get_context() {
+        return \context::instance_by_id($this->contextid);
+    }
+
+    /**
+     * Returns the context id.
+     *
+     * @return \context_module|null the context module, null if there is none
+     */
+    public function get_cm() {
+        $context = $this->get_context();
+        if ($context->contextlevel === CONTEXT_MODULE) {
+            return get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
+        }
+
+        return null;
+    }
+
+    /**
+     * Ensures the user has the proper capabilities to manage this template.
+     *
+     * @throws \required_capability_exception if the user does not have the necessary capabilities (ie. Fred)
+     */
+    public function require_manage() {
+        require_capability('mod/customcert:manage', $this->get_context());
+    }
+
+    /**
+     * Creates a template.
+     *
+     * @param string $templatename the name of the template
+     * @param int $contextid the context id
+     * @return \mod_customcert\template the template object
+     */
+    public static function create($templatename, $contextid) {
+        global $DB;
+
+        $template = new \stdClass();
+        $template->name = $templatename;
+        $template->contextid = $contextid;
+        $template->timecreated = time();
+        $template->timemodified = $template->timecreated;
+        $template->id = $DB->insert_record('customcert_templates', $template);
+
+        return new \mod_customcert\template($template);
+    }
+}

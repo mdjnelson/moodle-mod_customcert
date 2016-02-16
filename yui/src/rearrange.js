@@ -6,7 +6,7 @@ M.mod_customcert.rearrange = {
     /**
      * The course module id.
      */
-    cmid : 0,
+    templateid : 0,
 
     /**
      * The customcert page we are displaying.
@@ -63,13 +63,13 @@ M.mod_customcert.rearrange = {
      * Initialise.
      *
      * @param Y
-     * @param cmid
+     * @param templateid
      * @param page
      * @param elements
      */
-    init : function(Y, cmid, page, elements) {
+    init : function(Y, templateid, page, elements) {
         // Set the course module id.
-        this.cmid = cmid;
+        this.templateid = templateid;
         // Set the page.
         this.page = page;
         // Set the elements.
@@ -224,7 +224,7 @@ M.mod_customcert.rearrange = {
     save_positions : function(e) {
         // The parameters to send the AJAX call.
         var params = {
-            cmid: this.cmid,
+            tid: this.templateid,
             values: []
         };
 
@@ -268,7 +268,15 @@ M.mod_customcert.rearrange = {
                 },
                 success: function() {
                     var formNode = e.currentTarget.ancestor('form', true);
-                    window.location = formNode.getAttribute('action') + '?' + Y.QueryString.stringify({cmid:formNode.one('[name=cmid]').get('value')});
+                    var baseUrl = formNode.getAttribute('action');
+                    var pageinput = formNode.one('[name=pid]');
+                    if (pageinput) {
+                        var pageid = pageinput.get('value');
+                        window.location = baseUrl + '?pid=' + pageid;
+                    } else {
+                        var templateid = formNode.one('[name=tid]').get('value');
+                        window.location = baseUrl + '?tid=' + templateid;
+                    }
                 }
             },
             context: this

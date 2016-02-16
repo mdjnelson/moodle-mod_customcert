@@ -24,7 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/mod/customcert/adminsetting.class.php');
+$settings->add(new \mod_customcert\admin_setting_link('customcert/managetemplates',
+    get_string('managetemplates', 'customcert'), get_string('managetemplatesdesc', 'customcert'),
+    get_string('managetemplates', 'customcert'), new moodle_url('/mod/customcert/manage_templates.php'), ''));
 
-$settings->add(new mod_customcert_admin_setting_upload('customcert/uploadimage',
-    get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'), ''));
+$settings->add(new \mod_customcert\admin_setting_link('customcert/uploadimage',
+    get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'),
+    get_string('uploadimage', 'customcert'), new moodle_url('/mod/customcert/upload_image.php'), ''));

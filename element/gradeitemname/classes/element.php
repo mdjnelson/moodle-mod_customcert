@@ -30,7 +30,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_gradeitemname'),
@@ -73,7 +73,7 @@ class element extends \mod_customcert\element {
             // Get the name of the item.
             $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
 
-            parent::render_content($pdf, $itemname);
+            \mod_customcert\element_helper::render_content($pdf, $this, $itemname);
         }
     }
 
@@ -82,6 +82,8 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         global $DB;
@@ -95,14 +97,16 @@ class element extends \mod_customcert\element {
             // Get the name of the item.
             $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
 
-            return parent::render_html_content($itemname);
+            return \mod_customcert\element_helper::render_html_content($this, $itemname);
         }
+
+        return '';
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

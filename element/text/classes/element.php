@@ -30,7 +30,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('textarea', 'text', get_string('text', 'customcertelement_text'));
@@ -58,7 +58,7 @@ class element extends \mod_customcert\element {
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
-        parent::render_content($pdf, $this->element->data);
+        \mod_customcert\element_helper::render_content($pdf, $this, $this->element->data);
     }
 
     /**
@@ -66,15 +66,17 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
-        return parent::render_html_content($this->element->data);
+        return \mod_customcert\element_helper::render_html_content($this, $this->element->data);
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->element->data)) {

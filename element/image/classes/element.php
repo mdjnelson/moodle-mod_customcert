@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 class element extends \mod_customcert\element {
 
-    private $filemanageroptions = array();
+    protected $filemanageroptions = array();
 
     /**
      * Constructor.
@@ -49,7 +49,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
@@ -99,7 +99,7 @@ class element extends \mod_customcert\element {
         }
 
         // Validate the position.
-        $errors += $this->validate_form_element_position($data);
+        $errors += \mod_customcert\element_helper::validate_form_element_position($data);
 
         return $errors;
     }
@@ -114,7 +114,7 @@ class element extends \mod_customcert\element {
         global $COURSE;
 
         // Handle file uploads.
-        customcert_upload_imagefiles($data->customcertimage, \context_course::instance($COURSE->id)->id);
+        \mod_customcert\certificate::upload_imagefiles($data->customcertimage, \context_course::instance($COURSE->id)->id);
 
         parent::save_form_elements($data);
     }
@@ -169,11 +169,13 @@ class element extends \mod_customcert\element {
      *
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
+     *
+     * @return string the html
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
-            return;
+            return '';
         }
 
         $imageinfo = json_decode($this->element->data);
@@ -210,7 +212,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \mod_customcert_edit_element_form $mform the edit_form instance
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         global $COURSE;
