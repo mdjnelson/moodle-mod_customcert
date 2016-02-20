@@ -327,7 +327,7 @@ class template {
         }
 
         // Check that there is an item to move, and an item to swap it with.
-        if ($moveitem && isset($swapitem)) {
+        if ($moveitem && !empty($swapitem)) {
             $DB->set_field($table, 'sequence', $swapitem->sequence, array('id' => $moveitem->id));
             $DB->set_field($table, 'sequence', $moveitem->sequence, array('id' => $swapitem->id));
         }
