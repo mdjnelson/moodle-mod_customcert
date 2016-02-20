@@ -78,16 +78,16 @@ $deleting = false;
 if ($tid) {
     switch ($action) {
         case 'pmoveup' :
-            $template->move_page_up($actionid);
+            $template->move_item('page', $actionid, 'up');
             break;
         case 'pmovedown' :
-            $template->move_page_down($actionid);
+            $template->move_item('page', $actionid, 'down');
             break;
         case 'emoveup' :
-            $template->move_element_up($actionid);
+            $template->move_item('element', $actionid, 'up');
             break;
         case 'emovedown' :
-            $template->move_element_down($actionid);
+            $template->move_item('element', $actionid, 'down');
             break;
         case 'deletepage' :
             if (!empty($confirm)) { // Check they have confirmed the deletion.

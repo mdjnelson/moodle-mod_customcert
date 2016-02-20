@@ -84,13 +84,13 @@ class template {
         global $DB;
 
         // Set the page number to 1 to begin with.
-        $pagenumber = 1;
+        $sequence = 1;
         // Get the max page number.
-        $sql = "SELECT MAX(pagenumber) as maxpage
+        $sql = "SELECT MAX(sequence) as maxpage
                   FROM {customcert_pages} cp
                  WHERE cp.templateid = :templateid";
         if ($maxpage = $DB->get_record_sql($sql, array('templateid' => $this->id))) {
-            $pagenumber = $maxpage->maxpage + 1;
+            $sequence = $maxpage->maxpage + 1;
         }
 
         // New page creation.
@@ -98,7 +98,7 @@ class template {
         $page->templateid = $this->id;
         $page->width = '210';
         $page->height = '297';
-        $page->pagenumber = $pagenumber;
+        $page->sequence = $sequence;
         $page->timecreated = time();
         $page->timemodified = $page->timecreated;
 
@@ -209,10 +209,10 @@ class template {
         // Now we want to decrease the page number values of
         // the pages that are greater than the page we deleted.
         $sql = "UPDATE {customcert_pages}
-                   SET pagenumber = pagenumber - 1
+                   SET sequence = sequence - 1
                  WHERE templateid = :templateid
-                   AND pagenumber > :pagenumber";
-        $DB->execute($sql, array('templateid' => $this->id, 'pagenumber' => $page->pagenumber));
+                   AND sequence > :sequence";
+        $DB->execute($sql, array('templateid' => $this->id, 'sequence' => $page->sequence));
     }
 
     /**
@@ -254,7 +254,7 @@ class template {
         require_once($CFG->libdir . '/pdflib.php');
 
         // Get the pages for the template, there should always be at least one page for each template.
-        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'pagenumber ASC')) {
+        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'sequence ASC')) {
             // Create the pdf object.
             $pdf = new \pdf();
 
@@ -299,78 +299,37 @@ class template {
     }
 
     /**
-     * Handles moving the certificate page up.
+     * Handles moving an item on a template.
      *
-     * @param int $pageid
+     * @param string $itemname the item we are moving
+     * @param int $itemid the id of the item
+     * @param string $direction the direction
      */
-    public function move_page_up($pageid) {
+    public function move_item($itemname, $itemid, $direction) {
         global $DB;
 
-        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $pageid))) {
-            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber - 1));
+        $table = 'customcert_';
+        if ($itemname == 'page') {
+            $table .= 'pages';
+        } else { // Must be an element.
+            $table .= 'elements';
         }
 
-        // Check that there is a page to move, and a page to swap it with.
-        if (isset($swapcertpage) && $movecertpage) {
-            $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
-            $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
-        }
-    }
-
-    /**
-     * Handles moving the certificate page down.
-     *
-     * @param int $pageid
-     */
-    public function move_page_down($pageid) {
-        global $DB;
-
-        if ($movecertpage = $DB->get_record('customcert_pages', array('id' => $pageid))) {
-            $swapcertpage = $DB->get_record('customcert_pages', array('pagenumber' => $movecertpage->pagenumber + 1));
+        if ($moveitem = $DB->get_record($table, array('id' => $itemid))) {
+            // Check which direction we are going.
+            if ($direction == 'up') {
+                $sequence = $moveitem->sequence - 1;
+            } else { // Must be down.
+                $sequence = $moveitem->sequence + 1;
+            }
+            // Get the item we will be swapping with it.
+            $swapitem = $DB->get_record($table, array('sequence' => $sequence));
         }
 
-        // Check that there is a page to move, and a page to swap it with.
-        if (isset($swapcertpage) && $movecertpage) {
-            $DB->set_field('customcert_pages', 'pagenumber', $swapcertpage->pagenumber, array('id' => $movecertpage->id));
-            $DB->set_field('customcert_pages', 'pagenumber', $movecertpage->pagenumber, array('id' => $swapcertpage->id));
-        }
-    }
-
-    /**
-     * Handles moving the certificate element up.
-     *
-     * @param int $elementid
-     */
-    public function move_element_up($elementid) {
-        global $DB;
-
-        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $elementid))) {
-            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence - 1));
-        }
-
-        // Check that there is an element to move, and an element to swap it with.
-        if (isset($swapcertelement) && $movecertelement) {
-            $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
-            $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
-        }
-    }
-
-    /**
-     * Handles moving the certificate element down.
-     *
-     * @param int $elementid
-     */
-    public function move_element_down($elementid) {
-        global $DB;
-
-        if ($movecertelement = $DB->get_record('customcert_elements', array('id' => $elementid))) {
-            $swapcertelement = $DB->get_record('customcert_elements', array('sequence' => $movecertelement->sequence + 1));
-        }
-
-        // Check that there is an element to move, and an element to swap it with.
-        if (isset($swapcertelement) && $movecertelement) {
-            $DB->set_field('customcert_elements', 'sequence', $swapcertelement->sequence, array('id' => $movecertelement->id));
-            $DB->set_field('customcert_elements', 'sequence', $movecertelement->sequence, array('id' => $swapcertelement->id));
+        // Check that there is an item to move, and an item to swap it with.
+        if ($moveitem && isset($swapitem)) {
+            $DB->set_field($table, 'sequence', $swapitem->sequence, array('id' => $moveitem->id));
+            $DB->set_field($table, 'sequence', $moveitem->sequence, array('id' => $swapitem->id));
         }
     }
 

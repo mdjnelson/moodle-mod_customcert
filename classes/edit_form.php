@@ -58,7 +58,7 @@ class edit_form extends \moodleform {
         // Get the number of pages for this module.
         if (isset($this->_customdata['tid'])) {
             $this->tid = $this->_customdata['tid'];
-            if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->tid), 'pagenumber')) {
+            if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->tid), 'sequence')) {
                 $this->numpages = count($pages);
                 foreach ($pages as $p) {
                     $this->add_customcert_page_elements($p);
@@ -68,7 +68,7 @@ class edit_form extends \moodleform {
             // Create a 'fake' page to display the elements on - not yet saved in the DB.
             $page = new \stdClass();
             $page->id = 1;
-            $page->pagenumber = 1;
+            $page->sequence = 1;
             $this->add_customcert_page_elements($page);
         }
 
@@ -186,7 +186,7 @@ class edit_form extends \moodleform {
         $mform =& $this->_form;
 
         if ($this->numpages > 1) {
-            $mform->addElement('header', 'page_' . $page->id, get_string('page', 'customcert', $page->pagenumber));
+            $mform->addElement('header', 'page_' . $page->id, get_string('page', 'customcert', $page->sequence));
         }
 
         $editlink = '/mod/customcert/edit.php';
@@ -196,12 +196,12 @@ class edit_form extends \moodleform {
 
         // Place the ordering arrows.
         // Only display the move up arrow if it is not the first.
-        if ($page->pagenumber > 1) {
+        if ($page->sequence > 1) {
             $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'pmoveup', 'aid' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/up', get_string('moveup'))));
         }
         // Only display the move down arrow if it is not the last.
-        if ($page->pagenumber < $this->numpages) {
+        if ($page->sequence < $this->numpages) {
             $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'pmovedown', 'aid' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/down', get_string('movedown'))));
         }
