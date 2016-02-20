@@ -110,6 +110,6 @@ if (isset($table)) {
 } else {
     echo html_writer::tag('div', get_string('notemplates', 'customcert'), array('class' => 'alert'));
 }
-$url = new moodle_url('/mod/customcert/edit.php?action=add&contextid=' . $contextid);
+$url = new moodle_url('/mod/customcert/edit.php?contextid=' . $contextid);
 echo $OUTPUT->single_button($url, get_string('createtemplate', 'customcert'), 'get');
 echo $OUTPUT->footer();
