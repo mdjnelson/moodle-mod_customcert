@@ -162,23 +162,23 @@ if ($data = $mform->get_data()) {
         $rightmargin = 'pagerightmargin_' . $pageid;
         $rightmargin = 'pagerightmargin_' . $pageid;
 
+        $data->$width = $data->pagewidth_0;
+        $data->$height = $data->pageheight_0;
+        $data->$leftmargin = $data->pageleftmargin_0;
+        $data->$rightmargin = $data->pagerightmargin_0;
+
         // We may also have clicked to add an element, so these need changing as well.
-        if (isset($data->element_1) && isset($data->addelement_1)) {
+        if (isset($data->element_0) && isset($data->addelement_0)) {
             $element = 'element_' . $pageid;
             $addelement = 'addelement_' . $pageid;
-            $data->$element = $data->element_1;
-            $data->$addelement = $data->addelement_1;
+            $data->$element = $data->element_0;
+            $data->$addelement = $data->addelement_0;
 
             // Need to remove the temporary element and add element placeholders so we
             // don't try add an element to the wrong page.
-            unset($data->element_1);
-            unset($data->addelement_1);
+            unset($data->element_0);
+            unset($data->addelement_0);
         }
-
-        $data->$width = $data->pagewidth_1;
-        $data->$height = $data->pageheight_1;
-        $data->$leftmargin = $data->pageleftmargin_1;
-        $data->$rightmargin = $data->pagerightmargin_1;
     }
 
     // Save any data for the template.

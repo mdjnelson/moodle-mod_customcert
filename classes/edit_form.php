@@ -67,7 +67,7 @@ class edit_form extends \moodleform {
         } else { // Add a new template.
             // Create a 'fake' page to display the elements on - not yet saved in the DB.
             $page = new \stdClass();
-            $page->id = 1;
+            $page->id = 0;
             $page->sequence = 1;
             $this->add_customcert_page_elements($page);
         }
