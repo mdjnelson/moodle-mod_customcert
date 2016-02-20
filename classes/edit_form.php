@@ -197,12 +197,12 @@ class edit_form extends \moodleform {
         // Place the ordering arrows.
         // Only display the move up arrow if it is not the first.
         if ($page->pagenumber > 1) {
-            $url = new \moodle_url($editlink, $editlinkparams + array('moveup' => $page->id));
+            $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'pmoveup', 'aid' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/up', get_string('moveup'))));
         }
         // Only display the move down arrow if it is not the last.
         if ($page->pagenumber < $this->numpages) {
-            $url = new \moodle_url($editlink, $editlinkparams + array('movedown' => $page->id));
+            $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'pmovedown', 'aid' => $page->id));
             $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/down', get_string('movedown'))));
         }
 
@@ -256,20 +256,22 @@ class edit_form extends \moodleform {
                     'action' => 'edit'));
                 $icons = $OUTPUT->action_icon($link, new \pix_icon('t/edit', get_string('edit')));
                 // Link to delete the element.
-                $link = new \moodle_url($editlink, $editlinkparams + array('id' => $element->id,
-                    'deleteelement' => $element->id));
+                $link = new \moodle_url($editlink, $editlinkparams + array('action' => 'deleteelement',
+                    'aid' => $element->id));
                 $icons .= $OUTPUT->action_icon($link, new \pix_icon('t/delete', get_string('delete')));
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {
                     // Only display the move up arrow if it is not the first.
                     $moveicons = '';
                     if ($element->sequence > 1) {
-                        $url = new \moodle_url($editlink, $editlinkparams + array('emoveup' => $element->id));
+                        $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'emoveup',
+                            'aid' => $element->id));
                         $moveicons .= $OUTPUT->action_icon($url, new \pix_icon('t/up', get_string('moveup')));
                     }
                     // Only display the move down arrow if it is not the last.
                     if ($element->sequence < $numelements) {
-                        $url = new \moodle_url($editlink, $editlinkparams + array('emovedown' => $element->id));
+                        $url = new \moodle_url($editlink, $editlinkparams + array('action' => 'emovedown',
+                            'aid' => $element->id));
                         $moveicons .= $OUTPUT->action_icon($url, new \pix_icon('t/down', get_string('movedown')));
                     }
                     $icons .= $moveicons;
@@ -289,7 +291,7 @@ class edit_form extends \moodleform {
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
             // Link to delete the element.
-            $deletelink = new \moodle_url($editlink, $editlinkparams + array('deletepage' => $page->id));
+            $deletelink = new \moodle_url($editlink, $editlinkparams + array('action' => 'deletepage', 'aid' => $page->id));
             $deletelink = \html_writer::tag('a', get_string('deletecertpage', 'customcert'), array('href' => $deletelink->out(false), 'class' => 'deletebutton'));
             $mform->addElement('html', \html_writer::tag('div', $deletelink, array('class' => 'deletebutton')));
         }
