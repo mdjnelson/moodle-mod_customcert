@@ -28,6 +28,8 @@ define('CUSTOMCERT_DATE_ISSUE', '1');
  */
 define('CUSTOMCERT_DATE_COMPLETION', '2');
 
+require_once($CFG->dirroot . '/lib/grade/constants.php');
+
 /**
  * The customcert element date's core interaction API.
  *
@@ -101,8 +103,10 @@ class element extends \mod_customcert\element {
         } else {
             // Get the page.
             $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            // Get the customcert this page belongs to.
+            $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $page->customcertid), '*', MUST_EXIST);
+            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
@@ -122,7 +126,9 @@ class element extends \mod_customcert\element {
                 $gradeitem->gradeitem = $dateitem;
                 $gradeitem->gradeformat = GRADE_DISPLAY_TYPE_PERCENTAGE;
                 if ($modinfo = \customcertelement_grade\element::get_grade($gradeitem, $issue->userid)) {
-                    $date = $modinfo->dategraded;
+                    if (!empty($modinfo->dategraded)) {
+                        $date = $modinfo->dategraded;
+                    }
                 }
             }
         }
