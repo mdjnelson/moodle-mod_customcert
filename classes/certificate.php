@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides functionality needed by certificates.
+ * Provides functionality needed by customcert activities.
  *
  * @package    mod_customcert
  * @copyright  2016 Mark Nelson <markn@moodle.com>
@@ -27,9 +27,9 @@ namespace mod_customcert;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Class element
+ * Class certificate.
  *
- * All customercert element plugins are based on this class.
+ * Represents a customcert activity instance.
  */
 class certificate {
 
