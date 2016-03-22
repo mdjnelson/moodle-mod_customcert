@@ -181,7 +181,7 @@ class certificate {
                 $coursefield = 'course';
                 $timefield = 'time';
                 break;
-            } else if ($reader instanceof \core\log\sql_internal_reader) {
+            } else if ($reader instanceof \core\log\sql_internal_table_reader) {
                 $logtable = $reader->get_internal_log_table_name();
                 $coursefield = 'courseid';
                 $timefield = 'timecreated';
