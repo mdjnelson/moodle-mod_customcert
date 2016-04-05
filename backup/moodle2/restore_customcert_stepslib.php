@@ -41,11 +41,14 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         // The customcert instance.
         $paths[] = new restore_path_element('customcert', '/activity/customcert');
 
+        // The templates.
+        $paths[] = new restore_path_element('customcert_template', '/activity/customcert/template');
+
         // The pages.
-        $paths[] = new restore_path_element('customcert_page', '/activity/customcert/pages/page');
+        $paths[] = new restore_path_element('customcert_page', '/activity/customcert/template/pages/page');
 
         // The elements.
-        $paths[] = new restore_path_element('customcert_element', '/activity/customcert/pages/page/element');
+        $paths[] = new restore_path_element('customcert_element', '/activity/customcert/template/pages/page/element');
 
         // Check if we want the issues as well.
         if ($this->get_setting_value('userinfo')) {
@@ -59,7 +62,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     /**
      * Handles restoring the customcert activity.
      *
-     * @param $data the customcert data
+     * @param stdClass $data the customcert data
      */
     protected function process_customcert($data) {
         global $DB;
@@ -79,7 +82,32 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     /**
      * Handles restoring a customcert page.
      *
-     * @param $data the customcert data
+     * @param stdClass $data the customcert data
+     */
+    protected function process_customcert_template($data) {
+        global $DB;
+
+        $data = (object) $data;
+        $oldid = $data->id;
+
+        $data->contextid = $this->task->get_contextid();
+        $data->timecreated = $this->apply_date_offset($data->timecreated);
+        $data->timemodified = $this->apply_date_offset($data->timemodified);
+
+        $newitemid = $DB->insert_record('customcert_templates', $data);
+        $this->set_mapping('customcert_template', $oldid, $newitemid);
+
+        // Update the template id for the customcert.
+        $customcert = new stdClass();
+        $customcert->id = $this->get_new_parentid('customcert');
+        $customcert->templateid = $newitemid;
+        $DB->update_record('customcert', $customcert);
+    }
+
+    /**
+     * Handles restoring a customcert template.
+     *
+     * @param stdClass $data the customcert data
      */
     protected function process_customcert_page($data) {
         global $DB;
@@ -87,7 +115,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $data = (object) $data;
         $oldid = $data->id;
 
-        $data->customcertid = $this->get_new_parentid('customcert');
+        $data->templateid = $this->get_new_parentid('customcert_template');
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 
@@ -98,7 +126,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     /**
      * Handles restoring a customcert element.
      *
-     * @param $data the customcert data
+     * @param stdclass $data the customcert data
      */
     protected function process_customcert_element($data) {
         global $DB;
@@ -117,7 +145,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     /**
      * Handles restoring a customcert issue.
      *
-     * @param $data the customcert data
+     * @param stdClass $data the customcert data
      */
     protected function process_customcert_issue($data) {
         global $DB;

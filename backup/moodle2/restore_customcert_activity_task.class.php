@@ -95,9 +95,7 @@ class restore_customcert_activity_task extends restore_activity_task {
      * was available at the time.
      */
     public function after_restore() {
-        global $CFG, $DB;
-
-        require_once($CFG->dirroot . '/mod/customcert/locallib.php');
+        global $DB;
 
         // Get the customcert elements.
         $sql = "SELECT e.*
@@ -105,7 +103,7 @@ class restore_customcert_activity_task extends restore_activity_task {
             INNER JOIN {customcert_pages} p
                     ON e.pageid = p.id
             INNER JOIN {customcert} c
-                    ON p.customcertid = c.id
+                    ON p.templateid = c.templateid
                  WHERE c.id = :customcertid";
         if ($elements = $DB->get_records_sql($sql, array('customcertid' => $this->get_activityid()))) {
             // Go through the elements for the certificate.
