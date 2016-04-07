@@ -34,11 +34,7 @@ class element extends \mod_customcert\element {
      * @param bool $preview true if it is a preview, false otherwise
      */
     public function render($pdf, $preview) {
-        global $DB, $COURSE;
-
-        $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
-
-        \mod_customcert\element_helper::render_content($pdf, $this, $categoryname);
+        \mod_customcert\element_helper::render_content($pdf, $this, self::get_category_name());
     }
 
     /**
@@ -50,10 +46,22 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
+        return \mod_customcert\element_helper::render_html_content($this, self::get_category_name());
+    }
+
+    /**
+     * Helper function that returns the category name.
+     *
+     * @return string
+     */
+    protected static function get_category_name() {
         global $DB, $COURSE;
 
-        $categoryname = $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
-
-        return \mod_customcert\element_helper::render_html_content($this, $categoryname);
+        // Check that there is a course category available.
+        if (!empty($COURSE->category)) {
+            return $DB->get_field('course_categories', 'name', array('id' => $COURSE->category), MUST_EXIST);
+        } else { // Must be in a site template.
+            return $COURSE->fullname;
+        }
     }
 }
