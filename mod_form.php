@@ -69,18 +69,16 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @param array $defaultvalues
      */
     public function data_preprocessing(&$defaultvalues) {
-        global $DB;
-
         if (!empty($defaultvalues['protection'])) {
             $protection = explode(', ', $defaultvalues['protection']);
             // Set the values in the form to what has been set in database.
-            if (in_array(PROTECTION_PRINT, $protection)) {
+            if (in_array(\mod_customcert\certificate::PROTECTION_PRINT, $protection)) {
                 $defaultvalues['protection_print'] = 1;
             }
-            if (in_array(PROTECTION_MODIFY, $protection)) {
+            if (in_array(\mod_customcert\certificate::PROTECTION_MODIFY, $protection)) {
                 $defaultvalues['protection_modify'] = 1;
             }
-            if (in_array(PROTECTION_COPY, $protection)) {
+            if (in_array(\mod_customcert\certificate::PROTECTION_COPY, $protection)) {
                 $defaultvalues['protection_copy'] = 1;
             }
         }
