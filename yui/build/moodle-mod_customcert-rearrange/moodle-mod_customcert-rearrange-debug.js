@@ -1,22 +1,30 @@
-M.mod_customcert = {};
+YUI.add('moodle-mod_customcert-rearrange', function (Y, NAME) {
 
-
-M.mod_customcert.rearrange = {
+/**
+ * Rearrange elements in the custom certificate
+ *
+ * @class M.mod_customcert.rearrange.rearrange
+ * @constructor
+ */
+var Rearrange = function() {
+    Rearrange.superclass.constructor.apply(this, [arguments]);
+};
+Y.extend(Rearrange, Y.Base, {
 
     /**
-     * The course module id.
+     * The template id.
      */
     templateid : 0,
 
     /**
      * The customcert page we are displaying.
      */
-    page : Array(),
+    page : [],
 
     /**
      * The custom certificate elements to display.
      */
-    elements : Array(),
+    elements : [],
 
     /**
      * Store the X coordinates of the top left of the pdf div.
@@ -53,27 +61,23 @@ M.mod_customcert.rearrange = {
      */
     pdfrightboundary : 0,
 
-
     /**
      * The number of pixels in a mm.
      */
-    pixelsinmm : 3.779527559055, //'3.779528',
+    pixelsinmm : 3.779527559055, // '3.779528'.
 
     /**
      * Initialise.
      *
-     * @param Y
-     * @param templateid
-     * @param page
-     * @param elements
+     * @param params
      */
-    init : function(Y, templateid, page, elements) {
+    initializer : function(params) {
         // Set the course module id.
-        this.templateid = templateid;
+        this.templateid = params[0];
         // Set the page.
-        this.page = page;
+        this.page = params[1];
         // Set the elements.
-        this.elements = elements;
+        this.elements = params[2];
 
         // Set the PDF dimensions.
         this.pdfx = Y.one('#pdf').getX();
@@ -83,55 +87,50 @@ M.mod_customcert.rearrange = {
 
         // Set the boundaries.
         this.pdfleftboundary = this.pdfx;
-        if (this.page['leftmargin']) {
-            this.pdfleftboundary += parseInt(this.page['leftmargin'] * this.pixelsinmm);
+        if (this.page.leftmargin) {
+            this.pdfleftboundary += parseInt(this.page.leftmargin * this.pixelsinmm, 10);
         }
 
         this.pdfrightboundary = this.pdfx + this.pdfwidth;
-        if (this.page['rightmargin']) {
-            this.pdfrightboundary -= parseInt(this.page['rightmargin'] * this.pixelsinmm);
+        if (this.page.rightmargin) {
+            this.pdfrightboundary -= parseInt(this.page.rightmargin * this.pixelsinmm, 10);
         }
 
-        this.set_data(Y);
-        this.set_positions(Y);
-        this.create_events(Y);
-        // this.set_positions(Y); // move here
+        this.set_data();
+        this.set_positions();
+        this.create_events();
     },
 
     /**
      * Sets the additional data for the elements.
-     *
-     * @param Y
      */
-    set_data : function(Y) {
+    set_data : function() {
         // Go through the elements and set their reference points.
         for (var key in this.elements) {
             var element = this.elements[key];
-            Y.one('#element-' + element['id']).setData('refpoint', element['refpoint']);
-            Y.one('#element-' + element['id']).setData('width', element['width']);
+            Y.one('#element-' + element.id).setData('refpoint', element.refpoint);
+            Y.one('#element-' + element.id).setData('width', element.width);
         }
     },
 
     /**
      * Sets the current position of the elements.
-     *
-     * @param Y
      */
-    set_positions : function(Y) {
+    set_positions : function() {
         // Go through the elements and set their positions.
         for (var key in this.elements) {
             var element = this.elements[key];
-            var posx = this.pdfx + element['posx'] * this.pixelsinmm;
-            var posy = this.pdfy + element['posy'] * this.pixelsinmm;
-            var nodewidth = parseFloat(Y.one('#element-' + element['id']).getComputedStyle('width'), 10);
-            var maxwidth = element['width'] * this.pixelsinmm;
+            var posx = this.pdfx + element.posx * this.pixelsinmm;
+            var posy = this.pdfy + element.posy * this.pixelsinmm;
+            var nodewidth = parseFloat(Y.one('#element-' + element.id).getComputedStyle('width'), 10);
+            var maxwidth = element.width * this.pixelsinmm;
 
             if (maxwidth && (nodewidth > maxwidth)) {
                 nodewidth = maxwidth;
             }
-            Y.one('#element-' + element['id']).setStyle('width', nodewidth + 'px');
+            Y.one('#element-' + element.id).setStyle('width', nodewidth + 'px');
 
-            switch (element['refpoint']) {
+            switch (element.refpoint) {
                 case '1':   // Top-center
                     posx -= nodewidth / 2;
                     break;
@@ -140,17 +139,15 @@ M.mod_customcert.rearrange = {
                     break;
             }
 
-            Y.one('#element-' + element['id']).setX(posx);
-            Y.one('#element-' + element['id']).setY(posy);
+            Y.one('#element-' + element.id).setX(posx);
+            Y.one('#element-' + element.id).setY(posy);
         }
     },
 
     /**
      * Creates the JS events for changing element positions.
-     *
-     * @param Y
      */
-    create_events : function(Y) {
+    create_events : function() {
         // Trigger a save event when save button is pushed.
         Y.one('.savepositionsbtn input[type=submit]').on('click', function(e) {
             this.save_positions(e);
@@ -231,7 +228,7 @@ M.mod_customcert.rearrange = {
         // Go through the elements and save their positions.
         for (var key in this.elements) {
             var element = this.elements[key];
-            var node = Y.one('#element-' + element['id']);
+            var node = Y.one('#element-' + element.id);
 
             // Get the current X and Y positions for this element.
             var posx = node.getX() - this.pdfx;
@@ -239,7 +236,7 @@ M.mod_customcert.rearrange = {
 
             var nodewidth = parseFloat(node.getComputedStyle('width'), 10);
 
-            switch (element['refpoint']) {
+            switch (element.refpoint) {
                 case '1':   // Top-center
                     posx += nodewidth / 2;
                     break;
@@ -250,7 +247,7 @@ M.mod_customcert.rearrange = {
 
             // Set the parameters to pass to the AJAX request.
             params.values.push({
-                id: element['id'],
+                id: element.id,
                 posx: Math.round(parseFloat(posx / this.pixelsinmm, 10)),
                 posy: Math.round(parseFloat(posy / this.pixelsinmm, 10))
             });
@@ -283,7 +280,6 @@ M.mod_customcert.rearrange = {
         });
 
         e.preventDefault();
-
     },
 
     /**
@@ -299,4 +295,12 @@ M.mod_customcert.rearrange = {
         };
         return new M.core.exception(e);
     }
-}
+});
+
+M.mod_customcert = M.mod_customcert || {};
+M.mod_customcert.rearrange = M.mod_customcert.rearrange || {};
+M.mod_customcert.rearrange.init = function(templateid, page, elements) {
+    new Rearrange(templateid, page, elements);
+};
+
+}, '@VERSION@', {"requires": ["dd-delegate", "dd-drag"]});

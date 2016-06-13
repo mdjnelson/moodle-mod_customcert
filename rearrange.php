@@ -47,12 +47,10 @@ $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid))
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('rearrangeelements', 'customcert'));
 
 // Include the JS we need.
-$module = array(
-    'name' => 'mod_customcert',
-    'fullpath' => '/mod/customcert/yui/src/rearrange.js',
-    'requires' => array('dd-delegate', 'dd-drag')
-);
-$PAGE->requires->js_init_call('M.mod_customcert.rearrange.init', array($template->get_id(), $page, $elements), false, $module);
+$PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'M.mod_customcert.rearrange.init',
+    array($template->get_id(),
+          $page,
+          $elements));
 
 // Create the buttons to save the position of the elements.
 $html = html_writer::start_tag('div', array('class' => 'buttons'));
