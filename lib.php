@@ -304,6 +304,24 @@ function customcert_cron() {
 }
 
 /**
+ * Serve the edit element as a fragment.
+ *
+ * @param array $args List of named arguments for the fragment loader.
+ * @return string
+ */
+function mod_customcert_output_fragment_editelement($args) {
+    global $DB;
+
+    // Get the element.
+    $element = $DB->get_record('customcert_elements', array('id' => $args['elementid']), '*', MUST_EXIST);
+
+    $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $element->pageid));
+    $form = new \mod_customcert\edit_element_form($pageurl, array('element' => $element, 'rearrange' => true));
+
+    return $form->render();
+}
+
+/**
  * This function extends the settings navigation block for the site.
  *
  * It is safe to rely on PAGE here as we will only ever be within the module

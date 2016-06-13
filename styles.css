@@ -65,3 +65,11 @@
 #page-mod-customcert-rearrange div#rightmargin {
     border-right: 1px dotted black;
 }
+
+/*
+    This is a hack - the fieldset being returned by the edit_element_form class contains
+    the CSS class 'hidden' which when shown in a dialogue hides the fieldset.
+*/
+.moodle-dialogue #editelementform fieldset.hidden {
+    display: block;
+}

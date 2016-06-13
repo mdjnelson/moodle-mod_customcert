@@ -101,6 +101,7 @@ abstract class element {
      * Can be overridden if more functionality is needed.
      *
      * @param \stdClass $data the form data
+     * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
         global $DB;
@@ -119,13 +120,13 @@ abstract class element {
         // Check if we are updating, or inserting a new element.
         if (!empty($this->element->id)) { // Must be updating a record in the database.
             $element->id = $this->element->id;
-            $DB->update_record('customcert_elements', $element);
+            return $DB->update_record('customcert_elements', $element);
         } else { // Must be adding a new one.
             $element->element = $data->element;
             $element->pageid = $data->pageid;
             $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
             $element->timecreated = time();
-            $DB->insert_record('customcert_elements', $element);
+            return $DB->insert_record('customcert_elements', $element, false);
         }
     }
 

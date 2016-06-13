@@ -65,7 +65,12 @@ $html .= html_writer::end_tag('div');
 // Create the div that represents the PDF.
 $style = 'height: ' . $page->height . 'mm; line-height: normal; width: ' . $page->width . 'mm;';
 $marginstyle = 'height: ' . $page->height . 'mm; width:1px; float:left; position:relative;';
-$html .= html_writer::start_tag('div', array('id' => 'pdf', 'style' => $style));
+$html .= html_writer::start_tag('div', array(
+    'data-templateid' => $template->get_id(),
+    'data-contextid' => $template->get_contextid(),
+    'id' => 'pdf',
+    'style' => $style)
+);
 if ($page->leftmargin) {
     $position = 'left:' . $page->leftmargin . 'mm;';
     $html .= "<div id='leftmargin' style='$position $marginstyle'></div>";
@@ -83,7 +88,7 @@ if ($elements) {
                     break;
                 case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPLEFT:
                 default:
-                $class = 'element refpoint-left';
+                    $class = 'element refpoint-left';
             }
             $html .= html_writer::tag('div', $e->render_html(), array('class' => $class, 'id' => 'element-' . $element->id));
         }
@@ -98,4 +103,5 @@ $html .= html_writer::end_tag('div');
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 4);
 echo $html;
+$PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', array('#pdf'));
 echo $OUTPUT->footer();

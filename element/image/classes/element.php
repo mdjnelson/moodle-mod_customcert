@@ -99,6 +99,7 @@ class element extends \mod_customcert\element {
      * Can be overridden if more functionality is needed.
      *
      * @param \stdClass $data the form data
+     * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
         global $COURSE;
@@ -106,7 +107,7 @@ class element extends \mod_customcert\element {
         // Handle file uploads.
         \mod_customcert\certificate::upload_imagefiles($data->customcertimage, \context_course::instance($COURSE->id)->id);
 
-        parent::save_form_elements($data);
+        return parent::save_form_elements($data);
     }
 
     /**
