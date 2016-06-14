@@ -53,7 +53,6 @@ $string['elements'] = 'Elements';
 $string['elements_help'] = 'These are the list of elements that will be displayed on this PDF page.';
 $string['elementwidth'] = 'Width';
 $string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
-
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';
 $string['fontcolour'] = 'Colour';
@@ -81,6 +80,8 @@ $string['managetemplatesdesc'] = 'This link will take you to a new screen where 
 $string['modify'] = 'Modify';
 $string['modulename'] = 'Custom certificate';
 $string['modulenameplural'] = 'Custom certificates';
+$string['modulename_help'] = 'This module allows for the dynamic generation of PDF certificates.';
+$string['modulename_link'] = 'Custom_certificate_module';
 $string['name'] = 'Name';
 $string['nocustomcerts'] = 'There are no custom certificates for this course';
 $string['noimage'] = 'No image';
