@@ -154,14 +154,6 @@ class element_helper {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance.
      */
     public static function render_form_element_position($mform) {
-        $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
-        $mform->setType('posx', PARAM_INT);
-        $mform->setDefault('posx', 0);
-        $mform->addHelpButton('posx', 'posx', 'customcert');
-        $mform->addElement('text', 'posy', get_string('posy', 'customcert'), array('size' => 10));
-        $mform->setType('posy', PARAM_INT);
-        $mform->setDefault('posy', 0);
-        $mform->addHelpButton('posy', 'posy', 'customcert');
         $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
         $mform->setType('width', PARAM_INT);
         $mform->setDefault('width', 0);
@@ -199,14 +191,6 @@ class element_helper {
      */
     public static function validate_form_element_position($data) {
         $errors = array();
-        // Check if posx is not set, or not numeric or less than 0.
-        if ((!isset($data['posx'])) || (!is_numeric($data['posx'])) || ($data['posx'] < 0)) {
-            $errors['posx'] = get_string('invalidposition', 'customcert', 'X');
-        }
-        // Check if posy is not set, or not numeric or less than 0.
-        if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
-            $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
-        }
         // Check if width is less than 0.
         if (isset($data['width']) && $data['width'] < 0) {
             $errors['width'] = get_string('invalidelementwidth', 'customcert');

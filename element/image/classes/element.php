@@ -64,16 +64,6 @@ class element extends \mod_customcert\element {
         $mform->setDefault('height', 0);
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
-        $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
-        $mform->setType('posx', PARAM_INT);
-        $mform->setDefault('posx', '0');
-        $mform->addHelpButton('posx', 'posx', 'customcert');
-
-        $mform->addElement('text', 'posy', get_string('posy', 'customcert'), array('size' => 10));
-        $mform->setType('posy', PARAM_INT);
-        $mform->setDefault('posy', '0');
-        $mform->addHelpButton('posy', 'posy', 'customcert');
-
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
     }
 
