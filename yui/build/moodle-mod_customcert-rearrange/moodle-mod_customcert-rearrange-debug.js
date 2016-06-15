@@ -256,7 +256,7 @@ Y.extend(Rearrange, Y.Base, {
         params.values = JSON.stringify(params.values);
 
         // Save these positions.
-        Y.io(M.cfg.wwwroot + '/mod/customcert/rest.php', {
+        Y.io(M.cfg.wwwroot + '/mod/customcert/ajax.php', {
             method: 'POST',
             data: params,
             on: {
