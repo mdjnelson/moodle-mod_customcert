@@ -116,8 +116,11 @@ class element_helper {
             $fontstyle .= ': font-style: italic';
         }
 
-        $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->size . 'pt';
-        return \html_writer::tag('span', $content, array('style' => $style));
+        $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->size . 'pt;';
+        if ($element->width) {
+            $style .= ' width: ' . $element->width . 'mm';
+        }
+        return \html_writer::div($content, '', array('style' => $style));
     }
 
     /**

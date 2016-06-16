@@ -109,7 +109,6 @@ Y.extend(Rearrange, Y.Base, {
         for (var key in this.elements) {
             var element = this.elements[key];
             Y.one('#element-' + element.id).setData('refpoint', element.refpoint);
-            Y.one('#element-' + element.id).setData('width', element.width);
         }
     },
 
@@ -128,7 +127,6 @@ Y.extend(Rearrange, Y.Base, {
             if (maxwidth && (nodewidth > maxwidth)) {
                 nodewidth = maxwidth;
             }
-            Y.one('#element-' + element.id).setStyle('width', nodewidth + 'px');
 
             switch (element.refpoint) {
                 case '1':   // Top-center
@@ -169,7 +167,6 @@ Y.extend(Rearrange, Y.Base, {
         del.on('drag:start', function() {
             var node = del.get('currentNode');
             this.elementxy = node.getXY();
-            this.elementwidth = node.getComputedStyle('width');
         }, this);
 
         // When we finish the dragging action check that the node is in bounds,
@@ -178,7 +175,6 @@ Y.extend(Rearrange, Y.Base, {
             var node = del.get('currentNode');
             if (this.is_out_of_bounds(node)) {
                 node.setXY(this.elementxy);
-                node.setStyle('width', this.elementwidth);
             }
         }, this);
     },
