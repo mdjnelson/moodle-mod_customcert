@@ -120,8 +120,8 @@ class element extends \mod_customcert\element {
         // Array of data we will be storing in the database.
         $arrtostore = array(
             'pathnamehash' => $data->image,
-            'width' => $data->width,
-            'height' => $data->height
+            'width' => (int) $data->width,
+            'height' => (int) $data->height
         );
 
         return json_encode($arrtostore);
