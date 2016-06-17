@@ -38,17 +38,17 @@
 }
 
 #page-mod-customcert-rearrange .element.refpoint-left:before {
-    background-rearrange: left top;
+    background-position: left top;
     margin: -4px -5px -5px -4px;
 }
 
 #page-mod-customcert-rearrange .element.refpoint-center:before {
-    background-rearrange: center top;
+    background-position: center top;
     margin: -4px 0 -5px 0;
 }
 
 #page-mod-customcert-rearrange .element.refpoint-right:before {
-    background-rearrange: right top;
+    background-position: right top;
     margin: -4px -5px -5px 4px;
 }
 
