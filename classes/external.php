@@ -67,6 +67,13 @@ class external extends \external_api {
     public static function save_element($templateid, $elementid, $values) {
         global $DB;
 
+        $params = array(
+            'templateid' => $templateid,
+            'elementid' => $elementid,
+            'values' => $values
+        );
+        self::validate_parameters(self::save_element_parameters(), $params);
+
         $template = $DB->get_record('customcert_templates', array('id' => $templateid), '*', MUST_EXIST);
         $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
 
@@ -75,9 +82,9 @@ class external extends \external_api {
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
-            require_login($cm->course, false, $cm);
+            self::validate_context(\context_module::instance($cm->id));
         } else {
-            require_login();
+            self::validate_context(\context_system::instance());
         }
         // Make sure the user has the required capabilities.
         $template->require_manage();
@@ -132,6 +139,12 @@ class external extends \external_api {
     public static function get_element_html($templateid, $elementid) {
         global $DB;
 
+        $params = array(
+            'templateid' => $templateid,
+            'elementid' => $elementid
+        );
+        self::validate_parameters(self::get_element_html_parameters(), $params);
+
         $template = $DB->get_record('customcert_templates', array('id' => $templateid), '*', MUST_EXIST);
         $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
 
@@ -140,9 +153,9 @@ class external extends \external_api {
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
-            require_login($cm->course, false, $cm);
+            self::validate_context(\context_module::instance($cm->id));
         } else {
-            require_login();
+            self::validate_context(\context_system::instance());
         }
 
         // Get an instance of the element class.
