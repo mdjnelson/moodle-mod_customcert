@@ -31,14 +31,6 @@ $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
 $pageurl = $url = new moodle_url('/mod/customcert/report.php', array('id' => $id, 'page' => $page, 'perpage' => $perpage));
 
-// Ensure the perpage variable does not exceed the max allowed if
-// the user has not specified they wish to view all customcerts.
-if (\mod_customcert\certificate::CUSTOMCERT_PER_PAGE !== 0) {
-    if (($perpage > \mod_customcert\certificate::CUSTOMCERT_MAX_PER_PAGE) || ($perpage === 0)) {
-        $perpage = \mod_customcert\certificate::CUSTOMCERT_PER_PAGE;
-    }
-}
-
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
@@ -54,32 +46,14 @@ require_capability('mod/customcert:manage', $context);
 if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }
-$users = \mod_customcert\certificate::get_issues($customcert->id, $groupmode, $cm, $page, $perpage);
 
-if ($download) {
-    \mod_customcert\certificate::generate_report_file($customcert, $users, $download);
-    exit;
+$table = new \mod_customcert\report_table($customcert->id, $cm, $groupmode);
+$table->define_baseurl($pageurl);
+
+if ($table->is_downloading($download, 'customcert-report')) {
+    $table->download();
+    exit();
 }
-
-// Create the table for the users.
-$table = new html_table();
-$table->attributes['class'] = 'generaltable centre';
-$table->attributes['style'] = 'width: 95%;';
-$table->head  = array(get_string('awardedto', 'customcert'), get_string('receiveddate', 'customcert'), get_string('code', 'customcert'));
-$table->align = array('left', 'left', 'center');
-foreach ($users as $user) {
-    $name = $OUTPUT->user_picture($user) . fullname($user);
-    $date = userdate($user->timecreated);
-    $code = $user->code;
-    $table->data[] = array($name, $date, $code);
-}
-
-// Create table to store buttons.
-$tablebutton = new html_table();
-$tablebutton->attributes['class'] = 'centre';
-$btndownloadods = $OUTPUT->single_button(new moodle_url('report.php', array('id' => $cm->id, 'download' => 'ods')), get_string("downloadods"));
-$btndownloadxls = $OUTPUT->single_button(new moodle_url('report.php', array('id' => $cm->id, 'download' => 'xls')), get_string("downloadexcel"));
-$tablebutton->data[] = array($btndownloadods, $btndownloadxls);
 
 // Set up the page.
 \mod_customcert\page_helper::page_setup($pageurl, $context, get_string('customcertreport', 'customcert'));
@@ -89,12 +63,9 @@ $PAGE->navbar->add(get_string('customcertreport', 'customcert'));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('modulenameplural', 'customcert'));
+
 groups_print_activity_menu($cm, $url);
-// If perpage is not set to 0 (displaying all issues), we may need a paging bar.
-if ($perpage !== 0) {
-    echo $OUTPUT->paging_bar(count((array) $users), $page, $perpage, $url);
-}
-echo '<br />';
-echo html_writer::table($table);
-echo html_writer::tag('div', html_writer::table($tablebutton), array('style' => 'margin:auto; width:50%'));
+
+$table->out($perpage, false);
+
 echo $OUTPUT->footer($course);
