@@ -22,3 +22,28 @@ Use git pull to update this repository periodically to ensure you have the lates
 Visit https://github.com/markn86/moodle-mod_customcert and download the zip, uncompress this zip and extract the folder. The folder will have a name similar to markn86-moodle-mod_customcert-c9fbadb, you MUST rename this to customcert. Place this folder in your mod folder in your Moodle directory.
 
 nb. The reason this is not the recommended method is due to the fact you have to over-write the contents of this folder to apply any future updates to the customcert module. In the above method there is a simple command to update the files.
+
+
+Customisation
+=============
+
+========================= Add Fonts to TCPDF. =========================
+
+For customization, you have a couple of options in the Custom Certificate module. One of the most common customizations is, adding fonts to the Certificate creator.
+
+Custom Certificate uses a pdf creator called TCPDF, which embeds fonts into the PDF file, so that you can view fonts, even though they are not installed on the target machine. This requires you to tell TCPDF which fonts to take.
+
+Importing Fonts into TCPDF is quite simple:
+
+1. Convert the font you want embedded into the tcpdf format (for example using [http://fonts.snm-portal.com][1] or [http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf][2])
+
+2. Put the converted files into the folder: `/path/to/moodle/lib/tcpdf/fonts`
+
+3. Use the font in your certificate builder
+
+4. Enjoy
+
+> Please note that inserting a file into the tcpdf folder is considered a "core hack" and might not be available on some commercially hosted systems. Please check your providers agreement on the topic to make sure this is something you're allowed to do.
+
+[1]:	http://fonts.snm-portal.com "http://fonts.snm-portal.com"
+[2]:	http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf "http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf"
