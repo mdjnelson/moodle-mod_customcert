@@ -50,7 +50,9 @@ $string['elementname'] = 'Element name';
 $string['elementname_help'] = 'This will be the name used to identify this element when editing a custom certificate. For example, you may have multiple images on a
 page and will want to distinguish between them quickly when editing the certificate. Note: this will not displayed on the PDF.';
 $string['elements'] = 'Elements';
-$string['elements_help'] = 'These are the list of elements that will be displayed on this PDF page.';
+$string['elements_help'] = 'This is the list of elements that will be displayed on the certificate.
+
+Please note: The elements are rendered in this order. The order can be changed by using the arrows next to each element.';
 $string['elementwidth'] = 'Width';
 $string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
 $string['font'] = 'Font';
