@@ -113,7 +113,7 @@ class element extends \mod_customcert\element {
      * drag and drop interface to position it.
      */
     public function render_html() {
-        global $DB, $USER;
+        global $CFG, $DB, $USER;
 
         // The user field to display.
         $field = $this->element->data;
@@ -121,7 +121,14 @@ class element extends \mod_customcert\element {
         $value = '';
         if (is_number($field)) { // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
-                $value = $USER->profile[$field->shortname];
+                $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
+                if (file_exists($file)) {
+                    require_once($CFG->dirroot . '/user/profile/lib.php');
+                    require_once($file);
+                    $class = "profile_field_{$field->datatype}";
+                    $field = new $class($field->id, $USER->id);
+                    $value = $field->display_data();
+                }
             }
         } else if (!empty($USER->$field)) { // Field in the user table.
             $value = $USER->$field;
