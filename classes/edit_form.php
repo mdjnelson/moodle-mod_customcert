@@ -240,12 +240,7 @@ class edit_form extends \moodleform {
             // Create a table to display these elements.
             $table = new \html_table();
             $table->head  = array(get_string('name', 'customcert'), get_string('type', 'customcert'), '');
-            $table->align = array('left', 'left', 'center');
-            // If we have more than one element then we can change the order, so add extra column for the up and down arrow.
-            if ($numelements > 1) {
-                $table->head[] = '';
-                $table->align[] = 'center';
-            }
+            $table->align = array('left', 'left', 'left');
             // Loop through and add the elements to the table.
             foreach ($elements as $element) {
                 $row = new \html_table_row();
