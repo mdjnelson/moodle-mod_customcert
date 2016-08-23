@@ -47,8 +47,9 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
+    public function render($pdf, $preview, $user) {
         $colour = \TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $colour);
         $pdf->SetLineStyle(array('width' => $this->element->data, 'color' => $colour));
         $pdf->Line(0, 0, $pdf->getPageWidth(), 0);

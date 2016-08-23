@@ -32,11 +32,10 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
-        global $USER;
-
-        \mod_customcert\element_helper::render_content($pdf, $this, fullname($USER));
+    public function render($pdf, $preview, $user) {
+        \mod_customcert\element_helper::render_content($pdf, $this, fullname($user));
     }
 
     /**

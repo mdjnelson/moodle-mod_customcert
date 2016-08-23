@@ -58,8 +58,9 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
+    public function render($pdf, $preview, $user) {
         global $DB;
 
         $teacher = $DB->get_record('user', array('id' => $this->element->data));

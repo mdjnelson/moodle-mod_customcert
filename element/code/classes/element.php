@@ -32,9 +32,10 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
-        global $DB, $USER;
+    public function render($pdf, $preview, $user) {
+        global $DB;
 
         if ($preview) {
             $code = \mod_customcert\certificate::generate_code();
@@ -44,7 +45,7 @@ class element extends \mod_customcert\element {
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
+            $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
             $code = $issue->code;
         }
 

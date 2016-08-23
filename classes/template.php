@@ -247,9 +247,16 @@ class template {
      * Generate the PDF for the template.
      *
      * @param bool $preview true if it is a preview, false otherwise
+     * @param int $userid the id of the user whose certificate we want to view
      */
-    public function generate_pdf($preview = false) {
-        global $CFG, $DB;
+    public function generate_pdf($preview = false, $userid = null) {
+        global $CFG, $DB, $USER;
+
+        if (empty($userid)) {
+            $user = $USER;
+        } else {
+            $user = \core_user::get_user($userid);
+        }
 
         require_once($CFG->libdir . '/pdflib.php');
 
@@ -289,7 +296,7 @@ class template {
                     foreach ($elements as $element) {
                         // Get an instance of the element class.
                         if ($e = \mod_customcert\element::instance($element)) {
-                            $e->render($pdf, $preview);
+                            $e->render($pdf, $preview, $user);
                         }
                     }
                 }

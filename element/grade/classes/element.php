@@ -83,9 +83,10 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
-        global $COURSE, $USER;
+    public function render($pdf, $preview, $user) {
+        global $COURSE;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
@@ -101,7 +102,7 @@ class element extends \mod_customcert\element {
             $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
         } else {
             // Get the grade for the grade item.
-            $grade = self::get_grade($gradeinfo, $USER->id);
+            $grade = self::get_grade($gradeinfo, $user->id);
         }
 
         \mod_customcert\element_helper::render_content($pdf, $this, $grade);
