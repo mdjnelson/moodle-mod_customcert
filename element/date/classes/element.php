@@ -83,9 +83,10 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
-        global $COURSE, $DB, $USER;
+    public function render($pdf, $preview, $user) {
+        global $COURSE, $DB;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
@@ -106,7 +107,7 @@ class element extends \mod_customcert\element {
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
+            $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;

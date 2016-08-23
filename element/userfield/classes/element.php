@@ -87,9 +87,10 @@ class element extends \mod_customcert\element {
      *
      * @param \pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
+     * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview) {
-        global $DB, $USER;
+    public function render($pdf, $preview, $user) {
+        global $CFG, $DB;
 
         // The user field to display.
         $field = $this->element->data;
@@ -97,10 +98,17 @@ class element extends \mod_customcert\element {
         $value = '';
         if (is_number($field)) { // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
-                $value = $USER->profile[$field->shortname];
+                $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
+                if (file_exists($file)) {
+                    require_once($CFG->dirroot . '/user/profile/lib.php');
+                    require_once($file);
+                    $class = "profile_field_{$field->datatype}";
+                    $field = new $class($field->id, $user->id);
+                    $value = $field->display_data();
+                }
             }
-        } else if (!empty($USER->$field)) { // Field in the user table.
-            $value = $USER->$field;
+        } else if (!empty($user->$field)) { // Field in the user table.
+            $value = $user->$field;
         }
 
         \mod_customcert\element_helper::render_content($pdf, $this, $value);

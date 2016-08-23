@@ -24,8 +24,12 @@
 
 require_once('../../config.php');
 
-$id   = required_param('id', PARAM_INT);
+$id = required_param('id', PARAM_INT);
 $download = optional_param('download', '', PARAM_ALPHA);
+$downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
+if ($downloadcert) {
+    $userid = required_param('userid', PARAM_INT);
+}
 
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
@@ -42,7 +46,15 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/customcert:manage', $context);
 
-// Get the users who have been issued.
+// Check if we requested to download another user's certificate.
+if ($downloadcert) {
+    $template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
+    $template = new \mod_customcert\template($template);
+    $template->generate_pdf(false, $userid);
+    exit();
+}
+
+// Check if we are in group mode.
 if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }

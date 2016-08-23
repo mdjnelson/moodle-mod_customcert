@@ -68,15 +68,18 @@ class report_table extends \table_sql {
             'fullname',
             'timecreated',
             'code',
+            'download'
         ));
         $this->define_headers(array(
             get_string('fullname'),
             get_string('receiveddate', 'customcert'),
-            get_string('code', 'customcert')
+            get_string('code', 'customcert'),
+            get_string('file')
         ));
         $this->collapsible(false);
         $this->sortable(true);
         $this->no_sorting('code');
+        $this->no_sorting('download');
         $this->is_downloadable(true);
 
         $this->customcertid = $customcertid;
@@ -114,6 +117,24 @@ class report_table extends \table_sql {
      */
     public function col_code($user) {
         return $user->code;
+    }
+
+    /**
+     * Generate the download column.
+     *
+     * @param \stdClass $user
+     * @return string
+     */
+    public function col_download($user) {
+        global $OUTPUT;
+
+        $icon = new \pix_icon('i/import', get_string('download'));
+        $link = new \moodle_url('/mod/customcert/report.php',
+            array('id' => $this->cm->id,
+                  'downloadcert' => '1',
+                  'userid' => $user->id));
+
+        return $OUTPUT->action_link($link, '', null, null, $icon);
     }
 
     /**
