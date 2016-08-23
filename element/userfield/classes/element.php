@@ -125,17 +125,22 @@ class element extends \mod_customcert\element {
 
         // The user field to display.
         $field = $this->element->data;
-        // The value to display on the PDF.
-        $value = '';
+        // The value to display - we always want to show a value here so it can be repositioned.
+        $value = $field;
         if (is_number($field)) { // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
+                // Found the field name, let's update the value to display.
+                $value = $field->name;
                 $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
                 if (file_exists($file)) {
                     require_once($CFG->dirroot . '/user/profile/lib.php');
                     require_once($file);
                     $class = "profile_field_{$field->datatype}";
                     $field = new $class($field->id, $USER->id);
-                    $value = $field->display_data();
+                    if ($fieldvalue = $field->display_data()) {
+                        // Ok, found a value for the user, let's show that instead.
+                        $value = $fieldvalue;
+                    }
                 }
             }
         } else if (!empty($USER->$field)) { // Field in the user table.
