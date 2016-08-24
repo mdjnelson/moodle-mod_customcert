@@ -60,22 +60,34 @@ class report_table extends \table_sql {
      * @param int $customcertid
      * @param \stdClass $cm the course module
      * @param bool $groupmode are we in group mode?
+     * @param string|null $download The file type, null if we are not downloading
      */
-    public function __construct($customcertid, $cm, $groupmode) {
+    public function __construct($customcertid, $cm, $groupmode, $download = null) {
         parent::__construct('mod_customcert_report_table');
 
-        $this->define_columns(array(
+        $columns = array(
             'fullname',
             'timecreated',
-            'code',
-            'download'
-        ));
-        $this->define_headers(array(
+            'code'
+        );
+        $headers = array(
             get_string('fullname'),
             get_string('receiveddate', 'customcert'),
-            get_string('code', 'customcert'),
-            get_string('file')
-        ));
+            get_string('code', 'customcert')
+        );
+
+        // Check if we were passed a filename, which means we want to download it.
+        if ($download) {
+            $this->is_downloading($download, 'customcert-report');
+        }
+
+        if (!$this->is_downloading()) {
+            $columns[] = 'download';
+            $headers[] = get_string('file');
+        }
+
+        $this->define_columns($columns);
+        $this->define_headers($headers);
         $this->collapsible(false);
         $this->sortable(true);
         $this->no_sorting('code');

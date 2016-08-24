@@ -25,7 +25,7 @@
 require_once('../../config.php');
 
 $id = required_param('id', PARAM_INT);
-$download = optional_param('download', '', PARAM_ALPHA);
+$download = optional_param('download', null, PARAM_ALPHA);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $userid = required_param('userid', PARAM_INT);
@@ -59,10 +59,10 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }
 
-$table = new \mod_customcert\report_table($customcert->id, $cm, $groupmode);
+$table = new \mod_customcert\report_table($customcert->id, $cm, $groupmode, $download);
 $table->define_baseurl($pageurl);
 
-if ($table->is_downloading($download, 'customcert-report')) {
+if ($table->is_downloading()) {
     $table->download();
     exit();
 }
