@@ -329,8 +329,15 @@ class template {
             } else { // Must be down.
                 $sequence = $moveitem->sequence + 1;
             }
-            // Get the item we will be swapping with it.
-            $swapitem = $DB->get_record($table, array('sequence' => $sequence));
+
+            // Get the item we will be swapping with. Make sure it is related to the same template (if it's
+            // a page) or the same page (if it's an element).
+            if ($itemname == 'page') {
+                $params = array('templateid' => $moveitem->templateid);
+            } else { // Must be an element.
+                $params = array('pageid' => $moveitem->pageid);
+            }
+            $swapitem = $DB->get_record($table, $params + array('sequence' => $sequence));
         }
 
         // Check that there is an item to move, and an item to swap it with.
