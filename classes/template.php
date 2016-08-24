@@ -146,7 +146,7 @@ class template {
      * @return bool return true if the deletion was successful, false otherwise
      */
     public function delete() {
-        global $CFG, $DB;
+        global $DB;
 
         // Delete the elements.
         $sql = "SELECT e.*
