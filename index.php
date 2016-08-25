@@ -33,7 +33,7 @@ require_login($course);
 
 // Set up the page variables.
 $pageurl = new moodle_url('/mod/customcert/index.php', array('id' => $course->id));
-\mod_customcert\page_helper::page_setup($pageurl, CONTEXT_COURSE::instance($id),
+\mod_customcert\page_helper::page_setup($pageurl, context_course::instance($id),
     get_string('modulenameplural', 'customcert'));
 
 // Additional page setup needed.
