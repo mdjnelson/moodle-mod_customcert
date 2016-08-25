@@ -108,6 +108,7 @@ $string['saveandclose'] = 'Save and close';
 $string['saveandcontinue'] = 'Save and continue';
 $string['savechangespreview'] = 'Save changes and preview';
 $string['savetemplate'] = 'Save template';
+$string['search:activity'] = 'Custom certificate - activity information';
 $string['setprotection'] = 'Set protection';
 $string['setprotection_help'] = 'Choose the actions you wish to prevent users from performing on this certificate.';
 $string['summaryofissue'] = 'Summary of issue';

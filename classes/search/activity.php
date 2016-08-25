@@ -15,19 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code fragment to define the version of the customcert module
+ * Search area for mod_customcert activities.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+namespace mod_customcert\search;
 
-$plugin->version   = 2016052301; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2016052300; // Requires this Moodle version (3.1).
-$plugin->cron      = 0; // Period for cron to check this module (secs).
-$plugin->component = 'mod_customcert';
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = "3.1 beta release (Build: 2016052300)"; // User-friendly version number.
+/**
+ * Search area for mod_customcert activities.
+ *
+ * @package    mod_customcert
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class activity extends \core_search\base_activity {
+
+}
