@@ -67,7 +67,7 @@ if ($context->contextlevel == CONTEXT_SYSTEM) {
 }
 
 // The form for loading a customcert templates.
-if ($tid && $DB->count_records('customcert_templates', array('contextid' => CONTEXT_SYSTEM::instance()->id)) > 0) {
+if ($tid && $DB->count_records('customcert_templates', array('contextid' => context_system::instance()->id)) > 0) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
     $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl);
 }
