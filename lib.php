@@ -354,3 +354,41 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 
     return $customcertnode->trim_if_empty();
 }
+
+/**
+ * Handles editing the 'name' of the element in a list.
+ *
+ * @param $itemtype
+ * @param $itemid
+ * @param $newvalue
+ * @return \core\output\inplace_editable
+ */
+function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
+    global $DB;
+
+    if ($itemtype === 'elementname') {
+        $element = $DB->get_record('customcert_elements', array('id' => $itemid), '*', MUST_EXIST);
+        $page = $DB->get_record('customcert_pages', array('id' => $element->pageid), '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', array('id' => $page->templateid), '*', MUST_EXIST);
+
+        // Set the template object.
+        $template = new \mod_customcert\template($template);
+        // Perform checks.
+        if ($cm = $template->get_cm()) {
+            require_login($cm->course, false, $cm);
+        } else {
+            require_login();
+        }
+        // Make sure the user has the required capabilities.
+        $template->require_manage();
+
+        // Clean input and update the record.
+        $updateelement = new stdClass();
+        $updateelement->id = $element->id;
+        $updateelement->name = clean_param($newvalue, PARAM_TEXT);
+        $DB->update_record('customcert_elements', $updateelement);
+
+        return new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id, true,
+            $updateelement->name, $updateelement->name);
+    }
+}

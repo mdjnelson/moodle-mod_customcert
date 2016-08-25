@@ -243,8 +243,11 @@ class edit_form extends \moodleform {
             $table->align = array('left', 'left', 'left');
             // Loop through and add the elements to the table.
             foreach ($elements as $element) {
+                $elementname = new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id,
+                    true, format_string($element->name), $element->name);
+
                 $row = new \html_table_row();
-                $row->cells[] = $element->name;
+                $row->cells[] = $OUTPUT->render($elementname);
                 $row->cells[] = $element->element;
                 // Link to edit this element.
                 $link = new \moodle_url($editelementlink, $editelementlinkparams + array('id' => $element->id,
