@@ -41,7 +41,7 @@ class load_template_form extends \moodleform {
         $mform->addElement('header', 'loadtemplateheader', get_string('loadtemplate', 'customcert'));
 
         $templates = $DB->get_records_menu('customcert_templates',
-            array('contextid' => \CONTEXT_SYSTEM::instance()->id), 'name ASC', 'id, name');
+            array('contextid' => \context_system::instance()->id), 'name ASC', 'id, name');
 
         $group = array();
         $group[] = $mform->createElement('select', 'ltid', '', $templates);

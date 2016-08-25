@@ -24,7 +24,7 @@
 
 require_once('../../config.php');
 
-$contextid = optional_param('contextid', CONTEXT_SYSTEM::instance()->id, PARAM_INT);
+$contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
