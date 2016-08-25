@@ -364,7 +364,7 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @return \core\output\inplace_editable
  */
 function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
-    global $DB;
+    global $DB, $PAGE;
 
     if ($itemtype === 'elementname') {
         $element = $DB->get_record('customcert_elements', array('id' => $itemid), '*', MUST_EXIST);
@@ -377,6 +377,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         if ($cm = $template->get_cm()) {
             require_login($cm->course, false, $cm);
         } else {
+            $PAGE->set_context(context_system::instance());
             require_login();
         }
         // Make sure the user has the required capabilities.
