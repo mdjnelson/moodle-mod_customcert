@@ -66,11 +66,6 @@ if ($context->contextlevel == CONTEXT_SYSTEM) {
     $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
 }
 
-// The form for loading a customcert templates.
-if ($tid && $DB->count_records('customcert_templates', array('contextid' => context_system::instance()->id)) > 0) {
-    $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
-    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl);
-}
 
 // Flag to determine if we are deleting anything.
 $deleting = false;
@@ -225,7 +220,9 @@ if ($data = $mform->get_data()) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
 $mform->display();
-if (isset($loadtemplateform)) {
+if ($tid) {
+    $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
+    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, array('context' => $context));
     $loadtemplateform->display();
 }
 echo $OUTPUT->footer();
