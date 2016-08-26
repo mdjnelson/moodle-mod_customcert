@@ -46,6 +46,19 @@ $template->require_manage();
 $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid));
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('rearrangeelements', 'customcert'));
 
+// Add more links to the navigation.
+if (!$cm = $template->get_cm()) {
+    $str = get_string('managetemplates', 'customcert');
+    $link = new moodle_url('/mod/customcert/manage_templates.php');
+    $PAGE->navbar->add($str, new \action_link($link, $str));
+}
+
+$str = get_string('editcustomcert', 'customcert');
+$link = new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id()));
+$PAGE->navbar->add($str, new \action_link($link, $str));
+
+$PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
+
 // Include the JS we need.
 $PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'M.mod_customcert.rearrange.init',
     array($template->get_id(),
