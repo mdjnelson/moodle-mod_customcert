@@ -21,12 +21,12 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Date - Issue
  */
-define('CUSTOMCERT_DATE_ISSUE', '1');
+define('CUSTOMCERT_DATE_ISSUE', '-1');
 
 /**
  * Date - Completion
  */
-define('CUSTOMCERT_DATE_COMPLETION', '2');
+define('CUSTOMCERT_DATE_COMPLETION', '-2');
 
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
