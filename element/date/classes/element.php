@@ -252,11 +252,11 @@ class element extends \mod_customcert\element {
             switch ($day % 10) {
                 // Handle 1st, 2nd, 3rd.
                 case 1:
-                    return get_string('numbersuffix_st', 'customcertelement_date');
+                    return get_string('numbersuffix_st_as_in_first', 'customcertelement_date');
                 case 2:
-                    return get_string('numbersuffix_nd', 'customcertelement_date');
+                    return get_string('numbersuffix_nd_as_in_second', 'customcertelement_date');
                 case 3:
-                    return get_string('numbersuffix_rd', 'customcertelement_date');
+                    return get_string('numbersuffix_rd_as_in_third', 'customcertelement_date');
             }
         }
         return 'th';
