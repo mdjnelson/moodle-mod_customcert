@@ -29,5 +29,5 @@ $plugin->requires  = 2016052300; // Requires this Moodle version (3.1).
 $plugin->cron      = 0; // Period for cron to check this module (secs).
 $plugin->component = 'mod_customcert';
 
-$plugin->maturity  = MATURITY_BETA;
-$plugin->release   = "3.1 beta release (Build: 2016052300)"; // User-friendly version number.
+$plugin->maturity  = MATURITY_STABLE;
+$plugin->release   = "3.1 release (Build: 2016052302)"; // User-friendly version number.
