@@ -102,10 +102,17 @@ class element extends \mod_customcert\element {
      * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
-        global $COURSE;
+        global $COURSE, $SITE;
+
+        // Set the context.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
 
         // Handle file uploads.
-        \mod_customcert\certificate::upload_imagefiles($data->customcertimage, \context_course::instance($COURSE->id)->id);
+        \mod_customcert\certificate::upload_imagefiles($data->customcertimage, $context->id);
 
         return parent::save_form_elements($data);
     }
@@ -207,7 +214,7 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        global $COURSE;
+        global $COURSE, $SITE;
 
         // Set the image, width and height for this element.
         if (!empty($this->element->data)) {
@@ -217,9 +224,17 @@ class element extends \mod_customcert\element {
             $this->element->height = $imageinfo->height;
         }
 
+        // Set the context.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
+
+
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, \context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
         $element = $mform->getElement('customcertimage');
         $element->setValue($draftitemid);
 
