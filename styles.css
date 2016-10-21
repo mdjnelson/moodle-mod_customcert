@@ -1,5 +1,5 @@
 #page-mod-customcert-edit .deletebutton {
-    text-align:right;
+    text-align: right;
 }
 
 #page-mod-customcert-edit #id_replace {
@@ -14,11 +14,11 @@
 #page-mod-customcert-rearrange .savepositionsbtn,
 #page-mod-customcert-rearrange .applypositionsbtn,
 #page-mod-customcert-rearrange .cancelbtn {
-    float:left
+    float: left;
 }
 
 #page-mod-customcert-rearrange .element {
-    display:inline-block;
+    display: inline-block;
     position: absolute;
     word-wrap: break-word;
 }
@@ -34,7 +34,7 @@
 }
 
 #page-mod-customcert-rearrange .element:hover {
-    cursor:move;
+    cursor: move;
 }
 
 #page-mod-customcert-rearrange .element.refpoint-left:before {
@@ -53,9 +53,9 @@
 }
 
 #page-mod-customcert-rearrange #pdf {
-     clear:both;
-     border-style:solid;
-     border-width:1px;
+    clear: both;
+    border-style: solid;
+    border-width: 1px;
 }
 
 #page-mod-customcert-rearrange div#leftmargin {
