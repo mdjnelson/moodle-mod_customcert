@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Class certificate.
  *
- * Represents a customcert activity instance.
+ * Helper functionality for certificates.
  */
 class certificate {
 
@@ -362,6 +362,50 @@ class certificate {
         }
 
         return array($conditionssql, $conditionsparams);
+    }
+
+    /**
+     * Get number of certificates for a user.
+     *
+     * @param int $userid
+     * @return int
+     */
+    public static function get_number_of_certificates_for_user($userid) {
+        global $DB;
+
+        $sql = "SELECT COUNT(*)
+                  FROM {customcert} c
+            INNER JOIN {customcert_issues} ci
+                    ON c.id = ci.customcertid
+                 WHERE ci.userid = :userid";
+        return $DB->count_records_sql($sql, array('userid' => $userid));
+    }
+
+    /**
+     * Gets the certificates for the user.
+     *
+     * @param int $userid
+     * @param int $limitfrom
+     * @param int $limitnum
+     * @param string $sort
+     * @return array
+     */
+    public static function get_certificates_for_user($userid, $limitfrom, $limitnum, $sort = '') {
+        global $DB;
+
+        if (empty($sort)) {
+            $sort = 'ci.timecreated DESC';
+        }
+
+        $sql = "SELECT c.id, c.name, co.fullname as coursename, ci.code, ci.timecreated
+                  FROM {customcert} c
+            INNER JOIN {customcert_issues} ci
+                    ON c.id = ci.customcertid
+            INNER JOIN {course} co
+                    ON c.course = co.id
+                 WHERE ci.userid = :userid
+              ORDER BY $sort";
+        return $DB->get_records_sql($sql, array('userid' => $userid), $limitfrom, $limitnum);
     }
 
     /**

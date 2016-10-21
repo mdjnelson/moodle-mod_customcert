@@ -83,6 +83,7 @@ $string['modulename'] = 'Custom certificate';
 $string['modulenameplural'] = 'Custom certificates';
 $string['modulename_help'] = 'This module allows for the dynamic generation of PDF certificates.';
 $string['modulename_link'] = 'Custom_certificate_module';
+$string['mycertificates'] = 'My certificates';
 $string['name'] = 'Name';
 $string['nocustomcerts'] = 'There are no custom certificates for this course';
 $string['noimage'] = 'No image';

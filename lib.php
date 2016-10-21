@@ -356,6 +356,22 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 }
 
 /**
+ * Add nodes to myprofile page.
+ *
+ * @param \core_user\output\myprofile\tree $tree Tree object
+ * @param stdClass $user user object
+ * @param bool $iscurrentuser
+ * @param stdClass $course Course object
+ * @return bool
+ */
+function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
+    $url = new moodle_url('/mod/customcert/my_certificates.php', array('userid' => $user->id));
+    $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
+        get_string('mycertificates', 'customcert'), null, $url);
+    $tree->add_node($node);
+}
+
+/**
  * Handles editing the 'name' of the element in a list.
  *
  * @param $itemtype
