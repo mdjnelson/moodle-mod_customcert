@@ -85,6 +85,7 @@ if ($data = $mform->get_data()) {
     }
     // Set the element variable.
     $data->element = $element->element;
+    $data->repositionpage = false;
     // Get an instance of the element class.
     if ($e = \mod_customcert\element::instance($data)) {
         $e->save_form_elements($data);

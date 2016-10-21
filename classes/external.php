@@ -76,6 +76,7 @@ class external extends \external_api {
 
         $template = $DB->get_record('customcert_templates', array('id' => $templateid), '*', MUST_EXIST);
         $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+        $element->repositionpage = true;
 
         // Set the template.
         $template = new \mod_customcert\template($template);

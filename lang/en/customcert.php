@@ -92,8 +92,12 @@ $string['options'] = 'Options';
 $string['page'] = 'Page {$a}';
 $string['pluginadministration'] = 'Custom certificate administration';
 $string['pluginname'] = 'Custom certificate';
-$string['print'] = 'Print';
+$string['posx'] = 'Position X';
+$string['posx_help'] = 'This is the position in mm from the top left corner you wish the element\'s reference point to locate in the x direction.';
+$string['posy'] = 'Position Y';
+$string['posy_help'] = 'This is the position in mm from the top left corner you wish the element\'s reference point to locate in the y direction.';
 $string['portrait'] = 'Portrait';
+$string['print'] = 'Print';
 $string['rearrangeelements'] = 'Reposition elements';
 $string['rearrangeelementsheading'] = 'Drag and drop elements to change where they are positioned on the certificate.';
 $string['receiveddate'] = 'Received date';
@@ -110,6 +114,10 @@ $string['savetemplate'] = 'Save template';
 $string['search:activity'] = 'Custom certificate - activity information';
 $string['setprotection'] = 'Set protection';
 $string['setprotection_help'] = 'Choose the actions you wish to prevent users from performing on this certificate.';
+$string['showposxy'] = 'Show position X and Y';
+$string['showposxy_desc'] = 'This will show the X and Y position of an element while editing, allowing the user to accurately specify the location.
+
+This isn\'t required if you plan on using the drag and drop interface for this purpose.';
 $string['summaryofissue'] = 'Summary of issue';
 $string['templatename'] = 'Template name';
 $string['templatenameexists'] = 'That template name is currently in use, please choose another.';

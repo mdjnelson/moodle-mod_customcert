@@ -47,9 +47,10 @@ class edit_element_form extends \moodleform {
         $mform->updateAttributes(array('id' => 'editelementform'));
 
         $element = $this->_customdata['element'];
+        $element->repositionpage = isset($this->_customdata['rearrange']) ? $this->_customdata['rearrange'] : false;
 
         // Do not display the name if we are on the rearrange page.
-        if (!isset($this->_customdata['rearrange'])) {
+        if (!$element->repositionpage) {
             // Add the field for the name of the element, this is required for all elements.
             $mform->addElement('text', 'name', get_string('elementname', 'customcert'));
             $mform->setType('name', PARAM_TEXT);

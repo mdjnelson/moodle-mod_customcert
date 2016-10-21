@@ -57,7 +57,12 @@ abstract class element {
         // Render the common elements.
         element_helper::render_form_element_font($mform);
         element_helper::render_form_element_colour($mform);
-        element_helper::render_form_element_position($mform);
+        // Check if we are displaying the position x and position y elements.
+        $showposxy = get_config('customcert', 'showposxy');
+        if (isset($showposxy) && $showposxy && !$this->element->repositionpage) {
+            element_helper::render_form_element_position($mform);
+        }
+        element_helper::render_form_element_width($mform);
     }
 
     /**
@@ -91,7 +96,11 @@ abstract class element {
 
         // Common validation methods.
         $errors += element_helper::validate_form_element_colour($data);
-        $errors += element_helper::validate_form_element_position($data);
+        $showposxy = get_config('customcert', 'showposxy');
+        if (isset($showposxy) && $showposxy && !$this->element->repositionpage) {
+            $errors += element_helper::validate_form_element_position($data);
+        }
+        $errors += element_helper::validate_form_element_width($data);
 
         return $errors;
     }
@@ -113,6 +122,12 @@ abstract class element {
         $element->font = (isset($data->font)) ? $data->font : null;
         $element->size = (isset($data->size)) ? $data->size : null;
         $element->colour = (isset($data->colour)) ? $data->colour : null;
+        // Check if we are displaying the position x and position y elements.
+        $showposxy = get_config('customcert', 'showposxy');
+        if (isset($showposxy) && $showposxy && !$this->element->repositionpage) {
+            $element->posx = (isset($data->posx)) ? $data->posx : null;
+            $element->posy = (isset($data->posy)) ? $data->posy : null;
+        }
         $element->width = (isset($data->width)) ? $data->width : null;
         $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
         $element->timemodified = time();
