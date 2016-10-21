@@ -48,15 +48,12 @@ class edit_element_form extends \moodleform {
 
         $element = $this->_customdata['element'];
 
-        // Do not display the name if we are on the rearrange page.
-        if (!isset($this->_customdata['rearrange'])) {
-            // Add the field for the name of the element, this is required for all elements.
-            $mform->addElement('text', 'name', get_string('elementname', 'customcert'));
-            $mform->setType('name', PARAM_TEXT);
-            $mform->setDefault('name', get_string('pluginname', 'customcertelement_' . $element->element));
-            $mform->addRule('name', get_string('required'), 'required', null, 'client');
-            $mform->addHelpButton('name', 'elementname', 'customcert');
-        }
+        // Add the field for the name of the element, this is required for all elements.
+        $mform->addElement('text', 'name', get_string('elementname', 'customcert'));
+        $mform->setType('name', PARAM_TEXT);
+        $mform->setDefault('name', get_string('pluginname', 'customcertelement_' . $element->element));
+        $mform->addRule('name', get_string('required'), 'required', null, 'client');
+        $mform->addHelpButton('name', 'elementname', 'customcert');
 
         $this->element = \mod_customcert\element::instance($element);
         $this->element->render_form_elements($mform);
