@@ -39,12 +39,20 @@ abstract class element {
     public $element;
 
     /**
+     * @var bool $showposxy Show position XY form elements?
+     */
+    public $showposxy;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $element the element data
      */
     public function __construct($element) {
+        $showposxy = get_config('customcert', 'showposxy');
+
         $this->element = clone($element);
+        $this->showposxy = isset($showposxy) && $showposxy;
     }
 
     /**
@@ -57,7 +65,10 @@ abstract class element {
         // Render the common elements.
         element_helper::render_form_element_font($mform);
         element_helper::render_form_element_colour($mform);
-        element_helper::render_form_element_position($mform);
+        if ($this->showposxy) {
+            element_helper::render_form_element_position($mform);
+        }
+        element_helper::render_form_element_width($mform);
     }
 
     /**
@@ -91,7 +102,10 @@ abstract class element {
 
         // Common validation methods.
         $errors += element_helper::validate_form_element_colour($data);
-        $errors += element_helper::validate_form_element_position($data);
+        if ($this->showposxy) {
+            $errors += element_helper::validate_form_element_position($data);
+        }
+        $errors += element_helper::validate_form_element_width($data);
 
         return $errors;
     }
@@ -113,6 +127,10 @@ abstract class element {
         $element->font = (isset($data->font)) ? $data->font : null;
         $element->size = (isset($data->size)) ? $data->size : null;
         $element->colour = (isset($data->colour)) ? $data->colour : null;
+        if ($this->showposxy) {
+            $element->posx = (isset($data->posx)) ? $data->posx : null;
+            $element->posy = (isset($data->posy)) ? $data->posy : null;
+        }
         $element->width = (isset($data->width)) ? $data->width : null;
         $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
         $element->timemodified = time();

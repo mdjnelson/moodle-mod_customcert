@@ -316,7 +316,7 @@ function mod_customcert_output_fragment_editelement($args) {
     $element = $DB->get_record('customcert_elements', array('id' => $args['elementid']), '*', MUST_EXIST);
 
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $element->pageid));
-    $form = new \mod_customcert\edit_element_form($pageurl, array('element' => $element, 'rearrange' => true));
+    $form = new \mod_customcert\edit_element_form($pageurl, array('element' => $element));
 
     return $form->render();
 }

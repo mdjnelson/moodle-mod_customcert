@@ -75,9 +75,9 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
             // Do not want to ask the user if they wish to stay on page after saving.
             M.core_formchangechecker.reset_form_dirty_state();
             // Save the data.
-            this._saveElement(elementid).always(function() {
+            this._saveElement(elementid).then(function() {
                 // Update the DOM to reflect the adjusted value.
-                this._getElementHTML(elementid).always(function(html) {
+                this._getElementHTML(elementid).done(function(html) {
                     var elementNode = this._node.find('#element-' + elementid);
                     var refpoint = $('#id_refpoint').val();
                     var refpointClass = '';
@@ -92,6 +92,8 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                     // Update the ref point.
                     elementNode.removeClass();
                     elementNode.addClass('element ' + refpointClass);
+                    // Move the element if we need to.
+                    this._setPosition(elementid, refpoint);
                     popup.close();
                 }.bind(this));
             }.bind(this));
@@ -102,6 +104,34 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
             popup.close();
             e.preventDefault();
         }.bind(this));
+    };
+
+    RearrangeArea.prototype._setPosition = function(elementid, refpoint) {
+        var element = Y.one('#element-' + elementid);
+
+        var pixelsinmm = 3.779527559055;
+        var pdfx = Y.one('#pdf').getX();
+        var pdfy = Y.one('#pdf').getY();
+        var posx = pdfx + $('#editelementform #id_posx').val() * pixelsinmm;
+        var posy = pdfy + $('#editelementform #id_posy').val() * pixelsinmm;
+        var nodewidth = parseFloat(element.getComputedStyle('width'));
+        var maxwidth = element.width * this.pixelsinmm;
+
+        if (maxwidth && (nodewidth > maxwidth)) {
+            nodewidth = maxwidth;
+        }
+
+        switch (refpoint) {
+            case '1': // Top-center.
+                posx -= nodewidth / 2;
+                break;
+            case '2': // Top-right.
+                posx = posx - nodewidth + 2;
+                break;
+        }
+
+        element.setX(posx);
+        element.setY(posy);
     };
 
     RearrangeArea.prototype._getElementHTML = function(elementid) {
