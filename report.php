@@ -80,4 +80,4 @@ groups_print_activity_menu($cm, $url);
 
 $table->out($perpage, false);
 
-echo $OUTPUT->footer($course);
+echo $OUTPUT->footer();
