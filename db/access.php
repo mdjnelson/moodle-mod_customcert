@@ -59,4 +59,12 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
+
+    'mod/customcert:viewallcertificates' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        )
+    ),
 );
