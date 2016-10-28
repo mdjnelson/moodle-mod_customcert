@@ -129,6 +129,8 @@ $string['type'] = 'Type';
 $string['uploadimage'] = 'Upload image';
 $string['uploadimagedesc'] = 'This link will take you to a new screen where you will be able to upload images. Images uploaded using
 this method will be available throughout your site to all users who are able to create a custom certificate.';
+$string['verify'] = 'Verify';
+$string['verifycertificate'] = 'Verify certificate';
 $string['viewcustomcertissues'] = 'View {$a} issued custom certificates';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';

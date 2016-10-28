@@ -14,20 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Code fragment to define the version of the customcert module
- *
- * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or late
- */
+namespace mod_customcert;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$plugin->version   = 2016120503; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2016120500; // Requires this Moodle version (3.2).
-$plugin->cron      = 0; // Period for cron to check this module (secs).
-$plugin->component = 'mod_customcert';
+require_once($CFG->libdir . '/formslib.php');
 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "3.2 release (Build: 2016120503)"; // User-friendly version number.
+/**
+ * The form for verifying a certificate
+ *
+ * @package    mod_customcert
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class verify_certificate_form extends \moodleform {
+
+    /**
+     * Form definition.
+     */
+    public function definition() {
+        $mform =& $this->_form;
+
+        $mform->addElement('text', 'code', get_string('code', 'customcert'));
+        $mform->setType('code', PARAM_ALPHANUM);
+
+        $mform->addElement('submit', 'verify', get_string('verify', 'customcert'));
+    }
+}
