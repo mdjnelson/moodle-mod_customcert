@@ -122,6 +122,11 @@ if (empty($action)) {
         // Insert the record into the database.
         $DB->insert_record('customcert_issues', $customcertissue);
     }
+
+    // Set the custom certificate as viewed.
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
+
     // Now we want to generate the PDF.
     $template = new \mod_customcert\template($template);
     $template->generate_pdf();
