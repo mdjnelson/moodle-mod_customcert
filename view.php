@@ -42,7 +42,7 @@ $pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
 \mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
 // Check if the user can view the certificate based on time spent in course.
-if ($customcert->requiredtime && !has_capability('mod/certificate:manage', $context)) {
+if ($customcert->requiredtime && !has_capability('mod/customcert:manage', $context)) {
     if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
         $a = new stdClass;
         $a->requiredtime = $customcert->requiredtime;

@@ -317,7 +317,7 @@ class certificate {
         $conditionsparams = array();
 
         // Get all users that can manage this certificate to exclude them from the report.
-        $certmanagers = array_keys(get_users_by_capability($context, 'mod/certificate:manage', 'u.id'));
+        $certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'));
         $certmanagers = array_merge($certmanagers, array_keys(get_admins()));
         list($sql, $params) = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
         $conditionssql .= "AND NOT u.id $sql \n";
