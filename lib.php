@@ -234,7 +234,7 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
     if ($filearea === 'image') {
         if ($context->contextlevel == CONTEXT_MODULE) {
             require_login($course, false, $cm);
-        } else if ($context->contextlevel == CONTEXT_SYSTEM && !has_capability('mod/certificate:manage', $context)) {
+        } else if ($context->contextlevel == CONTEXT_SYSTEM && !has_capability('mod/customcert:manage', $context)) {
             return false;
         }
 
