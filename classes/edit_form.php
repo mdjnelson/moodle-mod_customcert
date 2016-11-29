@@ -128,16 +128,7 @@ class edit_form extends \moodleform {
      * @return array the errors that were found
      */
     public function validation($data, $files) {
-        global $DB;
-
         $errors = parent::validation($data, $files);
-
-        // Check that the template name does not already exist for another template.
-        if ($template = $DB->get_record('customcert_templates', array('name' => $data['name']))) {
-            if (empty($data['tid']) || $template->id != $data['tid']) {
-                $errors['name'] = get_string('customcertnameexists', 'customcert');
-            }
-        }
 
         // Go through the data and check any width, height or margin  values.
         foreach ($data as $key => $value) {

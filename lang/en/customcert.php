@@ -31,7 +31,6 @@ $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
 the certificate.';
 $string['createtemplate'] = 'Create template';
-$string['customcertnameexists'] = 'A certificate already exists with this name';
 $string['customcertreport'] = 'Custom certificate report';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
 $string['customcert:manage'] = 'Manage a custom certificate';
