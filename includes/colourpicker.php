@@ -17,7 +17,6 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/lib/form/editor.php');
-require_once($CFG->dirroot . '/lib/form/templatable_form_element.php');
 
 /**
  * Form element for handling the colour picker.
@@ -27,14 +26,6 @@ require_once($CFG->dirroot . '/lib/form/templatable_form_element.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class MoodleQuickForm_customcert_colourpicker extends MoodleQuickForm_editor {
-    use templatable_form_element {
-        export_for_template as export_for_template_base;
-    }
-
-    /**
-     * The string for the help icon, if empty then no help icon will be displayed.
-     */
-    public $_helpbutton = '';
 
     /**
      * Constructor for the colour picker.
@@ -90,15 +81,6 @@ class MoodleQuickForm_customcert_colourpicker extends MoodleQuickForm_editor {
         $content .= html_writer::end_tag('div');
 
         return $content;
-    }
-
-    /**
-     * Return the html for the help button.
-     *
-     * @return string html for help button
-     */
-    public function getHelpButton(){
-        return $this->_helpbutton;
     }
 
     public function export_for_template(renderer_base $output) {
