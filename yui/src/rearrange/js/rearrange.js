@@ -145,12 +145,12 @@ Y.extend(Rearrange, Y.Base, {
      */
     create_events : function() {
         // Trigger a save event when save button is pushed.
-        Y.one('.savepositionsbtn input[type=submit]').on('click', function(e) {
+        Y.one('.savepositionsbtn [type=submit]').on('click', function(e) {
             this.save_positions(e);
         }, this);
 
         // Trigger a save event when apply button is pushed.
-        Y.one('.applypositionsbtn input[type=submit]').on('click', function(e) {
+        Y.one('.applypositionsbtn [type=submit]').on('click', function(e) {
             this.save_positions(e);
             e.preventDefault();
         }, this);
