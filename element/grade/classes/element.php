@@ -285,13 +285,18 @@ class element extends \mod_customcert\element {
      * @param int $moduleid
      * @param int $gradeformat
      * @param int $userid
-     * @return \stdClass the grade information
+     * @return \stdClass|bool the grade information, or false if there is none.
      */
     public static function get_mod_grade($moduleid, $gradeformat, $userid) {
         global $DB;
 
-        $cm = $DB->get_record('course_modules', array('id' => $moduleid), '*', MUST_EXIST);
-        $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
+        if (!$cm = $DB->get_record('course_modules', array('id' => $moduleid))) {
+            return false;
+        }
+
+        if (!$module = $DB->get_record('modules', array('id' => $cm->module))) {
+            return false;
+        }
 
         $gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid);
         if (!empty($gradeitem)) {
