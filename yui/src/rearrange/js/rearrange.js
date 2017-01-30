@@ -80,8 +80,8 @@ Y.extend(Rearrange, Y.Base, {
         // Set the PDF dimensions.
         this.pdfx = Y.one('#pdf').getX();
         this.pdfy = Y.one('#pdf').getY();
-        this.pdfwidth = parseFloat(Y.one('#pdf').getComputedStyle('width'), 10);
-        this.pdfheight = parseFloat(Y.one('#pdf').getComputedStyle('height'), 10);
+        this.pdfwidth = parseFloat(Y.one('#pdf').getComputedStyle('width'));
+        this.pdfheight = parseFloat(Y.one('#pdf').getComputedStyle('height'));
 
         // Set the boundaries.
         this.pdfleftboundary = this.pdfx;
@@ -94,20 +94,8 @@ Y.extend(Rearrange, Y.Base, {
             this.pdfrightboundary -= parseInt(this.page.rightmargin * this.pixelsinmm, 10);
         }
 
-        this.set_data();
         this.set_positions();
         this.create_events();
-    },
-
-    /**
-     * Sets the additional data for the elements.
-     */
-    set_data : function() {
-        // Go through the elements and set their reference points.
-        for (var key in this.elements) {
-            var element = this.elements[key];
-            Y.one('#element-' + element.id).setData('refpoint', element.refpoint);
-        }
     },
 
     /**
@@ -119,7 +107,7 @@ Y.extend(Rearrange, Y.Base, {
             var element = this.elements[key];
             var posx = this.pdfx + element.posx * this.pixelsinmm;
             var posy = this.pdfy + element.posy * this.pixelsinmm;
-            var nodewidth = parseFloat(Y.one('#element-' + element.id).getComputedStyle('width'), 10);
+            var nodewidth = parseFloat(Y.one('#element-' + element.id).getComputedStyle('width'));
             var maxwidth = element.width * this.pixelsinmm;
 
             if (maxwidth && (nodewidth > maxwidth)) {
@@ -185,8 +173,8 @@ Y.extend(Rearrange, Y.Base, {
      */
     is_out_of_bounds : function(node) {
         // Get the width and height of the node.
-        var nodewidth = parseFloat(node.getComputedStyle('width'), 10);
-        var nodeheight = parseFloat(node.getComputedStyle('height'), 10);
+        var nodewidth = parseFloat(node.getComputedStyle('width'));
+        var nodeheight = parseFloat(node.getComputedStyle('height'));
 
         // Store the positions of each edge of the node.
         var left = node.getX();
@@ -224,13 +212,14 @@ Y.extend(Rearrange, Y.Base, {
             var element = this.elements[key];
             var node = Y.one('#element-' + element.id);
 
-            // Get the current X and Y positions for this element.
+            // Get the current X and Y positions and refpoint for this element.
             var posx = node.getX() - this.pdfx;
             var posy = node.getY() - this.pdfy;
+            var refpoint = node.getData('refpoint');
 
-            var nodewidth = parseFloat(node.getComputedStyle('width'), 10);
+            var nodewidth = parseFloat(node.getComputedStyle('width'));
 
-            switch (element.refpoint) {
+            switch (refpoint) {
                 case '1':   // Top-center
                     posx += nodewidth / 2;
                     break;
@@ -242,8 +231,8 @@ Y.extend(Rearrange, Y.Base, {
             // Set the parameters to pass to the AJAX request.
             params.values.push({
                 id: element.id,
-                posx: Math.round(parseFloat(posx / this.pixelsinmm, 10)),
-                posy: Math.round(parseFloat(posy / this.pixelsinmm, 10))
+                posx: Math.round(parseFloat(posx / this.pixelsinmm)),
+                posy: Math.round(parseFloat(posy / this.pixelsinmm))
             });
         }
 
