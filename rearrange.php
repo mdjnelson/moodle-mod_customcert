@@ -103,7 +103,8 @@ if ($elements) {
                 default:
                     $class = 'element refpoint-left';
             }
-            $html .= html_writer::tag('div', $e->render_html(), array('class' => $class, 'id' => 'element-' . $element->id));
+            $html .= html_writer::tag('div', $e->render_html(), array('class' => $class,
+                'data-refpoint' => $element->refpoint, 'id' => 'element-' . $element->id));
         }
     }
 }

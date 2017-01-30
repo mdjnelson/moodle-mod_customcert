@@ -38,6 +38,7 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
     RearrangeArea.prototype.CUSTOMCERT_REF_POINT_TOPLEFT = 0;
     RearrangeArea.prototype.CUSTOMCERT_REF_POINT_TOPCENTER = 1;
     RearrangeArea.prototype.CUSTOMCERT_REF_POINT_TOPRIGHT = 2;
+    RearrangeArea.prototype.PIXELSINMM = 3.779527559055;
 
     RearrangeArea.prototype._setEvents = function() {
         this._node.on('click', '.element', this._editElement.bind(this));
@@ -79,7 +80,7 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                 // Update the DOM to reflect the adjusted value.
                 this._getElementHTML(elementid).done(function(html) {
                     var elementNode = this._node.find('#element-' + elementid);
-                    var refpoint = $('#id_refpoint').val();
+                    var refpoint = parseInt($('#id_refpoint').val());
                     var refpointClass = '';
                     if (refpoint == this.CUSTOMCERT_REF_POINT_TOPLEFT) {
                         refpointClass = 'refpoint-left';
@@ -92,8 +93,12 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                     // Update the ref point.
                     elementNode.removeClass();
                     elementNode.addClass('element ' + refpointClass);
-                    // Move the element if we need to.
-                    this._setPosition(elementid, refpoint);
+                    elementNode.attr('data-refpoint', refpoint);
+                    // Move the element.
+                    var posx = $('#editelementform #id_posx').val();
+                    var posy = $('#editelementform #id_posy').val();
+                    this._setPosition(elementid, refpoint, posx, posy);
+                    // All done.
                     popup.close();
                 }.bind(this));
             }.bind(this));
@@ -106,26 +111,23 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
         }.bind(this));
     };
 
-    RearrangeArea.prototype._setPosition = function(elementid, refpoint) {
+    RearrangeArea.prototype._setPosition = function(elementid, refpoint, posx, posy) {
         var element = Y.one('#element-' + elementid);
 
-        var pixelsinmm = 3.779527559055;
-        var pdfx = Y.one('#pdf').getX();
-        var pdfy = Y.one('#pdf').getY();
-        var posx = pdfx + $('#editelementform #id_posx').val() * pixelsinmm;
-        var posy = pdfy + $('#editelementform #id_posy').val() * pixelsinmm;
+        var posx = Y.one('#pdf').getX() + posx * this.PIXELSINMM;
+        var posy = Y.one('#pdf').getY() + posy * this.PIXELSINMM;
         var nodewidth = parseFloat(element.getComputedStyle('width'));
-        var maxwidth = element.width * this.pixelsinmm;
+        var maxwidth = element.width * this.PIXELSINMM;
 
         if (maxwidth && (nodewidth > maxwidth)) {
             nodewidth = maxwidth;
         }
 
         switch (refpoint) {
-            case '1': // Top-center.
+            case this.CUSTOMCERT_REF_POINT_TOPCENTER:
                 posx -= nodewidth / 2;
                 break;
-            case '2': // Top-right.
+            case this.CUSTOMCERT_REF_POINT_TOPRIGHT:
                 posx = posx - nodewidth + 2;
                 break;
         }
