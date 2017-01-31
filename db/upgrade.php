@@ -31,5 +31,19 @@ defined('MOODLE_INTERNAL') || die;
  * @return bool always true
  */
 function xmldb_customcert_upgrade($oldversion) {
+    global $DB;
+
+    $dbman = $DB->get_manager();
+
+    if ($oldversion < 2016052306) {
+
+        $table = new xmldb_table('customcert_templates');
+        $field = new xmldb_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'id');
+        $dbman->change_field_precision($table, $field);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2016052306, 'customcert');
+    }
+
     return true;
 }
