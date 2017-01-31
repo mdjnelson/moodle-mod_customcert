@@ -70,6 +70,10 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
         // Place the content in the dialogue.
         template.replaceNode('#elementcontent', html, js);
 
+        // We may have dragged the element changing it's position.
+        // Ensure the form has the current up-to-date location.
+        this._setPositionInForm(elementid);
+
         // Add events for when we save, close and cancel the page.
         var body = $(popup.getContent());
         body.on('click', '#id_submitbutton', function(e) {
@@ -134,6 +138,34 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
 
         element.setX(posx);
         element.setY(posy);
+    };
+
+    RearrangeArea.prototype._setPositionInForm = function(elementid) {
+       var posxelement = $('#editelementform #id_posx');
+       var posyelement = $('#editelementform #id_posy');
+
+       if (posxelement.length && posyelement.length) {
+           var element = Y.one('#element-' + elementid);
+           var posx = element.getX() - Y.one('#pdf').getX();
+           var posy = element.getY() - Y.one('#pdf').getY();
+           var refpoint = parseInt(element.getData('refpoint'));
+           var nodewidth = parseFloat(element.getComputedStyle('width'));
+
+           switch (refpoint) {
+               case this.CUSTOMCERT_REF_POINT_TOPCENTER:
+                   posx += nodewidth / 2;
+                   break;
+               case this.CUSTOMCERT_REF_POINT_TOPRIGHT:
+                   posx += nodewidth;
+                   break;
+           }
+
+           posx = Math.round(parseFloat(posx / this.PIXELSINMM));
+           posy = Math.round(parseFloat(posy / this.PIXELSINMM));
+
+           posxelement.val(posx);
+           posyelement.val(posy);
+       }
     };
 
     RearrangeArea.prototype._getElementHTML = function(elementid) {
