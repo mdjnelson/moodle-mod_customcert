@@ -64,6 +64,10 @@ class element extends \mod_customcert\element {
         $mform->setDefault('height', 0);
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
+        if (get_config('customcert', 'showposxy')) {
+            \mod_customcert\element_helper::render_form_element_position($mform);
+        }
+
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
     }
 
@@ -89,7 +93,9 @@ class element extends \mod_customcert\element {
         }
 
         // Validate the position.
-        $errors += \mod_customcert\element_helper::validate_form_element_position($data);
+        if (get_config('customcert', 'showposxy')) {
+            $errors += \mod_customcert\element_helper::validate_form_element_position($data);
+        }
 
         return $errors;
     }
