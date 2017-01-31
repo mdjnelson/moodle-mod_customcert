@@ -86,6 +86,7 @@ $string['modulename_help'] = 'This module allows for the dynamic generation of P
 $string['modulename_link'] = 'Custom_certificate_module';
 $string['mycertificates'] = 'My certificates';
 $string['name'] = 'Name';
+$string['nametoolong'] = 'You have exceeded the maximum length allowed for the name';
 $string['nocustomcerts'] = 'There are no custom certificates for this course';
 $string['noimage'] = 'No image';
 $string['notemplates'] = 'No templates';
