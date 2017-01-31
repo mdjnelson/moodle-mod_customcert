@@ -51,7 +51,7 @@ class edit_form extends \moodleform {
 
         $mform =& $this->_form;
 
-        $mform->addElement('text', 'name', get_string('name', 'customcert'));
+        $mform->addElement('text', 'name', get_string('name', 'customcert'), 'maxlength="255"');
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required');
 
@@ -129,6 +129,10 @@ class edit_form extends \moodleform {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+
+        if (\core_text::strlen($data['name']) > 255) {
+            $errors['name'] = get_string('nametoolong', 'customcert');
+        }
 
         // Go through the data and check any width, height or margin  values.
         foreach ($data as $key => $value) {
