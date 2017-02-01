@@ -206,8 +206,6 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
         echo $OUTPUT->box_start();
         echo get_string('issued', 'customcert') . ": ";
         echo userdate($issue->timecreated);
-        customcert_print_user_files($customcert->id, $user->id);
-        echo '<br />';
         echo $OUTPUT->box_end();
     } else {
         print_string('notissuedyet', 'customcert');
