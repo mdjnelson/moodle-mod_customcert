@@ -350,6 +350,14 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
         $customcertnode->add_node($node, $beforekey);
     }
 
+    if (has_capability('mod/customcert:verifycertificate', $PAGE->cm->context)) {
+        $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
+            new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $PAGE->cm->context->id)),
+            navigation_node::TYPE_SETTING, null, 'mod_customcert_verify_certificate',
+            new pix_icon('t/check', ''));
+        $customcertnode->add_node($node, $beforekey);
+    }
+
     return $customcertnode->trim_if_empty();
 }
 
