@@ -107,6 +107,7 @@ $string['receiveddate'] = 'Received date';
 $string['refpoint'] = 'Reference point location';
 $string['refpoint_help'] = 'The reference point is the location of an element from which its x and y coordinates are determined. It is indicated by the \'+\' that appears in the centre or corners of the element.';
 $string['replacetemplate'] = 'Replace';
+$string['requiredtimenotmet'] = 'You must spend at least a minimum of {$a->requiredtime} minutes in the course before you can access this certificate.';
 $string['rightmargin'] = 'Right margin';
 $string['rightmargin_help'] = 'This is the right margin of the certificate PDF in mm.';
 $string['save'] = 'Save';
