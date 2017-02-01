@@ -1,0 +1,9 @@
+{{#success}}
+    {{#issues}}
+        {{> mod_customcert/verify_certificate_result }}
+    {{/issues}}
+    {{> core/notification_success}}
+{{/success}}
+{{^success}}
+    {{> core/notification_error}}
+{{/success}}
