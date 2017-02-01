@@ -52,7 +52,7 @@ $capabilities = array(
     'mod/customcert:manage' => array(
 
         'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE, CONTEXT_SYSTEM,
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
