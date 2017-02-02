@@ -57,6 +57,18 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $mform->addElement('header', 'options', get_string('options', 'customcert'));
 
+        $mform->addElement('selectyesno', 'emailstudents', get_string('emailstudents', 'customcert'));
+        $mform->setType('emailstudents', 0);
+        $mform->addHelpButton('emailstudents', 'emailstudents', 'customcert');
+
+        $mform->addElement('selectyesno', 'emailteachers', get_string('emailteachers', 'customcert'));
+        $mform->setDefault('emailteachers', 0);
+        $mform->addHelpButton('emailteachers', 'emailteachers', 'customcert');
+
+        $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), array('size' => '40'));
+        $mform->setType('emailothers', PARAM_TEXT);
+        $mform->addHelpButton('emailothers', 'emailothers', 'customcert');
+
         $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
         $mform->setType('requiredtime', PARAM_INT);
         $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
