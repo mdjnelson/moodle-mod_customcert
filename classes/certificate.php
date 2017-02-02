@@ -165,14 +165,22 @@ class certificate {
      * Get the time the user has spent in the course.
      *
      * @param int $courseid
+     * @param int $userid
      * @return int the total time spent in seconds
      */
-    public static function get_course_time($courseid) {
+    public static function get_course_time($courseid, $userid = 0) {
         global $CFG, $DB, $USER;
+
+        if (empty($userid)) {
+            $userid = $USER->id;
+        }
 
         $logmanager = get_log_manager();
         $readers = $logmanager->get_readers();
         $enabledreaders = get_config('tool_log', 'enabled_stores');
+        if (empty($enabledreaders)) {
+            return 0;
+        }
         $enabledreaders = explode(',', $enabledreaders);
 
         // Go through all the readers until we find one that we can use.
@@ -201,7 +209,7 @@ class certificate {
                  WHERE userid = :userid
                    AND $coursefield = :courseid
               ORDER BY $timefield ASC";
-        $params = array('userid' => $USER->id, 'courseid' => $courseid);
+        $params = array('userid' => $userid, 'courseid' => $courseid);
         $totaltime = 0;
         if ($logs = $DB->get_recordset_sql($sql, $params)) {
             foreach ($logs as $log) {

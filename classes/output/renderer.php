@@ -49,4 +49,15 @@ class renderer extends plugin_renderer_base {
         $data = $page->export_for_template($this);
         return parent::render_from_template('mod_customcert/verify_certificate_results', $data);
     }
+
+    /**
+     * Formats the email used to send the certificate by the email_certificate_task.
+     *
+     * @param email_certificate $certificate The certificate to email
+     * @return string
+     */
+    public function render_email_certificate(email_certificate $certificate) {
+        $data = $certificate->export_for_template($this);
+        return $this->render_from_template('mod_customcert/' . $this->get_template_name(), $data);
+    }
 }

@@ -57,6 +57,20 @@ $string['elements_help'] = 'This is the list of elements that will be displayed 
 Please note: The elements are rendered in this order. The order can be changed by using the arrows next to each element.';
 $string['elementwidth'] = 'Width';
 $string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
+$string['emailnonstudentbody'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
+$string['emailnonstudentcertificatelinktext'] = 'View certificate report';
+$string['emailnonstudentgreeting'] = 'Hi';
+$string['emailnonstudentsubject'] = '{$a->coursename}: {$a->certificatename}';
+$string['emailstudentbody'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
+$string['emailstudentcertificatelinktext'] = 'View certificate';
+$string['emailstudentgreeting'] = 'Dear {$a}';
+$string['emailstudentsubject'] = '{$a->coursename}: {$a->certificatename}';
+$string['emailstudents'] = 'Email students';
+$string['emailstudents_help'] = 'If set this will email the students a copy of the certificate when it becomes available.';
+$string['emailteachers'] = 'Email teachers';
+$string['emailteachers_help'] = 'If set this will email the teachers a copy of the certificate when it becomes available.';
+$string['emailothers'] = 'Email others';
+$string['emailothers_help'] = 'If set this will email the email addresses listed here (separated by a comma) with a copy of the certificate when it becomes available.';
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';
 $string['fontcolour'] = 'Colour';
@@ -127,6 +141,7 @@ $string['showposxy_desc'] = 'This will show the X and Y position when editing of
 
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
 $string['summaryofissue'] = 'Summary of issue';
+$string['taskemailcertificate'] = 'Handles emailing certificates.';
 $string['templatename'] = 'Template name';
 $string['templatenameexists'] = 'That template name is currently in use, please choose another.';
 $string['topcenter'] = 'Center';
