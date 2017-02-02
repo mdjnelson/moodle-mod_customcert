@@ -40,6 +40,7 @@ function customcert_add_instance($data, $mform) {
 
     // Add the data to the DB.
     $data->templateid = $template->get_id();
+    $data->emailstudents = (int) !empty($data->emailstudents);
     $data->protection = \mod_customcert\certificate::set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
@@ -61,6 +62,7 @@ function customcert_add_instance($data, $mform) {
 function customcert_update_instance($data, $mform) {
     global $DB;
 
+    $data->emailstudents = (int) !empty($data->emailstudents);
     $data->protection = \mod_customcert\certificate::set_protection($data);
     $data->timemodified = time();
     $data->id = $data->instance;

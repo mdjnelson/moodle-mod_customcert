@@ -250,8 +250,10 @@ class template {
      *
      * @param bool $preview true if it is a preview, false otherwise
      * @param int $userid the id of the user whose certificate we want to view
+     * @param bool $return Do we want to return the contents of the PDF?
+     * @return string|void Can return the PDF in string format if specified.
      */
-    public function generate_pdf($preview = false, $userid = null) {
+    public function generate_pdf($preview = false, $userid = null, $return = false) {
         global $CFG, $DB, $USER;
 
         if (empty($userid)) {
@@ -302,6 +304,9 @@ class template {
                         }
                     }
                 }
+            }
+            if ($return) {
+                return $pdf->Output('', 'S');
             }
             $pdf->Output($filename, 'D');
         }

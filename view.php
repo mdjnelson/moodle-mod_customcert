@@ -118,7 +118,7 @@ if (empty($action)) {
     echo $downloadbutton;
     echo $OUTPUT->footer($course);
     exit;
-} else { // Output to pdf
+} else { // Output to pdf.
     // Create new customcert issue record if one does not already exist.
     if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
         $customcertissue = new stdClass();

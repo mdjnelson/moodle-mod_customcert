@@ -32,6 +32,7 @@ $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
 the certificate.';
 $string['createtemplate'] = 'Create template';
+$string['crontask'] = 'Custom certificate cron job';
 $string['customcertreport'] = 'Custom certificate report';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
 $string['customcert:manage'] = 'Manage a custom certificate';
@@ -57,6 +58,9 @@ $string['elements_help'] = 'This is the list of elements that will be displayed 
 Please note: The elements are rendered in this order. The order can be changed by using the arrows next to each element.';
 $string['elementwidth'] = 'Width';
 $string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
+$string['emailstudents'] = 'Email students';
+$string['emailstudents_help'] = 'If set this will email the students a copy of the certificate when it becomes available.';
+$string['emailstudenttext'] = 'Attached is your certificate for {$a->course}.';
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';
 $string['fontcolour'] = 'Colour';
@@ -127,6 +131,7 @@ $string['showposxy_desc'] = 'This will show the X and Y position when editing of
 
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
 $string['summaryofissue'] = 'Summary of issue';
+$string['taskemailcertificate'] = 'Handles emailing certificates.';
 $string['templatename'] = 'Template name';
 $string['templatenameexists'] = 'That template name is currently in use, please choose another.';
 $string['topcenter'] = 'Center';
