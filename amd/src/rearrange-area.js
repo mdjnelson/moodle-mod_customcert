@@ -118,8 +118,8 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
     RearrangeArea.prototype._setPosition = function(elementid, refpoint, posx, posy) {
         var element = Y.one('#element-' + elementid);
 
-        var posx = Y.one('#pdf').getX() + posx * this.PIXELSINMM;
-        var posy = Y.one('#pdf').getY() + posy * this.PIXELSINMM;
+        posx = Y.one('#pdf').getX() + posx * this.PIXELSINMM;
+        posy = Y.one('#pdf').getY() + posy * this.PIXELSINMM;
         var nodewidth = parseFloat(element.getComputedStyle('width'));
         var maxwidth = element.width * this.PIXELSINMM;
 
