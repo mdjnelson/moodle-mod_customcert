@@ -40,6 +40,13 @@ $pageurl = new moodle_url('/mod/customcert/index.php', array('id' => $course->id
 $PAGE->set_pagelayout('incourse');
 $PAGE->navbar->add(get_string('modulenameplural', 'customcert'));
 
+// Add the page view to the Moodle log
+$event = \mod_customcert\event\course_module_instance_list_viewed::create(array(
+    'context' => context_course::instance($course->id)
+));
+$event->add_record_snapshot('course', $course);
+$event->trigger();
+
 // Get the customcerts, if there are none display a notice.
 if (!$customcerts = get_all_instances_in_course('customcert', $course)) {
     echo $OUTPUT->header();

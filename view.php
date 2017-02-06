@@ -51,6 +51,14 @@ if ($customcert->requiredtime && !has_capability('mod/customcert:manage', $conte
     }
 }
 
+$event = \mod_customcert\event\course_module_viewed::create(array(
+    'objectid' => $customcert->id,
+    'context' => $context,
+));
+$event->add_record_snapshot('course', $course);
+$event->add_record_snapshot('customcert', $customcert);
+$event->trigger();
+
 // Check that no action was passed, if so that means we are not outputting to PDF.
 if (empty($action)) {
     // Get the current groups mode.
