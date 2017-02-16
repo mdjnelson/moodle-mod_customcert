@@ -113,21 +113,20 @@ class element extends \mod_customcert\element {
 
         $context = \context_user::instance($user->id);
 
-        // Prepare file record object.
-        $fileinfo = array(
-            'component' => 'user',
-            'filearea' => 'icon',
-            'itemid' => 0,
-            'contextid' => $context->id,
-            'filepath' => '/',
-            'filename' => 'f1.png');
-
-        // Get file.
+        // Get files in the user icon area.
         $fs = get_file_storage();
-        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
-                      $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
+        $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
 
-        // Show image.
+        // Get the file we want to display.
+        $file = null;
+        foreach ($files as $filefound) {
+            if (!$filefound->is_directory()) {
+                $file = $filefound;
+                break;
+            }
+        }
+
+        // Show image if we found one.
         if ($file) {
             $contenthash = $file->get_contenthash();
             $l1 = $contenthash[0] . $contenthash[1];
