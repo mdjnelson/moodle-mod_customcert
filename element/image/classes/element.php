@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element image's core interaction API.
+ *
+ * @package    customcertelement_image
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_image;
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,6 +35,9 @@ defined('MOODLE_INTERNAL') || die();
  */
 class element extends \mod_customcert\element {
 
+    /**
+     * @var array The file manager options.
+     */
     protected $filemanageroptions = array();
 
     /**
@@ -68,7 +79,8 @@ class element extends \mod_customcert\element {
             \mod_customcert\element_helper::render_form_element_position($mform);
         }
 
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
+        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
+            $this->filemanageroptions);
     }
 
     /**
@@ -237,7 +249,6 @@ class element extends \mod_customcert\element {
             $context = \context_course::instance($COURSE->id);
         }
 
-
         // Editing existing instance - copy existing files into draft area.
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
         file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
@@ -267,7 +278,8 @@ class element extends \mod_customcert\element {
             }
         }
         // Loop through the files uploaded in the course context.
-        if ($files = $fs->get_area_files(\context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false, 'filename', false)) {
+        if ($files = $fs->get_area_files(\context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false,
+            'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$hash] = $file->get_filename();
             }

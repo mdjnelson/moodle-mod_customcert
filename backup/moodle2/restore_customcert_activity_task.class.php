@@ -27,8 +27,11 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_stepslib.php');
 
 /**
- * The class definition for assigning restore tasks that provides all the settings and steps
- * to perform one complete restore of the activity.
+ * The class definition for assigning tasks that provide the settings and steps to perform a restore of the activity.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_customcert_activity_task extends restore_activity_task {
 

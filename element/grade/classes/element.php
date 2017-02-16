@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element grade's core interaction API.
+ *
+ * @package    customcertelement_grade
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_grade;
 
 defined('MOODLE_INTERNAL') || die();
@@ -53,7 +61,8 @@ class element extends \mod_customcert\element {
         $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
 
         // The grade format.
-        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelement_grade'), self::get_grade_format_options());
+        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelement_grade'),
+            self::get_grade_format_options());
         $mform->setType('gradeformat', PARAM_INT);
         $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
 

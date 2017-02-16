@@ -30,6 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * Class element
  *
  * All customercert element plugins are based on this class.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class element {
 
@@ -216,7 +220,9 @@ abstract class element {
      *
      * @param \restore_customcert_activity_task $restore
      */
-    public function after_restore($restore) { }
+    public function after_restore($restore) {
+
+    }
 
     /**
      * Magic getter for read only access.

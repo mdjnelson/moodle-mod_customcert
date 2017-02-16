@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the instance add/edit form.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot.'/course/moodleform_mod.php');
@@ -53,7 +61,8 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->setType('requiredtime', PARAM_INT);
         $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
 
-        $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'), get_string('print', 'customcert'));
+        $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'),
+            get_string('print', 'customcert'));
         $mform->addElement('checkbox', 'protection_modify', '', get_string('modify', 'customcert'));
         $mform->addElement('checkbox', 'protection_copy', '', get_string('copy', 'customcert'));
         $mform->addHelpButton('protection_print', 'setprotection', 'customcert');

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the form for handling the layout of the customcert instance.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace mod_customcert;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
@@ -34,12 +42,12 @@ require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 class edit_form extends \moodleform {
 
     /**
-     * The id of the template being used.
+     * @var int The id of the template being used.
      */
     protected $tid = null;
 
     /**
-     * The total number of pages for this cert.
+     * @var int The total number of pages for this cert.
      */
     protected $numpages = 1;
 
@@ -123,8 +131,8 @@ class edit_form extends \moodleform {
     /**
      * Some basic validation.
      *
-     * @param $data
-     * @param $files
+     * @param array $data
+     * @param array $files
      * @return array the errors that were found
      */
     public function validation($data, $files) {
@@ -285,7 +293,8 @@ class edit_form extends \moodleform {
         if ($this->numpages > 1) {
             // Link to delete the element.
             $deletelink = new \moodle_url($editlink, $editlinkparams + array('action' => 'deletepage', 'aid' => $page->id));
-            $deletelink = \html_writer::tag('a', get_string('deletecertpage', 'customcert'), array('href' => $deletelink->out(false), 'class' => 'deletebutton'));
+            $deletelink = \html_writer::tag('a', get_string('deletecertpage', 'customcert'),
+                array('href' => $deletelink->out(false), 'class' => 'deletebutton'));
             $mform->addElement('html', \html_writer::tag('div', $deletelink, array('class' => 'deletebutton')));
         }
     }

@@ -27,6 +27,13 @@ use core\plugininfo\base;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Subplugin info class.
+ *
+ * @package   mod_customcert
+ * @copyright 2013 Mark Nelson <markn@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class customcertelement extends base {
 
     /**

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element date's core interaction API.
+ *
+ * @package    customcertelement_date
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_date;
 
 defined('MOODLE_INTERNAL') || die();
@@ -107,7 +115,8 @@ class element extends \mod_customcert\element {
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id), '*', MUST_EXIST);
+            $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id),
+                '*', MUST_EXIST);
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;

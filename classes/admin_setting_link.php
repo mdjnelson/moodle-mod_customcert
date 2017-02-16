@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert;
-
 /**
  * Creates an upload form on the settings page.
  *
@@ -23,10 +21,19 @@ namespace mod_customcert;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace mod_customcert;
+
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir.'/adminlib.php');
 
 /**
  * Class extends admin setting class to allow/process an uploaded file
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_link extends \admin_setting_configtext {
 
@@ -40,6 +47,18 @@ class admin_setting_link extends \admin_setting_configtext {
      */
     protected $linkname;
 
+    /**
+     * The admin_setting_link constructor.
+     *
+     * @param string $name
+     * @param string $visiblename
+     * @param string $description
+     * @param string $linkname
+     * @param mixed|string $link
+     * @param int|null $defaultsetting
+     * @param string $paramtype
+     * @param null $size
+     */
     public function __construct($name, $visiblename, $description, $linkname, $link, $defaultsetting,
                                 $paramtype = PARAM_RAW, $size=null) {
         $this->link = $link;

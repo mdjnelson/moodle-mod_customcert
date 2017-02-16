@@ -17,6 +17,7 @@
 /**
  * Class represents a customcert template.
  *
+ * @package    mod_customcert
  * @copyright  2015 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Class represents a customcert template.
  *
+ * @package    mod_customcert
  * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -70,7 +72,7 @@ class template {
         $savedata = new \stdClass();
         $savedata->id = $this->id;
         $savedata->name = $data->name;
-        $savedata->timemodified= time();
+        $savedata->timemodified = time();
 
         $DB->update_record('customcert_templates', $savedata);
     }

@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the form element for handling the colour picker.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once("HTML/QuickForm/text.php");
@@ -25,41 +33,19 @@ require_once("HTML/QuickForm/text.php");
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class MoodleQuickForm_customcert_colourpicker extends HTML_QuickForm_text {
+class moodlequickform_customcert_colourpicker extends HTML_QuickForm_text {
 
     /**
-     * The string for the help icon, if empty then no help icon will be displayed.
+     * @var string The string for the help icon, if empty then no help icon will be displayed.
      */
     public $_helpbutton = '';
-
-    /**
-     * Constructor for the colour picker.
-     *
-     * @param string $elementName
-     * @param string $elementLabel
-     * @param array $attributes
-     */
-    function __construct($elementName = null, $elementLabel = null, $attributes = null) {
-        parent::__construct($elementName, $elementLabel, $attributes);
-    }
-
-    /**
-     * Old school constructor name to support earlier versions of Moodle.
-     *
-     * @param string $elementName
-     * @param string $elementLabel
-     * @param array $attributes
-     */
-    function MoodleQuickForm_customcert_colourpicker($elementName = null, $elementLabel = null, $attributes = null) {
-        self::__construct($elementName, $elementLabel, $attributes);
-    }
 
     /**
      * Returns the html string to display this element.
      *
      * @return string
      */
-    public function toHtml() {
+    public function tohtml() {
         global $PAGE, $OUTPUT;
 
         $PAGE->requires->js_init_call('M.util.init_colour_picker', array($this->getAttribute('id'), null));
@@ -79,7 +65,7 @@ class MoodleQuickForm_customcert_colourpicker extends HTML_QuickForm_text {
      *
      * @return string html for help button
      */
-    public function getHelpButton(){
+    public function gethelpbutton() {
         return $this->_helpbutton;
     }
 }
