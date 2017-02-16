@@ -249,6 +249,8 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
 }
 
 /**
+ * The features this activity supports.
+ *
  * @uses FEATURE_GROUPS
  * @uses FEATURE_GROUPINGS
  * @uses FEATURE_GROUPMEMBERSONLY
@@ -380,9 +382,9 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
 /**
  * Handles editing the 'name' of the element in a list.
  *
- * @param $itemtype
- * @param $itemid
- * @param $newvalue
+ * @param string $itemtype
+ * @param int $itemid
+ * @param string $newvalue
  * @return \core\output\inplace_editable
  */
 function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {

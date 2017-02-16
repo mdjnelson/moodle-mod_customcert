@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element background image's core interaction API.
+ *
+ * @package    customcertelement_bgimage
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_bgimage;
 
 defined('MOODLE_INTERNAL') || die();
@@ -34,7 +42,8 @@ class element extends \customcertelement_image\element {
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '', $this->filemanageroptions);
+        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
+            $this->filemanageroptions);
     }
 
     /**

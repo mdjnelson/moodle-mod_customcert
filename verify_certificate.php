@@ -52,7 +52,7 @@ if ($form->get_data()) {
 
     // Ok, now check if the code is valid.
     $userfields = get_all_user_name_fields(true, 'u');
-    $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid, 
+    $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
                    co.fullname as coursefullname, c.name as certificatename
               FROM {customcert} c
               JOIN {customcert_issues} ci

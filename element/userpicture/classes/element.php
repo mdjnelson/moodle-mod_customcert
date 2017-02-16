@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element userpicture's core interaction API.
+ *
+ * @package    customcertelement_userpicture
+ * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_userpicture;
 
 defined('MOODLE_INTERNAL') || die();
@@ -165,7 +173,8 @@ class element extends \mod_customcert\element {
         // The size of the images to use in the CSS style.
         $style = '';
         if ($imageinfo->width === 0 && $imageinfo->height === 0) {
-            // Do nothing.
+            // Put this in so code checker doesn't complain.
+            $style .= '';
         } else if ($imageinfo->width === 0) { // Then the height must be set.
             $style .= 'width: ' . $imageinfo->height . 'mm; ';
             $style .= 'height: ' . $imageinfo->height . 'mm';

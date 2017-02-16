@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the form element for handling the colour picker.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/lib/form/editor.php');
@@ -25,41 +33,21 @@ require_once($CFG->dirroot . '/lib/form/editor.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class MoodleQuickForm_customcert_colourpicker extends MoodleQuickForm_editor {
-
-    /**
-     * Constructor for the colour picker.
-     *
-     * @param string $elementName
-     * @param string $elementLabel
-     * @param array $attributes
-     */
-    public function __construct($elementName = null, $elementLabel = null, $attributes = null) {
-        parent::__construct($elementName, $elementLabel, $attributes);
-    }
-
-    /**
-     * Old school constructor name to support earlier versions of Moodle.
-     *
-     * @param string $elementName
-     * @param string $elementLabel
-     * @param array $attributes
-     */
-    public function MoodleQuickForm_customcert_colourpicker($elementName = null, $elementLabel = null, $attributes = null) {
-        self::__construct($elementName, $elementLabel, $attributes);
-    }
+class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
 
     /**
      * Sets the value of the form element
+     *
+     * @param string $value
      */
-    public function setValue($value) {
+    public function setvalue($value) {
         $this->updateAttributes(array('value' => $value));
     }
 
     /**
      * Gets the value of the form element
      */
-    public function getValue() {
+    public function getvalue() {
         return $this->getAttribute('value');
     }
 
@@ -68,7 +56,7 @@ class MoodleQuickForm_customcert_colourpicker extends MoodleQuickForm_editor {
      *
      * @return string
      */
-    public function toHtml() {
+    public function tohtml() {
         global $PAGE, $OUTPUT;
 
         $PAGE->requires->js_init_call('M.util.init_colour_picker', array($this->getAttribute('id'), null));
@@ -83,6 +71,12 @@ class MoodleQuickForm_customcert_colourpicker extends MoodleQuickForm_editor {
         return $content;
     }
 
+    /**
+     * Function to export the renderer data in a format that is suitable for a mustache template.
+     *
+     * @param \renderer_base $output Used to do a final render of any components that need to be rendered for export.
+     * @return \stdClass|array
+     */
     public function export_for_template(renderer_base $output) {
         $context = $this->export_for_template_base($output);
         $context['html'] = $this->toHtml();

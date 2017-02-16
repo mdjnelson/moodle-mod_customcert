@@ -68,6 +68,12 @@ class verify_certificate_results implements templatable, renderable {
         $this->issues = $result->issues;
     }
 
+    /**
+     * Function to export the renderer data in a format that is suitable for a mustache template.
+     *
+     * @param \renderer_base $output Used to do a final render of any components that need to be rendered for export.
+     * @return \stdClass|array
+     */
     public function export_for_template(\renderer_base $output) {
         $result = new \stdClass();
         $result->success = $this->success;

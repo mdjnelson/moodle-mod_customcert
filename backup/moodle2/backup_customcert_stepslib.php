@@ -26,6 +26,10 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 /**
  * Define the complete customcert structure for backup, with file and id annotations.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_customcert_activity_structure_step extends backup_activity_structure_step {
 

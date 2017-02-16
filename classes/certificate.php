@@ -30,6 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * Class certificate.
  *
  * Helper functionality for certificates.
+ *
+ * @package    mod_customcert
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class certificate {
 
@@ -202,7 +206,7 @@ class certificate {
         if ($logs = $DB->get_recordset_sql($sql, $params)) {
             foreach ($logs as $log) {
                 if (!isset($login)) {
-                    // For the first time $login is not set so the first log is also the first login
+                    // For the first time $login is not set so the first log is also the first login.
                     $login = $log->$timefield;
                     $lasthit = $log->$timefield;
                     $totaltime = 0;
@@ -215,7 +219,7 @@ class certificate {
                 } else {
                     $totaltime += $delay;
                 }
-                // Now the actual log became the previous log for the next cycle
+                // Now the actual log became the previous log for the next cycle.
                 $lasthit = $log->$timefield;
             }
 

@@ -15,8 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains the backup tasks that provides all the settings and steps to perform
- * one complete backup of the activity.
+ * This file contains the backup tasks that provides all the settings and steps to perform a backup of the activity.
  *
  * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
@@ -29,6 +28,10 @@ require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/backup_customcert_s
 
 /**
  * Handles creating tasks to peform in order to create the backup.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_customcert_activity_task extends backup_activity_task {
 
@@ -49,6 +52,9 @@ class backup_customcert_activity_task extends backup_activity_task {
 
     /**
      * Code the transformations to perform in the activity in order to get transportable (encoded) links.
+     *
+     * @param string $content
+     * @return mixed|string
      */
     static public function encode_content_links($content) {
         global $CFG;
@@ -56,11 +62,11 @@ class backup_customcert_activity_task extends backup_activity_task {
         $base = preg_quote($CFG->wwwroot, "/");
 
         // Link to the list of customcerts.
-        $search ="/(".$base."\/mod\/customcert\/index.php\?id\=)([0-9]+)/";
+        $search = "/(".$base."\/mod\/customcert\/index.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@customcertINDEX*$2@$', $content);
 
         // Link to customcert view by moduleid.
-        $search ="/(".$base."\/mod\/customcert\/view.php\?id\=)([0-9]+)/";
+        $search = "/(".$base."\/mod\/customcert\/view.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@customcertVIEWBYID*$2@$', $content);
 
         return $content;

@@ -40,7 +40,7 @@ $pageurl = new moodle_url('/mod/customcert/index.php', array('id' => $course->id
 $PAGE->set_pagelayout('incourse');
 $PAGE->navbar->add(get_string('modulenameplural', 'customcert'));
 
-// Add the page view to the Moodle log
+// Add the page view to the Moodle log.
 $event = \mod_customcert\event\course_module_instance_list_viewed::create(array(
     'context' => context_course::instance($course->id)
 ));
@@ -72,8 +72,8 @@ foreach ($customcerts as $customcert) {
         $link = html_writer::tag('a', $customcert->name, array('href' => new moodle_url('/mod/customcert/view.php',
             array('id' => $customcert->coursemodule))));
     } else {
-        $link = html_writer::tag('a', $customcert->name, array('class' => 'dimmed', 'href' =>
-            new moodle_url('/mod/customcert/view.php', array('id' => $customcert->coursemodule))));
+        $link = html_writer::tag('a', $customcert->name, array('class' => 'dimmed',
+            'href' => new moodle_url('/mod/customcert/view.php', array('id' => $customcert->coursemodule))));
     }
     // If we are at a different section then print a horizontal rule.
     if ($customcert->section !== $currentsection) {

@@ -60,7 +60,7 @@ $PAGE->navbar->add($str, new \action_link($link, $str));
 $PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
 
 // Include the JS we need.
-$PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'M.mod_customcert.rearrange.init',
+$PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'Y.M.mod_customcert.rearrange.init',
     array($template->get_id(),
           $page,
           $elements));

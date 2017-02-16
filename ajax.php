@@ -22,11 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(__DIR__ . '/../../config.php');
+
 if (!defined('AJAX_SCRIPT')) {
     define('AJAX_SCRIPT', true);
 }
-
-require_once(__DIR__ . '/../../config.php');
 
 $tid = required_param('tid', PARAM_INT);
 $values = required_param('values', PARAM_RAW);

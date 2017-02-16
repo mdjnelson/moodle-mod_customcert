@@ -15,12 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-* Provides useful functions related to elements.
-*
-* @package    mod_customcert
-* @copyright  2016 Mark Nelson <markn@moodle.com>
-* @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-*/
+ * Provides useful functions related to elements.
+ *
+ * @package    mod_customcert
+ * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace mod_customcert;
 
@@ -30,6 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * Class helper.
  *
  * Provides useful functions related to elements.
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element_helper {
 
@@ -56,7 +60,7 @@ class element_helper {
      * @param string $content the content to render
      */
     public static function render_content($pdf, $element, $content) {
-        list($font, $attr) = \mod_customcert\element_helper::get_font($element);
+        list($font, $attr) = self::get_font($element);
         $pdf->setFont($font, $attr, $element->size);
         $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
@@ -107,7 +111,7 @@ class element_helper {
      * @return string the html
      */
     public static function render_html_content($element, $content) {
-        list($font, $attr) = \mod_customcert\element_helper::get_font($element);
+        list($font, $attr) = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
             $fontstyle .= ': font-weight: bold';
@@ -196,7 +200,7 @@ class element_helper {
     public static function validate_form_element_colour($data) {
         $errors = array();
         // Validate the colour.
-        if (!\mod_customcert\element_helper::validate_colour($data['colour'])) {
+        if (!self::validate_colour($data['colour'])) {
             $errors['colour'] = get_string('invalidcolour', 'customcert');
         }
         return $errors;
