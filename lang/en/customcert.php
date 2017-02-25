@@ -25,6 +25,7 @@
 $string['addcertpage'] = 'Add another certificate page';
 $string['addelement'] = 'Add element';
 $string['awardedto'] = 'Awarded to';
+$string['certificate'] = 'Certificate';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
 $string['coursetimereq'] = 'Required minutes in course';

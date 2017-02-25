@@ -42,7 +42,7 @@
     }
 }}
 <ul class="list-unstyled unstyled">
-    <li><strong>Fullname:</strong> <a href="{{{userprofileurl}}}">{{userfullname}}</a></li>
-    <li><strong>Course:</strong> <a href="{{{courseurl}}}">{{coursefullname}}</a></li>
-    <li><strong>Certificate:</strong> {{certificatename}}</li>
+    <li><strong>{{#str}}fullname{{/str}}:</strong> <a href="{{{userprofileurl}}}">{{userfullname}}</a></li>
+    <li><strong>{{#str}}course{{/str}}:</strong> <a href="{{{courseurl}}}">{{coursefullname}}</a></li>
+    <li><strong>{{#str}}certificate, customcert{{/str}}:</strong> {{certificatename}}</li>
 </ul>
