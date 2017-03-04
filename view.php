@@ -107,7 +107,6 @@ if (empty($action)) {
     $linkname = get_string('getcustomcert', 'customcert');
     $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'action' => 'download'));
     $downloadbutton = new single_button($link, $linkname);
-    $downloadbutton->add_action(new popup_action('click', $link, 'customcertpopup', array('height' => 600, 'width' => 800)));
     $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), array('style' => 'text-align:center'));
 
     // Output all the page data.
