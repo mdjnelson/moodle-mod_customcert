@@ -136,10 +136,8 @@ class element extends \mod_customcert\element {
 
         // Show image if we found one.
         if ($file) {
-            $contenthash = $file->get_contenthash();
-            $l1 = $contenthash[0] . $contenthash[1];
-            $l2 = $contenthash[2] . $contenthash[3];
-            $location = $CFG->dataroot . '/filedir/' . $l1 . '/' . $l2 . '/' . $contenthash;
+            $location = make_request_directory() . '/target';
+            $file->copy_content_to($location);
             $pdf->Image($location, $this->element->posx, $this->element->posy, $imageinfo->width, $imageinfo->height);
         } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
             $location = $CFG->dirroot . '/pix/u/f1.png';

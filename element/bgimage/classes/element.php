@@ -84,8 +84,6 @@ class element extends \customcertelement_image\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        global $CFG;
-
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
             return;
@@ -96,10 +94,8 @@ class element extends \customcertelement_image\element {
         // Get the image.
         $fs = get_file_storage();
         if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
-            $contenthash = $file->get_contenthash();
-            $l1 = $contenthash[0] . $contenthash[1];
-            $l2 = $contenthash[2] . $contenthash[3];
-            $location = $CFG->dataroot . '/filedir' . '/' . $l1 . '/' . $l2 . '/' . $contenthash;
+            $location = make_request_directory() . '/target';
+            $file->copy_content_to($location);
 
             // Set the image to the size of the PDF page.
             $pdf->Image($location, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
