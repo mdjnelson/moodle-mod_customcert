@@ -114,10 +114,10 @@ class element_helper {
         list($font, $attr) = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
-            $fontstyle .= ': font-weight: bold';
+            $fontstyle .= '; font-weight: bold';
         }
         if (strpos($attr, 'I') !== false) {
-            $fontstyle .= ': font-style: italic';
+            $fontstyle .= '; font-style: italic';
         }
 
         $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->size . 'pt;';
