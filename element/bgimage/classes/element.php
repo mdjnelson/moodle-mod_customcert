@@ -98,7 +98,12 @@ class element extends \customcertelement_image\element {
             $file->copy_content_to($location);
 
             // Set the image to the size of the PDF page.
-            $pdf->Image($location, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
+            $mimetype = $file->get_mimetype();
+            if ($mimetype == 'image/svg+xml') {
+                $pdf->ImageSVG($location, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
+            } else {
+                $pdf->Image($location, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
+            }
         }
     }
 

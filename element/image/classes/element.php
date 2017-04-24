@@ -173,7 +173,13 @@ class element extends \mod_customcert\element {
         if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
-            $pdf->Image($location, $this->element->posx, $this->element->posy, $imageinfo->width, $imageinfo->height);
+
+            $mimetype = $file->get_mimetype();
+            if ($mimetype == 'image/svg+xml') {
+                $pdf->ImageSVG($location, $this->element->posx, $this->element->posy, $imageinfo->width, $imageinfo->height);
+            } else {
+                $pdf->Image($location, $this->element->posx, $this->element->posy, $imageinfo->width, $imageinfo->height);
+            }
         }
     }
 
