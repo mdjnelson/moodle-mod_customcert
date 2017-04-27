@@ -1,49 +1,37 @@
-QUICK INSTALL
-=============
+# The custom certificate activity
 
-There are two installation methods that are available. Follow one of these, then log into your Moodle site as an administrator and visit the notifications page to complete the install.
+This activity allows the dynamic generation of PDF certificates with complete customisation via the web browser.
 
-==================== MOST RECOMMENDED METHOD - Git ====================
+## Installation
 
-If you do not have git installed, please see the below link. Please note, it is not necessary to set up the SSH Keys. This is only needed if you are going to create a repository of your own on github.com.
+There are two installation methods that are available. 
 
-Information on installing git - http://help.github.com/set-up-git-redirect/
+Follow one of these, then log into your Moodle site as an administrator and visit the notifications page to complete the install.
 
-Once you have git installed, simply visit the Moodle mod directory and clone git://github.com/markn86/moodle-mod_customcert.git, remember to rename the folder to customcert if you do not specify this in the clone command
+### Git
 
-Eg. Linux command line would be as follow -
+This requires Git being installed. If you do not have Git installed, please visit the [Git website](https://git-scm.com/downloads "Git website").
 
-git clone git://github.com/markn86/moodle-mod_customcert.git customcert
+Once you have Git installed, simply visit your Moodle mod directory and clone the repository using the following command.
 
-Use git pull to update this repository periodically to ensure you have the latest version.
+<code>git clone https://github.com/markn86/moodle-mod_customcert.git customcert</code>
 
-==================== Download the customcert module. ====================
+Then checkout the branch corresponding to the version of Moodle you are running using the following command.
 
-Visit https://github.com/markn86/moodle-mod_customcert and download the zip, uncompress this zip and extract the folder. The folder will have a name similar to markn86-moodle-mod_customcert-c9fbadb, you MUST rename this to customcert. Place this folder in your mod folder in your Moodle directory.
+Note - replace MOODLE_32_STABLE with the version of Moodle you are using.
 
-nb. The reason this is not the recommended method is due to the fact you have to over-write the contents of this folder to apply any future updates to the customcert module. In the above method there is a simple command to update the files.
+<code>git checkout MOODLE_32_STABLE</code>
 
+Use <code>git pull</code> to update this repository periodically to ensure you have the most recent updates.
 
-Customisation
-=============
+### Download the zip
 
-========================= Add Fonts to TCPDF. =========================
+Visit the [Moodle plugins website](https://moodle.org/plugins/mod_customcert "Moodle plugins website") and download the zip corresponding to the version of Moodle you are using. Extract the zip and place the 'customcert' folder in the mod folder in your Moodle directory.
 
-For customization, you have a couple of options in the Custom Certificate module. One of the most common customizations is, adding fonts to the Certificate creator.
+## More information
 
-Custom Certificate uses a pdf creator called TCPDF, which embeds fonts into the PDF file, so that you can view fonts, even though they are not installed on the target machine. This requires you to tell TCPDF which fonts to take.
+Please visit the [wiki page](https://docs.moodle.org/en/Custom_certificate_module "Wiki page") for more details. Please feel free to edit it. :)
 
-Importing Fonts into TCPDF is quite simple:
+## License
 
-1. Convert the font you want embedded into the tcpdf format (for example using [http://fonts.snm-portal.com][1] or [http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf][2])
-
-2. Put the converted files into the folder: `/path/to/moodle/lib/tcpdf/fonts`
-
-3. Use the font in your certificate builder
-
-4. Enjoy
-
-> Please note that inserting a file into the tcpdf folder is considered a "core hack" and might not be available on some commercially hosted systems. Please check your providers agreement on the topic to make sure this is something you're allowed to do.
-
-[1]:	http://fonts.snm-portal.com "http://fonts.snm-portal.com"
-[2]:	http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf "http://www.xml-convert.com/en/convert-tff-font-to-afm-pfa-fpdf-tcpdf"
+Licensed under the [GNU GPL License](http://www.gnu.org/copyleft/gpl.html).
