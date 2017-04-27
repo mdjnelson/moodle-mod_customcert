@@ -117,9 +117,11 @@ class email_certificate_task extends \core\task\scheduled_task {
                     }
 
                     // Check that they have passed the required time.
-                    if (\mod_customcert\certificate::get_course_time($customcert->courseid,
-                            $enroluser->id) < ($customcert->requiredtime * 60)) {
-                        continue;
+                    if (!empty($customcert->requiredtime)) {
+                        if (\mod_customcert\certificate::get_course_time($customcert->courseid,
+                                $enroluser->id) < ($customcert->requiredtime * 60)) {
+                            continue;
+                        }
                     }
 
                     // Ok, issue them the certificate.
