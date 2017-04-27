@@ -163,4 +163,17 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $newitemid = $DB->insert_record('customcert_issues', $data);
         $this->set_mapping('customcert_issue', $oldid, $newitemid);
     }
+
+    /**
+     * Called immediately after all the other restore functions.
+     */
+    protected function after_execute() {
+        parent::after_execute();
+
+        // Add the files.
+        $this->add_related_files('mod_customcert', 'intro', null);
+
+        // Note - we can't use get_old_contextid() as it refers to the module context.
+        $this->add_related_files('mod_customcert', 'image', null, $this->get_task()->get_info()->original_course_contextid);
+    }
 }
