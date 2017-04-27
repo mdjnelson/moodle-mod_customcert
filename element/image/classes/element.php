@@ -261,6 +261,55 @@ class element extends \mod_customcert\element {
     }
 
     /**
+     * This function is responsible for handling the restoration process of the element.
+     *
+     * We will want to update the file's pathname hash.
+     *
+     * @param \restore_customcert_activity_task $restore
+     */
+    public function after_restore($restore) {
+        global $DB;
+
+        // Check the files that have been processed in the backup file that belong to the custom certificate activity.
+        if ($files = $DB->get_records('backup_files_temp', array('backupid' => $restore->get_restoreid(),
+                'component' => 'mod_customcert', 'filearea' => 'image'))) {
+            // Get the current data we have stored for this element.
+            $elementinfo = json_decode($this->element->data);
+            // Create a file storage instance we are going to use to create pathname hashes.
+            $fs = get_file_storage();
+            // Loop through each of the files found and compare them with this element.
+            foreach ($files as $file) {
+                if ($fileinfo = \backup_controller_dbops::decode_backup_temp_info($file->info)) {
+                    // Create the array to identify the image by.
+                    $fileidentifier = [
+                        $file->contextid,
+                        'mod_customcert',
+                        'image',
+                        0,
+                        $fileinfo->filepath,
+                        $fileinfo->filename
+                    ];
+                    $pathnamehash = $fs->get_pathname_hash(...$fileidentifier);
+                    // Check if we found the image, if so we need to update the pathname hash.
+                    if ($pathnamehash == $elementinfo->pathnamehash) {
+                        // Change the context id to get the new hash.
+                        $fileidentifier[0] = $file->newcontextid;
+                        $newpathnamehash = $fs->get_pathname_hash(...$fileidentifier);
+
+                        // Save the data now.
+                        $datatosave = new \stdClass();
+                        $datatosave->image = $newpathnamehash;
+                        $datatosave->width = $elementinfo->width;
+                        $datatosave->height = $elementinfo->height;
+                        $DB->set_field('customcert_elements', 'data', self::save_unique_data($datatosave),
+                            array('id' => $this->element->id));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Return the list of possible images to use.
      *
      * @return array the list of images that can be used

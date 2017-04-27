@@ -94,6 +94,10 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         // Annotate the user id's where required.
         $issue->annotate_ids('user', 'userid');
 
+        // Define file annotations.
+        $customcert->annotate_files('mod_customcert', 'intro', null);
+        $customcert->annotate_files('mod_customcert', 'image', null, context_course::instance($this->get_courseid())->id);
+
         // Return the root element (customcert), wrapped into standard activity structure.
         return $this->prepare_activity_structure($customcert);
     }
