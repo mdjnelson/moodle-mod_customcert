@@ -14,15 +14,17 @@ This requires Git being installed. If you do not have Git installed, please visi
 
 Once you have Git installed, simply visit your Moodle mod directory and clone the repository using the following command.
 
-<code>git clone https://github.com/markn86/moodle-mod_customcert.git customcert</code>
+```
+git clone https://github.com/markn86/moodle-mod_customcert.git customcert
+```
 
-Then checkout the branch corresponding to the version of Moodle you are running using the following command.
+Then checkout the branch corresponding to the version of Moodle you are using with the following command. Make sure to replace MOODLE_32_STABLE with the version of Moodle you are using.
 
-Note - replace MOODLE_32_STABLE with the version of Moodle you are using.
+```
+git checkout MOODLE_32_STABLE
+```
 
-<code>git checkout MOODLE_32_STABLE</code>
-
-Use <code>git pull</code> to update this repository periodically to ensure you have the most recent updates.
+Use `git pull` to update this repository periodically to ensure you have the most recent updates.
 
 ### Download the zip
 
@@ -30,7 +32,7 @@ Visit the [Moodle plugins website](https://moodle.org/plugins/mod_customcert "Mo
 
 ## More information
 
-Please visit the [wiki page](https://docs.moodle.org/en/Custom_certificate_module "Wiki page") for more details. Please feel free to edit it. :)
+Visit the [wiki page](https://docs.moodle.org/en/Custom_certificate_module "Wiki page") for more details. Also, it is a wiki, so please feel free to edit it. :)
 
 ## License
 
