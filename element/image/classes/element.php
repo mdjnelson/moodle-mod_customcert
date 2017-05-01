@@ -63,7 +63,7 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
+        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
 
         $mform->addElement('text', 'width', get_string('width', 'customcertelement_image'), array('size' => 10));
         $mform->setType('width', PARAM_INT);
@@ -144,10 +144,16 @@ class element extends \mod_customcert\element {
      */
     public function save_unique_data($data) {
         // Array of data we will be storing in the database.
+        $fs = get_file_storage();
+        $file = $fs->get_file_by_id($data->fileid);
         $arrtostore = array(
-            'pathnamehash' => $data->image,
-            'width' => (int) $data->width,
-            'height' => (int) $data->height
+            'contextid' => $file->get_contextid(),
+            'filearea' => $file->get_filearea(),
+            'itemid' => $file->get_itemid(),
+            'filepath' => $file->get_filepath(),
+            'filename' => $file->get_filename(),
+            'width' => !empty($data->width) ? (int) $data->width : 0,
+            'height' => !empty($data->height) ? (int) $data->height : 0
         );
 
         return json_encode($arrtostore);
@@ -168,9 +174,7 @@ class element extends \mod_customcert\element {
 
         $imageinfo = json_decode($this->element->data);
 
-        // Get the image.
-        $fs = get_file_storage();
-        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
+        if ($file = $this->get_file()) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
@@ -201,7 +205,8 @@ class element extends \mod_customcert\element {
 
         // Get the image.
         $fs = get_file_storage();
-        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
+        if ($file = $fs->get_file($imageinfo->contextid, 'mod_customcert', $imageinfo->filearea, $imageinfo->itemid,
+                $imageinfo->filepath, $imageinfo->filename)) {
             $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
                 $file->get_filepath(), $file->get_filename());
             $fileimageinfo = $file->get_imageinfo();
@@ -239,9 +244,11 @@ class element extends \mod_customcert\element {
         // Set the image, width and height for this element.
         if (!empty($this->element->data)) {
             $imageinfo = json_decode($this->element->data);
-            $this->element->image = $imageinfo->pathnamehash;
-            $this->element->width = $imageinfo->width;
-            $this->element->height = $imageinfo->height;
+            if ($file = $this->get_file()) {
+                $this->element->fileid = $file->get_id();
+                $this->element->width = $imageinfo->width;
+                $this->element->height = $imageinfo->height;
+            }
         }
 
         // Set the context.
@@ -270,43 +277,31 @@ class element extends \mod_customcert\element {
     public function after_restore($restore) {
         global $DB;
 
-        // Check the files that have been processed in the backup file that belong to the custom certificate activity.
-        if ($files = $DB->get_records('backup_files_temp', array('backupid' => $restore->get_restoreid(),
-                'component' => 'mod_customcert', 'filearea' => 'image'))) {
-            // Get the current data we have stored for this element.
-            $elementinfo = json_decode($this->element->data);
-            // Create a file storage instance we are going to use to create pathname hashes.
-            $fs = get_file_storage();
-            // Loop through each of the files found and compare them with this element.
-            foreach ($files as $file) {
-                if ($fileinfo = \backup_controller_dbops::decode_backup_temp_info($file->info)) {
-                    // Create the array to identify the image by.
-                    $fileidentifier = [
-                        $file->contextid,
-                        'mod_customcert',
-                        'image',
-                        0,
-                        $fileinfo->filepath,
-                        $fileinfo->filename
-                    ];
-                    $pathnamehash = $fs->get_pathname_hash(...$fileidentifier);
-                    // Check if we found the image, if so we need to update the pathname hash.
-                    if ($pathnamehash == $elementinfo->pathnamehash) {
-                        // Change the context id to get the new hash.
-                        $fileidentifier[0] = $file->newcontextid;
-                        $newpathnamehash = $fs->get_pathname_hash(...$fileidentifier);
+        // Get the current data we have stored for this element.
+        $elementinfo = json_decode($this->element->data);
 
-                        // Save the data now.
-                        $datatosave = new \stdClass();
-                        $datatosave->image = $newpathnamehash;
-                        $datatosave->width = $elementinfo->width;
-                        $datatosave->height = $elementinfo->height;
-                        $DB->set_field('customcert_elements', 'data', self::save_unique_data($datatosave),
-                            array('id' => $this->element->id));
-                    }
-                }
-            }
-        }
+        // Update the context.
+        $elementinfo->contextid = \context_course::instance($restore->get_courseid())->id;
+
+        // Encode again before saving.
+        $elementinfo = json_encode($elementinfo);
+
+        // Perform the update.
+        $DB->set_field('customcert_elements', 'data', $elementinfo, array('id' => $this->element->id));
+    }
+
+    /**
+     * Fetch stored file.
+     *
+     * @return \stored_file|bool stored_file instance if exists, false if not
+     */
+    public function get_file() {
+        $imageinfo = json_decode($this->element->data);
+
+        $fs = get_file_storage();
+
+        return $fs->get_file($imageinfo->contextid, 'mod_customcert', $imageinfo->filearea, $imageinfo->itemid,
+            $imageinfo->filepath, $imageinfo->filename);
     }
 
     /**
@@ -325,19 +320,19 @@ class element extends \mod_customcert\element {
         // Loop through the files uploaded in the system context.
         if ($files = $fs->get_area_files(\context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
-                $arrfiles[$hash] = $file->get_filename();
+                $arrfiles[$file->get_id()] = $file->get_filename();
             }
         }
         // Loop through the files uploaded in the course context.
         if ($files = $fs->get_area_files(\context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false,
             'filename', false)) {
             foreach ($files as $hash => $file) {
-                $arrfiles[$hash] = $file->get_filename();
+                $arrfiles[$file->get_id()] = $file->get_filename();
             }
         }
 
         \core_collator::asort($arrfiles);
-        $arrfiles = array_merge(array('0' => get_string('noimage', 'customcert')), $arrfiles);
+        $arrfiles = array('0' => get_string('noimage', 'customcert')) + $arrfiles;
 
         return $arrfiles;
     }

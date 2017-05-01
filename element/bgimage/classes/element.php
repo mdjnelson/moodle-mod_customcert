@@ -41,7 +41,7 @@ class element extends \customcertelement_image\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        $mform->addElement('select', 'image', get_string('image', 'customcertelement_image'), self::get_images());
+        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
             $this->filemanageroptions);
     }
@@ -59,24 +59,6 @@ class element extends \customcertelement_image\element {
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
-     *
-     * @param \stdClass $data the form data
-     * @return string the json encoded array
-     */
-    public function save_unique_data($data) {
-        // Array of data we will be storing in the database.
-        $arrtostore = array(
-            'pathnamehash' => $data->image,
-            'width' => 0,
-            'height' => 0
-        );
-
-        return json_encode($arrtostore);
-    }
-
-    /**
      * Handles rendering the element on the pdf.
      *
      * @param \pdf $pdf the pdf object
@@ -89,11 +71,7 @@ class element extends \customcertelement_image\element {
             return;
         }
 
-        $imageinfo = json_decode($this->element->data);
-
-        // Get the image.
-        $fs = get_file_storage();
-        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
+        if ($file = $this->get_file()) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
@@ -123,11 +101,7 @@ class element extends \customcertelement_image\element {
             return '';
         }
 
-        $imageinfo = json_decode($this->element->data);
-
-        // Get the image.
-        $fs = get_file_storage();
-        if ($file = $fs->get_file_by_hash($imageinfo->pathnamehash)) {
+        if ($file = $this->get_file()) {
             $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
                 $file->get_filepath(), $file->get_filename());
             // Get the page we are rendering this on.
