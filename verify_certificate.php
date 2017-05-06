@@ -33,11 +33,15 @@ $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUS
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
 
-// Need to be logged in.
-require_login($course, false, $cm);
-
-// Ok, now check the user has the ability to verify certificates.
-require_capability('mod/customcert:verifycertificate', $context);
+// Check if we are allowing anyone to verify, if so, no need to check login, or permissions.
+if (!$customcert->verifyany) {
+    // Need to be logged in.
+    require_login($course, false, $cm);
+    // Ok, now check the user has the ability to verify certificates.
+    require_capability('mod/customcert:verifycertificate', $context);
+} else {
+    $PAGE->set_cm($cm, $course);
+}
 
 // Set up the page.
 $pageurl = new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $contextid));
