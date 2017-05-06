@@ -106,5 +106,20 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2016052310, 'customcert');
     }
 
+    if ($oldversion < 2016052311) {
+        // Add column for new 'verifycertificateanyone' setting.
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
+            'requiredtime');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2016052311, 'customcert');
+    }
+
     return true;
 }
