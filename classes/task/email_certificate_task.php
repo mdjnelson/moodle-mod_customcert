@@ -86,16 +86,14 @@ class email_certificate_task extends \core\task\scheduled_task {
                 $info->coursename = $coursename;
                 $info->certificatename = $certificatename;
 
-                // Get a list of issues that have not yet been emailed.
+                // Get a list of all the issues.
                 $userfields = get_all_user_name_fields(true, 'u');
-                $sql = "SELECT u.id, u.username, $userfields, u.email, ci.id as issueid
+                $sql = "SELECT u.id, u.username, $userfields, u.email, ci.id as issueid, ci.emailed
                           FROM {customcert_issues} ci
                           JOIN {user} u
                             ON ci.userid = u.id
-                         WHERE ci.customcertid = :customcertid
-                           AND emailed = :emailed";
-                $issuedusers = $DB->get_records_sql($sql, array('customcertid' => $customcert->id,
-                    'emailed' => 0));
+                         WHERE ci.customcertid = :customcertid";
+                $issuedusers = $DB->get_records_sql($sql, array('customcertid' => $customcert->id));
 
                 // Now, get a list of users who can access the certificate but have not yet.
                 $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
@@ -137,7 +135,15 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                     // Add them to the array so we email them.
                     $enroluser->issueid = $issueid;
+                    $enroluser->emailed = 0;
                     $issuedusers[] = $enroluser;
+                }
+
+                // Remove all the users who have already been emailed.
+                foreach ($issuedusers as $key => $issueduser) {
+                    if ($issueduser->emailed) {
+                        unset($issuedusers[$key]);
+                    }
                 }
 
                 // Now, email the people we need to.

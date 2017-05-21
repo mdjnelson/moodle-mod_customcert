@@ -110,6 +110,17 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $this->assertContains(fullname($user3), $emails[1]->header);
         $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
         $this->assertEquals($user2->email, $emails[1]->to);
+
+        // Now, run the task again and ensure we did not issue any more certificates.
+        $sink = $this->redirectEmails();
+        $task = new \mod_customcert\task\email_certificate_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        $issues = $DB->get_records('customcert_issues');
+
+        $this->assertCount(2, $issues);
+        $this->assertCount(0, $emails);
     }
 
     /**
