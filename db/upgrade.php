@@ -80,5 +80,31 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2016120505, 'customcert');
     }
 
+    if ($oldversion < 2017050501) {
+        // Remove any duplicate rows from customcert issue table.
+        // This SQL fetches the id of those records which have duplicate customcert issues.
+        // This doesn't return the first issue.
+        $fromclause = "FROM (
+                             SELECT min(id) AS minid, userid, customcertid
+                               FROM {customcert_issues}
+                           GROUP BY userid, customcertid
+                            ) minid
+                       JOIN {customcert_issues} ci
+                         ON ci.userid = minid.userid
+                        AND ci.customcertid = minid.customcertid
+                        AND ci.id > minid.minid";
+
+        // Get the records themselves.
+        $getduplicatessql = "SELECT ci.id $fromclause ORDER BY minid";
+        if ($records = $DB->get_records_sql($getduplicatessql)) {
+            // Delete them.
+            $ids = implode(',', array_keys($records));
+            $DB->delete_records_select('customcert_issues', "id IN ($ids)");
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2017050501, 'customcert');
+    }
+
     return true;
 }
