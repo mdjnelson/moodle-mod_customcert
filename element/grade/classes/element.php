@@ -95,23 +95,23 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        global $COURSE;
-
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
             return;
         }
+
+        $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
         $gradeinfo = json_decode($this->element->data);
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
-            $courseitem = \grade_item::fetch_course_item($COURSE->id);
+            $courseitem = \grade_item::fetch_course_item($courseid);
             $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, 2);
         } else {
             // Get the grade for the grade item.
-            $grade = self::get_grade($gradeinfo, $user->id);
+            $grade = self::get_grade($gradeinfo, $user->id, $courseid);
         }
 
         \mod_customcert\element_helper::render_content($pdf, $this, $grade);
@@ -260,18 +260,17 @@ class element extends \mod_customcert\element {
      *
      * @param \stdClass $gradeinfo
      * @param int $userid
+     * @param int $courseid
      * @return string the grade result
      */
-    public static function get_grade($gradeinfo, $userid) {
-        global $COURSE;
-
+    public static function get_grade($gradeinfo, $userid, $courseid) {
         // Get the grade information.
         $gradeitem = $gradeinfo->gradeitem;
         $gradeformat = $gradeinfo->gradeformat;
 
         // Check if we are displaying the course grade.
         if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
-            if ($courseitem = \grade_item::fetch_course_item($COURSE->id)) {
+            if ($courseitem = \grade_item::fetch_course_item($courseid)) {
                 // Set the grade type we want.
                 $courseitem->gradetype = GRADE_TYPE_VALUE;
                 $grade = new \grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));

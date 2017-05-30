@@ -94,12 +94,14 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        global $COURSE, $DB;
+        global $DB;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->element->data)) {
             return;
         }
+
+        $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
         $dateinfo = json_decode($this->element->data);
@@ -126,7 +128,7 @@ class element extends \mod_customcert\element {
                           FROM {course_completions} c
                          WHERE c.userid = :userid
                            AND c.course = :courseid";
-                if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $COURSE->id))) {
+                if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $courseid))) {
                     if (!empty($timecompleted->timecompleted)) {
                         $date = $timecompleted->timecompleted;
                     }
@@ -135,7 +137,7 @@ class element extends \mod_customcert\element {
                 $gradeitem = new \stdClass();
                 $gradeitem->gradeitem = $dateitem;
                 $gradeitem->gradeformat = GRADE_DISPLAY_TYPE_PERCENTAGE;
-                if ($modinfo = \customcertelement_grade\element::get_grade($gradeitem, $issue->userid)) {
+                if ($modinfo = \customcertelement_grade\element::get_grade($gradeitem, $issue->userid, $courseid)) {
                     if (!empty($modinfo->dategraded)) {
                         $date = $modinfo->dategraded;
                     }
