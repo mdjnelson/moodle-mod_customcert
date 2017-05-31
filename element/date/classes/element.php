@@ -57,7 +57,7 @@ class element extends \mod_customcert\element {
         $dateoptions = array();
         $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
-        $dateoptions = $dateoptions + \customcertelement_grade\element::get_grade_items();;
+        $dateoptions = $dateoptions + \customcertelement_grade\element::get_grade_items();
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
