@@ -36,6 +36,16 @@ define('CUSTOMCERT_DATE_ISSUE', '-1');
  */
 define('CUSTOMCERT_DATE_COMPLETION', '-2');
 
+/**
+ * Date - Course start
+ */
+define('CUSTOMCERT_DATE_COURSE_START', '-3');
+
+/**
+ * Date - Course end
+ */
+define('CUSTOMCERT_DATE_COURSE_END', '-4');
+
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
 /**
@@ -57,6 +67,8 @@ class element extends \mod_customcert\element {
         $dateoptions = array();
         $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
+        $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
+        $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
         $dateoptions = $dateoptions + \customcertelement_grade\element::get_grade_items();
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
@@ -133,6 +145,10 @@ class element extends \mod_customcert\element {
                         $date = $timecompleted->timecompleted;
                     }
                 }
+            } else if ($dateitem == CUSTOMCERT_DATE_COURSE_START) {
+                $date = $DB->get_field('course', 'startdate', array('id' => $courseid));
+            } else if ($dateitem == CUSTOMCERT_DATE_COURSE_END) {
+                $date = $DB->get_field('course', 'enddate', array('id' => $courseid));
             } else {
                 $gradeitem = new \stdClass();
                 $gradeitem->gradeitem = $dateitem;
