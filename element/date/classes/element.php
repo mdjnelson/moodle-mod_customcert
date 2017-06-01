@@ -228,12 +228,23 @@ class element extends \mod_customcert\element {
      * @return array the list of date formats
      */
     public static function get_date_formats() {
-        $dateformats = array();
-        $dateformats[1] = 'January 1, 2000';
-        $dateformats[2] = 'January 1st, 2000';
-        $dateformats[3] = '1 January 2000';
-        $dateformats[4] = 'January 2000';
-        $dateformats[5] = get_string('userdateformat', 'customcertelement_date');
+        $date = time();
+
+        $dateformats = array(
+            'strftimedate' => userdate($date, get_string('strftimedate', 'langconfig')),
+            'strftimedatefullshort' => userdate($date, get_string('strftimedatefullshort', 'langconfig')),
+            'strftimedateshort' => userdate($date, get_string('strftimedateshort', 'langconfig')),
+            'strftimedatetime' => userdate($date, get_string('strftimedatetime', 'langconfig')),
+            'strftimedatetimeshort' => userdate($date, get_string('strftimedatetimeshort', 'langconfig')),
+            'strftimedaydate' => userdate($date, get_string('strftimedaydate', 'langconfig')),
+            'strftimedaydatetime' => userdate($date, get_string('strftimedaydatetime', 'langconfig')),
+            'strftimedayshort' => userdate($date, get_string('strftimedayshort', 'langconfig')),
+            'strftimedaytime' => userdate($date, get_string('strftimedaytime', 'langconfig')),
+            'strftimemonthyear' => userdate($date, get_string('strftimemonthyear', 'langconfig')),
+            'strftimerecent' => userdate($date, get_string('strftimerecent', 'langconfig')),
+            'strftimerecentfull' => userdate($date, get_string('strftimerecentfull', 'langconfig')),
+            'strftimetime' => userdate($date, get_string('strftimetime', 'langconfig'))
+        );
 
         return $dateformats;
     }
@@ -246,22 +257,30 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_date_format_string($date, $dateformat) {
-        switch ($dateformat) {
-            case 1:
-                $certificatedate = userdate($date, '%B %d, %Y');
-                break;
-            case 2:
-                $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
-                $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                break;
-            case 3:
-                $certificatedate = userdate($date, '%d %B %Y');
-                break;
-            case 4:
-                $certificatedate = userdate($date, '%B %Y');
-                break;
-            default:
-                $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
+        // Keeping for backwards compatibility.
+        if (is_number($dateformat)) {
+            switch ($dateformat) {
+                case 1:
+                    $certificatedate = userdate($date, '%B %d, %Y');
+                    break;
+                case 2:
+                    $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
+                    $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
+                    break;
+                case 3:
+                    $certificatedate = userdate($date, '%d %B %Y');
+                    break;
+                case 4:
+                    $certificatedate = userdate($date, '%B %Y');
+                    break;
+                default:
+                    $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
+            }
+        }
+
+        // Ok, so we must have been passed the actual format in the lang file.
+        if (!isset($certificatedate)) {
+            $certificatedate = userdate($date, get_string($dateformat, 'langconfig'));
         }
 
         return $certificatedate;
