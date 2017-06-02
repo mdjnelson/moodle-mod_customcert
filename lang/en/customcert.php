@@ -36,6 +36,7 @@ $string['customcertreport'] = 'Custom certificate report';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
 $string['customcert:manage'] = 'Manage a custom certificate';
 $string['customcert:view'] = 'View a custom certificate';
+$string['customcert:viewreport'] = 'View course report';
 $string['customcert:viewallcertificates'] = 'View all certificates';
 $string['customcert:verifycertificate'] = 'Verify a certificate';
 $string['deletecertpage'] = 'Delete certificate page';
