@@ -44,7 +44,7 @@ require_login($course, false, $cm);
 
 // Check capabilities.
 $context = context_module::instance($cm->id);
-require_capability('mod/customcert:manage', $context);
+require_capability('mod/customcert:viewreport', $context);
 
 // Check if we requested to download another user's certificate.
 if ($downloadcert) {

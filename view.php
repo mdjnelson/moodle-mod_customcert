@@ -68,7 +68,7 @@ if (empty($action)) {
 
     // Generate the link to the report if there are issues to display.
     $reportlink = '';
-    if (has_capability('mod/customcert:manage', $context)) {
+    if (has_capability('mod/customcert:viewreport', $context)) {
         // Get the total number of issues.
         $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
         $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
