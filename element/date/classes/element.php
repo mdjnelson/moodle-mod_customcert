@@ -230,7 +230,11 @@ class element extends \mod_customcert\element {
     public static function get_date_formats() {
         $date = time();
 
+        $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
+
         $dateformats = array(
+            1 => userdate($date, '%B %d, %Y'),
+            2 => userdate($date, '%B %d' . $suffix . ', %Y'),
             'strftimedate' => userdate($date, get_string('strftimedate', 'langconfig')),
             'strftimedatefullshort' => userdate($date, get_string('strftimedatefullshort', 'langconfig')),
             'strftimedateshort' => userdate($date, get_string('strftimedateshort', 'langconfig')),
@@ -264,7 +268,7 @@ class element extends \mod_customcert\element {
                     $certificatedate = userdate($date, '%B %d, %Y');
                     break;
                 case 2:
-                    $suffix = $this->get_ordinal_number_suffix(userdate($date, '%d'));
+                    $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
                     $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
                     break;
                 case 3:
@@ -293,7 +297,7 @@ class element extends \mod_customcert\element {
      * @param int $day the day of the month
      * @return string the suffix.
      */
-    protected function get_ordinal_number_suffix($day) {
+    protected static function get_ordinal_number_suffix($day) {
         if (!in_array(($day % 100), array(11, 12, 13))) {
             switch ($day % 10) {
                 // Handle 1st, 2nd, 3rd.
