@@ -143,6 +143,10 @@ class element extends \mod_customcert\element {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
+        if (empty($data->fileid)) {
+            return;
+        }
+
         // Array of data we will be storing in the database.
         $fs = get_file_storage();
         $file = $fs->get_file_by_id($data->fileid);
