@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$plugin->version   = 2017050504; // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2017050505; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires  = 2017050500; // Requires this Moodle version (3.3).
 $plugin->cron      = 0; // Period for cron to check this module (secs).
 $plugin->component = 'mod_customcert';
 
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "3.3 release (Build: 2017050504)"; // User-friendly version number.
+$plugin->release   = "3.3 release (Build: 2017050505)"; // User-friendly version number.
