@@ -121,5 +121,19 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2016120508, 'customcert');
     }
 
+    if ($oldversion < 2016120512) {
+        $table = new xmldb_table('customcert_elements');
+        $field = new xmldb_field('size');
+
+        // Rename column as it is a reserved word in Oracle.
+        if ($dbman->field_exists($table, $field)) {
+            $field->set_attributes(XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'font');
+            $dbman->rename_field($table, $field, 'fontsize');
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2016120512, 'customcert');
+    }
+
     return true;
 }

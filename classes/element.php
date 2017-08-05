@@ -129,7 +129,7 @@ abstract class element {
         $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
         $element->font = (isset($data->font)) ? $data->font : null;
-        $element->size = (isset($data->size)) ? $data->size : null;
+        $element->fontsize = (isset($data->fontsize)) ? $data->fontsize : null;
         $element->colour = (isset($data->colour)) ? $data->colour : null;
         if ($this->showposxy) {
             $element->posx = (isset($data->posx)) ? $data->posx : null;

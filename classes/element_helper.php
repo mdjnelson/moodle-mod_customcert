@@ -61,7 +61,7 @@ class element_helper {
      */
     public static function render_content($pdf, $element, $content) {
         list($font, $attr) = self::get_font($element);
-        $pdf->setFont($font, $attr, $element->size);
+        $pdf->setFont($font, $attr, $element->fontsize);
         $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($element->colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
@@ -120,7 +120,7 @@ class element_helper {
             $fontstyle .= '; font-style: italic';
         }
 
-        $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->size . 'pt;';
+        $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->fontsize . 'pt;';
         if ($element->width) {
             $style .= ' width: ' . $element->width . 'mm';
         }
@@ -137,10 +137,10 @@ class element_helper {
         $mform->setType('font', PARAM_TEXT);
         $mform->setDefault('font', 'times');
         $mform->addHelpButton('font', 'font', 'customcert');
-        $mform->addElement('select', 'size', get_string('fontsize', 'customcert'), \mod_customcert\certificate::get_font_sizes());
-        $mform->setType('size', PARAM_INT);
-        $mform->setDefault('size', 12);
-        $mform->addHelpButton('size', 'fontsize', 'customcert');
+        $mform->addElement('select', 'fontsize', get_string('fontsize', 'customcert'), \mod_customcert\certificate::get_font_sizes());
+        $mform->setType('fontsize', PARAM_INT);
+        $mform->setDefault('fontsize', 12);
+        $mform->addHelpButton('fontsize', 'fontsize', 'customcert');
     }
 
     /**
