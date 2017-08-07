@@ -89,7 +89,7 @@ class edit_form extends \moodleform {
         // Add the submit buttons.
         $group = array();
         $group[] = $mform->createElement('submit', 'submitbtn', get_string('savechanges'));
-        $group[] = $mform->createElement('submit', 'previewbtn', get_string('savechangespreview', 'customcert'));
+        $group[] = $mform->createElement('submit', 'previewbtn', get_string('savechangespreview', 'customcert'), array(), false);
         $mform->addElement('group', 'submitbtngroup', '', $group, '', false);
 
         $mform->addElement('hidden', 'tid');
@@ -286,7 +286,8 @@ class edit_form extends \moodleform {
 
         $group = array();
         $group[] = $mform->createElement('select', 'element_' . $page->id, '', element::get_available_types());
-        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
+        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'),
+            array(), false);
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if there is more than one page.
