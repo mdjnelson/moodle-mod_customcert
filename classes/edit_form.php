@@ -291,11 +291,11 @@ class edit_form extends \moodleform {
 
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
-            // Link to delete the element.
+            // Link to delete the page.
             $deletelink = new \moodle_url($editlink, $editlinkparams + array('action' => 'deletepage', 'aid' => $page->id));
-            $deletelink = \html_writer::tag('a', get_string('deletecertpage', 'customcert'),
-                array('href' => $deletelink->out(false), 'class' => 'deletebutton'));
-            $mform->addElement('html', \html_writer::tag('div', $deletelink, array('class' => 'deletebutton')));
+            $icon = $OUTPUT->pix_icon('t/delete', get_string('deletecertpage', 'customcert'));
+            $deletepagehtml = \html_writer::link($deletelink, $icon . get_string('deletecertpage', 'customcert'));
+            $mform->addElement('html', \html_writer::tag('div', $deletepagehtml, array('class' => 'deletebutton')));
         }
     }
 }
