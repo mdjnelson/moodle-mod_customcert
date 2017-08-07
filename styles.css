@@ -2,6 +2,11 @@
     text-align: right;
 }
 
+#page-mod-customcert-edit .addpage {
+    border-top: 1px solid #f4f4f4;
+    text-align: right;
+}
+
 #page-mod-customcert-edit #id_replace {
     margin-left: 10px;
 }
