@@ -55,7 +55,7 @@ class edit_form extends \moodleform {
      * Form definition.
      */
     public function definition() {
-        global $DB;
+        global $DB, $OUTPUT;
 
         $mform =& $this->_form;
 
@@ -80,11 +80,11 @@ class edit_form extends \moodleform {
             $this->add_customcert_page_elements($page);
         }
 
-        $mform->closeHeaderBefore('addcertpage');
-
-        $mform->addElement('submit', 'addcertpage', get_string('addcertpage', 'customcert'));
-
-        $mform->closeHeaderBefore('submitbtn');
+        // Link to add another page.
+        $addpagelink = new \moodle_url('/mod/customcert/edit.php', array('tid' => $this->tid, 'aid' => 1, 'action' => 'addpage'));
+        $icon = $OUTPUT->pix_icon('t/switch_plus', get_string('addcertpage', 'customcert'));
+        $addpagehtml = \html_writer::link($addpagelink, $icon . get_string('addcertpage', 'customcert'));
+        $mform->addElement('html', \html_writer::tag('div', $addpagehtml, array('class' => 'addpage')));
 
         // Add the submit buttons.
         $group = array();
