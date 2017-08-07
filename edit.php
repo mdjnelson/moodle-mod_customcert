@@ -66,7 +66,6 @@ if ($context->contextlevel == CONTEXT_SYSTEM) {
     $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
 }
 
-
 // Flag to determine if we are deleting anything.
 $deleting = false;
 
@@ -83,6 +82,11 @@ if ($tid) {
             break;
         case 'emovedown' :
             $template->move_item('element', $actionid, 'down');
+            break;
+        case 'addpage' :
+            $template->add_page();
+            $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+            redirect($url);
             break;
         case 'deletepage' :
             if (!empty($confirm)) { // Check they have confirmed the deletion.
@@ -181,11 +185,6 @@ if ($data = $mform->get_data()) {
 
     // Save any page data.
     $template->save_page($data);
-
-    // Check if we are adding a page.
-    if (!empty($data->addcertpage)) {
-        $template->add_page();
-    }
 
     // Loop through the data.
     foreach ($data as $key => $value) {
