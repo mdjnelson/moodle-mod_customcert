@@ -231,11 +231,6 @@ class edit_form extends \moodleform {
         $mform->setDefault('pagerightmargin_' . $page->id, 0);
         $mform->addHelpButton('pagerightmargin_' . $page->id, 'rightmargin', 'customcert');
 
-        $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element::get_available_types());
-        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
-        $mform->addElement('group', 'elementgroup', '', $group, '', false);
-
         // Check if there are elements to add.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
             // Get the total number of elements.
@@ -288,6 +283,11 @@ class edit_form extends \moodleform {
                 . \html_writer::tag( 'div', $link, array('style' => 'text-align:right')));
             $mform->addHelpButton('elements_' . $page->id, 'elements', 'customcert');
         }
+
+        $group = array();
+        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element::get_available_types());
+        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'));
+        $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
