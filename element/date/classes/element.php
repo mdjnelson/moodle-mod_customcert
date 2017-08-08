@@ -135,7 +135,7 @@ class element extends \mod_customcert\element {
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
             } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
-                // Get the enrolment end date.
+                // Get the last completion date.
                 $sql = "SELECT MAX(c.timecompleted) as timecompleted
                           FROM {course_completions} c
                          WHERE c.userid = :userid
@@ -150,10 +150,8 @@ class element extends \mod_customcert\element {
             } else if ($dateitem == CUSTOMCERT_DATE_COURSE_END) {
                 $date = $DB->get_field('course', 'enddate', array('id' => $courseid));
             } else {
-                $gradeitem = new \stdClass();
-                $gradeitem->gradeitem = $dateitem;
-                $gradeitem->gradeformat = GRADE_DISPLAY_TYPE_PERCENTAGE;
-                if ($modinfo = \customcertelement_grade\element::get_grade($gradeitem, $issue->userid, $courseid)) {
+                if ($modinfo = \customcertelement_grade\element::get_mod_grade($dateitem, GRADE_DISPLAY_TYPE_PERCENTAGE,
+                        $issue->userid)) {
                     if (!empty($modinfo->dategraded)) {
                         $date = $modinfo->dategraded;
                     }
