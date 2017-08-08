@@ -91,6 +91,8 @@ if ($tid) {
         case 'deletepage' :
             if (!empty($confirm)) { // Check they have confirmed the deletion.
                 $template->delete_page($actionid);
+                $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                redirect($url);
             } else {
                 // Set deletion flag to true.
                 $deleting = true;
