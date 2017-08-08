@@ -280,7 +280,7 @@ class edit_form extends \moodleform {
                 get_string('rearrangeelements', 'customcert'));
             // Add the table to the form.
             $mform->addElement('static', 'elements_' . $page->id, get_string('elements', 'customcert'), \html_writer::table($table)
-                . \html_writer::tag( 'div', $link, array('style' => 'text-align:right')));
+                . \html_writer::tag( 'div', $link));
             $mform->addHelpButton('elements_' . $page->id, 'elements', 'customcert');
         }
 
