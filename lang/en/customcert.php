@@ -46,12 +46,11 @@ $string['deleteelementconfirm'] = 'Are you sure you want to delete this element?
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['deletetemplateconfirm'] = 'Are you sure you want to delete this certificate template?';
 $string['description'] = 'Description';
-$string['editcustomcert'] = 'Edit custom certificate';
+$string['editcustomcert'] = 'Edit certificate';
 $string['editelement'] = 'Edit element';
 $string['edittemplate'] = 'Edit template';
 $string['elementname'] = 'Element name';
-$string['elementname_help'] = 'This will be the name used to identify this element when editing a custom certificate. For example, you may have multiple images on a
-page and will want to distinguish between them quickly when editing the certificate. Note: this will not displayed on the PDF.';
+$string['elementname_help'] = 'This will be the name used to identify this element when editing a certificate. Note: this will not displayed on the PDF.';
 $string['elements'] = 'Elements';
 $string['elements_help'] = 'This is the list of elements that will be displayed on the certificate.
 
@@ -96,7 +95,7 @@ $string['load'] = 'Load';
 $string['loadtemplate'] = 'Load template';
 $string['loadtemplatemsg'] = 'Are you sure you wish to load this template? This will remove any existing pages and elements for this certificate.';
 $string['managetemplates'] = 'Manage templates';
-$string['managetemplatesdesc'] = 'This link will take you to a new screen where you will be able to manage templates used by customcert activities in courses.';
+$string['managetemplatesdesc'] = 'This link will take you to a new screen where you will be able to manage templates used by Custom certificate activities in courses.';
 $string['modify'] = 'Modify';
 $string['modulename'] = 'Custom certificate';
 $string['modulenameplural'] = 'Custom certificates';
@@ -105,7 +104,7 @@ $string['modulename_link'] = 'Custom_certificate_module';
 $string['mycertificates'] = 'My certificates';
 $string['name'] = 'Name';
 $string['nametoolong'] = 'You have exceeded the maximum length allowed for the name';
-$string['nocustomcerts'] = 'There are no custom certificates for this course';
+$string['nocustomcerts'] = 'There are no certificates for this course';
 $string['noimage'] = 'No image';
 $string['notemplates'] = 'No templates';
 $string['notissued'] = 'Not issued';
@@ -151,12 +150,12 @@ $string['topright'] = 'Top right';
 $string['type'] = 'Type';
 $string['uploadimage'] = 'Upload image';
 $string['uploadimagedesc'] = 'This link will take you to a new screen where you will be able to upload images. Images uploaded using
-this method will be available throughout your site to all users who are able to create a custom certificate.';
+this method will be available throughout your site to all users who are able to create a certificate.';
 $string['verified'] = 'Verified';
 $string['verify'] = 'Verify';
 $string['verifycertificate'] = 'Verify certificate';
 $string['verifycertificateanyone'] = 'Allow anyone to verify a certificate';
 $string['verifycertificateanyone_help'] = 'This setting enables anyone with the certificate verification link (including users not logged in) to verify a certificate.';
-$string['viewcustomcertissues'] = 'View {$a} issued custom certificates';
+$string['viewcustomcertissues'] = 'View {$a} issued certificates';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
