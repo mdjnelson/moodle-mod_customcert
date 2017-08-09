@@ -134,6 +134,11 @@ if (empty($action)) {
     $completion = new completion_info($course);
     $completion->set_module_viewed($cm);
 
+    // Hack alert - don't initiate the download when running Behat.
+    if (defined('BEHAT_SITE_RUNNING')) {
+        redirect(new moodle_url('/mod/customcert/view.php', array('id' => $cm->id)));
+    }
+
     // Now we want to generate the PDF.
     $template = new \mod_customcert\template($template);
     $template->generate_pdf();

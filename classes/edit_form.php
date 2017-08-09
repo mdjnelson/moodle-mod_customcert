@@ -237,6 +237,7 @@ class edit_form extends \moodleform {
             $numelements = count($elements);
             // Create a table to display these elements.
             $table = new \html_table();
+            $table->attributes = array('class' => 'generaltable elementstable');
             $table->head  = array(get_string('name', 'customcert'), get_string('type', 'customcert'), '');
             $table->align = array('left', 'left', 'left');
             // Loop through and add the elements to the table.
@@ -250,11 +251,13 @@ class edit_form extends \moodleform {
                 // Link to edit this element.
                 $link = new \moodle_url($editelementlink, $editelementlinkparams + array('id' => $element->id,
                     'action' => 'edit'));
-                $icons = $OUTPUT->action_icon($link, new \pix_icon('t/edit', get_string('edit')));
+                $icons = $OUTPUT->action_icon($link, new \pix_icon('t/edit', get_string('edit')), null,
+                    array('class' => 'action-icon edit-icon'));
                 // Link to delete the element.
                 $link = new \moodle_url($editlink, $editlinkparams + array('action' => 'deleteelement',
                     'aid' => $element->id));
-                $icons .= $OUTPUT->action_icon($link, new \pix_icon('t/delete', get_string('delete')));
+                $icons .= $OUTPUT->action_icon($link, new \pix_icon('t/delete', get_string('delete')), null,
+                    array('class' => 'action-icon delete-icon'));
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {
                     // Only display the move up arrow if it is not the first.
