@@ -95,7 +95,8 @@ if ($templates = $DB->get_records('customcert_templates', array('contextid' => $
         // Link to delete the element.
         $deletelink = new \moodle_url('/mod/customcert/manage_templates.php', array('tid' => $template->id,
             'action' => 'delete'));
-        $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')));
+        $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,
+            array('class' => 'action-icon delete-icon'));
 
         $row = new html_table_row();
         $row->cells[] = $template->name;

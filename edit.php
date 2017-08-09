@@ -224,7 +224,8 @@ echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
 $mform->display();
 if ($tid) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
-    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, array('context' => $context));
+    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, array('context' => $context), 'post',
+        '', array('id' => 'loadtemplateform'));
     $loadtemplateform->display();
 }
 echo $OUTPUT->footer();
