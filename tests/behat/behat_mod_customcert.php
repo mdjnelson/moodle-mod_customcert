@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Steps definitions related to mod_customcert.
+ * Contains the class responsible for step definitions related to mod_customcert.
  *
  * @package   mod_customcert
  * @category  test
@@ -28,18 +28,20 @@
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
 /**
- * Steps definitions related to mod_customcert.
+ * The class responsible for step definitions related to mod_customcert.
  *
+ * @package mod_customcert
+ * @category test
  * @copyright 2017 Mark Nelson <markn@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_mod_customcert extends behat_base {
 
     /**
-     * Adds an element to the specified page of the custom certificate.
+     * Adds an element to the specified page of a template.
      *
      * @codingStandardsIgnoreLine
-     * @Given /^I add the element "(?P<element_name>(?:[^"]|\\")*)" to page "(?P<page_number>\d+)" of the "(?P<certificate_name>(?:[^"]|\\")*)" certificate template$/
+     * @Given /^I add the element "(?P<element_name>(?:[^"]|\\")*)" to page "(?P<page_number>\d+)" of the "(?P<template_name>(?:[^"]|\\")*)" certificate template$/
      * @param string $elementname
      * @param int $pagenum
      * @param string $templatename
@@ -57,9 +59,9 @@ class behat_mod_customcert extends behat_base {
     }
 
     /**
-     * Adds an element to the specified page of the custom certificate.
+     * Deletes an element from a specified page of a template.
      *
-     * @Given /^I delete page "(?P<page_number>\d+)" of the "(?P<certificate_name>(?:[^"]|\\")*)" certificate template$/
+     * @Given /^I delete page "(?P<page_number>\d+)" of the "(?P<template_name>(?:[^"]|\\")*)" certificate template$/
      * @param int $pagenum
      * @param string $templatename
      */

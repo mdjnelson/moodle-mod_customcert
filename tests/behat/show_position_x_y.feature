@@ -42,3 +42,11 @@ Feature: Being able to select a site setting to determine if we display the posi
     And I add the element "Code" to page "1" of the "Custom certificate 1" certificate template
     And I should see "Position X"
     And I should see "Position Y"
+    And I set the following fields to these values:
+      | Position X | 5  |
+      | Position Y | 10 |
+    And I press "Save changes"
+    And I click on ".edit-icon" "css_element" in the "Code" "table_row"
+    And the following fields match these values:
+      | Position X | 5  |
+      | Position Y | 10 |
