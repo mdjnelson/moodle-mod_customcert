@@ -288,7 +288,7 @@ class edit_form extends \moodleform {
         }
 
         $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element::get_available_types());
+        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element_helper::get_available_element_types());
         $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'),
             array(), false);
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
