@@ -96,14 +96,14 @@ class element extends \mod_customcert\element {
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return;
         }
 
         $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->element->data);
+        $gradeinfo = json_decode($this->get_data());
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
@@ -129,12 +129,12 @@ class element extends \mod_customcert\element {
         global $COURSE;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return;
         }
 
         // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->element->data);
+        $gradeinfo = json_decode($this->get_data());
 
         $courseitem = \grade_item::fetch_course_item($COURSE->id);
         // Define how many decimals to display.
@@ -154,10 +154,14 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        if (!empty($this->element->data)) {
-            $gradeinfo = json_decode($this->element->data);
-            $this->element->gradeitem = $gradeinfo->gradeitem;
-            $this->element->gradeformat = $gradeinfo->gradeformat;
+        if (!empty($this->get_data())) {
+            $gradeinfo = json_decode($this->get_data());
+
+            $element = $mform->getElement('gradeitem');
+            $element->setValue($gradeinfo->gradeitem);
+
+            $element = $mform->getElement('gradeformat');
+            $element->setValue($gradeinfo->gradeformat);
         }
 
         parent::definition_after_data($mform);
@@ -174,10 +178,10 @@ class element extends \mod_customcert\element {
     public function after_restore($restore) {
         global $DB;
 
-        $gradeinfo = json_decode($this->element->data);
+        $gradeinfo = json_decode($this->get_data());
         if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $gradeinfo->gradeitem)) {
             $gradeinfo->gradeitem = $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', self::save_unique_data($gradeinfo), array('id' => $this->element->id));
+            $DB->set_field('customcert_elements', 'data', self::save_unique_data($gradeinfo), array('id' => $this->get_id()));
         }
     }
 

@@ -49,7 +49,7 @@ class element extends \mod_customcert\element {
             $code = \mod_customcert\certificate::generate_code();
         } else {
             // Get the page.
-            $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            $page = $DB->get_record('customcert_pages', array('id' => $this->get_pageid()), '*', MUST_EXIST);
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.

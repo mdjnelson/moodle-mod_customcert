@@ -67,7 +67,7 @@ class element extends \customcertelement_image\element {
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return;
         }
 
@@ -97,7 +97,7 @@ class element extends \customcertelement_image\element {
         global $DB;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return '';
         }
 
@@ -105,7 +105,7 @@ class element extends \customcertelement_image\element {
             $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
                 $file->get_filepath(), $file->get_filename());
             // Get the page we are rendering this on.
-            $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            $page = $DB->get_record('customcert_pages', array('id' => $this->get_pageid()), '*', MUST_EXIST);
 
             // Set the image to the size of the page.
             $style = 'width: ' . $page->width . 'mm; height: ' . $page->height . 'mm';

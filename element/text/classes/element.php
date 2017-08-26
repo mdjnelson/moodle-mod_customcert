@@ -67,7 +67,7 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, $this->element->data);
+        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_data());
     }
 
     /**
@@ -79,7 +79,7 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        return \mod_customcert\element_helper::render_html_content($this, $this->element->data);
+        return \mod_customcert\element_helper::render_html_content($this, $this->get_data());
     }
 
     /**
@@ -88,8 +88,9 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        if (!empty($this->element->data)) {
-            $this->element->text = $this->element->data;
+        if (!empty($this->get_data())) {
+            $element = $mform->getElement('text');
+            $element->setValue($this->get_data());
         }
         parent::definition_after_data($mform);
     }

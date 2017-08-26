@@ -38,14 +38,69 @@ defined('MOODLE_INTERNAL') || die();
 abstract class element {
 
     /**
-     * @var \stdClass $element The data for the element we are adding.
+     * @var \stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
      */
-    public $element;
+    protected $element;
+
+    /**
+     * @var int The id.
+     */
+    protected $id;
+
+    /**
+     * @var int The page id.
+     */
+    protected $pageid;
+
+    /**
+     * @var string The name.
+     */
+    protected $name;
+
+    /**
+     * @var mixed The data.
+     */
+    protected $data;
+
+    /**
+     * @var string The font name.
+     */
+    protected $font;
+
+    /**
+     * @var int The font size.
+     */
+    protected $fontsize;
+
+    /**
+     * @var string The font colour.
+     */
+    protected $colour;
+
+    /**
+     * @var int The position x.
+     */
+    protected $posx;
+
+    /**
+     * @var int The position y.
+     */
+    protected $posy;
+
+    /**
+     * @var int The width.
+     */
+    protected $width;
+
+    /**
+     * @var int The refpoint.
+     */
+    protected $refpoint;
 
     /**
      * @var bool $showposxy Show position XY form elements?
      */
-    public $showposxy;
+    protected $showposxy;
 
     /**
      * Constructor.
@@ -55,8 +110,119 @@ abstract class element {
     public function __construct($element) {
         $showposxy = get_config('customcert', 'showposxy');
 
+        // Keeping this for legacy reasons so we do not break third-party elements.
         $this->element = clone($element);
+
+        $this->id = $element->id;
+        $this->name = $element->name;
+        $this->data = $element->data;
+        $this->font = $element->font;
+        $this->fontsize = $element->fontsize;
+        $this->colour = $element->colour;
+        $this->posx = $element->posx;
+        $this->posy = $element->posy;
+        $this->width = $element->width;
+        $this->refpoint = $element->refpoint;
         $this->showposxy = isset($showposxy) && $showposxy;
+    }
+
+    /**
+     * Returns the id.
+     *
+     * @return int
+     */
+    public function get_id() {
+        return $this->id;
+    }
+
+    /**
+     * Returns the page id.
+     *
+     * @return int
+     */
+    public function get_pageid() {
+        return $this->pageid;
+    }
+
+    /**
+     * Returns the name.
+     *
+     * @return int
+     */
+    public function get_name() {
+        return $this->name;
+    }
+
+    /**
+     * Returns the data.
+     *
+     * @return mixed
+     */
+    public function get_data() {
+        return $this->data;
+    }
+
+    /**
+     * Returns the font name.
+     *
+     * @return string
+     */
+    public function get_font() {
+        return $this->font;
+    }
+
+    /**
+     * Returns the font size.
+     *
+     * @return int
+     */
+    public function get_fontsize() {
+        return $this->fontsize;
+    }
+
+    /**
+     * Returns the font colour.
+     *
+     * @return string
+     */
+    public function get_colour() {
+        return $this->colour;
+    }
+
+    /**
+     * Returns the position x.
+     *
+     * @return int
+     */
+    public function get_posx() {
+        return $this->posx;
+    }
+
+    /**
+     * Returns the position y.
+     *
+     * @return int
+     */
+    public function get_posy() {
+        return $this->posy;
+    }
+
+    /**
+     * Returns the width.
+     *
+     * @return int
+     */
+    public function get_width() {
+        return $this->width;
+    }
+
+    /**
+     * Returns the refpoint.
+     *
+     * @return int
+     */
+    public function get_refpoint() {
+        return $this->refpoint;
     }
 
     /**
@@ -84,7 +250,17 @@ abstract class element {
     public function definition_after_data($mform) {
         // Loop through the properties of the element and set the values
         // of the corresponding form element, if it exists.
-        foreach ($this->element as $property => $value) {
+        $properties = [
+            'name' => $this->name,
+            'font' => $this->font,
+            'fontsize' => $this->fontsize,
+            'colour' => $this->colour,
+            'posx' => $this->posx,
+            'posy' => $this->posy,
+            'width' => $this->width,
+            'refpoint' => $this->refpoint
+        ];
+        foreach ($properties as $property => $value) {
             if (!is_null($value) && $mform->elementExists($property)) {
                 $element = $mform->getElement($property);
                 $element->setValue($value);
@@ -140,8 +316,8 @@ abstract class element {
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
-        if (!empty($this->element->id)) { // Must be updating a record in the database.
-            $element->id = $this->element->id;
+        if (!empty($this->id)) { // Must be updating a record in the database.
+            $element->id = $this->id;
             return $DB->update_record('customcert_elements', $element);
         } else { // Must be adding a new one.
             $element->element = $data->element;
@@ -208,7 +384,7 @@ abstract class element {
     public function delete() {
         global $DB;
 
-        return $DB->delete_records('customcert_elements', array('id' => $this->element->id));
+        return $DB->delete_records('customcert_elements', array('id' => $this->id));
     }
 
     /**
@@ -230,6 +406,7 @@ abstract class element {
      * @param string $name
      */
     public function __get($name) {
+        debugging('Please call the appropriate get_* function instead of relying on magic getters', DEBUG_DEVELOPER);
         if (property_exists($this->element, $name)) {
             return $this->element->$name;
         }
