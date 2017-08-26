@@ -99,7 +99,7 @@ class external extends \external_api {
         }
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element::instance($element)) {
+        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
             return $e->save_form_elements($data);
         }
 
@@ -159,7 +159,7 @@ class external extends \external_api {
         }
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element::instance($element)) {
+        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
             return $e->render_html();
         }
 

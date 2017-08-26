@@ -159,7 +159,7 @@ class template {
         if ($elements = $DB->get_records_sql($sql, array('templateid' => $this->id))) {
             foreach ($elements as $element) {
                 // Get an instance of the element class.
-                if ($e = \mod_customcert\element::instance($element)) {
+                if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                     $e->delete();
                 } else {
                     // The plugin files are missing, so just remove the entry from the DB.
@@ -199,7 +199,7 @@ class template {
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
             foreach ($elements as $element) {
                 // Get an instance of the element class.
-                if ($e = \mod_customcert\element::instance($element)) {
+                if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                     $e->delete();
                 } else {
                     // The plugin files are missing, so just remove the entry from the DB.
@@ -229,7 +229,7 @@ class template {
         $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element::instance($element)) {
+        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
             $e->delete();
         } else {
             // The plugin files are missing, so just remove the entry from the DB.
@@ -299,7 +299,7 @@ class template {
                     // Loop through and display.
                     foreach ($elements as $element) {
                         // Get an instance of the element class.
-                        if ($e = \mod_customcert\element::instance($element)) {
+                        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                             $e->render($pdf, $preview, $user);
                         }
                     }
