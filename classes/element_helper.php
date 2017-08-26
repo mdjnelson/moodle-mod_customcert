@@ -61,14 +61,14 @@ class element_helper {
      */
     public static function render_content($pdf, $element, $content) {
         list($font, $attr) = self::get_font($element);
-        $pdf->setFont($font, $attr, $element->fontsize);
-        $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($element->colour, $fontcolour);
+        $pdf->setFont($font, $attr, $element->get_fontsize());
+        $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($element->get_colour(), $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
-        $x = $element->posx;
-        $y = $element->posy;
-        $w = $element->width;
-        $refpoint = $element->refpoint;
+        $x = $element->get_posx();
+        $y = $element->get_posy();
+        $w = $element->get_width();
+        $refpoint = $element->get_refpoint();
         $actualwidth = $pdf->GetStringWidth($content);
 
         if ($w and $w < $actualwidth) {
@@ -77,19 +77,19 @@ class element_helper {
 
         switch ($refpoint) {
             case self::CUSTOMCERT_REF_POINT_TOPRIGHT:
-                $x = $element->posx - $actualwidth;
+                $x = $element->get_posx() - $actualwidth;
                 if ($x < 0) {
                     $x = 0;
-                    $w = $element->posx;
+                    $w = $element->get_posx();
                 } else {
                     $w = $actualwidth;
                 }
                 break;
             case self::CUSTOMCERT_REF_POINT_TOPCENTER:
-                $x = $element->posx - $actualwidth / 2;
+                $x = $element->get_posx() - $actualwidth / 2;
                 if ($x < 0) {
                     $x = 0;
-                    $w = $element->posx * 2;
+                    $w = $element->get_posx() * 2;
                 } else {
                     $w = $actualwidth;
                 }
@@ -120,9 +120,9 @@ class element_helper {
             $fontstyle .= '; font-style: italic';
         }
 
-        $style = $fontstyle . '; color: ' . $element->colour . '; font-size: ' . $element->fontsize . 'pt;';
-        if ($element->width) {
-            $style .= ' width: ' . $element->width . 'mm';
+        $style = $fontstyle . '; color: ' . $element->get_colour() . '; font-size: ' . $element->get_fontsize() . 'pt;';
+        if ($element->get_width()) {
+            $style .= ' width: ' . $element->get_width() . 'mm';
         }
         return \html_writer::div($content, '', array('style' => $style));
     }
@@ -253,7 +253,7 @@ class element_helper {
      */
     public static function get_font($element) {
         // Variable for the font.
-        $font = $element->font;
+        $font = $element->get_font();
         // Get the last two characters of the font name.
         $fontlength = strlen($font);
         $lastchar = $font[$fontlength - 1];

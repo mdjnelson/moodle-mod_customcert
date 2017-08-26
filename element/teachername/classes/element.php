@@ -71,7 +71,7 @@ class element extends \mod_customcert\element {
     public function render($pdf, $preview, $user) {
         global $DB;
 
-        $teacher = $DB->get_record('user', array('id' => $this->element->data));
+        $teacher = $DB->get_record('user', array('id' => $this->get_data()));
         $teachername = fullname($teacher);
 
         \mod_customcert\element_helper::render_content($pdf, $this, $teachername);
@@ -88,7 +88,7 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $DB;
 
-        $teacher = $DB->get_record('user', array('id' => $this->element->data));
+        $teacher = $DB->get_record('user', array('id' => $this->get_data()));
         $teachername = fullname($teacher);
 
         return \mod_customcert\element_helper::render_html_content($this, $teachername);
@@ -121,8 +121,9 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        if (!empty($this->element->data)) {
-            $this->element->teacher = $this->element->data;
+        if (!empty($this->get_data())) {
+            $element = $mform->getElement('teacher');
+            $element->setValue($this->get_data());
         }
         parent::definition_after_data($mform);
     }

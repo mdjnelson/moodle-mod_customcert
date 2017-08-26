@@ -101,7 +101,7 @@ class element extends \mod_customcert\element {
         global $CFG, $DB;
 
         // The user field to display.
-        $field = $this->element->data;
+        $field = $this->get_data();
         // The value to display on the PDF.
         $value = '';
         if (is_number($field)) { // Must be a custom user profile field.
@@ -132,7 +132,7 @@ class element extends \mod_customcert\element {
         global $CFG, $DB, $USER;
 
         // The user field to display.
-        $field = $this->element->data;
+        $field = $this->get_data();
         // The value to display - we always want to show a value here so it can be repositioned.
         $value = $field;
         if (is_number($field)) { // Must be a custom user profile field.
@@ -164,8 +164,9 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        if (!empty($this->element->data)) {
-            $this->element->userfield = $this->element->data;
+        if (!empty($this->get_data())) {
+            $element = $mform->getElement('userfield');
+            $element->setValue($this->get_data());
         }
         parent::definition_after_data($mform);
     }
