@@ -91,7 +91,7 @@ if ($page->leftmargin) {
 if ($elements) {
     foreach ($elements as $element) {
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element::instance($element)) {
+        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
             switch ($element->refpoint) {
                 case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPRIGHT:
                     $class = 'element refpoint-right';

@@ -52,7 +52,7 @@ if ($confirm) {
     if ($elements = $DB->get_records_sql($sql, array('templateid' => $template->get_id()))) {
         foreach ($elements as $element) {
             // Get an instance of the element class.
-            if ($e = \mod_customcert\element::instance($element)) {
+            if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                 $e->delete();
             }
         }
@@ -84,7 +84,7 @@ if ($confirm) {
                     // Ok, now we want to insert this into the database.
                     $element->id = $DB->insert_record('customcert_elements', $element);
                     // Load any other information the element may need to for the template.
-                    if ($e = \mod_customcert\element::instance($element)) {
+                    if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                         if (!$e->copy_element($templateelement)) {
                             // Failed to copy - delete the element.
                             $e->delete();

@@ -63,7 +63,7 @@ class edit_element_form extends \moodleform {
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
-        $this->element = \mod_customcert\element::instance($element);
+        $this->element = \mod_customcert\element_factory::get_element_instance($element);
         $this->element->render_form_elements($mform);
 
         $this->add_action_buttons(true);
