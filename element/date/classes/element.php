@@ -109,14 +109,14 @@ class element extends \mod_customcert\element {
         global $DB;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return;
         }
 
         $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
-        $dateinfo = json_decode($this->element->data);
+        $dateinfo = json_decode($this->get_data());
         $dateitem = $dateinfo->dateitem;
         $dateformat = $dateinfo->dateformat;
 
@@ -125,7 +125,7 @@ class element extends \mod_customcert\element {
             $date = time();
         } else {
             // Get the page.
-            $page = $DB->get_record('customcert_pages', array('id' => $this->element->pageid), '*', MUST_EXIST);
+            $page = $DB->get_record('customcert_pages', array('id' => $this->get_pageid()), '*', MUST_EXIST);
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
@@ -175,12 +175,12 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
-        if (empty($this->element->data)) {
+        if (empty($this->get_data())) {
             return;
         }
 
         // Decode the information stored in the database.
-        $dateinfo = json_decode($this->element->data);
+        $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
         return \mod_customcert\element_helper::render_html_content($this, $this->get_date_format_string(time(), $dateformat));
@@ -193,10 +193,14 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        if (!empty($this->element->data)) {
-            $dateinfo = json_decode($this->element->data);
-            $this->element->dateitem = $dateinfo->dateitem;
-            $this->element->dateformat = $dateinfo->dateformat;
+        if (!empty($this->get_data())) {
+            $dateinfo = json_decode($this->get_data());
+
+            $element = $mform->getElement('dateitem');
+            $element->setValue($dateinfo->dateitem);
+
+            $element = $mform->getElement('dateformat');
+            $element->setValue($dateinfo->dateformat);
         }
 
         parent::definition_after_data($mform);
@@ -213,10 +217,10 @@ class element extends \mod_customcert\element {
     public function after_restore($restore) {
         global $DB;
 
-        $dateinfo = json_decode($this->element->data);
+        $dateinfo = json_decode($this->get_data());
         if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $dateinfo->dateitem)) {
             $dateinfo->dateitem = $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', self::save_unique_data($dateinfo), array('id' => $this->element->id));
+            $DB->set_field('customcert_elements', 'data', self::save_unique_data($dateinfo), array('id' => $this->get_id()));
         }
     }
 

@@ -43,7 +43,7 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, self::get_category_name($this->id));
+        \mod_customcert\element_helper::render_content($pdf, $this, self::get_category_name($this->get_id()));
     }
 
     /**

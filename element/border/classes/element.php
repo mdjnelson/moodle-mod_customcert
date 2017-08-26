@@ -58,8 +58,8 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        $colour = \TCPDF_COLORS::convertHTMLColorToDec($this->element->colour, $colour);
-        $pdf->SetLineStyle(array('width' => $this->element->data, 'color' => $colour));
+        $colour = \TCPDF_COLORS::convertHTMLColorToDec($this->get_colour(), $colour);
+        $pdf->SetLineStyle(array('width' => $this->get_data(), 'color' => $colour));
         $pdf->Line(0, 0, $pdf->getPageWidth(), 0);
         $pdf->Line($pdf->getPageWidth(), 0, $pdf->getPageWidth(), $pdf->getPageHeight());
         $pdf->Line(0, $pdf->getPageHeight(), $pdf->getPageWidth(), $pdf->getPageHeight());
@@ -106,8 +106,9 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        if (!empty($this->element->data)) {
-            $this->element->width = $this->element->data;
+        if (!empty($this->get_data())) {
+            $element = $mform->getElement('width');
+            $element->setValue($this->get_data());
         }
         parent::definition_after_data($mform);
     }
