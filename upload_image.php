@@ -44,7 +44,7 @@ if ($uploadform->is_cancelled()) {
     redirect(new moodle_url('/admin/settings.php?section=modsettingcustomcert'));
 } else if ($data = $uploadform->get_data()) {
     // Handle file uploads.
-    \mod_customcert\certificate::upload_imagefiles($data->customcertimage, $context->id);
+    \mod_customcert\certificate::upload_files($data->customcertimage, $context->id);
 
     redirect(new moodle_url('/mod/customcert/upload_image.php'), get_string('changessaved'));
 }
