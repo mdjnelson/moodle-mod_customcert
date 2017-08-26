@@ -48,6 +48,7 @@ class element_factory {
 
         $data = new \stdClass();
         $data->id = isset($element->id) ? $element->id : null;
+        $data->pageid = isset($element->pageid) ? $element->pageid : null;
         $data->name = isset($element->name) ? $element->name : get_string('pluginname', 'customcertelement_' . $element->element);
         $data->element = $element->element;
         $data->data = isset($element->data) ? $element->data : null;

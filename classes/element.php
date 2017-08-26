@@ -114,6 +114,7 @@ abstract class element {
         $this->element = clone($element);
 
         $this->id = $element->id;
+        $this->pageid = $element->pageid;
         $this->name = $element->name;
         $this->data = $element->data;
         $this->font = $element->font;
