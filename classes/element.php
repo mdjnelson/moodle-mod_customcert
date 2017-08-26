@@ -85,7 +85,7 @@ abstract class element {
         // Loop through the properties of the element and set the values
         // of the corresponding form element, if it exists.
         foreach ($this->element as $property => $value) {
-            if ($mform->elementExists($property)) {
+            if (!is_null($value) && $mform->elementExists($property)) {
                 $element = $mform->getElement($property);
                 $element->setValue($value);
             }
@@ -233,24 +233,5 @@ abstract class element {
         if (property_exists($this->element, $name)) {
             return $this->element->$name;
         }
-    }
-
-    /**
-     * Returns an instance of the element class.
-     *
-     * @param \stdClass $element the element
-     * @return \mod_customcert\element|bool returns the instance of the element class, or false if element
-     *         class does not exists.
-     */
-    public static function instance($element) {
-        // Get the class name.
-        $classname = '\\customcertelement_' . $element->element . '\\element';
-
-        // Ensure the necessary class exists.
-        if (class_exists($classname)) {
-            return new $classname($element);
-        }
-
-        return false;
     }
 }
