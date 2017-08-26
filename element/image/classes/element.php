@@ -130,7 +130,7 @@ class element extends \mod_customcert\element {
         }
 
         // Handle file uploads.
-        \mod_customcert\certificate::upload_imagefiles($data->customcertimage, $context->id);
+        \mod_customcert\certificate::upload_files($data->customcertimage, $context->id);
 
         return parent::save_form_elements($data);
     }

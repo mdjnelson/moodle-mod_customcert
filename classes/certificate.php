@@ -86,13 +86,14 @@ class certificate {
      *
      * @param int $draftitemid the draft area containing the files
      * @param int $contextid the context we are storing this image in
+     * @param string $filearea indentifies the file area.
      */
-    public static function upload_imagefiles($draftitemid, $contextid) {
+    public static function upload_files($draftitemid, $contextid, $filearea = 'image') {
         global $CFG;
 
         // Save the file if it exists that is currently in the draft area.
         require_once($CFG->dirroot . '/lib/filelib.php');
-        file_save_draft_area_files($draftitemid, $contextid, 'mod_customcert', 'image', 0);
+        file_save_draft_area_files($draftitemid, $contextid, 'mod_customcert', $filearea, 0);
     }
 
     /**
