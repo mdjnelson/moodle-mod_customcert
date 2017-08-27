@@ -151,14 +151,15 @@ class element extends \mod_customcert\element {
         if (!empty($data->fileid)) {
             // Array of data we will be storing in the database.
             $fs = get_file_storage();
-            $file = $fs->get_file_by_id($data->fileid);
-            $arrtostore += [
-                'contextid' => $file->get_contextid(),
-                'filearea' => $file->get_filearea(),
-                'itemid' => $file->get_itemid(),
-                'filepath' => $file->get_filepath(),
-                'filename' => $file->get_filename(),
-            ];
+            if ($file = $fs->get_file_by_id($data->fileid)) {
+                $arrtostore += [
+                    'contextid' => $file->get_contextid(),
+                    'filearea' => $file->get_filearea(),
+                    'itemid' => $file->get_itemid(),
+                    'filepath' => $file->get_filepath(),
+                    'filename' => $file->get_filename(),
+                ];
+            }
         }
 
         return json_encode($arrtostore);
