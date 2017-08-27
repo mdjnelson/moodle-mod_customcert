@@ -143,22 +143,23 @@ class element extends \mod_customcert\element {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        if (empty($data->fileid)) {
-            return;
-        }
-
-        // Array of data we will be storing in the database.
-        $fs = get_file_storage();
-        $file = $fs->get_file_by_id($data->fileid);
-        $arrtostore = array(
-            'contextid' => $file->get_contextid(),
-            'filearea' => $file->get_filearea(),
-            'itemid' => $file->get_itemid(),
-            'filepath' => $file->get_filepath(),
-            'filename' => $file->get_filename(),
+        $arrtostore = [
             'width' => !empty($data->width) ? (int) $data->width : 0,
             'height' => !empty($data->height) ? (int) $data->height : 0
-        );
+        ];
+
+        if (!empty($data->fileid)) {
+            // Array of data we will be storing in the database.
+            $fs = get_file_storage();
+            $file = $fs->get_file_by_id($data->fileid);
+            $arrtostore += [
+                'contextid' => $file->get_contextid(),
+                'filearea' => $file->get_filearea(),
+                'itemid' => $file->get_itemid(),
+                'filepath' => $file->get_filepath(),
+                'filename' => $file->get_filename(),
+            ];
+        }
 
         return json_encode($arrtostore);
     }
@@ -177,6 +178,11 @@ class element extends \mod_customcert\element {
         }
 
         $imageinfo = json_decode($this->get_data());
+
+        // If there is no file, we have nothing to display.
+        if (empty($imageinfo->filename)) {
+            return;
+        }
 
         if ($file = $this->get_file()) {
             $location = make_request_directory() . '/target';
@@ -206,6 +212,11 @@ class element extends \mod_customcert\element {
         }
 
         $imageinfo = json_decode($this->get_data());
+
+        // If there is no file, we have nothing to display.
+        if (empty($imageinfo->filename)) {
+            return '';
+        }
 
         // Get the image.
         $fs = get_file_storage();
@@ -248,13 +259,19 @@ class element extends \mod_customcert\element {
         // Set the image, width and height for this element.
         if (!empty($this->get_data())) {
             $imageinfo = json_decode($this->get_data());
-            if ($file = $this->get_file()) {
-                $element = $mform->getElement('fileid');
-                $element->setValue($file->get_id());
+            if (!empty($imageinfo->filename)) {
+                if ($file = $this->get_file()) {
+                    $element = $mform->getElement('fileid');
+                    $element->setValue($file->get_id());
+                }
+            }
 
+            if (isset($imageinfo->width) && $mform->elementExists('width')) {
                 $element = $mform->getElement('width');
                 $element->setValue($imageinfo->width);
+            }
 
+            if (isset($imageinfo->height) && $mform->elementExists('height')) {
                 $element = $mform->getElement('height');
                 $element->setValue($imageinfo->height);
             }

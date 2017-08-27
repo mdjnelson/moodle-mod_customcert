@@ -71,6 +71,13 @@ class element extends \customcertelement_image\element {
             return;
         }
 
+        $imageinfo = json_decode($this->get_data());
+
+        // If there is no file, we have nothing to display.
+        if (empty($imageinfo->filename)) {
+            return;
+        }
+
         if ($file = $this->get_file()) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
@@ -98,6 +105,13 @@ class element extends \customcertelement_image\element {
 
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
+            return '';
+        }
+
+        $imageinfo = json_decode($this->get_data());
+
+        // If there is no file, we have nothing to display.
+        if (empty($imageinfo->filename)) {
             return '';
         }
 
