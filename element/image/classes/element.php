@@ -250,7 +250,7 @@ class element extends \mod_customcert\element {
             $imageinfo = json_decode($this->get_data());
             if ($file = $this->get_file()) {
                 $element = $mform->getElement('fileid');
-                $element->setValue($this->get_data());
+                $element->setValue($file->get_id());
 
                 $element = $mform->getElement('width');
                 $element->setValue($imageinfo->width);
