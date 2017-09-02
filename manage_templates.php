@@ -53,31 +53,37 @@ $PAGE->navbar->add(get_string('managetemplates', 'customcert'));
 
 // Check if we are deleting a template.
 if ($tid) {
-    if ($action == 'delete') {
-        if (!$confirm) {
-            $nourl = new moodle_url('/mod/customcert/manage_templates.php');
-            $yesurl = new moodle_url('/mod/customcert/manage_templates.php', array('tid' => $tid,
-                'action' => 'delete',
-                'confirm' => 1,
-                'sesskey' => sesskey()));
+    if ($action && confirm_sesskey()) {
+        if ($action == 'delete') {
+            if (!$confirm) {
+                $nourl = new moodle_url('/mod/customcert/manage_templates.php');
+                $yesurl = new moodle_url('/mod/customcert/manage_templates.php',
+                    array(
+                        'tid' => $tid,
+                        'action' => 'delete',
+                        'confirm' => 1,
+                        'sesskey' => sesskey()
+                    )
+                );
 
-            // Show a confirmation page.
-            $strheading = get_string('deleteconfirm', 'customcert');
-            $PAGE->navbar->add($strheading);
-            $PAGE->set_title($strheading);
-            $message = get_string('deletetemplateconfirm', 'customcert');
-            echo $OUTPUT->header();
-            echo $OUTPUT->heading($strheading);
-            echo $OUTPUT->confirm($message, $yesurl, $nourl);
-            echo $OUTPUT->footer();
-            exit();
+                // Show a confirmation page.
+                $strheading = get_string('deleteconfirm', 'customcert');
+                $PAGE->navbar->add($strheading);
+                $PAGE->set_title($strheading);
+                $message = get_string('deletetemplateconfirm', 'customcert');
+                echo $OUTPUT->header();
+                echo $OUTPUT->heading($strheading);
+                echo $OUTPUT->confirm($message, $yesurl, $nourl);
+                echo $OUTPUT->footer();
+                exit();
+            }
+
+            // Delete the template.
+            $template->delete();
+
+            // Redirect back to the manage templates page.
+            redirect(new moodle_url('/mod/customcert/manage_templates.php'));
         }
-
-        // Delete the template.
-        $template->delete();
-
-        // Redirect back to the manage templates page.
-        redirect(new moodle_url('/mod/customcert/manage_templates.php'));
     }
 }
 // Get all the templates that are available.
@@ -93,8 +99,13 @@ if ($templates = $DB->get_records('customcert_templates', array('contextid' => $
         $editicon = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit')));
 
         // Link to delete the element.
-        $deletelink = new \moodle_url('/mod/customcert/manage_templates.php', array('tid' => $template->id,
-            'action' => 'delete'));
+        $deletelink = new \moodle_url('/mod/customcert/manage_templates.php',
+            array(
+                'tid' => $template->id,
+                'action' => 'delete',
+                'sesskey' => sesskey()
+            )
+        );
         $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,
             array('class' => 'action-icon delete-icon'));
 
