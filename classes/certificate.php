@@ -265,7 +265,7 @@ class certificate {
 
         // Return the issues.
         $ufields = \user_picture::fields('u');
-        $sql = "SELECT $ufields, ci.code, ci.timecreated
+        $sql = "SELECT $ufields, ci.id as issueid, ci.code, ci.timecreated
                   FROM {user} u
             INNER JOIN {customcert_issues} ci
                     ON u.id = ci.userid

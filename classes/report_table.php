@@ -86,6 +86,11 @@ class report_table extends \table_sql {
             $headers[] = get_string('file');
         }
 
+        if (has_capability('mod/customcert:manage', \context_module::instance($cm->id))) {
+            $columns[] = 'actions';
+            $headers[] = '';
+        }
+
         $this->define_columns($columns);
         $this->define_headers($headers);
         $this->collapsible(false);
@@ -147,6 +152,27 @@ class report_table extends \table_sql {
                   'userid' => $user->id));
 
         return $OUTPUT->action_link($link, '', null, null, $icon);
+    }
+
+    /**
+     * Generate the actions column.
+     *
+     * @param \stdClass $user
+     * @return string
+     */
+    public function col_actions($user) {
+        global $OUTPUT;
+
+        $icon = new \pix_icon('i/delete', get_string('delete'));
+        $link = new \moodle_url('/mod/customcert/report.php',
+            [
+                'id' => $this->cm->id,
+                'deleteissue' => $user->issueid,
+                'sesskey' => sesskey()
+            ]
+        );
+
+        return $OUTPUT->action_icon($link, $icon, null, ['class' => 'action-icon delete-icon']);
     }
 
     /**
