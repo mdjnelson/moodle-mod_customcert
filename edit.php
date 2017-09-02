@@ -70,60 +70,70 @@ if ($context->contextlevel == CONTEXT_SYSTEM) {
 $deleting = false;
 
 if ($tid) {
-    switch ($action) {
-        case 'pmoveup' :
-            $template->move_item('page', $actionid, 'up');
-            break;
-        case 'pmovedown' :
-            $template->move_item('page', $actionid, 'down');
-            break;
-        case 'emoveup' :
-            $template->move_item('element', $actionid, 'up');
-            break;
-        case 'emovedown' :
-            $template->move_item('element', $actionid, 'down');
-            break;
-        case 'addpage' :
-            $template->add_page();
-            $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
-            redirect($url);
-            break;
-        case 'deletepage' :
-            if (!empty($confirm)) { // Check they have confirmed the deletion.
-                $template->delete_page($actionid);
+    if ($action && confirm_sesskey()) {
+        switch ($action) {
+            case 'pmoveup' :
+                $template->move_item('page', $actionid, 'up');
+                break;
+            case 'pmovedown' :
+                $template->move_item('page', $actionid, 'down');
+                break;
+            case 'emoveup' :
+                $template->move_item('element', $actionid, 'up');
+                break;
+            case 'emovedown' :
+                $template->move_item('element', $actionid, 'down');
+                break;
+            case 'addpage' :
+                $template->add_page();
                 $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
                 redirect($url);
-            } else {
-                // Set deletion flag to true.
-                $deleting = true;
-                // Create the message.
-                $message = get_string('deletepageconfirm', 'customcert');
-                // Create the link options.
-                $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
-                $yesurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid,
-                    'action' => 'deletepage',
-                    'aid' => $actionid,
-                    'confirm' => 1,
-                    'sesskey' => sesskey()));
-            }
-            break;
-        case 'deleteelement' :
-            if (!empty($confirm)) { // Check they have confirmed the deletion.
-                $template->delete_element($actionid);
-            } else {
-                // Set deletion flag to true.
-                $deleting = true;
-                // Create the message.
-                $message = get_string('deleteelementconfirm', 'customcert');
-                // Create the link options.
-                $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
-                $yesurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid,
-                    'action' => 'deleteelement',
-                    'aid' => $actionid,
-                    'confirm' => 1,
-                    'sesskey' => sesskey()));
-            }
-            break;
+                break;
+            case 'deletepage' :
+                if (!empty($confirm)) { // Check they have confirmed the deletion.
+                    $template->delete_page($actionid);
+                    $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    redirect($url);
+                } else {
+                    // Set deletion flag to true.
+                    $deleting = true;
+                    // Create the message.
+                    $message = get_string('deletepageconfirm', 'customcert');
+                    // Create the link options.
+                    $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    $yesurl = new moodle_url('/mod/customcert/edit.php',
+                        array(
+                            'tid' => $tid,
+                            'action' => 'deletepage',
+                            'aid' => $actionid,
+                            'confirm' => 1,
+                            'sesskey' => sesskey()
+                        )
+                    );
+                }
+                break;
+            case 'deleteelement' :
+                if (!empty($confirm)) { // Check they have confirmed the deletion.
+                    $template->delete_element($actionid);
+                } else {
+                    // Set deletion flag to true.
+                    $deleting = true;
+                    // Create the message.
+                    $message = get_string('deleteelementconfirm', 'customcert');
+                    // Create the link options.
+                    $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    $yesurl = new moodle_url('/mod/customcert/edit.php',
+                        array(
+                            'tid' => $tid,
+                            'action' => 'deleteelement',
+                            'aid' => $actionid,
+                            'confirm' => 1,
+                            'sesskey' => sesskey()
+                        )
+                    );
+                }
+                break;
+        }
     }
 }
 

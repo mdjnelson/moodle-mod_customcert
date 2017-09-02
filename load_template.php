@@ -42,7 +42,7 @@ if ($cm = $template->get_cm()) {
 $template->require_manage();
 
 // Check that they have confirmed they wish to load the template.
-if ($confirm) {
+if ($confirm && confirm_sesskey()) {
     // First, remove all the existing elements and pages.
     $sql = "SELECT e.*
               FROM {customcert_elements} e
@@ -104,7 +104,8 @@ if ($confirm) {
 $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
 $yesurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid,
                                                                     'ltid' => $ltid,
-                                                                    'confirm' => 1));
+                                                                    'confirm' => 1,
+                                                                    'sesskey' => sesskey()));
 
 $pageurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid, 'ltid' => $ltid));
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('loadtemplate', 'customcert'));
