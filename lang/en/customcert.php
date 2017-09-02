@@ -43,6 +43,7 @@ $string['deletecertpage'] = 'Delete page';
 $string['deleteconfirm'] = 'Delete confirmation';
 $string['deleteelement'] = 'Delete element';
 $string['deleteelementconfirm'] = 'Are you sure you want to delete this element?';
+$string['deleteissueconfirm'] = 'Are you sure you want to delete this certificate issue?';
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['deletetemplateconfirm'] = 'Are you sure you want to delete this certificate template?';
 $string['description'] = 'Description';

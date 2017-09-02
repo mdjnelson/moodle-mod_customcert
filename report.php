@@ -27,6 +27,8 @@ require_once('../../config.php');
 $id = required_param('id', PARAM_INT);
 $download = optional_param('download', null, PARAM_ALPHA);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
+$deleteissue = optional_param('deleteissue', 0, PARAM_INT);
+$confirm = optional_param('confirm', 0, PARAM_BOOL);
 if ($downloadcert) {
     $userid = required_param('userid', PARAM_INT);
 }
@@ -45,6 +47,40 @@ require_login($course, false, $cm);
 // Check capabilities.
 $context = context_module::instance($cm->id);
 require_capability('mod/customcert:viewreport', $context);
+
+if ($deleteissue && confirm_sesskey()) {
+    require_capability('mod/customcert:manage', $context);
+
+    if (!$confirm) {
+        $nourl = new moodle_url('/mod/customcert/report.php', ['id' => $id]);
+        $yesurl = new moodle_url('/mod/customcert/report.php',
+            [
+                'id' => $id,
+                'deleteissue' => $deleteissue,
+                'confirm' => 1,
+                'sesskey' => sesskey()
+            ]
+        );
+
+        // Show a confirmation page.
+        $strheading = get_string('deleteconfirm', 'customcert');
+        $PAGE->navbar->add($strheading);
+        $PAGE->set_title($strheading);
+        $PAGE->set_url($url);
+        $message = get_string('deleteissueconfirm', 'customcert');
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading($strheading);
+        echo $OUTPUT->confirm($message, $yesurl, $nourl);
+        echo $OUTPUT->footer();
+        exit();
+    }
+
+    // Delete the issue.
+    $DB->delete_records('customcert_issues', array('id' => $deleteissue, 'customcertid' => $customcert->id));
+
+    // Redirect back to the manage templates page.
+    redirect(new moodle_url('/mod/customcert/report.php', array('id' => $id)));
+}
 
 // Check if we requested to download another user's certificate.
 if ($downloadcert) {
