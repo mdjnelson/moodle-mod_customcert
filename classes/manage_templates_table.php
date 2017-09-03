@@ -93,6 +93,17 @@ class manage_templates_table extends \table_sql {
         $editlink = new \moodle_url('/mod/customcert/edit.php', array('tid' => $template->id));
         $editicon = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit')));
 
+        // Link to duplicate the template.
+        $duplicatelink = new \moodle_url('/mod/customcert/manage_templates.php',
+            array(
+                'tid' => $template->id,
+                'action' => 'duplicate',
+                'sesskey' => sesskey()
+            )
+        );
+        $duplicateicon = $OUTPUT->action_icon($duplicatelink, new \pix_icon('t/copy', get_string('duplicate')), null,
+            array('class' => 'action-icon duplicate-icon'));
+
         // Link to delete the template.
         $deletelink = new \moodle_url('/mod/customcert/manage_templates.php',
             array(
@@ -104,7 +115,7 @@ class manage_templates_table extends \table_sql {
         $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,
             array('class' => 'action-icon delete-icon'));
 
-        return $editicon . $deleteicon;
+        return $editicon . $duplicateicon . $deleteicon;
     }
 
     /**

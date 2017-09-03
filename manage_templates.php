@@ -53,21 +53,21 @@ $pageurl = new moodle_url('/mod/customcert/manage_templates.php');
 // Additional page setup.
 $PAGE->navbar->add(get_string('managetemplates', 'customcert'));
 
-// Check if we are deleting a template.
 if ($tid) {
     if ($action && confirm_sesskey()) {
+        $nourl = new moodle_url('/mod/customcert/manage_templates.php');
+        $yesurl = new moodle_url('/mod/customcert/manage_templates.php',
+            array(
+                'tid' => $tid,
+                'action' => $action,
+                'confirm' => 1,
+                'sesskey' => sesskey()
+            )
+        );
+
+        // Check if we are deleting a template.
         if ($action == 'delete') {
             if (!$confirm) {
-                $nourl = new moodle_url('/mod/customcert/manage_templates.php');
-                $yesurl = new moodle_url('/mod/customcert/manage_templates.php',
-                    array(
-                        'tid' => $tid,
-                        'action' => 'delete',
-                        'confirm' => 1,
-                        'sesskey' => sesskey()
-                    )
-                );
-
                 // Show a confirmation page.
                 $strheading = get_string('deleteconfirm', 'customcert');
                 $PAGE->navbar->add($strheading);
@@ -82,6 +82,25 @@ if ($tid) {
 
             // Delete the template.
             $template->delete();
+
+            // Redirect back to the manage templates page.
+            redirect(new moodle_url('/mod/customcert/manage_templates.php'));
+        } else if ($action == 'duplicate') {
+            if (!$confirm) {
+                // Show a confirmation page.
+                $strheading = get_string('duplicateconfirm', 'customcert');
+                $PAGE->navbar->add($strheading);
+                $PAGE->set_title($strheading);
+                $message = get_string('duplicatetemplateconfirm', 'customcert');
+                echo $OUTPUT->header();
+                echo $OUTPUT->heading($strheading);
+                echo $OUTPUT->confirm($message, $yesurl, $nourl);
+                echo $OUTPUT->footer();
+                exit();
+            }
+
+            // Duplicate the template.
+            $template->duplicate();
 
             // Redirect back to the manage templates page.
             redirect(new moodle_url('/mod/customcert/manage_templates.php'));

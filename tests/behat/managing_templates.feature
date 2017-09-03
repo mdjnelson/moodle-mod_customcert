@@ -82,3 +82,21 @@ Feature: Being able to manage site templates
     And I click on ".delete-icon" "css_element" in the "Site template" "table_row"
     And I press "Continue"
     And I should not see "Site template"
+
+  Scenario: Duplicating a site template
+    And I navigate to "Plugins" in site administration
+    And I follow "Manage activities"
+    And I click on "Settings" "link" in the "Custom certificate" "table_row"
+    And I follow "Manage templates"
+    And I press "Create template"
+    And I set the field "Name" to "Site template"
+    And I press "Save changes"
+    And I follow "Manage templates"
+    And I click on ".duplicate-icon" "css_element" in the "Site template" "table_row"
+    And I press "Cancel"
+    And I should see "Site template"
+    And I should not see "Site template (duplicate)"
+    And I click on ".duplicate-icon" "css_element" in the "Site template" "table_row"
+    And I press "Continue"
+    And I should see "Site template"
+    And I should see "Site template (duplicate)"

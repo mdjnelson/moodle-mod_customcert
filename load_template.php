@@ -61,39 +61,8 @@ if ($confirm && confirm_sesskey()) {
     // Delete the pages.
     $DB->delete_records('customcert_pages', array('templateid' => $template->get_id()));
 
-    // Store the current time in a variable.
-    $time = time();
-
-    // Now, get the template data we want to load.
-    if ($templatepages = $DB->get_records('customcert_pages', array('templateid' => $ltid))) {
-        // Loop through the pages.
-        foreach ($templatepages as $templatepage) {
-            $page = clone($templatepage);
-            $page->templateid = $tid;
-            $page->timecreated = $time;
-            $page->timemodified = $time;
-            // Insert into the database.
-            $page->id = $DB->insert_record('customcert_pages', $page);
-            // Now go through the elements we want to load.
-            if ($templateelements = $DB->get_records('customcert_elements', array('pageid' => $templatepage->id))) {
-                foreach ($templateelements as $templateelement) {
-                    $element = clone($templateelement);
-                    $element->pageid = $page->id;
-                    $element->timecreated = $time;
-                    $element->timemodified = $time;
-                    // Ok, now we want to insert this into the database.
-                    $element->id = $DB->insert_record('customcert_elements', $element);
-                    // Load any other information the element may need to for the template.
-                    if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                        if (!$e->copy_element($templateelement)) {
-                            // Failed to copy - delete the element.
-                            $e->delete();
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // Copy the items across.
+    $loadtemplate->duplicate($template->get_id());
 
     // Redirect.
     $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
