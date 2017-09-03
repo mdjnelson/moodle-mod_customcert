@@ -27,6 +27,8 @@ require_once('../../config.php');
 $contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
 $confirm = optional_param('confirm', 0, PARAM_INT);
+$page = optional_param('page', 0, PARAM_INT);
+$perpage = optional_param('perpage', 10, PARAM_INT);
 
 if ($action) {
     $tid = required_param('tid', PARAM_INT);
@@ -86,42 +88,12 @@ if ($tid) {
         }
     }
 }
-// Get all the templates that are available.
-if ($templates = $DB->get_records('customcert_templates', array('contextid' => $contextid), 'timecreated DESC')) {
-    // Create a table to display these elements.
-    $table = new html_table();
-    $table->head = array(get_string('name', 'customcert'), '');
-    $table->align = array('left', 'center');
 
-    foreach ($templates as $template) {
-        // Link to edit the element.
-        $editlink = new \moodle_url('/mod/customcert/edit.php', array('tid' => $template->id));
-        $editicon = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit')));
-
-        // Link to delete the element.
-        $deletelink = new \moodle_url('/mod/customcert/manage_templates.php',
-            array(
-                'tid' => $template->id,
-                'action' => 'delete',
-                'sesskey' => sesskey()
-            )
-        );
-        $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,
-            array('class' => 'action-icon delete-icon'));
-
-        $row = new html_table_row();
-        $row->cells[] = $template->name;
-        $row->cells[] = $editicon . $deleteicon;
-        $table->data[] = $row;
-    }
-}
+$table = new \mod_customcert\manage_templates_table($context);
+$table->define_baseurl($pageurl);
 
 echo $OUTPUT->header();
-if (isset($table)) {
-    echo html_writer::table($table);
-} else {
-    echo html_writer::tag('div', get_string('notemplates', 'customcert'), array('class' => 'alert'));
-}
+$table->out($perpage, false);
 $url = new moodle_url('/mod/customcert/edit.php?contextid=' . $contextid);
 echo $OUTPUT->single_button($url, get_string('createtemplate', 'customcert'), 'get');
 echo $OUTPUT->footer();
