@@ -313,6 +313,57 @@ class template {
     }
 
     /**
+     * Handles duplicating the template.
+     *
+     * @param int|null $copytotemplateid The template id to copy to, null if creating a new template
+     */
+    public function duplicate($copytotemplateid = null) {
+        global $DB;
+
+        if (is_null($copytotemplateid)) {
+            // Create another template at the same level.
+            $template = new \stdClass();
+            $template->name = $this->name . ' (' . strtolower(get_string('duplicate', 'customcert')) . ')';
+            $template->contextid = $this->contextid;
+            $template->timecreated = time();
+            $template->timemodified = $template->timecreated;
+
+            $copytotemplateid = $DB->insert_record('customcert_templates', $template);
+        }
+
+        // Get the pages for the template, there should always be at least one page for each template.
+        if ($templatepages = $DB->get_records('customcert_pages', array('templateid' => $this->id))) {
+            // Loop through the pages.
+            foreach ($templatepages as $templatepage) {
+                $page = clone($templatepage);
+                $page->templateid = $copytotemplateid;
+                $page->timecreated = time();
+                $page->timemodified = $page->timecreated;
+                // Insert into the database.
+                $page->id = $DB->insert_record('customcert_pages', $page);
+                // Now go through the elements we want to load.
+                if ($templateelements = $DB->get_records('customcert_elements', array('pageid' => $templatepage->id))) {
+                    foreach ($templateelements as $templateelement) {
+                        $element = clone($templateelement);
+                        $element->pageid = $page->id;
+                        $element->timecreated = time();
+                        $element->timemodified = $element->timecreated;
+                        // Ok, now we want to insert this into the database.
+                        $element->id = $DB->insert_record('customcert_elements', $element);
+                        // Load any other information the element may need to for the template.
+                        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+                            if (!$e->copy_element($templateelement)) {
+                                // Failed to copy - delete the element.
+                                $e->delete();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Handles moving an item on a template.
      *
      * @param string $itemname the item we are moving
