@@ -313,23 +313,12 @@ class template {
     }
 
     /**
-     * Handles duplicating the template.
+     * Handles copying this template into another.
      *
-     * @param int|null $copytotemplateid The template id to copy to, null if creating a new template
+     * @param int $copytotemplateid The template id to copy to
      */
-    public function duplicate($copytotemplateid = null) {
+    public function copy_to_template($copytotemplateid) {
         global $DB;
-
-        if (is_null($copytotemplateid)) {
-            // Create another template at the same level.
-            $template = new \stdClass();
-            $template->name = $this->name . ' (' . strtolower(get_string('duplicate', 'customcert')) . ')';
-            $template->contextid = $this->contextid;
-            $template->timecreated = time();
-            $template->timemodified = $template->timecreated;
-
-            $copytotemplateid = $DB->insert_record('customcert_templates', $template);
-        }
 
         // Get the pages for the template, there should always be at least one page for each template.
         if ($templatepages = $DB->get_records('customcert_pages', array('templateid' => $this->id))) {
