@@ -62,7 +62,7 @@ if ($confirm && confirm_sesskey()) {
     $DB->delete_records('customcert_pages', array('templateid' => $template->get_id()));
 
     // Copy the items across.
-    $loadtemplate->duplicate($template->get_id());
+    $loadtemplate->copy_to_template($template->get_id());
 
     // Redirect.
     $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
