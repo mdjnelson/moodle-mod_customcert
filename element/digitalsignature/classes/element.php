@@ -14,12 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * This file contains the customcert element digitial signature's core interaction API.
+ *
+ * @package    customcertelement_digitalsignature
+ * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace customcertelement_digitalsignature;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The customcert element signature's core interaction API.
+ * The customcert element digital signature's core interaction API.
  *
  * @package    customcertelement_digitalsignature
  * @copyright  2017 Mark Nelson <markn@moodle.com>
