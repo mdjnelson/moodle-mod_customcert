@@ -132,7 +132,8 @@ function customcert_reset_userdata($data) {
                   FROM {customcert} cert
                  WHERE cert.course = :courseid";
         $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", array('courseid' => $data->courseid));
-        $status[] = array('component' => $componentstr, 'item' => get_string('customcertremoved', 'customcert'), 'error' => false);
+        $status[] = array('component' => $componentstr, 'item' => get_string('deleteissuedcertificates', 'customcert'),
+            'error' => false);
     }
 
     // Updating dates - shift may be negative too.
@@ -152,7 +153,7 @@ function customcert_reset_userdata($data) {
  */
 function customcert_reset_course_form_definition(&$mform) {
     $mform->addElement('header', 'customcertheader', get_string('modulenameplural', 'customcert'));
-    $mform->addElement('advcheckbox', 'reset_customcert', get_string('deletissuedcustomcerts', 'customcert'));
+    $mform->addElement('advcheckbox', 'reset_customcert', get_string('deleteissuedcertificates', 'customcert'));
 }
 
 /**
