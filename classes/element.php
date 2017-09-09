@@ -375,7 +375,6 @@ abstract class element {
      */
     public abstract function render_html();
 
-
     /**
      * Handles deleting any data this element may have introduced.
      * Can be overridden if more functionality is needed.
