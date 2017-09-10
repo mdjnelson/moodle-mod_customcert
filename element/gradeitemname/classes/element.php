@@ -41,8 +41,10 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
+        global $COURSE;
+
         $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_gradeitemname'),
-            \customcertelement_grade\element::get_grade_items());
+            \mod_customcert\element_helper::get_grade_items($COURSE));
         $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_gradeitemname');
 
         parent::render_form_elements($mform);
