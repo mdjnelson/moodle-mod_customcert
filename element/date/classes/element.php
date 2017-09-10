@@ -27,6 +27,11 @@ namespace customcertelement_date;
 defined('MOODLE_INTERNAL') || die();
 
 /**
+ * Date - Course grade date
+ */
+define('CUSTOMCERT_DATE_COURSE_GRADE', '0');
+
+/**
  * Date - Issue
  */
 define('CUSTOMCERT_DATE_ISSUE', '-1');
@@ -63,13 +68,16 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function render_form_elements($mform) {
+        global $COURSE;
+
         // Get the possible date options.
         $dateoptions = array();
         $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
-        $dateoptions = $dateoptions + \customcertelement_grade\element::get_grade_items();
+        $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
+        $dateoptions = $dateoptions + \mod_customcert\element_helper::get_grade_items($COURSE);
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
@@ -150,11 +158,22 @@ class element extends \mod_customcert\element {
             } else if ($dateitem == CUSTOMCERT_DATE_COURSE_END) {
                 $date = $DB->get_field('course', 'enddate', array('id' => $courseid));
             } else {
-                if ($modinfo = \customcertelement_grade\element::get_mod_grade($dateitem, GRADE_DISPLAY_TYPE_PERCENTAGE,
-                        $issue->userid)) {
-                    if (!empty($modinfo->dategraded)) {
-                        $date = $modinfo->dategraded;
-                    }
+                if ($dateitem == CUSTOMCERT_DATE_COURSE_GRADE) {
+                    $grade = \mod_customcert\element_helper::get_course_grade_info(
+                        $courseid,
+                        GRADE_DISPLAY_TYPE_DEFAULT,
+                        $user->id
+                    );
+                } else {
+                    $grade = \mod_customcert\element_helper::get_mod_grade_info(
+                        $dateitem,
+                        GRADE_DISPLAY_TYPE_DEFAULT,
+                        $user->id
+                    );
+                }
+
+                if ($grade && !empty($grade->get_dategraded())) {
+                    $date = $grade->get_dategraded();
                 }
             }
         }
