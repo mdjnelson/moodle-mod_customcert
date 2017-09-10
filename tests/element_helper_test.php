@@ -54,10 +54,9 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
 
         // Create a custom certificate in the course.
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
-            'emailstudents' => 1));
+        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
 
-        // Get the template to add elemenets to.
+        // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', array('contextid' => context_module::instance($customcert->cmid)->id));
         $template = new \mod_customcert\template($template);
 
@@ -100,5 +99,149 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
 
         // Confirm the correct course id is returned.
         $this->assertEquals($SITE->id, \mod_customcert\element_helper::get_courseid($element->id));
+    }
+
+    /**
+     * Test we return the correct grade items in a course.
+     */
+    public function test_get_grade_items() {
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a few gradeable items.
+        $assign1 = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
+        $assign2 = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
+        $assign3 = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
+
+        $gradeitems = \mod_customcert\element_helper::get_grade_items($course);
+
+        $this->assertCount(3, $gradeitems);
+        $this->assertArrayHasKey($assign1->cmid, $gradeitems);
+        $this->assertArrayHasKey($assign2->cmid, $gradeitems);
+        $this->assertArrayHasKey($assign3->cmid, $gradeitems);
+    }
+
+    /**
+     * Test we return the correct grade information for an activity.
+     */
+    public function test_get_mod_grade_info() {
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create two users.
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+
+        // Enrol them into the course.
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+
+        // Create a gradeable item.
+        $assign = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
+
+        // Give a grade to the student.
+        $gi = grade_item::fetch(
+            [
+                'itemtype' => 'mod',
+                'itemmodule' => 'assign',
+                'iteminstance' => $assign->id,
+                'courseid' => $course->id
+            ]
+        );
+        $datagrade = 50;
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $gi->id;
+        $grade->userid = $student1->id;
+        $grade->rawgrade = $datagrade;
+        $grade->finalgrade = $datagrade;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        // Check that the user received the grade.
+        $grade = \mod_customcert\element_helper::get_mod_grade_info(
+            $assign->cmid,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student1->id
+        );
+
+        $this->assertEquals($assign->name, $grade->get_name());
+        $this->assertEquals('50.00000', $grade->get_grade());
+        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals($time, $grade->get_dategraded());
+
+        // Check that the user we did not grade has no grade.
+        $grade = \mod_customcert\element_helper::get_mod_grade_info(
+            $assign->cmid,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student2->id
+        );
+        $this->assertEquals($assign->name, $grade->get_name());
+        $this->assertEquals(null, $grade->get_grade());
+        $this->assertEquals('-', $grade->get_displaygrade());
+        $this->assertEquals(null, $grade->get_dategraded());
+    }
+
+    /**
+     * Test we return the correct grade information for a course.
+     */
+    public function test_get_course_grade_info() {
+        global $CFG;
+
+        // Including to use constant.
+        require_once($CFG->dirroot . '/mod/customcert/element/grade/classes/element.php');
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create two users.
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+
+        // Enrol them into the course.
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+
+        // Get the course item.
+        $coursegradeitem = grade_item::fetch_course_item($course->id);
+
+        $datagrade = 50;
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $coursegradeitem->id;
+        $grade->userid = $student1->id;
+        $grade->rawgrade = $datagrade;
+        $grade->finalgrade = $datagrade;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        // Check that the user received the grade.
+        $grade = \mod_customcert\element_helper::get_course_grade_info(
+            $course->id,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student1->id
+        );
+
+        $this->assertEquals(get_string('coursetotal', 'grades'), $grade->get_name());
+        $this->assertEquals('50.00000', $grade->get_grade());
+        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals($time, $grade->get_dategraded());
+
+        // Check that the user we did not grade has no grade.
+        $grade = \mod_customcert\element_helper::get_course_grade_info(
+            $course->id,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student2->id
+        );
+        $this->assertEquals(get_string('coursetotal', 'grades'), $grade->get_name());
+        $this->assertEquals(null, $grade->get_grade());
+        $this->assertEquals('-', $grade->get_displaygrade());
+        $this->assertEquals(null, $grade->get_dategraded());
     }
 }
