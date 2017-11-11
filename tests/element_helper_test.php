@@ -105,6 +105,8 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade items in a course.
      */
     public function test_get_grade_items() {
+        global $DB;
+
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -113,12 +115,21 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         $assign2 = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
         $assign3 = $this->getDataGenerator()->create_module('assign', array('course' => $course->id));
 
-        $gradeitems = \mod_customcert\element_helper::get_grade_items($course);
+        // Create a manual grade item.
+        $gi = $this->getDataGenerator()->create_grade_item(['courseid' => $course->id]);
 
-        $this->assertCount(3, $gradeitems);
+        // Create a category grade item.
+        $gc = $this->getDataGenerator()->create_grade_category(['courseid' => $course->id]);
+        $gc = $DB->get_record('grade_items', ['itemtype' => 'category', 'iteminstance' => $gc->id]);
+
+        // Confirm the function returns the correct number of grade items.
+        $gradeitems = \mod_customcert\element_helper::get_grade_items($course);
+        $this->assertCount(5, $gradeitems);
         $this->assertArrayHasKey($assign1->cmid, $gradeitems);
         $this->assertArrayHasKey($assign2->cmid, $gradeitems);
         $this->assertArrayHasKey($assign3->cmid, $gradeitems);
+        $this->assertArrayHasKey('gradeitem:' . $gi->id, $gradeitems);
+        $this->assertArrayHasKey('gradeitem:' . $gc->id, $gradeitems);
     }
 
     /**
@@ -240,6 +251,63 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
             $student2->id
         );
         $this->assertEquals(get_string('coursetotal', 'grades'), $grade->get_name());
+        $this->assertEquals(null, $grade->get_grade());
+        $this->assertEquals('-', $grade->get_displaygrade());
+        $this->assertEquals(null, $grade->get_dategraded());
+    }
+
+    /**
+     * Test we return the correct grade information for a grade item.
+     */
+    public function test_get_grade_item_info() {
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create two users.
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+
+        // Enrol them into the course.
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+
+        // Create a manual grade item.
+        $gi = $this->getDataGenerator()->create_grade_item(['itemname' => 'Grade item yo', 'courseid' => $course->id]);
+
+        // Give a grade to the student.
+        $gi = grade_item::fetch(['id' => $gi->id]);
+        $datagrade = 50;
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $gi->id;
+        $grade->userid = $student1->id;
+        $grade->rawgrade = $datagrade;
+        $grade->finalgrade = $datagrade;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        // Check that the user received the grade.
+        $grade = \mod_customcert\element_helper::get_grade_item_info(
+            $gi->id,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student1->id
+        );
+
+        $this->assertEquals('Grade item yo', $grade->get_name());
+        $this->assertEquals('50.00000', $grade->get_grade());
+        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals($time, $grade->get_dategraded());
+
+        // Check that the user we did not grade has no grade.
+        $grade = \mod_customcert\element_helper::get_grade_item_info(
+            $gi->id,
+            GRADE_DISPLAY_TYPE_PERCENTAGE,
+            $student2->id
+        );
+        $this->assertEquals('Grade item yo', $grade->get_name());
         $this->assertEquals(null, $grade->get_grade());
         $this->assertEquals('-', $grade->get_displaygrade());
         $this->assertEquals(null, $grade->get_dategraded());

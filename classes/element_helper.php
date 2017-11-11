@@ -475,6 +475,23 @@ class element_helper {
             }
         }
 
+        if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id])) {
+            $arrgradeitems = [];
+            foreach ($gradeitems as $gi) {
+                // Skip the course and mod items since we already have them.
+                if ($gi->itemtype == 'mod' || $gi->itemtype == 'course') {
+                    continue;
+                }
+                $arrgradeitems['gradeitem:' . $gi->id] = get_string('gradeitem', 'grades') . ' : ' . $gi->get_name(true);
+            }
+
+            // Alphabetise this.
+            asort($arrgradeitems);
+
+            // Merge results.
+            $modules = $modules + $arrgradeitems;
+        }
+
         return $modules;
     }
 
@@ -560,6 +577,35 @@ class element_helper {
             $objgrade->grade,
             grade_format_gradevalue($objgrade->grade, $item, true, $gradeformat, $decimals),
             $dategraded
+        );
+    }
+
+    /**
+     * Helper function to return the grade information for a grade item for a specified user.
+     *
+     * @param int $gradeitemid
+     * @param int $gradeformat
+     * @param int $userid
+     * @return grade_information|bool the grade information, or false if there is none.
+     */
+    public static function get_grade_item_info($gradeitemid, $gradeformat, $userid) {
+        if (!$gradeitem = \grade_item::fetch(['id' => $gradeitemid])) {
+            return false;
+        }
+
+        // Define how many decimals to display.
+        $decimals = 2;
+        if ($gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
+            $decimals = 0;
+        }
+
+        $grade = new \grade_grade(array('itemid' => $gradeitem->id, 'userid' => $userid));
+
+        return new grade_information(
+            $gradeitem->get_name(),
+            $grade->finalgrade,
+            grade_format_gradevalue($grade->finalgrade, $gradeitem, true, $gradeformat, $decimals),
+            $grade->get_dategraded()
         );
     }
 }
