@@ -75,5 +75,6 @@ $PAGE->navbar->add(get_string('mycertificates', 'customcert'));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('mycertificates', 'customcert'));
+echo html_writer::div(get_string('mycertificatesdescription', 'customcert'));
 $table->out($perpage, false);
 echo $OUTPUT->footer();

@@ -107,6 +107,7 @@ $string['modulenameplural'] = 'Custom certificates';
 $string['modulename_help'] = 'This module allows for the dynamic generation of PDF certificates.';
 $string['modulename_link'] = 'Custom_certificate_module';
 $string['mycertificates'] = 'My certificates';
+$string['mycertificatesdescription'] = 'These are the certificates you have been issued by either email or downloading manually.';
 $string['name'] = 'Name';
 $string['nametoolong'] = 'You have exceeded the maximum length allowed for the name';
 $string['nocustomcerts'] = 'There are no certificates for this course';
