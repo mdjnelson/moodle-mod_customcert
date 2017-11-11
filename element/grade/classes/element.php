@@ -55,7 +55,6 @@ class element extends \mod_customcert\element {
 
         // The grade items.
         $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
-        $mform->setType('gradeitem', PARAM_INT);
         $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
 
         // The grade format.
@@ -119,6 +118,13 @@ class element extends \mod_customcert\element {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
                 $grade = \mod_customcert\element_helper::get_course_grade_info(
                     $courseid,
+                    $gradeformat,
+                    $user->id
+                );
+            } else if (strpos($gradeitem, 'gradeitem:') === 0) {
+                $gradeitemid = substr($gradeitem, 10);
+                $grade = \mod_customcert\element_helper::get_grade_item_info(
+                    $gradeitemid,
                     $gradeformat,
                     $user->id
                 );
