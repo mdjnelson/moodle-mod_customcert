@@ -164,6 +164,13 @@ class element extends \mod_customcert\element {
                         GRADE_DISPLAY_TYPE_DEFAULT,
                         $user->id
                     );
+                } else if (strpos($dateitem, 'gradeitem:') === 0) {
+                    $gradeitemid = substr($dateitem, 10);
+                    $grade = \mod_customcert\element_helper::get_grade_item_info(
+                        $gradeitemid,
+                        $dateitem,
+                        $user->id
+                    );
                 } else {
                     $grade = \mod_customcert\element_helper::get_mod_grade_info(
                         $dateitem,
