@@ -45,6 +45,11 @@ class email_certificate implements \renderable, \templatable {
     public $userfullname;
 
     /**
+     * @var string The course short name.
+     */
+    public $courseshortname;
+
+    /**
      * @var string The course full name.
      */
     public $coursefullname;
@@ -64,13 +69,15 @@ class email_certificate implements \renderable, \templatable {
      *
      * @param bool $isstudent Are we emailing the student?
      * @param string $userfullname The name of the user who owns the certificate.
-     * @param string $coursefullname The name of the course.
+     * @param string $courseshortname The short name of the course.
+     * @param string $coursefullname The full name of the course.
      * @param string $certificatename The name of the certificate.
      * @param string $cmid The course module id.
      */
-    public function __construct($isstudent, $userfullname, $coursefullname, $certificatename, $cmid) {
+    public function __construct($isstudent, $userfullname, $courseshortname, $coursefullname, $certificatename, $cmid) {
         $this->isstudent = $isstudent;
         $this->userfullname = $userfullname;
+        $this->courseshortname = $courseshortname;
         $this->coursefullname = $coursefullname;
         $this->certificatename = $certificatename;
         $this->cmid = $cmid;
@@ -89,6 +96,7 @@ class email_certificate implements \renderable, \templatable {
         $info = new \stdClass();
         $info->userfullname = $this->userfullname;
         $info->certificatename = $this->certificatename;
+        $info->courseshortname = $this->courseshortname;
         $info->coursefullname = $this->coursefullname;
 
         if ($this->isstudent) {
