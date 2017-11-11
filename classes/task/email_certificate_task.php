@@ -51,7 +51,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
         // Get all the certificates that have requested someone get emailed.
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.shortname as coursename
+                       co.fullname as coursefullname, co.shortname as courseshortname
                   FROM {customcert} c
                   JOIN {customcert_templates} ct
                     ON c.templateid = ct.id
@@ -78,12 +78,15 @@ class email_certificate_task extends \core\task\scheduled_task {
                     $userfrom = get_admin();
                 }
 
-                $coursename = format_string($customcert->coursename, true, array('context' => $context));
+                $courseshortname = format_string($customcert->courseshortname, true, array('context' => $context));
+                $coursefullname = format_string($customcert->coursefullname, true, array('context' => $context));
                 $certificatename = format_string($customcert->name, true, array('context' => $context));
 
                 // Used to create the email subject.
                 $info = new \stdClass;
-                $info->coursename = $coursename;
+                $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
+                $info->courseshortname = $courseshortname;
+                $info->coursefullname = $coursefullname;
                 $info->certificatename = $certificatename;
 
                 // Get a list of all the issues.
@@ -166,7 +169,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                         $filecontents = $template->generate_pdf(false, $user->id, true);
 
                         // Set the name of the file we are going to send.
-                        $filename = $coursename . '_' . $certificatename;
+                        $filename = $courseshortname . '_' . $certificatename;
                         $filename = \core_text::entities_to_utf8($filename);
                         $filename = strip_tags($filename);
                         $filename = rtrim($filename, '.');
@@ -177,8 +180,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                         file_put_contents($tempfile, $filecontents);
 
                         if ($customcert->emailstudents) {
-                            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $coursename,
-                                $certificatename, $customcert->contextid);
+                            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
+                                $coursefullname, $certificatename, $customcert->contextid);
 
                             $subject = get_string('emailstudentsubject', 'customcert', $info);
                             $message = $textrenderer->render($renderable);
@@ -187,8 +190,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                         }
 
                         if ($customcert->emailteachers) {
-                            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $coursename,
-                                $certificatename, $customcert->contextid);
+                            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
+                                $coursefullname, $certificatename, $customcert->contextid);
 
                             $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                             $message = $textrenderer->render($renderable);
@@ -204,8 +207,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                             foreach ($others as $email) {
                                 $email = trim($email);
                                 if (validate_email($email)) {
-                                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $coursename,
-                                        $certificatename, $customcert->contextid);
+                                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
+                                        $courseshortname, $coursefullname, $certificatename, $customcert->contextid);
 
                                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                                     $message = $textrenderer->render($renderable);
