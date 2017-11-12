@@ -25,6 +25,7 @@
 $string['addcertpage'] = 'Add page';
 $string['addelement'] = 'Add element';
 $string['awardedto'] = 'Awarded to';
+$string['cannotverifyallcertificates'] = 'You do not have the permission to verify all certificates on the site.';
 $string['certificate'] = 'Certificate';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
@@ -38,6 +39,7 @@ $string['customcert:manage'] = 'Manage a custom certificate';
 $string['customcert:view'] = 'View a custom certificate';
 $string['customcert:viewreport'] = 'View course report';
 $string['customcert:viewallcertificates'] = 'View all certificates';
+$string['customcert:verifyallcertificates'] = 'Verify all certificates on the site';
 $string['customcert:verifycertificate'] = 'Verify a certificate';
 $string['deletecertpage'] = 'Delete page';
 $string['deleteconfirm'] = 'Delete confirmation';
@@ -159,6 +161,10 @@ $string['uploadimagedesc'] = 'This link will take you to a new screen where you 
 this method will be available throughout your site to all users who are able to create a certificate.';
 $string['verified'] = 'Verified';
 $string['verify'] = 'Verify';
+$string['verifyallcertificates'] = 'Allow verification of all certificates';
+$string['verifyallcertificates_desc'] = 'When this setting is enabled any person (including users not logged in) can visit the link \'{$a}\' in order to verify any certificate on the site, rather than having to go to the verification link for each certificate.
+
+Note - this only applies to certificates where \'Allow anyone to verify a certificate\' has been set to \'Yes\' in the certificate settings.';
 $string['verifycertificate'] = 'Verify certificate';
 $string['verifycertificateanyone'] = 'Allow anyone to verify a certificate';
 $string['verifycertificateanyone_help'] = 'This setting enables anyone with the certificate verification link (including users not logged in) to verify a certificate.';

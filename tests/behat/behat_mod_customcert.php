@@ -95,6 +95,28 @@ class behat_mod_customcert extends behat_base {
         $this->execute('behat_forms::i_set_the_field_to', array(get_string('code', 'customcert'), $issue->code));
         $this->execute('behat_forms::press_button', get_string('verify', 'customcert'));
         $this->execute('behat_general::assert_page_contains_text', get_string('verified', 'customcert'));
+        $this->execute('behat_general::assert_page_not_contains_text', get_string('notverified', 'customcert'));
+    }
+
+    /**
+     * Verifies the certificate code for a user.
+     *
+     * @Given /^I can not verify the "(?P<certificate_name>(?:[^"]|\\")*)" certificate for the user "(?P<user_name>(?:[^"]|\\")*)"$/
+     * @param string $certificatename
+     * @param string $username
+     */
+    public function i_can_not_verify_the_custom_certificate_for_user($certificatename, $username) {
+        global $DB;
+
+        $certificate = $DB->get_record('customcert', array('name' => $certificatename), '*', MUST_EXIST);
+        $user = $DB->get_record('user', array('username' => $username), '*', MUST_EXIST);
+        $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $certificate->id),
+            '*', MUST_EXIST);
+
+        $this->execute('behat_forms::i_set_the_field_to', array(get_string('code', 'customcert'), $issue->code));
+        $this->execute('behat_forms::press_button', get_string('verify', 'customcert'));
+        $this->execute('behat_general::assert_page_contains_text', get_string('notverified', 'customcert'));
+        $this->execute('behat_general::assert_page_not_contains_text', get_string('verified', 'customcert'));
     }
 
     /**
@@ -113,6 +135,16 @@ class behat_mod_customcert extends behat_base {
         $template = $DB->get_record('customcert_templates', array('id' => $certificate->templateid), '*', MUST_EXIST);
 
         $url = new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $template->contextid));
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url()));
+    }
+
+    /**
+     * Directs the user to the URL for verifying all certificates on the site.
+     *
+     * @Given /^I visit the verification url for the site$/
+     */
+    public function i_visit_the_verification_url_for_the_site() {
+        $url = new moodle_url('/mod/customcert/verify_certificate.php');
         $this->getSession()->visit($this->locate_path($url->out_as_local_url()));
     }
 }

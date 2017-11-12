@@ -52,3 +52,57 @@ Feature: Being able to verify that a certificate is valid or not
     And I press "Verify"
     And I should see "Not verified"
     And I verify the "Custom certificate 2" certificate for the user "student1"
+
+  Scenario: Attempt to verify a certificate as a non-user using the site-wide URL
+    And the following config values are set as admin:
+      | verifyallcertificates | 0 | customcert |
+    And I visit the verification url for the site
+    # User should see an error message as we do not allow non-users to verify all certificates on the site.
+    And I should see "You do not have the permission to verify all certificates on the site"
+
+  Scenario: Attempt to verify a certificate as a teacher using the site-wide URL
+    And the following config values are set as admin:
+      | verifyallcertificates | 0 | customcert |
+    And I log in as "teacher1"
+    And I visit the verification url for the site
+    # User should see an error message as we do not allow teachers to verify all certificates on the site.
+    And I should see "You do not have the permission to verify all certificates on the site"
+
+  Scenario: Verify a certificate as an admin using the site-wide URL
+    And the following config values are set as admin:
+      | verifyallcertificates | 0 | customcert |
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I follow "Custom certificate 1"
+    And I press "Download certificate"
+    And I am on "Course 1" course homepage
+    And I follow "Custom certificate 2"
+    And I press "Download certificate"
+    And I log out
+    And I log in as "admin"
+    # The admin (or anyone with the capability 'mod/customcert:verifyallcertificates') can visit the URL regardless of the setting.
+    And I visit the verification url for the site
+    And I set the field "Code" to "NOTAVALIDCODE"
+    And I press "Verify"
+    And I should see "Not verified"
+    # The admin (or anyone with the capability 'mod/customcert:verifyallcertificates') can verify any certificate regardless of the 'verifyany' setting.
+    And I verify the "Custom certificate 1" certificate for the user "student1"
+    And I verify the "Custom certificate 2" certificate for the user "student1"
+
+  Scenario: Verify a certificate as a non-user using the site-wide URL
+    And the following config values are set as admin:
+      | verifyallcertificates | 1 | customcert |
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I follow "Custom certificate 1"
+    And I press "Download certificate"
+    And I am on "Course 1" course homepage
+    And I follow "Custom certificate 2"
+    And I press "Download certificate"
+    And I log out
+    And I visit the verification url for the site
+    And I set the field "Code" to "NOTAVALIDCODE"
+    And I press "Verify"
+    And I should see "Not verified"
+    And I can not verify the "Custom certificate 1" certificate for the user "student1"
+    And I verify the "Custom certificate 2" certificate for the user "student1"
