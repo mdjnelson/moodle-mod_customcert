@@ -24,27 +24,52 @@
 
 require_once('../../config.php');
 
-$contextid = required_param('contextid', PARAM_INT);
+$contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $code = optional_param('code', '', PARAM_ALPHANUM); // The code for the certificate we are verifying.
 
 $context = context::instance_by_id($contextid);
 
-$cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-
-// Check if we are allowing anyone to verify, if so, no need to check login, or permissions.
-if (!$customcert->verifyany) {
-    // Need to be logged in.
-    require_login($course, false, $cm);
-    // Ok, now check the user has the ability to verify certificates.
-    require_capability('mod/customcert:verifycertificate', $context);
-} else {
-    $PAGE->set_cm($cm, $course);
-}
-
 // Set up the page.
 $pageurl = new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $contextid));
+
+// Ok, a certificate was specified.
+if ($context->contextlevel != CONTEXT_SYSTEM) {
+    $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
+
+    // Check if we are allowing anyone to verify, if so, no need to check login, or permissions.
+    if (!$customcert->verifyany) {
+        // Need to be logged in.
+        require_login($course, false, $cm);
+        // Ok, now check the user has the ability to verify certificates.
+        require_capability('mod/customcert:verifycertificate', $context);
+    } else {
+        $PAGE->set_cm($cm, $course);
+    }
+
+    $checkallofsite = false;
+} else {
+    // If the 'verifyallcertificates' is not set and the user does not have the capability 'mod/customcert:verifyallcertificates'
+    // then show them a message letting them know they can not proceed.
+    $verifyallcertificates = get_config('customcert', 'verifyallcertificates');
+    $canverifyallcertificates = has_capability('mod/customcert:verifyallcertificates', $context);
+    if (!$verifyallcertificates && !$canverifyallcertificates) {
+        $strheading = get_string('verifycertificate', 'customcert');
+        $PAGE->navbar->add($strheading);
+        $PAGE->set_context(context_system::instance());
+        $PAGE->set_title($strheading);
+        $PAGE->set_url($pageurl);
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading($strheading);
+        echo $OUTPUT->notification(get_string('cannotverifyallcertificates', 'customcert'));
+        echo $OUTPUT->footer();
+        exit();
+    }
+
+    $checkallofsite = true;
+}
+
 if ($code) {
     $pageurl->param('code', $code);
 }
@@ -63,7 +88,7 @@ if ($form->get_data()) {
     // Ok, now check if the code is valid.
     $userfields = get_all_user_name_fields(true, 'u');
     $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
-                   co.fullname as coursefullname, c.name as certificatename
+                   co.fullname as coursefullname, c.name as certificatename, c.verifyany
               FROM {customcert} c
               JOIN {customcert_issues} ci
                 ON c.id = ci.customcertid
@@ -71,11 +96,23 @@ if ($form->get_data()) {
                 ON c.course = co.id
               JOIN {user} u
                 ON ci.userid = u.id
-             WHERE ci.code = :code
-               AND c.id = :customcertid
-               AND u.deleted = 0";
+             WHERE ci.code = :code";
+
+    if ($checkallofsite) {
+        // Only people with the capability to verify all the certificates can verify any.
+        if (!$canverifyallcertificates) {
+            $sql .= " AND c.verifyany = 1";
+        }
+        $params = ['code' => $code];
+    } else {
+        $sql .= " AND c.id = :customcertid";
+        $params = ['code' => $code, 'customcertid' => $customcert->id];
+    }
+
+    $sql .= " AND u.deleted = 0";
+
     // It is possible (though unlikely) that there is the same code for issued certificates.
-    if ($issues = $DB->get_records_sql($sql, array('code' => $code, 'customcertid' => $customcert->id))) {
+    if ($issues = $DB->get_records_sql($sql, $params)) {
         $result->success = true;
         $result->issues = $issues;
     } else {
