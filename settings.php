@@ -24,6 +24,12 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+$url = $CFG->wwwroot . '/mod/customcert/verify_certificate.php';
+$settings->add(new admin_setting_configcheckbox('customcert/verifyallcertificates',
+    get_string('verifyallcertificates', 'customcert'),
+    get_string('verifyallcertificates_desc', 'customcert', $url),
+    0));
+
 $settings->add(new admin_setting_configcheckbox('customcert/showposxy',
     get_string('showposxy', 'customcert'),
     get_string('showposxy_desc', 'customcert'),
