@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.9] - 2017-11-13
+### Added
+- Added capability ```mod/customcert:verifyallcertificates``` that provides a user with the ability to verify any certificate
+  on the site by simply visiting the ```mod/customcert/verify_certificate.php``` page, rather than having to go to the
+  verification link for each certificate.
+- Added site setting ```customcert/verifyallcertificates``` which when enabled allows any person (including users not logged in)
+  to be able to verify any certificate on the site, rather than having to go to the verification link for each certificate.
+  However, this only applies to certificates where ```Allow anyone to verify a certificate``` has been set to ```Yes``` in the
+  certificate settings.
+- You can now display the grade and date of all grade items, not just the course and course activities.
+- Text has been added above the ```My certificates``` list to explain that it contains certificates that have been issued to
+  avoid confusion as to why certificates may not be appearing.
+
+### Changed
+- The course full name is now used in emails.
+
+### Fixed
+- Added missing string used in course reset.
+
 ## [3.3.8] - 2017-09-04
 ### Added
 - New digital signature element (uses existing functionality in the TCPDF library).
