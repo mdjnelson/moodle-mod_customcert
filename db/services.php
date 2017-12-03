@@ -24,6 +24,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$services =  array('CustomCertValidate' => array(
+                   'functions' => ('mod_customcert_validate_certificate'),
+                   'requiredcapability' => '',
+                   'restrictedusers' =>0,
+                   'enabled'=>1,
+));
+
+
 $functions = array(
     'mod_customcert_save_element' => array(
         'classname'   => 'mod_customcert\external',
@@ -41,4 +49,13 @@ $functions = array(
         'type'        => 'read',
         'ajax'        => true
     ),
+    'mod_customcert_validate_certificate' => array(
+        'classname' => 'mod_customcert\ValidateCertificate',
+        'methodname' => 'validate_certificate',
+        'classpath' => 'mod/customcert/classes/ws/ValidateCertificate.php',
+        'description' => 'Verify if received values are valid for a issued certificate',
+        'type' => 'read',
+
+    )
+
 );
