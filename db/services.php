@@ -24,14 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$services =  array('CustomCertValidate' => array(
-                   'functions' => ('mod_customcert_validate_certificate'),
-                   'requiredcapability' => '',
-                   'restrictedusers' =>0,
-                   'enabled'=>1,
-));
-
-
 $functions = array(
     'mod_customcert_save_element' => array(
         'classname'   => 'mod_customcert\external',
