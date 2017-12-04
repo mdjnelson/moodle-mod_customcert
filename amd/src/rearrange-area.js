@@ -105,7 +105,7 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                             // All done.
                             popup.close();
                         }.bind(this));
-                    }.bind(this));
+                    }.bind(this)).fail(notification.exception);
                     e.preventDefault();
                 }.bind(this));
 
