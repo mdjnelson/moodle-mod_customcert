@@ -39,8 +39,8 @@ class mod_customcert_generator extends testing_module_generator {
      * Creates an instance of the custom certificate.
      *
      * @param array|stdClass|null $record
-     * @param array|null $options.
-     * @return stdClass.
+     * @param array|null $options
+     * @return stdClass
      */
     public function create_instance($record = null, array $options = null) {
         $record = (object)(array)$record;
