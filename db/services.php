@@ -41,4 +41,13 @@ $functions = array(
         'type'        => 'read',
         'ajax'        => true
     ),
+    'mod_customcert_validate_certificate' => array(
+        'classname' => 'mod_customcert\ValidateCertificate',
+        'methodname' => 'validate_certificate',
+        'classpath' => 'mod/customcert/classes/ws/ValidateCertificate.php',
+        'description' => 'Verify if received values are valid for a issued certificate',
+        'type' => 'read',
+
+    )
+
 );
