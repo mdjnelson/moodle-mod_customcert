@@ -36,4 +36,3 @@ Feature: Being able to set the required minutes in a course before viewing the c
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
     And I should not see "You must spend at least a minimum of"
-    And I should see "Download certificate"

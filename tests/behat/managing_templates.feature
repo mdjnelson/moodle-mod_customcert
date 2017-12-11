@@ -20,9 +20,10 @@ Feature: Being able to manage site templates
     And I log in as "admin"
 
   Scenario: Adding a site template and loading it into a course certificate
-    And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
-    And I click on "Settings" "link" in the "Custom certificate" "table_row"
+    And I expand "Site administration" node
+    And I expand "Plugins" node
+    And I expand "Activity modules" node
+    And I follow "Custom certificate"
     And I follow "Manage templates"
     And I press "Create template"
     And I set the field "Name" to "Site template"
@@ -68,9 +69,10 @@ Feature: Being able to manage site templates
       | Reference point location | Top left  |
 
   Scenario: Deleting a site template
-    And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
-    And I click on "Settings" "link" in the "Custom certificate" "table_row"
+    And I expand "Site administration" node
+    And I expand "Plugins" node
+    And I expand "Activity modules" node
+    And I follow "Custom certificate"
     And I follow "Manage templates"
     And I press "Create template"
     And I set the field "Name" to "Site template"
@@ -84,9 +86,10 @@ Feature: Being able to manage site templates
     And I should not see "Site template"
 
   Scenario: Duplicating a site template
-    And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
-    And I click on "Settings" "link" in the "Custom certificate" "table_row"
+    And I expand "Site administration" node
+    And I expand "Plugins" node
+    And I expand "Activity modules" node
+    And I follow "Custom certificate"
     And I follow "Manage templates"
     And I press "Create template"
     And I set the field "Name" to "Site template"
