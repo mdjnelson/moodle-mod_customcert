@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.20] - 2018-01-23
+### Fixed
+
+- The fatal error ```Can't use method return value in write context``` would occur in PHP < 5.5 . Note - this fix does not need
+  to be applied to newer branches as the Moodle versions require PHP > 5.5.
+
 ## [3.1.17] - 2017-11-13
 ### Added
 - Added capability ```mod/customcert:verifyallcertificates``` that provides a user with the ability to verify any certificate
