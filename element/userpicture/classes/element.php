@@ -113,11 +113,12 @@ class element extends \mod_customcert\element {
         global $CFG;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         $context = \context_user::instance($user->id);
 
@@ -157,11 +158,12 @@ class element extends \mod_customcert\element {
         global $PAGE, $USER;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         // Get the image.
         $userpicture = new \user_picture($USER);
@@ -194,8 +196,9 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the image, width and height for this element.
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $imageinfo = json_decode($data);
 
             $element = $mform->getElement('width');
             $element->setValue($imageinfo->width);

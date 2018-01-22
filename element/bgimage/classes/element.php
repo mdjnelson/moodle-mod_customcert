@@ -67,11 +67,12 @@ class element extends \customcertelement_image\element {
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         // If there is no file, we have nothing to display.
         if (empty($imageinfo->filename)) {
@@ -104,11 +105,12 @@ class element extends \customcertelement_image\element {
         global $DB;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         // If there is no file, we have nothing to display.
         if (empty($imageinfo->filename)) {

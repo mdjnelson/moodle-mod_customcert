@@ -93,14 +93,15 @@ class element extends \mod_customcert\element {
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return;
         }
 
         $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->get_data());
+        $gradeinfo = json_decode($data);
         $gradeitem = $gradeinfo->gradeitem;
         $gradeformat = $gradeinfo->gradeformat;
 
@@ -156,12 +157,13 @@ class element extends \mod_customcert\element {
         global $COURSE;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
-            return;
+        $data = $this->get_data();
+        if (empty($data)) {
+            return '';
         }
 
         // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->get_data());
+        $gradeinfo = json_decode($data);
 
         $courseitem = \grade_item::fetch_course_item($COURSE->id);
 
@@ -183,8 +185,9 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        if (!empty($this->get_data())) {
-            $gradeinfo = json_decode($this->get_data());
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $gradeinfo = json_decode($data);
 
             $element = $mform->getElement('gradeitem');
             $element->setValue($gradeinfo->gradeitem);

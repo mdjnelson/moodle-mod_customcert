@@ -174,11 +174,12 @@ class element extends \mod_customcert\element {
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         // If there is no file, we have nothing to display.
         if (empty($imageinfo->filename)) {
@@ -208,11 +209,12 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $imageinfo = json_decode($data);
 
         // If there is no file, we have nothing to display.
         if (empty($imageinfo->filename)) {
@@ -258,8 +260,9 @@ class element extends \mod_customcert\element {
         global $COURSE, $SITE;
 
         // Set the image, width and height for this element.
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $imageinfo = json_decode($data);
             if (!empty($imageinfo->filename)) {
                 if ($file = $this->get_file()) {
                     $element = $mform->getElement('fileid');

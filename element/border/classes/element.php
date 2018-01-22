@@ -106,9 +106,10 @@ class element extends \mod_customcert\element {
      * @param \mod_customcert\edit_element_form $mform the edit_form instance
      */
     public function definition_after_data($mform) {
-        if (!empty($this->get_data())) {
+        $data = $this->get_data();
+        if (!empty($data)) {
             $element = $mform->getElement('width');
-            $element->setValue($this->get_data());
+            $element->setValue($data);
         }
         parent::definition_after_data($mform);
     }

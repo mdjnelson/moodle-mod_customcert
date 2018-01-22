@@ -117,14 +117,15 @@ class element extends \mod_customcert\element {
         global $DB;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        $data = $this->get_data();
+        if (empty($data)) {
             return;
         }
 
         $courseid = \mod_customcert\element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
-        $dateinfo = json_decode($this->get_data());
+        $dateinfo = json_decode($data);
         $dateitem = $dateinfo->dateitem;
         $dateformat = $dateinfo->dateformat;
 
@@ -179,8 +180,9 @@ class element extends \mod_customcert\element {
                     );
                 }
 
-                if ($grade && !empty($grade->get_dategraded())) {
-                    $date = $grade->get_dategraded();
+                $dategraded = $grade->get_dategraded();
+                if ($grade && !empty($dategraded)) {
+                    $date = $dategraded;
                 }
             }
         }
@@ -201,12 +203,13 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
-            return;
+        $data = $this->get_data();
+        if (empty($data)) {
+            return '';
         }
 
         // Decode the information stored in the database.
-        $dateinfo = json_decode($this->get_data());
+        $dateinfo = json_decode($data);
         $dateformat = $dateinfo->dateformat;
 
         return \mod_customcert\element_helper::render_html_content($this, $this->get_date_format_string(time(), $dateformat));
@@ -219,8 +222,9 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        if (!empty($this->get_data())) {
-            $dateinfo = json_decode($this->get_data());
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $dateinfo = json_decode($data);
 
             $element = $mform->getElement('dateitem');
             $element->setValue($dateinfo->dateitem);
