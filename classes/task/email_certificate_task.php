@@ -125,16 +125,21 @@ class email_certificate_task extends \core\task\scheduled_task {
                         }
                     }
 
-                    // Ok, issue them the certificate.
-                    $customcertissue = new \stdClass();
-                    $customcertissue->customcertid = $customcert->id;
-                    $customcertissue->userid = $enroluser->id;
-                    $customcertissue->code = \mod_customcert\certificate::generate_code();
-                    $customcertissue->emailed = 0;
-                    $customcertissue->timecreated = time();
+                    // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
+                    $issueid = $DB->get_field('customcert_issues', 'id',
+                        array('userid' => $enroluser->id, 'customcertid' => $customcert->id));
+                    if (empty($issueid)) {
+                        // Ok, issue them the certificate.
+                        $customcertissue = new \stdClass();
+                        $customcertissue->customcertid = $customcert->id;
+                        $customcertissue->userid = $enroluser->id;
+                        $customcertissue->code = \mod_customcert\certificate::generate_code();
+                        $customcertissue->emailed = 0;
+                        $customcertissue->timecreated = time();
 
-                    // Insert the record into the database.
-                    $issueid = $DB->insert_record('customcert_issues', $customcertissue);
+                        // Insert the record into the database.
+                        $issueid = $DB->insert_record('customcert_issues', $customcertissue);
+                    }
 
                     // Add them to the array so we email them.
                     $enroluser->issueid = $issueid;
