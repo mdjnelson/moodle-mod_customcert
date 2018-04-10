@@ -71,8 +71,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 // Get the person we are going to send this email on behalf of.
                 // Look through the teachers.
-                if ($teachers = get_users_by_capability($context, 'moodle/course:update', 'u.*', 'u.id ASC',
-                    '', '', '', '', false, true)) {
+                if ($teachers = get_enrolled_users($context, 'moodle/course:update')) {
                     $teachers = sort_by_roleassignment_authority($teachers, $context);
                     $userfrom = reset($teachers);
                 } else { // Ok, no teachers, use administrator name.
