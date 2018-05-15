@@ -23,5 +23,6 @@
  */
 
 $string['pluginname'] = 'Teacher name';
+$string['privacy:metadata'] = 'The Teacher name plugin does not store any personal data.';
 $string['teacher'] = 'Teacher';
 $string['teacher_help'] = 'This is the teacher name that will be displayed.';

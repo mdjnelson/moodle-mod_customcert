@@ -23,3 +23,4 @@
  */
 
 $string['pluginname'] = 'Course name';
+$string['privacy:metadata'] = 'The Course name plugin does not store any personal data.';

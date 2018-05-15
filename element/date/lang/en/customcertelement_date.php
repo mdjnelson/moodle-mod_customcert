@@ -32,6 +32,7 @@ $string['dateitem'] = 'Date item';
 $string['dateitem_help'] = 'This will be the date that is printed on the certificate';
 $string['issueddate'] = 'Issued date';
 $string['pluginname'] = 'Date';
+$string['privacy:metadata'] = 'The Date plugin does not store any personal data.';
 $string['numbersuffix_nd_as_in_second'] = 'nd';
 $string['numbersuffix_rd_as_in_third'] = 'rd';
 $string['numbersuffix_st_as_in_first'] = 'st';

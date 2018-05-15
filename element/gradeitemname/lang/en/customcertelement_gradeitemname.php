@@ -25,3 +25,4 @@
 $string['gradeitem'] = 'Grade item';
 $string['gradeitem_help'] = 'The name of the selected item will be displayed on the PDF.';
 $string['pluginname'] = 'Grade item name';
+$string['privacy:metadata'] = 'The Grade item name plugin does not store any personal data.';

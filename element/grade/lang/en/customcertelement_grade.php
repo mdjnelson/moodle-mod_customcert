@@ -33,3 +33,4 @@ $string['gradepoints'] = 'Points';
 $string['gradeletter'] = 'Letter';
 $string['pluginname'] = 'Grade';
 $string['previewgrade'] = 'Preview grade';
+$string['privacy:metadata'] = 'The Grade plugin does not store any personal data.';
