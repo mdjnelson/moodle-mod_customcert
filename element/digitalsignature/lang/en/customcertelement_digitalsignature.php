@@ -25,6 +25,7 @@
 $string['digitalsignature'] = 'Digital signature';
 $string['nosignature'] = 'No signature';
 $string['pluginname'] = 'Digital signature';
+$string['privacy:metadata'] = 'The Digital signature plugin does not store any personal data.';
 $string['signaturename'] = 'Signature name';
 $string['signaturepassword'] = 'Signature password';
 $string['signaturelocation'] = 'Signature location';

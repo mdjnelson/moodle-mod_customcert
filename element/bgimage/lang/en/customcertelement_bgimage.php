@@ -23,3 +23,4 @@
  */
 
 $string['pluginname'] = 'Background image';
+$string['privacy:metadata'] = 'The Background image plugin does not store any personal data.';

@@ -23,3 +23,4 @@
  */
 
 $string['pluginname'] = 'Category name';
+$string['privacy:metadata'] = 'The Category name plugin does not store any personal data.';
