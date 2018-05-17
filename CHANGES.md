@@ -1,6 +1,17 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. 
+
+Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
+
+## [3.3.10] - 2018-05-17
+### Added
+- GDPR Compliance (#189).
+
+### Fixed
+- Race condition on certificate issues in scheduled task (#173).
+- Ensure we backup the 'verifyany' setting (#169).
+- Fixed encoding content links used by restore (#166).
 
 ## [3.3.9] - 2017-11-13
 ### Added
