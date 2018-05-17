@@ -155,7 +155,7 @@ class certificate {
         // Array to store the sizes.
         $sizes = array();
 
-        for ($i = 1; $i <= 60; $i++) {
+        for ($i = 1; $i <= 200; $i++) {
             $sizes[$i] = $i;
         }
 
