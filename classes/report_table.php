@@ -145,7 +145,7 @@ class report_table extends \table_sql {
     public function col_download($user) {
         global $OUTPUT;
 
-        $icon = new \pix_icon('i/import', get_string('download'));
+        $icon = new \pix_icon('download', get_string('download'), 'customcert');
         $link = new \moodle_url('/mod/customcert/report.php',
             array('id' => $this->cm->id,
                   'downloadcert' => '1',
