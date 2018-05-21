@@ -136,7 +136,7 @@ class my_certificates_table extends \table_sql {
     public function col_download($certificate) {
         global $OUTPUT;
 
-        $icon = new \pix_icon('i/import', get_string('download'));
+        $icon = new \pix_icon('download', get_string('download'), 'customcert');
         $link = new \moodle_url('/mod/customcert/my_certificates.php',
             array('userid' => $this->userid,
                   'certificateid' => $certificate->id,

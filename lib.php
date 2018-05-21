@@ -418,3 +418,12 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
             $updateelement->name, $updateelement->name);
     }
 }
+
+/**
+ * Get icon mapping for font-awesome.
+ */
+function mod_customcert_get_fontawesome_icon_map() {
+    return [
+        'mod_customcert:download' => 'fa-download'
+    ];
+}
