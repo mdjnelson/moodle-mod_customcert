@@ -174,4 +174,57 @@ class external extends \external_api {
     public static function get_element_html_returns() {
         return new \external_value(PARAM_RAW, 'The HTML');
     }
+
+    /**
+     * Returns the delete_issue() parameters.
+     *
+     * @return \external_function_parameters
+     */
+    public static function delete_issue_parameters() {
+        return new \external_function_parameters(
+            array(
+                'certificateid' => new \external_value(PARAM_INT, 'The certificate id'),
+                'issueid' => new \external_value(PARAM_INT, 'The issue id'),
+            )
+        );
+    }
+
+    /**
+     * Handles deleting a customcert issue.
+     *
+     * @param int $certificateid The certificate id.
+     * @param int $issueid The issue id.
+     * @return bool
+     */
+    public static function delete_issue($certificateid, $issueid) {
+        global $DB;
+
+        $params = [
+            'certificateid' => $certificateid,
+            'issueid' => $issueid
+        ];
+        self::validate_parameters(self::delete_issue_parameters(), $params);
+
+        $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
+        $issue = $DB->get_record('customcert_issues', ['id' => $issueid, 'customcertid' => $certificateid], '*', MUST_EXIST);
+
+        $cm = get_coursemodule_from_instance('customcert', $certificate->id, 0, false, MUST_EXIST);
+
+        // Make sure the user has the required capabilities.
+        $context = \context_module::instance($cm->id);
+        self::validate_context($context);
+        require_capability('mod/customcert:manage', $context);
+
+        // Delete the issue.
+        return $DB->delete_records('customcert_issues', ['id' => $issue->id]);
+    }
+
+    /**
+     * Returns the delete_issue result value.
+     *
+     * @return \external_value
+     */
+    public static function delete_issue_returns() {
+        return new \external_value(PARAM_BOOL, 'True if successful, false otherwise');
+    }
 }
