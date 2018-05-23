@@ -422,6 +422,27 @@ class certificate {
     }
 
     /**
+     * Issues a certificate to a user.
+     *
+     * @param int $certificateid The ID of the certificate
+     * @param int $userid The ID of the user to issue the certificate to
+     * @return int The ID of the issue
+     */
+    public static function issue_certificate($certificateid, $userid) {
+        global $DB;
+
+        $issue = new \stdClass();
+        $issue->userid = $userid;
+        $issue->customcertid = $certificateid;
+        $issue->code = self::generate_code();
+        $issue->emailed = 0;
+        $issue->timecreated = time();
+
+        // Insert the record into the database.
+        return $DB->insert_record('customcert_issues', $issue);
+    }
+
+    /**
      * Generates a 10-digit code of random letters and numbers.
      *
      * @return string

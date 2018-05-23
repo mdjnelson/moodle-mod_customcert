@@ -71,15 +71,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
             'emailstudents' => 1));
 
         // Ok, now issue this to one user.
-        $customcertissue = new stdClass();
-        $customcertissue->customcertid = $customcert->id;
-        $customcertissue->userid = $user1->id;
-        $customcertissue->code = \mod_customcert\certificate::generate_code();
-        $customcertissue->timecreated = time();
-        $customcertissue->emailed = 0;
-
-        // Insert the record into the database.
-        $DB->insert_record('customcert_issues', $customcertissue);
+        \mod_customcert\certificate::issue_certificate($customcert->id, $user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
