@@ -1,0 +1,101 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_customcert/mobile_report_page
+
+    The page that lists the custom certificates issued
+
+    Classes required for JS:
+    * None
+
+    Data attibutes required for JS:
+    * All data attributes are required
+}}
+{{=<% %>=}}
+<div>
+    <core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
+    <%#showgroups%>
+        <ion-item>
+            <ion-label>{{ 'plugin.mod_customcert.selectagroup' | translate }}</ion-label>
+            <ion-select (ionChange)="updateContent({cmid: <% cmid %>, courseid: <% certificate.course %>, group: $event})" interface="popover">
+                <%#groups%>
+                    <ion-option value="<% id %>" <%#selected%>selected<%/selected%>><% name %></ion-option>
+                <%/groups%>
+            </ion-select>
+        </ion-item>
+    <%/showgroups%>
+    <ion-item class="text-center">
+        <p class="item-heading">{{ 'plugin.mod_customcert.modulenameplural' | translate }}</p>
+    </ion-item>
+    <%#hasissues%>
+        <ion-item>
+            <ion-grid>
+                <ion-row>
+                    <ion-col>
+                        <strong>{{ 'plugin.mod_customcert.fullname' | translate }}</strong>
+                    </ion-col>
+                    <ion-col>
+                        <strong>{{ 'plugin.mod_customcert.receiveddate' | translate }}</strong>
+                    </ion-col>
+                    <ion-col>
+                        <strong>{{ 'plugin.mod_customcert.code' | translate }}</strong>
+                    </ion-col>
+                    <ion-col class="text-center">
+                        <strong>{{ 'plugin.mod_customcert.file' | translate }}</strong>
+                    </ion-col>
+                    <%#canmanage%>
+                        <ion-col class="text-center"></ion-col>
+                    <%/canmanage%>
+                </ion-row>
+                <%#issues%>
+                    <ion-row>
+                        <ion-col>
+                            <% displayname %>
+                        </ion-col>
+                        <ion-col>
+                            {{ <% timecreated %> | coreToLocaleString }}
+                        </ion-col>
+                        <ion-col>
+                            <% code %>
+                        </ion-col>
+                        <ion-col class="text-center">
+                            <button ion-button icon-only clear [core-download-file]="{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}" moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert">
+                                <ion-icon name="download"></ion-icon>
+                            </button>
+                        </ion-col>
+                        <%#canmanage%>
+                            <ion-col class="text-center">
+                                <button ion-button icon-only clear core-site-plugins-call-ws name="mod_customcert_delete_issue"
+                                        [params]="{certificateid: <% certificate.id %>, issueid: <% issueid %>}"
+                                        [preSets]="{getFromCache: 0, saveToCache: 0, typeExpected: 'boolean'}"
+                                        confirmMessage="{{ 'plugin.mod_customcert.deleteissueconfirm' | translate }}"
+                                        refreshOnSuccess="true">
+                                    <ion-icon name="trash"></ion-icon>
+                                </button>
+                            </ion-col>
+                        <%/canmanage%>
+                    </ion-row>
+                <%/issues%>
+            </ion-grid>
+        </ion-item>
+    <%/hasissues%>
+    <%^hasissues%>
+        <ion-item class="text-center">
+            {{ 'plugin.mod_customcert.nothingtodisplay' | translate }}
+        </ion-item>
+    <%/hasissues%>
+</div>
