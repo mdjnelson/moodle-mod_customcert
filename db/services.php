@@ -25,6 +25,15 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = array(
+    'mod_customcert_delete_issue' => array(
+        'classname'   => 'mod_customcert\external',
+        'methodname'  => 'delete_issue',
+        'classpath'   => '',
+        'description' => 'Delete an issue for a certificate',
+        'type'        => 'write',
+        'ajax'        => true,
+        'services'    => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
     'mod_customcert_save_element' => array(
         'classname'   => 'mod_customcert\external',
         'methodname'  => 'save_element',
