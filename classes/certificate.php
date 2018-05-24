@@ -247,7 +247,7 @@ class certificate {
      * @param int $limitfrom
      * @param int $limitnum
      * @param string $sort
-     * @return \stdClass the users
+     * @return array the users
      */
     public static function get_issues($customcertid, $groupmode, $cm, $limitfrom, $limitnum, $sort = '') {
         global $DB;
