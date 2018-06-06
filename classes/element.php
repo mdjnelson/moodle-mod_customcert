@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Class element
  *
- * All customercert element plugins are based on this class.
+ * All customcert element plugins are based on this class.
  *
  * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
