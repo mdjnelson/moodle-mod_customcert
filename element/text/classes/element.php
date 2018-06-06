@@ -67,7 +67,9 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_data());
+        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
+        $text = format_text($this->get_data(), FORMAT_MOODLE, ['context' => \context_course::instance($courseid)]);
+        \mod_customcert\element_helper::render_content($pdf, $this, $text);
     }
 
     /**
@@ -79,7 +81,9 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_data());
+        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
+        $text = format_text($this->get_data(), FORMAT_MOODLE, ['context' => \context_course::instance($courseid)]);
+        return \mod_customcert\element_helper::render_html_content($this, $text);
     }
 
     /**

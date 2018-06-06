@@ -119,6 +119,8 @@ class element extends \mod_customcert\element {
             $value = $user->$field;
         }
 
+        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
+        $value = format_string($value, true, ['context' => \context_course::instance($courseid)]);
         \mod_customcert\element_helper::render_content($pdf, $this, $value);
     }
 
@@ -155,6 +157,8 @@ class element extends \mod_customcert\element {
             $value = $USER->$field;
         }
 
+        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
+        $value = format_string($value, true, ['context' => \context_course::instance($courseid)]);
         return \mod_customcert\element_helper::render_html_content($this, $value);
     }
 

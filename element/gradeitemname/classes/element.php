@@ -82,7 +82,9 @@ class element extends \mod_customcert\element {
             $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
 
             // Get the name of the item.
+            $courseid = \mod_customcert\element_helper::get_courseid($this->get_data());
             $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+            $itemname = format_string($itemname, true, ['context' => \context_course::instance($courseid)]);
 
             \mod_customcert\element_helper::render_content($pdf, $this, $itemname);
         }
@@ -106,7 +108,9 @@ class element extends \mod_customcert\element {
             $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
 
             // Get the name of the item.
+            $courseid = \mod_customcert\element_helper::get_courseid($this->get_data());
             $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+            $itemname = format_string($itemname, true, ['context' => \context_course::instance($courseid)]);
 
             return \mod_customcert\element_helper::render_html_content($this, $itemname);
         }
