@@ -57,7 +57,8 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $COURSE;
 
-        return \mod_customcert\element_helper::render_html_content($this, $COURSE->fullname);
+        $categoryname = format_string($COURSE->fullname, true, ['context' => \context_course::instance($COURSE->id)]);
+        return \mod_customcert\element_helper::render_html_content($this, $categoryname);
     }
 
     /**
@@ -74,9 +75,10 @@ class element extends \mod_customcert\element {
 
         // Check that there is a course category available.
         if (!empty($course->category)) {
-            return $DB->get_field('course_categories', 'name', array('id' => $course->category), MUST_EXIST);
+            $categoryname = $DB->get_field('course_categories', 'name', array('id' => $course->category), MUST_EXIST);
+            return format_string($categoryname, true, ['context' => \context_course::instance($courseid)]);
         } else { // Must be in a site template.
-            return $SITE->fullname;
+            return format_string($SITE->fullname, true, ['context' => \context_system::instance()]);
         }
     }
 }
