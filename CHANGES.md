@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.5.1] - 2018-06-06
+### Added
+- Mobile app support (#70).
+```
+    This allows students to view the activity and download
+    their certificate. It also allows teachers to view the
+    list of issued certificates, with the ability to revoke
+    any.
+    
+    This is for the soon-to-be released Moodle Mobile v3.5.0 
+    (not to be confused with your Moodle site version) and
+    will not work on Mobile versions earlier than this.
+    
+    If you are running a Moodle site on version 3.4 or below
+    you will need to install the local_mobile plugin in order
+    for this to work.
+    
+    If you are running a Moodle site on version 3.0 or below
+    then you will need to upgrade.
+```
+- More font sizes (#148).
+- Added new download icon.
+```
+    This was done because the core 'import' icon was mapped
+    to the Font Awesome icon 'fa-level-up' which did not look
+    appropriate. So, a new icon was added and that was mapped
+    to the 'fa-download' icon.
+```
+### Fixed
+- No longer display the 'action' column and user picture URL when downloading the user report (#192).
+- Elements no longer ignore filters (#170).
+
 ## [3.4.1] - 2018-05-17
 ### Added
 - GDPR Compliance (#189).
