@@ -46,7 +46,8 @@ class element extends \mod_customcert\element {
         $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
         $course = get_course($courseid);
 
-        \mod_customcert\element_helper::render_content($pdf, $this, $course->fullname);
+        $coursename = format_string($course->fullname, true, ['context' => \context_course::instance($courseid)]);
+        \mod_customcert\element_helper::render_content($pdf, $this, $coursename);
     }
 
     /**
@@ -60,6 +61,7 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $COURSE;
 
-        return \mod_customcert\element_helper::render_html_content($this, $COURSE->fullname);
+        $coursename = format_string($COURSE->fullname, true, ['context' => \context_course::instance($COURSE->id)]);
+        return \mod_customcert\element_helper::render_html_content($this, $coursename);
     }
 }
