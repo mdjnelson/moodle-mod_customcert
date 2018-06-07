@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.4.3] - 2018-06-07
+### Fixed
+
+- Hotfix to prevent misalignment of 'text' elements after last release (#196).
+
 ## [3.4.2] - 2018-06-06
 ### Added
 - Mobile app support (#70).
