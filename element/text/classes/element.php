@@ -82,7 +82,7 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
-        $text = format_text($this->get_data(), FORMAT_MOODLE, ['context' => \context_course::instance($courseid)]);
+        $text = format_text($this->get_data(), FORMAT_HTML, ['context' => \context_course::instance($courseid)]);
         return \mod_customcert\element_helper::render_html_content($this, $text);
     }
 
