@@ -24,6 +24,52 @@
 
     Data attibutes required for JS:
     * All data attributes are required
+
+    Context variables required for this template:
+    * certificate
+    * cmid
+    * groupselected
+    * showgroups
+    * groups
+    * hasissues
+    * issues
+    * candownload
+    * fileurl
+    * showreport
+    * numissuesinreport
+    * currenttimestamp
+
+    Example context (json):
+    {
+        "certificate": {
+            "id": "1",
+            "course": "2",
+            "name": "A rad certificate name!",
+            "intro": "A certificate",
+            "requiredtime": "60"
+        },
+        "cmid": "25",
+        "groupselected": "5",
+        "showgroups": "true",
+        "groups": [
+            {
+                "id": "2",
+                "selected": "false",
+                "name": "Group A"
+            }
+        ],
+        "hasissues": "true",
+        "issues": [
+            {
+                "timecreated": "1528370177"
+            }
+        ],
+        "candownload": "true",
+        "fileurl": "http://yoursite.com/mod/customcert/mobile/pluginfile.php?id=4",
+        "showreport": "true",
+        "numissuesinreport": "5",
+        "currenttimestamp": "1528370177"
+    }
 }}
 {{=<% %>=}}
 <div>
