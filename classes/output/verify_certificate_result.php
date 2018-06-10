@@ -73,8 +73,8 @@ class verify_certificate_result implements templatable, renderable {
             'course' => $result->courseid));
         $this->userfullname = fullname($result);
         $this->courseurl = new \moodle_url('/course/view.php', array('id' => $result->courseid));
-        $this->coursefullname = $result->coursefullname;
-        $this->certificatename = $result->certificatename;
+        $this->coursefullname = format_string($result->coursefullname);
+        $this->certificatename = format_string($result->certificatename);
     }
 
     /**
@@ -86,10 +86,10 @@ class verify_certificate_result implements templatable, renderable {
     public function export_for_template(\renderer_base $output) {
         $result = new \stdClass();
         $result->userprofileurl = $this->userprofileurl;
-        $result->userfullname = $this->userfullname;
-        $result->coursefullname = $this->coursefullname;
+        $result->userfullname = format_string($this->userfullname);
+        $result->coursefullname = format_string($this->coursefullname);
         $result->courseurl = $this->courseurl;
-        $result->certificatename = $this->certificatename;
+        $result->certificatename = format_string($this->certificatename);
 
         return $result;
     }

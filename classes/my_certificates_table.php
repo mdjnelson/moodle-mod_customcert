@@ -94,7 +94,7 @@ class my_certificates_table extends \table_sql {
      * @return string
      */
     public function col_name($certificate) {
-        return $certificate->name;
+        return format_string($certificate->name);
     }
 
     /**
@@ -104,7 +104,7 @@ class my_certificates_table extends \table_sql {
      * @return string
      */
     public function col_coursename($certificate) {
-        return $certificate->coursename;
+        return format_string($certificate->coursename);
     }
 
     /**
