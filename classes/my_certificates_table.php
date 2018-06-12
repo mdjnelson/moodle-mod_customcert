@@ -94,7 +94,10 @@ class my_certificates_table extends \table_sql {
      * @return string
      */
     public function col_name($certificate) {
-        return $certificate->name;
+        $cm = get_coursemodule_from_instance('customcert', $certificate->id);
+        $context = \context_module::instance($cm->id);
+
+        return format_string($certificate->name, true, ['context' => $context]);
     }
 
     /**
@@ -104,7 +107,10 @@ class my_certificates_table extends \table_sql {
      * @return string
      */
     public function col_coursename($certificate) {
-        return $certificate->coursename;
+        $cm = get_coursemodule_from_instance('customcert', $certificate->id);
+        $context = \context_module::instance($cm->id);
+
+        return format_string($certificate->coursename, true, ['context' => $context]);
     }
 
     /**

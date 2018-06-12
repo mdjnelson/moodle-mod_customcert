@@ -89,7 +89,8 @@ if ($form->get_data()) {
     // Ok, now check if the code is valid.
     $userfields = get_all_user_name_fields(true, 'u');
     $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
-                   co.fullname as coursefullname, c.name as certificatename, c.verifyany
+                   co.fullname as coursefullname, c.id as certificateid,
+                   c.name as certificatename, c.verifyany
               FROM {customcert} c
               JOIN {customcert_issues} ci
                 ON c.id = ci.customcertid

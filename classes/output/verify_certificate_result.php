@@ -69,12 +69,15 @@ class verify_certificate_result implements templatable, renderable {
      * @param \stdClass $result
      */
     public function __construct($result) {
+        $cm = get_coursemodule_from_instance('customcert', $result->certificateid);
+        $context = \context_module::instance($cm->id);
+
         $this->userprofileurl = new \moodle_url('/user/view.php', array('id' => $result->userid,
             'course' => $result->courseid));
         $this->userfullname = fullname($result);
         $this->courseurl = new \moodle_url('/course/view.php', array('id' => $result->courseid));
-        $this->coursefullname = $result->coursefullname;
-        $this->certificatename = $result->certificatename;
+        $this->coursefullname = format_string($result->coursefullname, true, ['context' => $context]);
+        $this->certificatename = format_string($result->certificatename, true, ['context' => $context]);
     }
 
     /**
