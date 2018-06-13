@@ -32,7 +32,7 @@ $functions = array(
         'description' => 'Delete an issue for a certificate',
         'type'        => 'write',
         'ajax'        => true,
-        'services'    => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+        'services'    => array(MOODLE_OFFICIAL_MOBILE_SERVICE, 'local_mobile')
     ),
     'mod_customcert_save_element' => array(
         'classname'   => 'mod_customcert\external',
