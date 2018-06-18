@@ -86,8 +86,6 @@ if (empty($action)) {
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuelist = '';
     if ($issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
-        $header = $OUTPUT->heading(get_string('summaryofissue', 'customcert'));
-
         $table = new html_table();
         $table->class = 'generaltable';
         $table->head = array(get_string('issued', 'customcert'));
@@ -100,7 +98,7 @@ if (empty($action)) {
             $table->data[$issue->id] = $row;
         }
 
-        $issuelist = $header . html_writer::table($table) . "<br />";
+        $issuelist = html_writer::table($table) . "<br />";
     }
 
     // Create the button to download the customcert.
