@@ -60,9 +60,9 @@ $table = new html_table();
 
 if ($usesections = course_format_uses_sections($course->format)) {
     $table->head = array(get_string('sectionname', 'format_'.$course->format), get_string('name'),
-        get_string('issued', 'customcert'));
+        get_string('receiveddate', 'customcert'));
 } else {
-    $table->head = array(get_string('name'), get_string('issued', 'customcert'));
+    $table->head = array(get_string('name'), get_string('receiveddate', 'customcert'));
 }
 
 $currentsection = '';
