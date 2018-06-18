@@ -48,7 +48,6 @@ $addons = array(
             ['receiveddate', 'customcert'],
             ['requiredtimenotmet', 'customcert'],
             ['selectagroup', 'moodle'],
-            ['summaryofissue', 'customcert'],
             ['viewcustomcertissues', 'customcert']
         ],
     ]
