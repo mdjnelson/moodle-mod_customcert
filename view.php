@@ -88,7 +88,7 @@ if (empty($action)) {
     if ($issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
         $table = new html_table();
         $table->class = 'generaltable';
-        $table->head = array(get_string('issued', 'customcert'));
+        $table->head = array(get_string('receiveddate', 'customcert'));
         $table->align = array('left');
         $table->attributes = array('style' => 'width:20%; margin:auto');
 
