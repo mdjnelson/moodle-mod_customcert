@@ -91,6 +91,9 @@
     <%/showreport%>
     <%#hasissues%>
         <ion-list>
+            <ion-list-header class="text-center">
+                {{ 'plugin.mod_customcert.receiveddate' | translate }}
+            </ion-list-header>
             <%#issues%>
                 <ion-item class="text-center">
                     {{ <% timecreated %> | coreToLocaleString }}

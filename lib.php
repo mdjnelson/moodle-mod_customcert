@@ -181,7 +181,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
 
     $result = new stdClass();
     if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
-        $result->info = get_string('issued', 'customcert');
+        $result->info = get_string('receiveddate', 'customcert');
         $result->time = $issue->timecreated;
     } else {
         $result->info = get_string('notissued', 'customcert');
@@ -205,7 +205,7 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
 
     if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
         echo $OUTPUT->box_start();
-        echo get_string('issued', 'customcert') . ": ";
+        echo get_string('receiveddate', 'customcert') . ": ";
         echo userdate($issue->timecreated);
         echo $OUTPUT->box_end();
     } else {
