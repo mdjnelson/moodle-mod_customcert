@@ -112,7 +112,6 @@ if (empty($action)) {
 
     // Output all the page data.
     echo $OUTPUT->header();
-    groups_print_activity_menu($cm, $pageurl);
     echo $reportlink;
     echo $intro;
     echo $issuelist;

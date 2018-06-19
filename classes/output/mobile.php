@@ -45,8 +45,6 @@ class mobile {
 
         $args = (object) $args;
 
-        // Get the group variable.
-        $groupid = empty($args->group) ? 0 : $args->group; // By default, group 0.
         $cmid = $args->cmid;
 
         // Capabilities check.
@@ -59,9 +57,6 @@ class mobile {
         $certificate->name = format_string($certificate->name);
         list($certificate->intro, $certificate->introformat) = external_format_text($certificate->intro,
             $certificate->introformat, $context->id, 'mod_customcert', 'intro');
-
-        // Get the groups (if any) to display - also sets active group.
-        $groups = self::get_groups($cm, $groupid, $USER->id);
 
         // Get any issues this person may have.
         $issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $certificate->id]);
@@ -96,9 +91,6 @@ class mobile {
         $data = [
             'certificate' => $certificate,
             'cmid' => $cm->id,
-            'groupselected' => $groupid,
-            'showgroups' => !empty($groups),
-            'groups' => array_values($groups),
             'hasissues' => !empty($issues),
             'issues' => array_values($issues),
             'canmanage' => $canmanage,
