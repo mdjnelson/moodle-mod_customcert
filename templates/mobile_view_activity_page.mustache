@@ -28,9 +28,6 @@
     Context variables required for this template:
     * certificate
     * cmid
-    * groupselected
-    * showgroups
-    * groups
     * hasissues
     * issues
     * candownload
@@ -49,15 +46,6 @@
             "requiredtime": "60"
         },
         "cmid": "25",
-        "groupselected": "5",
-        "showgroups": "true",
-        "groups": [
-            {
-                "id": "2",
-                "selected": "false",
-                "name": "Group A"
-            }
-        ],
         "hasissues": "true",
         "issues": [
             {
@@ -74,18 +62,8 @@
 {{=<% %>=}}
 <div>
     <core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
-    <%#showgroups%>
-        <ion-item>
-            <ion-label>{{ 'plugin.mod_customcert.selectagroup' | translate }}</ion-label>
-            <ion-select (ionChange)="updateContent({cmid: <% cmid %>, courseid: <% certificate.course %>, group: $event})" interface="popover">
-                <%#groups%>
-                    <ion-option value="<% id %>" <%#selected%>selected<%/selected%>><% name %></ion-option>
-                <%/groups%>
-            </ion-select>
-        </ion-item>
-    <%/showgroups%>
     <%#showreport%>
-        <a ion-item class="text-right" core-site-plugins-new-content component="mod_customcert" method="mobile_view_report" [args]="{cmid: <% cmid %>, group: <% groupselected %>}">
+        <a ion-item class="text-right" core-site-plugins-new-content component="mod_customcert" method="mobile_view_report" [args]="{cmid: <% cmid %>}">
             {{ 'plugin.mod_customcert.viewcustomcertissues' | translate: {$a: <% numissuesinreport %>} }}
         </a>
     <%/showreport%>
