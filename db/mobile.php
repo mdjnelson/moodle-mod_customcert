@@ -39,7 +39,7 @@ $addons = array(
         'lang' => [ // Language strings that are used in all the handlers.
             ['deleteissueconfirm', 'customcert'],
             ['getcustomcert', 'customcert'],
-            ['modulenameplural', 'customcert'],
+            ['listofissues', 'customcert'],
             ['nothingtodisplay', 'moodle'],
             ['pluginname', 'customcert'],
             ['receiveddate', 'customcert'],
