@@ -37,12 +37,14 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/customcert:view', $context);
 
+$canmanage = has_capability('mod/customcert:manage', $context);
+
 // Initialise $PAGE.
 $pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
 \mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
 // Check if the user can view the certificate based on time spent in course.
-if ($customcert->requiredtime && !has_capability('mod/customcert:manage', $context)) {
+if ($customcert->requiredtime && !$canmanage) {
     if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
         $a = new stdClass;
         $a->requiredtime = $customcert->requiredtime;
@@ -85,7 +87,8 @@ if (empty($action)) {
 
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuelist = '';
-    if ($issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
+    $issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id));
+    if ($issues && !$canmanage) {
         $table = new html_table();
         $table->class = 'generaltable';
         $table->head = array(get_string('receiveddate', 'customcert'));
