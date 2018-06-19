@@ -110,7 +110,7 @@ if ($table->is_downloading()) {
 $PAGE->navbar->add(get_string('customcertreport', 'customcert'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('modulenameplural', 'customcert'));
+echo $OUTPUT->heading(get_string('listofissues', 'customcert'));
 
 groups_print_activity_menu($cm, $url);
 
