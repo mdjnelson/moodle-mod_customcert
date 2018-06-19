@@ -67,7 +67,8 @@ class mobile {
         $issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $certificate->id]);
 
         $candownload = true;
-        if ($certificate->requiredtime && !has_capability('mod/customcert:manage', $context)) {
+        $canmanage = has_capability('mod/customcert:manage', $context);
+        if ($certificate->requiredtime && !$canmanage) {
             if (\mod_customcert\certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
                 $candownload = false;
             }
@@ -100,6 +101,7 @@ class mobile {
             'groups' => array_values($groups),
             'hasissues' => !empty($issues),
             'issues' => array_values($issues),
+            'canmanage' => $canmanage,
             'candownload' => $candownload,
             'fileurl' => $fileurl,
             'showreport' => $showreport,
