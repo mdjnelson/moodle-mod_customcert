@@ -112,6 +112,7 @@ if (empty($action)) {
 
     // Output all the page data.
     echo $OUTPUT->header();
+    echo $OUTPUT->heading(format_string($customcert->name), 2);
     echo $reportlink;
     echo $intro;
     echo $issuelist;
