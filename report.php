@@ -104,13 +104,13 @@ if ($table->is_downloading()) {
 }
 
 // Set up the page.
-\mod_customcert\page_helper::page_setup($pageurl, $context, get_string('customcertreport', 'customcert'));
+\mod_customcert\page_helper::page_setup($pageurl, $context, $customcert->name);
 
 // Additional page setup.
-$PAGE->navbar->add(get_string('customcertreport', 'customcert'));
+$PAGE->navbar->add(get_string('listofissues', 'customcert'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('listofissues', 'customcert'));
+echo $OUTPUT->heading(format_string($customcert->name), 2);
 
 groups_print_activity_menu($cm, $url);
 
