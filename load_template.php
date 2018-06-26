@@ -41,6 +41,15 @@ if ($cm = $template->get_cm()) {
 }
 $template->require_manage();
 
+if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
+    $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+    $title = $customcert->name;
+    $heading = format_string($title);
+} else {
+    $title = $SITE->fullname;
+    $heading = $title;
+}
+
 // Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
     // First, remove all the existing elements and pages.
@@ -77,9 +86,15 @@ $yesurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $ti
                                                                     'sesskey' => sesskey()));
 
 $pageurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid, 'ltid' => $ltid));
-\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('loadtemplate', 'customcert'));
+\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
+
+$str = get_string('editcustomcert', 'customcert');
+$link = new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id()));
+$PAGE->navbar->add($str, new \action_link($link, $str));
+$PAGE->navbar->add(get_string('loadtemplate', 'customcert'));
 
 // Show a confirmation page.
 echo $OUTPUT->header();
+echo $OUTPUT->heading($heading);
 echo $OUTPUT->confirm(get_string('loadtemplatemsg', 'customcert'), $yesurl, $nourl);
 echo $OUTPUT->footer();
