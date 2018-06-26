@@ -46,12 +46,20 @@ $context = context::instance_by_id($contextid);
 require_login();
 require_capability('mod/customcert:manage', $context);
 
+$title = $SITE->fullname;
+$heading = $title;
+
 // Set up the page.
 $pageurl = new moodle_url('/mod/customcert/manage_templates.php');
-\mod_customcert\page_helper::page_setup($pageurl, $context, get_string('managetemplates', 'customcert'));
+\mod_customcert\page_helper::page_setup($pageurl, $context, $title);
 
 // Additional page setup.
-$PAGE->navbar->add(get_string('managetemplates', 'customcert'));
+if ($tid && $action && confirm_sesskey()) {
+    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php'));
+} else {
+    $PAGE->navbar->add(get_string('managetemplates', 'customcert'));
+}
 
 if ($tid) {
     if ($action && confirm_sesskey()) {
@@ -69,12 +77,10 @@ if ($tid) {
         if ($action == 'delete') {
             if (!$confirm) {
                 // Show a confirmation page.
-                $strheading = get_string('deleteconfirm', 'customcert');
-                $PAGE->navbar->add($strheading);
-                $PAGE->set_title($strheading);
+                $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
                 $message = get_string('deletetemplateconfirm', 'customcert');
                 echo $OUTPUT->header();
-                echo $OUTPUT->heading($strheading);
+                echo $OUTPUT->heading($heading);
                 echo $OUTPUT->confirm($message, $yesurl, $nourl);
                 echo $OUTPUT->footer();
                 exit();
@@ -88,12 +94,10 @@ if ($tid) {
         } else if ($action == 'duplicate') {
             if (!$confirm) {
                 // Show a confirmation page.
-                $strheading = get_string('duplicateconfirm', 'customcert');
-                $PAGE->navbar->add($strheading);
-                $PAGE->set_title($strheading);
+                $PAGE->navbar->add(get_string('duplicateconfirm', 'customcert'));
                 $message = get_string('duplicatetemplateconfirm', 'customcert');
                 echo $OUTPUT->header();
-                echo $OUTPUT->heading($strheading);
+                echo $OUTPUT->heading($heading);
                 echo $OUTPUT->confirm($message, $yesurl, $nourl);
                 echo $OUTPUT->footer();
                 exit();
@@ -120,6 +124,7 @@ $table = new \mod_customcert\manage_templates_table($context);
 $table->define_baseurl($pageurl);
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading($heading);
 $table->out($perpage, false);
 $url = new moodle_url('/mod/customcert/edit.php?contextid=' . $contextid);
 echo $OUTPUT->single_button($url, get_string('createtemplate', 'customcert'), 'get');

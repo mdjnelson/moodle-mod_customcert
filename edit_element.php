@@ -41,6 +41,15 @@ if ($cm = $template->get_cm()) {
 // Make sure the user has the required capabilities.
 $template->require_manage();
 
+if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
+    $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+    $title = $customcert->name;
+    $heading = format_string($title);
+} else {
+    $title = $SITE->fullname;
+    $heading = $title;
+}
+
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
@@ -56,7 +65,6 @@ if ($action == 'edit') {
 }
 
 // Set up the page.
-$title = get_string('editelement', 'customcert');
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
 
 // Additional page setup.
@@ -66,7 +74,7 @@ if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
 }
 $PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url('/mod/customcert/edit.php',
     array('tid' => $tid)));
-$PAGE->navbar->add($title);
+$PAGE->navbar->add(get_string('editelement', 'customcert'));
 
 $mform = new \mod_customcert\edit_element_form($pageurl, array('element' => $element));
 
@@ -95,6 +103,6 @@ if ($data = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editelement', 'customcert'));
+echo $OUTPUT->heading($heading);
 $mform->display();
 echo $OUTPUT->footer();

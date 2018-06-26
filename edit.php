@@ -51,19 +51,31 @@ $context = context::instance_by_id($contextid);
 if ($context->contextlevel == CONTEXT_MODULE) {
     $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
     require_login($cm->course, false, $cm);
+
+    $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+    $title = $customcert->name;
+    $heading = format_string($title);
 } else {
     require_login();
+    $title = $SITE->fullname;
+    $heading = $title;
 }
+
 require_capability('mod/customcert:manage', $context);
 
 // Set up the page.
-\mod_customcert\page_helper::page_setup($pageurl, $context, get_string('editcustomcert', 'customcert'));
+\mod_customcert\page_helper::page_setup($pageurl, $context, $title);
 
 if ($context->contextlevel == CONTEXT_SYSTEM) {
     // We are managing a template - add some navigation.
     $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
         new moodle_url('/mod/customcert/manage_templates.php'));
-    $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
+    if (!$tid) {
+        $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
+    } else {
+        $PAGE->navbar->add(get_string('editcustomcert', 'customcert'),
+            new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]));
+    }
 }
 
 // Flag to determine if we are deleting anything.
@@ -140,11 +152,9 @@ if ($tid) {
 // Check if we are deleting either a page or an element.
 if ($deleting) {
     // Show a confirmation page.
-    $strheading = get_string('deleteconfirm', 'customcert');
-    $PAGE->navbar->add($strheading);
-    $PAGE->set_title($strheading);
+    $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($strheading);
+    echo $OUTPUT->heading($heading);
     echo $OUTPUT->confirm($message, $yesurl, $nourl);
     echo $OUTPUT->footer();
     exit();
@@ -230,7 +240,7 @@ if ($data = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editcustomcert', 'customcert'));
+echo $OUTPUT->heading($heading);
 $mform->display();
 if ($tid && $context->contextlevel == CONTEXT_MODULE) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));

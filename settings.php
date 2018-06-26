@@ -35,6 +35,10 @@ $settings->add(new admin_setting_configcheckbox('customcert/showposxy',
     get_string('showposxy_desc', 'customcert'),
     0));
 
+$settings->add(new \mod_customcert\admin_setting_link('customcert/verifycertificate',
+    get_string('verifycertificate', 'customcert'), get_string('verifycertificatedesc', 'customcert'),
+    get_string('verifycertificate', 'customcert'), new moodle_url('/mod/customcert/verify_certificate.php'), ''));
+
 $settings->add(new \mod_customcert\admin_setting_link('customcert/managetemplates',
     get_string('managetemplates', 'customcert'), get_string('managetemplatesdesc', 'customcert'),
     get_string('managetemplates', 'customcert'), new moodle_url('/mod/customcert/manage_templates.php'), ''));
