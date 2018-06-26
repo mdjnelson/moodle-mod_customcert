@@ -42,9 +42,18 @@ if ($cm = $template->get_cm()) {
 // Make sure the user has the required capabilities.
 $template->require_manage();
 
+if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
+    $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+    $title = $customcert->name;
+    $heading = format_string($title);
+} else {
+    $title = $SITE->fullname;
+    $heading = $title;
+}
+
 // Set the $PAGE settings.
 $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid));
-\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), get_string('rearrangeelements', 'customcert'));
+\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
 
 // Add more links to the navigation.
 if (!$cm = $template->get_cm()) {
@@ -115,6 +124,7 @@ if ($page->rightmargin) {
 $html .= html_writer::end_tag('div');
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading($heading);
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 4);
 echo $html;
 $PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', array('#pdf'));
