@@ -33,7 +33,7 @@ $struploadimage = get_string('uploadimage', 'customcert');
 
 // Set the page variables.
 $pageurl = new moodle_url('/mod/customcert/upload_image.php');
-\mod_customcert\page_helper::page_setup($pageurl, $context, $struploadimage, $SITE->fullname);
+\mod_customcert\page_helper::page_setup($pageurl, $context, $SITE->fullname);
 
 // Additional page setup.
 $PAGE->navbar->add($struploadimage);
@@ -50,5 +50,6 @@ if ($uploadform->is_cancelled()) {
 }
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading($SITE->fullname);
 $uploadform->display();
 echo $OUTPUT->footer();

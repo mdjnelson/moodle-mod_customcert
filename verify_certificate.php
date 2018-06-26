@@ -33,6 +33,10 @@ $context = context::instance_by_id($contextid);
 // Set up the page.
 $pageurl = new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $contextid));
 
+if ($code) {
+    $pageurl->param('code', $code);
+}
+
 // Ok, a certificate was specified.
 if ($context->contextlevel != CONTEXT_SYSTEM) {
     $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
@@ -49,35 +53,35 @@ if ($context->contextlevel != CONTEXT_SYSTEM) {
         $PAGE->set_cm($cm, $course);
     }
 
+    $title = $customcert->name;
+    $heading = format_string($title);
     $checkallofsite = false;
 } else {
+    $title = $SITE->fullname;
+    $heading = $title;
+    $checkallofsite = true;
+}
+
+\mod_customcert\page_helper::page_setup($pageurl, $context, $title);
+
+// Additional page setup.
+if ($context->contextlevel == CONTEXT_SYSTEM) {
+    $PAGE->navbar->add(get_string('verifycertificate', 'customcert'));
+}
+
+if ($checkallofsite) {
     // If the 'verifyallcertificates' is not set and the user does not have the capability 'mod/customcert:verifyallcertificates'
     // then show them a message letting them know they can not proceed.
     $verifyallcertificates = get_config('customcert', 'verifyallcertificates');
     $canverifyallcertificates = has_capability('mod/customcert:verifyallcertificates', $context);
     if (!$verifyallcertificates && !$canverifyallcertificates) {
-        $strheading = get_string('verifycertificate', 'customcert');
-        $PAGE->navbar->add($strheading);
-        $PAGE->set_context(context_system::instance());
-        $PAGE->set_title($strheading);
-        $PAGE->set_url($pageurl);
         echo $OUTPUT->header();
-        echo $OUTPUT->heading($strheading);
+        echo $OUTPUT->heading($heading);
         echo $OUTPUT->notification(get_string('cannotverifyallcertificates', 'customcert'));
         echo $OUTPUT->footer();
         exit();
     }
-
-    $checkallofsite = true;
 }
-
-if ($code) {
-    $pageurl->param('code', $code);
-}
-
-$PAGE->set_url($pageurl);
-$PAGE->set_context($context);
-$PAGE->set_title(get_string('verifycertificate', 'customcert'));
 
 // The form we are using to verify these codes.
 $form = new \mod_customcert\verify_certificate_form($pageurl);
@@ -124,7 +128,7 @@ if ($form->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('verifycertificate', 'customcert'));
+echo $OUTPUT->heading($heading);
 echo $form->display();
 if (isset($result)) {
     $renderer = $PAGE->get_renderer('mod_customcert');
