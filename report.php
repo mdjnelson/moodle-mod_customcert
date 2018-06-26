@@ -113,13 +113,8 @@ if ($table->is_downloading()) {
     exit();
 }
 
-
-
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($customcert->name), 2);
-
 groups_print_activity_menu($cm, $url);
-
 $table->out($perpage, false);
-
 echo $OUTPUT->footer();
