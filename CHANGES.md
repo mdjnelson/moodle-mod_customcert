@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.4.4] - 2018-06-26
+### Fixed
+
+- Respect filters in the 'My certificates' and 'Verify certificate' pages (#197).
+- Fixed reference to 'mod/certificate' capability.
+- Provided access to necessary web services for mobile functionality to the tool_mobile plugin (#202).
+
+### Changed
+
+- Multiple UX improvements to both the browser and mobile views (#203).
+
 ## [3.4.3] - 2018-06-07
 ### Fixed
 
