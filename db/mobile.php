@@ -44,8 +44,7 @@ $addons = array(
             ['pluginname', 'customcert'],
             ['receiveddate', 'customcert'],
             ['requiredtimenotmet', 'customcert'],
-            ['selectagroup', 'moodle'],
-            ['viewcustomcertissues', 'customcert']
+            ['selectagroup', 'moodle']
         ],
     ]
 );

@@ -25,7 +25,7 @@ Feature: Being able to verify that a certificate is valid or not
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I log out
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
@@ -45,7 +45,7 @@ Feature: Being able to verify that a certificate is valid or not
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 2"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I log out
     And I visit the verification url for the "Custom certificate 2" certificate
     And I set the field "Code" to "NOTAVALIDCODE"
@@ -74,10 +74,10 @@ Feature: Being able to verify that a certificate is valid or not
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 2"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I log out
     And I log in as "admin"
     # The admin (or anyone with the capability 'mod/customcert:verifyallcertificates') can visit the URL regardless of the setting.
@@ -95,10 +95,10 @@ Feature: Being able to verify that a certificate is valid or not
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 2"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I log out
     And I visit the verification url for the site
     And I set the field "Code" to "NOTAVALIDCODE"
