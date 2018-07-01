@@ -86,8 +86,8 @@ class restore_customcert_activity_task extends restore_activity_task {
         $rules[] = new restore_log_rule('customcert', 'add', 'view.php?id={course_module}', '{customcert}');
         $rules[] = new restore_log_rule('customcert', 'update', 'view.php?id={course_module}', '{customcert}');
         $rules[] = new restore_log_rule('customcert', 'view', 'view.php?id={course_module}', '{customcert}');
-        $rules[] = new restore_log_rule('customcert', 'received', 'report.php?a={customcert}', '{customcert}');
-        $rules[] = new restore_log_rule('customcert', 'view report', 'report.php?id={customcert}', '{customcert}');
+        $rules[] = new restore_log_rule('customcert', 'received', 'view.php?id={course_module}', '{customcert}');
+        $rules[] = new restore_log_rule('customcert', 'view report', 'view.php?id={course_module}', '{customcert}');
 
         return $rules;
     }

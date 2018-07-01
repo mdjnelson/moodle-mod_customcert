@@ -107,7 +107,7 @@ class email_certificate implements \renderable, \templatable {
         } else {
             $data->emailgreeting = get_string('emailnonstudentgreeting', 'customcert');
             $data->emailbody = get_string('emailnonstudentbody', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/report.php', array('id' => $this->cmid));
+            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
             $data->emailcertificatetext = get_string('emailnonstudentcertificatelinktext', 'customcert');
         }
 
