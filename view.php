@@ -25,7 +25,13 @@
 require_once('../../config.php');
 
 $id = required_param('id', PARAM_INT);
-$action = optional_param('action', '', PARAM_ALPHA);
+$downloadown = optional_param('downloadown', false, PARAM_BOOL);
+$downloadtable = optional_param('download', null, PARAM_ALPHA);
+$downloadissue = optional_param('downloadissue', 0, PARAM_INT);
+$deleteissue = optional_param('deleteissue', 0, PARAM_INT);
+$confirm = optional_param('confirm', false, PARAM_BOOL);
+$page = optional_param('page', 0, PARAM_INT);
+$perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
@@ -38,6 +44,7 @@ $context = context_module::instance($cm->id);
 require_capability('mod/customcert:view', $context);
 
 $canmanage = has_capability('mod/customcert:manage', $context);
+$canviewreport = has_capability('mod/customcert:viewreport', $context);
 
 // Initialise $PAGE.
 $pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
@@ -53,6 +60,36 @@ if ($customcert->requiredtime && !$canmanage) {
     }
 }
 
+// Check if we are deleting an issue.
+if ($deleteissue && $canmanage && confirm_sesskey()) {
+    if (!$confirm) {
+        $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
+        $yesurl = new moodle_url('/mod/customcert/view.php',
+            [
+                'id' => $id,
+                'deleteissue' => $deleteissue,
+                'confirm' => 1,
+                'sesskey' => sesskey()
+            ]
+        );
+
+        // Show a confirmation page.
+        $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
+        $message = get_string('deleteissueconfirm', 'customcert');
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading(format_string($customcert->name));
+        echo $OUTPUT->confirm($message, $yesurl, $nourl);
+        echo $OUTPUT->footer();
+        exit();
+    }
+
+    // Delete the issue.
+    $DB->delete_records('customcert_issues', array('id' => $deleteissue, 'customcertid' => $customcert->id));
+
+    // Redirect back to the manage templates page.
+    redirect(new moodle_url('/mod/customcert/view.php', array('id' => $id)));
+}
+
 $event = \mod_customcert\event\course_module_viewed::create(array(
     'objectid' => $customcert->id,
     'context' => $context,
@@ -61,22 +98,23 @@ $event->add_record_snapshot('course', $course);
 $event->add_record_snapshot('customcert', $customcert);
 $event->trigger();
 
-// Check that no action was passed, if so that means we are not outputting to PDF.
-if (empty($action)) {
+// Check that we are not downloading a certificate PDF.
+if (!$downloadown && !$downloadissue) {
     // Get the current groups mode.
     if ($groupmode = groups_get_activity_groupmode($cm)) {
         groups_get_activity_group($cm, true);
     }
 
-    // Generate the link to the report if there are issues to display.
-    $reportlink = '';
-    if (has_capability('mod/customcert:viewreport', $context)) {
+    // Generate the table to the report if there are issues to display.
+    if ($canviewreport) {
         // Get the total number of issues.
-        $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
-        $href = new moodle_urL('/mod/customcert/report.php', array('id' => $cm->id));
-        $url = html_writer::tag('a', get_string('viewcustomcertissues', 'customcert', $numissues),
-            array('href' => $href->out()));
-        $reportlink = html_writer::tag('div', $url, array('class' => 'reportlink'));
+        $reporttable = new \mod_customcert\report_table($customcert->id, $cm, $groupmode, $downloadtable);
+        $reporttable->define_baseurl($pageurl);
+
+        if ($reporttable->is_downloading()) {
+            $reporttable->download();
+            exit();
+        }
     }
 
     // Generate the intro content if it exists.
@@ -106,28 +144,38 @@ if (empty($action)) {
 
     // Create the button to download the customcert.
     $linkname = get_string('getcustomcert', 'customcert');
-    $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'action' => 'download'));
+    $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'downloadown' => true));
     $downloadbutton = new single_button($link, $linkname);
     $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), array('style' => 'text-align:center'));
 
     // Output all the page data.
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($customcert->name), 2);
-    echo $reportlink;
+    echo $OUTPUT->heading(format_string($customcert->name));
     echo $intro;
     echo $issuelist;
     echo $downloadbutton;
-    echo $OUTPUT->footer($course);
-    exit;
-} else { // Output to pdf.
-    // Create new customcert issue record if one does not already exist.
-    if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
-        \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
+    if (isset($reporttable)) {
+        echo $OUTPUT->heading(get_string('listofissues', 'customcert'), 3);
+        groups_print_activity_menu($cm, $pageurl);
+        echo $reporttable->out($perpage, false);
     }
+    echo $OUTPUT->footer($course);
+    exit();
+} else { // Output to pdf.
+    // Set the userid value of who we are downloading the certificate for.
+    $userid = $USER->id;
+    if ($downloadown) {
+        // Create new customcert issue record if one does not already exist.
+        if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
+            \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
+        }
 
-    // Set the custom certificate as viewed.
-    $completion = new completion_info($course);
-    $completion->set_module_viewed($cm);
+        // Set the custom certificate as viewed.
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm);
+    } else if ($downloadissue && $canviewreport) {
+        $userid = $downloadissue;
+    }
 
     // Hack alert - don't initiate the download when running Behat.
     if (defined('BEHAT_SITE_RUNNING')) {
@@ -136,6 +184,6 @@ if (empty($action)) {
 
     // Now we want to generate the PDF.
     $template = new \mod_customcert\template($template);
-    $template->generate_pdf();
+    $template->generate_pdf(false, $userid);
     exit();
 }

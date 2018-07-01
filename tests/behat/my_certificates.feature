@@ -25,14 +25,14 @@ Feature: Being able to view the certificates you have been issued
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I follow "Profile" in the user menu
     And I follow "My certificates"
     And I should see "Custom certificate 1"
     And I should not see "Custom certificate 2"
     And I am on "Course 2" course homepage
     And I follow "Custom certificate 2"
-    And I press "Download certificate"
+    And I press "View certificate"
     And I follow "Profile" in the user menu
     And I follow "My certificates"
     And I should see "Custom certificate 1"

@@ -137,10 +137,12 @@ class report_table extends \table_sql {
         global $OUTPUT;
 
         $icon = new \pix_icon('download', get_string('download'), 'customcert');
-        $link = new \moodle_url('/mod/customcert/report.php',
-            array('id' => $this->cm->id,
-                  'downloadcert' => '1',
-                  'userid' => $user->id));
+        $link = new \moodle_url('/mod/customcert/view.php',
+            [
+                'id' => $this->cm->id,
+                'downloadissue' => $user->id
+            ]
+        );
 
         return $OUTPUT->action_link($link, '', null, null, $icon);
     }
@@ -155,7 +157,7 @@ class report_table extends \table_sql {
         global $OUTPUT;
 
         $icon = new \pix_icon('i/delete', get_string('delete'));
-        $link = new \moodle_url('/mod/customcert/report.php',
+        $link = new \moodle_url('/mod/customcert/view.php',
             [
                 'id' => $this->cm->id,
                 'deleteissue' => $user->issueid,
