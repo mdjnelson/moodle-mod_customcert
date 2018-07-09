@@ -60,7 +60,11 @@ class mobile {
             $certificate->introformat, $context->id, 'mod_customcert', 'intro');
 
         // Get any issues this person may have.
-        $issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $certificate->id]);
+        $issue = false;
+        if ($issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $certificate->id],
+                'timecreated DESC')) {
+            $issue = reset($issues);
+        }
 
         $candownload = true;
         $canmanage = has_capability('mod/customcert:manage', $context);
@@ -101,8 +105,7 @@ class mobile {
         $data = [
             'certificate' => $certificate,
             'cmid' => $cm->id,
-            'hasissues' => !empty($issues),
-            'issues' => array_values($issues),
+            'issue' => $issue,
             'showgroups' => !empty($groups),
             'groups' => array_values($groups),
             'canmanage' => $canmanage,

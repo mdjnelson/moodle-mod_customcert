@@ -50,12 +50,9 @@
             "requiredtime": "60"
         },
         "cmid": "25",
-        "hasissues": "true",
-        "issues": [
-            {
-                "timecreated": "1528370177"
-            }
-        ],
+        "issue": {
+            "timecreated": "1528370177"
+        },
         "showgroups": "true",
         "groups": [
             {
@@ -84,20 +81,15 @@
 {{=<% %>=}}
 <div>
     <core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
-    <%#hasissues%>
+    <%#issue%>
         <%^canmanage%>
-            <ion-list>
-                <ion-list-header class="text-center">
-                    {{ 'plugin.mod_customcert.receiveddate' | translate }}
-                </ion-list-header>
-                <%#issues%>
-                    <ion-item class="text-center">
-                        {{ <% timecreated %> | coreToLocaleString }}
-                    </ion-item>
-                <%/issues%>
-            </ion-list>
+            <ion-item>
+                {{ 'plugin.mod_customcert.receiveddate' | translate }}
+                <br />
+                <div class="timerewarded">{{ <% timecreated %> | coreToLocaleString }}</div>
+            </ion-item>
         <%/canmanage%>
-    <%/hasissues%>
+    <%/issue%>
     <%#candownload%>
         <ion-item>
             <button ion-button block core-course-download-module-main-file moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert" [files]="[{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}]">
