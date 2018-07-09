@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$addons = array(
+$addons = [
     'mod_customcert' => [ // Plugin identifier.
         'handlers' => [ // Different places where the plugin will display content.
             'issueview' => [ // Handler unique name.
@@ -34,6 +34,10 @@ $addons = array(
                 ],
                 'delegate' => 'CoreCourseModuleDelegate', // Delegate (where to display the link to the plugin).
                 'method' => 'mobile_view_activity', // Main function in \mod_customcert\output\mobile.
+                'styles' => [
+                    'url' => '/mod/customcert/mobile/styles.css',
+                    'version' => 1
+                ]
             ]
         ],
         'lang' => [ // Language strings that are used in all the handlers.
@@ -45,6 +49,6 @@ $addons = array(
             ['receiveddate', 'customcert'],
             ['requiredtimenotmet', 'customcert'],
             ['selectagroup', 'moodle']
-        ],
+        ]
     ]
-);
+];
