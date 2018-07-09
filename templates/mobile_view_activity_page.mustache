@@ -120,7 +120,7 @@
                 <ion-label>{{ 'plugin.mod_customcert.selectagroup' | translate }}</ion-label>
                 <ion-select (ionChange)="updateContent({cmid: <% cmid %>, courseid: <% certificate.course %>, group: $event})" interface="popover">
                     <%#groups%>
-                    <ion-option value="<% id %>" <%#selected%>selected<%/selected%>><% name %></ion-option>
+                        <ion-option value="<% id %>" <%#selected%>selected<%/selected%>><% name %></ion-option>
                     <%/groups%>
                 </ion-select>
             </ion-item>
@@ -134,20 +134,20 @@
                                 <ion-col col-6 class="text-left">
                                     <% displayname %>
                                     <br />
-                                    {{ <% timecreated %> | coreToLocaleString }}
+                                    <div class="timerewarded">{{ <% timecreated %> | coreToLocaleString }}</div>
                                 </ion-col>
                                 <ion-col col-6 class="text-right">
                                     <button ion-button icon-only clear [core-download-file]="{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}" moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert">
                                         <ion-icon name="download"></ion-icon>
                                     </button>
                                     <%#canmanage%>
-                                    <button ion-button icon-only clear core-site-plugins-call-ws name="mod_customcert_delete_issue"
-                                            [params]="{certificateid: <% certificate.id %>, issueid: <% issueid %>}"
-                                            [preSets]="{getFromCache: 0, saveToCache: 0, typeExpected: 'boolean'}"
-                                            confirmMessage="{{ 'plugin.mod_customcert.deleteissueconfirm' | translate }}"
-                                            refreshOnSuccess="true">
-                                        <ion-icon name="trash"></ion-icon>
-                                    </button>
+                                        <button ion-button icon-only clear core-site-plugins-call-ws name="mod_customcert_delete_issue"
+                                                [params]="{certificateid: <% certificate.id %>, issueid: <% issueid %>}"
+                                                [preSets]="{getFromCache: 0, saveToCache: 0, typeExpected: 'boolean'}"
+                                                confirmMessage="{{ 'plugin.mod_customcert.deleteissueconfirm' | translate }}"
+                                                refreshOnSuccess="true">
+                                            <ion-icon name="trash"></ion-icon>
+                                        </button>
                                     <%/canmanage%>
                                 </ion-col>
                             </ion-row>
