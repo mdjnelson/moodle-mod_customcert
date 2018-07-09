@@ -124,35 +124,26 @@ if (!$downloadown && !$downloadissue) {
     }
 
     // If the current user has been issued a customcert generate HTML to display the details.
-    $issuelist = '';
+    $issuehtml = '';
     $issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id));
     if ($issues && !$canmanage) {
-        $table = new html_table();
-        $table->class = 'generaltable';
-        $table->head = array(get_string('receiveddate', 'customcert'));
-        $table->align = array('left');
-        $table->attributes = array('style' => 'width:20%; margin:auto');
-
-        foreach ($issues as $issue) {
-            $row = array();
-            $row[] = userdate($issue->timecreated);
-            $table->data[$issue->id] = $row;
-        }
-
-        $issuelist = html_writer::table($table) . "<br />";
+        // Get the most recent issue (there should only be one).
+        $issue = reset($issues);
+        $issuestring = get_string('receiveddate', 'customcert') . ': ' . userdate($issue->timecreated);
+        $issuehtml = $OUTPUT->box($issuestring);
     }
 
     // Create the button to download the customcert.
     $linkname = get_string('getcustomcert', 'customcert');
     $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'downloadown' => true));
-    $downloadbutton = new single_button($link, $linkname);
-    $downloadbutton = html_writer::tag('div', $OUTPUT->render($downloadbutton), array('style' => 'text-align:center'));
+    $downloadbutton = new single_button($link, $linkname, 'post', true);
+    $downloadbutton = $OUTPUT->render($downloadbutton);
 
     // Output all the page data.
     echo $OUTPUT->header();
     echo $OUTPUT->heading(format_string($customcert->name));
     echo $intro;
-    echo $issuelist;
+    echo $issuehtml;
     echo $downloadbutton;
     if (isset($reporttable)) {
         echo $OUTPUT->heading(get_string('listofissues', 'customcert'), 3);
