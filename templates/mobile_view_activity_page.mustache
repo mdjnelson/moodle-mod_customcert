@@ -33,7 +33,7 @@
     * showgroups
     * groups
     * canmanage
-    * candownload
+    * requiredtimemet
     * hasrecipients
     * recipients
     * fileurl
@@ -62,7 +62,7 @@
             }
         ],
         "canmanage": "true",
-        "candownload": "true",
+        "requiredtimemet": "true",
         "fileurl": "http://yoursite.com/mod/customcert/mobile/pluginfile.php?id=4",
         "showreport": "true",
         "hasrecipients": "true",
@@ -81,28 +81,46 @@
 {{=<% %>=}}
 <div>
     <core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
-    <%#issue%>
-        <%^canmanage%>
+    <%^canmanage%>
+        <%#requiredtimemet%>
             <ion-item>
-                {{ 'plugin.mod_customcert.receiveddate' | translate }}
-                <br />
-                <div class="timerewarded">{{ <% timecreated %> | coreToLocaleString }}</div>
+                <ion-grid>
+                    <ion-row>
+                        <ion-col col-6 class="text-left">
+                            {{ 'plugin.mod_customcert.receiveddate' | translate }}
+                            <br />
+                            <div class="timerewarded">
+                                <%#issue%>
+                                    {{ <% timecreated %> | coreToLocaleString }}
+                                <%/issue%>
+                                <%^issue%>
+                                    {{ 'plugin.mod_customcert.notissued' | translate }}
+                                <%/issue%>
+                            </div>
+                        </ion-col>
+                        <ion-col col-6 class="text-right">
+                            <button ion-button icon-only clear [core-download-file]="{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}" moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert">
+                                <ion-icon name="download"></ion-icon>
+                            </button>
+                        </ion-col>
+                    </ion-row>
+                </ion-grid>
             </ion-item>
-        <%/canmanage%>
-    <%/issue%>
-    <%#candownload%>
+        <%/requiredtimemet%>
+        <%^requiredtimemet%>
+            <ion-item>
+                <p>{{ 'plugin.mod_customcert.requiredtimenotmet' | translate: {$a: { requiredtime: <% certificate.requiredtime %>} } }}</p>
+            </ion-item>
+        <%/requiredtimemet%>
+    <%/canmanage%>
+    <%#canmanage%>
         <ion-item>
             <button ion-button block core-course-download-module-main-file moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert" [files]="[{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}]">
                 <ion-icon name="download" item-start></ion-icon>
                 {{ 'plugin.mod_customcert.getcustomcert' | translate }}
             </button>
         </ion-item>
-    <%/candownload%>
-    <%^candownload%>
-        <ion-item>
-            <p>{{ 'plugin.mod_customcert.requiredtimenotmet' | translate: {$a: { requiredtime: <% certificate.requiredtime %>} } }}</p>
-        </ion-item>
-    <%/candownload%>
+    <%/canmanage%>
     <%#showreport%>
         <ion-item>
             {{ 'plugin.mod_customcert.listofissues' | translate }}

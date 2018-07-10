@@ -209,7 +209,7 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
         echo userdate($issue->timecreated);
         echo $OUTPUT->box_end();
     } else {
-        print_string('notissuedyet', 'customcert');
+        print_string('notissued', 'customcert');
     }
 }
 
