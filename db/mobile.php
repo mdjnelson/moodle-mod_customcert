@@ -45,6 +45,7 @@ $addons = [
             ['getcustomcert', 'customcert'],
             ['listofissues', 'customcert'],
             ['nothingtodisplay', 'moodle'],
+            ['notissued', 'customcert'],
             ['pluginname', 'customcert'],
             ['receiveddate', 'customcert'],
             ['requiredtimenotmet', 'customcert'],

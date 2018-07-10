@@ -66,16 +66,16 @@ class mobile {
             $issue = reset($issues);
         }
 
-        $candownload = true;
+        $requiredtimemet = true;
         $canmanage = has_capability('mod/customcert:manage', $context);
         if ($certificate->requiredtime && !$canmanage) {
             if (\mod_customcert\certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
-                $candownload = false;
+                $requiredtimemet = false;
             }
         }
 
         $fileurl = "";
-        if ($candownload) {
+        if ($requiredtimemet) {
             $fileurl = new \moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
                 'userid' => $USER->id]);
             $fileurl = $fileurl->out(true);
@@ -109,7 +109,7 @@ class mobile {
             'showgroups' => !empty($groups),
             'groups' => array_values($groups),
             'canmanage' => $canmanage,
-            'candownload' => $candownload,
+            'requiredtimemet' => $requiredtimemet,
             'fileurl' => $fileurl,
             'showreport' => $showreport,
             'hasrecipients' => !empty($recipients),
