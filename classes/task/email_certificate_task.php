@@ -59,7 +59,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                     ON c.course = co.id
                  WHERE (c.emailstudents = :emailstudents
                         OR c.emailteachers = :emailteachers
-                        OR c.emailothers != '')";
+                        OR length(c.emailothers) >= 3)";
         if ($customcerts = $DB->get_records_sql($sql, array('emailstudents' => 1, 'emailteachers' => 1))) {
             // The renderers used for sending emails.
             $htmlrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'htmlemail');
