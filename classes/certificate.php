@@ -102,23 +102,20 @@ class certificate {
     public static function get_fonts() {
         global $CFG;
 
-        // Array to store the available fonts.
-        $options = array();
+        require_once($CFG->libdir . '/pdflib.php');
 
-        // Location of fonts in Moodle.
-        $fontdir = "$CFG->dirroot/lib/tcpdf/fonts";
-        // Check that the directory exists.
-        if (file_exists($fontdir)) {
-            // Get directory contents.
-            $fonts = new \DirectoryIterator($fontdir);
-            // Loop through the font folder.
-            foreach ($fonts as $font) {
-                // If it is not a file, or either '.' or '..', or
-                // the extension is not php, or we can not open file,
-                // skip it.
-                if (!$font->isFile() || $font->isDot() || ($font->getExtension() != 'php')) {
-                    continue;
+        $arrfonts = [];
+        $pdf = new \pdf();
+        $fontfamilies = $pdf->get_font_families();
+        foreach ($fontfamilies as $fontfamily => $fontstyles) {
+            foreach ($fontstyles as $fontstyle) {
+                $fontstyle = strtolower($fontstyle);
+                if ($fontstyle == 'r') {
+                    $filenamewoextension = $fontfamily;
+                } else {
+                    $filenamewoextension = $fontfamily . $fontstyle;
                 }
+                $fullpath = \TCPDF_FONTS::_getfontpath() . $filenamewoextension;
                 // Set the name of the font to null, the include next should then set this
                 // value, if it is not set then the file does not include the necessary data.
                 $name = null;
@@ -127,25 +124,24 @@ class certificate {
                 $displayname = null;
                 // Some of the TCPDF files include files that are not present, so we have to
                 // suppress warnings, this is the TCPDF libraries fault, grrr.
-                @include("$fontdir/$font");
+                @include($fullpath . '.php');
                 // If no $name variable in file, skip it.
                 if (is_null($name)) {
                     continue;
                 }
-                // Remove the extension of the ".php" file that contains the font information.
-                $filename = basename($font, ".php");
                 // Check if there is no display name to use.
                 if (is_null($displayname)) {
                     // Format the font name, so "FontName-Style" becomes "Font Name - Style".
                     $displayname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);
                     $displayname = preg_replace("/([a-zA-Z])-([a-zA-Z])/", "$1 - $2", $displayname);
                 }
-                $options[$filename] = $displayname;
-            }
-            ksort($options);
-        }
 
-        return $options;
+                $arrfonts[$filenamewoextension] = $displayname;
+            }
+        }
+        ksort($arrfonts);
+
+        return $arrfonts;
     }
 
     /**
