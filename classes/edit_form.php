@@ -80,18 +80,20 @@ class edit_form extends \moodleform {
             $this->add_customcert_page_elements($page);
         }
 
-        // Link to add another page.
-        $addpagelink = new \moodle_url('/mod/customcert/edit.php',
-            array(
-                'tid' => $this->tid,
-                'aid' => 1,
-                'action' => 'addpage',
-                'sesskey' => sesskey()
-            )
-        );
-        $icon = $OUTPUT->pix_icon('t/switch_plus', get_string('addcertpage', 'customcert'));
-        $addpagehtml = \html_writer::link($addpagelink, $icon . get_string('addcertpage', 'customcert'));
-        $mform->addElement('html', \html_writer::tag('div', $addpagehtml, array('class' => 'addpage')));
+        // Link to add another page, only display it when the template has been created.
+        if (isset($this->_customdata['tid'])) {
+            $addpagelink = new \moodle_url('/mod/customcert/edit.php',
+                array(
+                    'tid' => $this->tid,
+                    'aid' => 1,
+                    'action' => 'addpage',
+                    'sesskey' => sesskey()
+                )
+            );
+            $icon = $OUTPUT->pix_icon('t/switch_plus', get_string('addcertpage', 'customcert'));
+            $addpagehtml = \html_writer::link($addpagelink, $icon . get_string('addcertpage', 'customcert'));
+            $mform->addElement('html', \html_writer::tag('div', $addpagehtml, array('class' => 'addpage')));
+        }
 
         // Add the submit buttons.
         $group = array();
