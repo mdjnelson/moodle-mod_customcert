@@ -260,23 +260,30 @@ class element extends \mod_customcert\element {
 
         $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
 
-        $dateformats = array(
+        $dateformats = [
             1 => userdate($date, '%B %d, %Y'),
-            2 => userdate($date, '%B %d' . $suffix . ', %Y'),
-            'strftimedate' => userdate($date, get_string('strftimedate', 'langconfig')),
-            'strftimedatefullshort' => userdate($date, get_string('strftimedatefullshort', 'langconfig')),
-            'strftimedateshort' => userdate($date, get_string('strftimedateshort', 'langconfig')),
-            'strftimedatetime' => userdate($date, get_string('strftimedatetime', 'langconfig')),
-            'strftimedatetimeshort' => userdate($date, get_string('strftimedatetimeshort', 'langconfig')),
-            'strftimedaydate' => userdate($date, get_string('strftimedaydate', 'langconfig')),
-            'strftimedaydatetime' => userdate($date, get_string('strftimedaydatetime', 'langconfig')),
-            'strftimedayshort' => userdate($date, get_string('strftimedayshort', 'langconfig')),
-            'strftimedaytime' => userdate($date, get_string('strftimedaytime', 'langconfig')),
-            'strftimemonthyear' => userdate($date, get_string('strftimemonthyear', 'langconfig')),
-            'strftimerecent' => userdate($date, get_string('strftimerecent', 'langconfig')),
-            'strftimerecentfull' => userdate($date, get_string('strftimerecentfull', 'langconfig')),
-            'strftimetime' => userdate($date, get_string('strftimetime', 'langconfig'))
-        );
+            2 => userdate($date, '%B %d' . $suffix . ', %Y')
+        ];
+
+        $strdateformats = [
+            'strftimedate',
+            'strftimedatefullshort',
+            'strftimedateshort',
+            'strftimedatetime',
+            'strftimedatetimeshort',
+            'strftimedaydate',
+            'strftimedaydatetime',
+            'strftimedayshort',
+            'strftimedaytime',
+            'strftimemonthyear',
+            'strftimerecent',
+            'strftimerecentfull',
+            'strftimetime'
+        ];
+
+        foreach ($strdateformats as $strdateformat) {
+            $dateformats[$strdateformat] = userdate($date, get_string($strdateformat, 'langconfig'));
+        }
 
         return $dateformats;
     }
