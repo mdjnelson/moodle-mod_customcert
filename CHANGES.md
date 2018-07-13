@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.5.4] - 2018-07-13
+### Fixed
+
+- Use custom fonts if present (#211).
+- Fix broken SQL on Oracle in the email certificate task (#187).
+- Fixed exception when clicking 'Add page' when template has not been saved (#154).
+- Only email teachers who are enrolled within the course (#176).
+- Only display teachers who are enrolled within the course in the dropdown (#171).
+
+### Changed
+
+- Multiple UX improvements to both the browser and mobile views (#207).
+  - One big change here is combining the report and activity view page into one.
+- Allow short dates with leading zeros (#210).
+
 ## [3.5.3] - 2018-06-26
 ### Fixed
 
