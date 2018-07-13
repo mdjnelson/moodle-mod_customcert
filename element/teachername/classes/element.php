@@ -106,7 +106,7 @@ class element extends \mod_customcert\element {
         $teachers = array();
 
         // Now return all users who can manage the customcert in this context.
-        if ($users = get_users_by_capability($PAGE->context, 'mod/customcert:manage')) {
+        if ($users = get_enrolled_users($PAGE->context, 'mod/customcert:manage')) {
             foreach ($users as $user) {
                 $teachers[$user->id] = fullname($user);
             }
