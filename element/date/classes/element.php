@@ -256,7 +256,9 @@ class element extends \mod_customcert\element {
      * @return array the list of date formats
      */
     public static function get_date_formats() {
-        $date = time();
+        // Hard-code date so users can see the difference between short dates with and without the leading zero.
+        // Eg. 06/07/18 vs 6/07/18.
+        $date = 1530849658;
 
         $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
 
@@ -268,9 +270,11 @@ class element extends \mod_customcert\element {
         $strdateformats = [
             'strftimedate',
             'strftimedatefullshort',
+            'strftimedatefullshortwleadingzero',
             'strftimedateshort',
             'strftimedatetime',
             'strftimedatetimeshort',
+            'strftimedatetimeshortwleadingzero',
             'strftimedaydate',
             'strftimedaydatetime',
             'strftimedayshort',
@@ -282,7 +286,13 @@ class element extends \mod_customcert\element {
         ];
 
         foreach ($strdateformats as $strdateformat) {
-            $dateformats[$strdateformat] = userdate($date, get_string($strdateformat, 'langconfig'));
+            if ($strdateformat == 'strftimedatefullshortwleadingzero') {
+                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
+            } else if ($strdateformat == 'strftimedatetimeshortwleadingzero') {
+                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
+            } else {
+                $dateformats[$strdateformat] = userdate($date, get_string($strdateformat, 'langconfig'));
+            }
         }
 
         return $dateformats;
@@ -319,7 +329,13 @@ class element extends \mod_customcert\element {
 
         // Ok, so we must have been passed the actual format in the lang file.
         if (!isset($certificatedate)) {
-            $certificatedate = userdate($date, get_string($dateformat, 'langconfig'));
+            if ($dateformat == 'strftimedatefullshortwleadingzero') {
+                $certificatedate = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
+            } else if ($dateformat == 'strftimedatetimeshortwleadingzero') {
+                $certificatedate = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
+            } else {
+                $certificatedate = userdate($date, get_string($dateformat, 'langconfig'));
+            }
         }
 
         return $certificatedate;
