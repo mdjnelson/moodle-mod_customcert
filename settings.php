@@ -25,6 +25,10 @@
 defined('MOODLE_INTERNAL') || die;
 
 $url = $CFG->wwwroot . '/mod/customcert/verify_certificate.php';
+
+$ADMIN->add('modsettings', new admin_category('customcert', get_string('pluginname', 'mod_customcert')));
+$settings = new admin_settingpage('modsettingcustomcert', new lang_string('customcertsettings', 'mod_customcert'));
+
 $settings->add(new admin_setting_configcheckbox('customcert/verifyallcertificates',
     get_string('verifyallcertificates', 'customcert'),
     get_string('verifyallcertificates_desc', 'customcert', $url),
@@ -46,3 +50,14 @@ $settings->add(new \mod_customcert\admin_setting_link('customcert/managetemplate
 $settings->add(new \mod_customcert\admin_setting_link('customcert/uploadimage',
     get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'),
     get_string('uploadimage', 'customcert'), new moodle_url('/mod/customcert/upload_image.php'), ''));
+$ADMIN->add('customcert', $settings);
+
+// Element plugin settings.
+$ADMIN->add('customcert', new admin_category('customcertelements', get_string('elementplugins', 'customcert')));
+$plugins = \core_plugin_manager::instance()->get_plugins_of_type('customcertelement');
+foreach ($plugins as $plugin) {
+    $plugin->load_settings($ADMIN, 'customcertelements', $hassiteconfig);
+}
+
+// Tell core we already added the settings structure.
+$settings = null;
