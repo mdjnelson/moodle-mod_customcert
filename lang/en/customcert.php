@@ -40,6 +40,7 @@ $string['customcert:viewreport'] = 'View course report';
 $string['customcert:viewallcertificates'] = 'View all certificates';
 $string['customcert:verifyallcertificates'] = 'Verify all certificates on the site';
 $string['customcert:verifycertificate'] = 'Verify a certificate';
+$string['customcertsettings'] = 'Custom certificate settings';
 $string['deletecertpage'] = 'Delete page';
 $string['deleteconfirm'] = 'Delete confirmation';
 $string['deleteelement'] = 'Delete element';
@@ -57,6 +58,7 @@ $string['editelement'] = 'Edit element';
 $string['edittemplate'] = 'Edit template';
 $string['elementname'] = 'Element name';
 $string['elementname_help'] = 'This will be the name used to identify this element when editing a certificate. Note: this will not displayed on the PDF.';
+$string['elementplugins'] = 'Element plugins';
 $string['elements'] = 'Elements';
 $string['elements_help'] = 'This is the list of elements that will be displayed on the certificate.
 
