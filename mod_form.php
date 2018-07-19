@@ -55,33 +55,77 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $this->standard_intro_elements(get_string('description', 'customcert'));
 
-        $mform->addElement('header', 'options', get_string('options', 'customcert'));
+        $optionsheader = $mform->createElement('header', 'options', get_string('options', 'customcert'));
 
-        $mform->addElement('selectyesno', 'emailstudents', get_string('emailstudents', 'customcert'));
-        $mform->setType('emailstudents', 0);
-        $mform->addHelpButton('emailstudents', 'emailstudents', 'customcert');
+        if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
+            $mform->addElement('selectyesno', 'emailstudents', get_string('emailstudents', 'customcert'));
+            $mform->setDefault('emailstudents', 0);
+            $mform->addHelpButton('emailstudents', 'emailstudents', 'customcert');
+            $firstoption = 'emailstudents';
+        } else {
+            $mform->addElement('hidden', 'emailstudents', 0);
+            $mform->setType('emailstudents', PARAM_INT);
+        }
 
-        $mform->addElement('selectyesno', 'emailteachers', get_string('emailteachers', 'customcert'));
-        $mform->setDefault('emailteachers', 0);
-        $mform->addHelpButton('emailteachers', 'emailteachers', 'customcert');
+        if (has_capability('mod/customcert:manageemailteachers', $this->get_context())) {
+            $mform->addElement('selectyesno', 'emailteachers', get_string('emailteachers', 'customcert'));
+            $mform->setDefault('emailteachers', 0);
+            $mform->addHelpButton('emailteachers', 'emailteachers', 'customcert');
+            $firstoption = empty($firstoption) ? 'emailteachers' : $firstoption;
+        } else {
+            $mform->addElement('hidden', 'emailteachers', 0);
+            $mform->setType('emailstudents', PARAM_INT);
+        }
 
-        $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), array('size' => '40'));
-        $mform->setType('emailothers', PARAM_TEXT);
-        $mform->addHelpButton('emailothers', 'emailothers', 'customcert');
+        if (has_capability('mod/customcert:manageemailothers', $this->get_context())) {
+            $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), array('size' => '40'));
+            $mform->setType('emailothers', PARAM_TEXT);
+            $mform->addHelpButton('emailothers', 'emailothers', 'customcert');
+            $firstoption = empty($firstoption) ? 'emailothers' : $firstoption;
+        } else {
+            $mform->addElement('hidden', 'emailothers', '');
+            $mform->setType('emailothers', PARAM_TEXT);
+        }
 
-        $mform->addElement('selectyesno', 'verifyany', get_string('verifycertificateanyone', 'customcert'));
-        $mform->setType('verifyany', 0);
-        $mform->addHelpButton('verifyany', 'verifycertificateanyone', 'customcert');
+        if (has_capability('mod/customcert:manageverifyany', $this->get_context())) {
+            $mform->addElement('selectyesno', 'verifyany', get_string('verifycertificateanyone', 'customcert'));
+            $mform->setType('verifyany', 0);
+            $mform->addHelpButton('verifyany', 'verifycertificateanyone', 'customcert');
+            $firstoption = empty($firstoption) ? 'verifyany' : $firstoption;
+        } else {
+            $mform->addElement('hidden', 'verifyany', 0);
+            $mform->setType('emailothers', PARAM_INT);
+        }
 
-        $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
-        $mform->setType('requiredtime', PARAM_INT);
-        $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
+        if (has_capability('mod/customcert:managerequiredtime', $this->get_context())) {
+            $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
+            $mform->setType('requiredtime', PARAM_INT);
+            $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
+            $firstoption = empty($firstoption) ? 'requiredtime' : $firstoption;
+        } else {
+            $mform->addElement('hidden', 'requiredtime', 0);
+            $mform->setType('requiredtime', PARAM_INT);
+        }
 
-        $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'),
-            get_string('print', 'customcert'));
-        $mform->addElement('checkbox', 'protection_modify', '', get_string('modify', 'customcert'));
-        $mform->addElement('checkbox', 'protection_copy', '', get_string('copy', 'customcert'));
-        $mform->addHelpButton('protection_print', 'setprotection', 'customcert');
+        if (has_capability('mod/customcert:manageprotection', $this->get_context())) {
+            $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'),
+                get_string('print', 'customcert'));
+            $mform->addElement('checkbox', 'protection_modify', '', get_string('modify', 'customcert'));
+            $mform->addElement('checkbox', 'protection_copy', '', get_string('copy', 'customcert'));
+            $mform->addHelpButton('protection_print', 'setprotection', 'customcert');
+            $firstoption = empty($firstoption) ? 'protection_print' : $firstoption;
+        } else {
+            $mform->addElement('hidden', 'protection_print', 0);
+            $mform->addElement('hidden', 'protection_modify', 0);
+            $mform->addElement('hidden', 'protection_copy', 0);
+            $mform->setType('protection_print', PARAM_INT);
+            $mform->setType('protection_modify', PARAM_INT);
+            $mform->setType('protection_copy', PARAM_INT);
+        }
+
+        if (!empty($firstoption)) {
+            $mform->insertElementBefore($optionsheader, $firstoption);
+        }
 
         $this->standard_coursemodule_elements();
 
