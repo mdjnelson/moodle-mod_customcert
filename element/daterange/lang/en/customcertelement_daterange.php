@@ -46,4 +46,4 @@ $string['daterange'] = 'Daterange {$a}';
 $string['error:enabled'] = 'You must have at least one datarange enabled';
 $string['error:datestring'] = 'You must provide string representation for the enabled datarange';
 $string['error:enddate'] = 'End date must be after Start date';
-$string['preview'] = 'Preview daterange string';
+$string['preview'] = 'Preview {$a}';

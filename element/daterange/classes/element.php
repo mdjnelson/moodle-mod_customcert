@@ -414,7 +414,7 @@ class element extends \mod_customcert\element {
             return;
         }
 
-        return element_helper::render_html_content($this, get_string('preview', 'customcertelement_daterange'));
+        return element_helper::render_html_content($this, get_string('preview', 'customcertelement_daterange', $this->get_name()));
     }
 
     /**
