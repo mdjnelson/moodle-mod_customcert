@@ -39,6 +39,11 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  */
 class element extends \mod_customcert\element {
     /**
+     * Current year placeholder string.
+     */
+    const CURRENT_YEAR_PLACEHOLDER = '{{current_year}}';
+
+    /**
      * Default max number of dateranges per element.
      */
     const DEFAULT_MAX_RANGES = 10;
@@ -134,6 +139,12 @@ class element extends \mod_customcert\element {
 
             $datarange[] = $mform->createElement(
                 'checkbox',
+                $this->build_element_name('recurring', $i),
+                get_string('recurring', 'customcertelement_daterange')
+            );
+
+            $datarange[] = $mform->createElement(
+                'checkbox',
                 $this->build_element_name('enabled', $i),
                 get_string('enable')
             );
@@ -195,7 +206,8 @@ class element extends \mod_customcert\element {
                 $mform->setDefault($groupelements[0]->getName(), $range->startdate);
                 $mform->setDefault($groupelements[1]->getName(), $range->enddate);
                 $mform->setDefault($groupelements[2]->getName(), $range->datestring);
-                $mform->setDefault($groupelements[3]->getName(), $range->enabled);
+                $mform->setDefault($groupelements[3]->getName(), $range->recurring);
+                $mform->setDefault($groupelements[4]->getName(), $range->enabled);
             }
         }
 
@@ -266,6 +278,7 @@ class element extends \mod_customcert\element {
             $startdate = $this->build_element_name('startdate', $i);
             $enddate = $this->build_element_name('enddate', $i);
             $datestring = $this->build_element_name('datestring', $i);
+            $recurring = $this->build_element_name('recurring', $i);
             $enabled = $this->build_element_name('enabled', $i);
 
             if (!empty($data->$datestring)) {
@@ -273,6 +286,7 @@ class element extends \mod_customcert\element {
                     'startdate' => $data->$startdate,
                     'enddate' => $data->$enddate,
                     'datestring' => $data->$datestring,
+                    'recurring' => !empty($data->$recurring),
                     'enabled' => !empty($data->$enabled),
                 ];
                 $arrtostore['numranges']++;
@@ -388,16 +402,59 @@ class element extends \mod_customcert\element {
         $outputstring = '';
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
+            if (!empty($range->recurring)) {
+                $range->startdate = $this->build_recurring_date($range->startdate);
+                $range->enddate = $this->build_recurring_date($range->enddate);
+            }
+
             if ($date >= $range->startdate && $date <= $range->enddate) {
                 $outputstring = $range->datestring;
+                break;
             }
         }
 
-        if (!empty($this->get_decoded_data()->fallbackstring)) {
+        if (empty($outputstring) && !empty($this->get_decoded_data()->fallbackstring)) {
             $outputstring = $this->get_decoded_data()->fallbackstring;
         }
 
-        return $outputstring;
+        return $this->format_date_string($outputstring);
+    }
+
+    /**
+     * Build requring date based on provided date.
+     *
+     * @param int $date Unix timestamp.
+     *
+     * @return false|int
+     */
+    protected function build_recurring_date($date) {
+        return strtotime(date('d.m.', $date) . date('Y', time()));
+    }
+
+    /**
+     * Format date string.
+     *
+     * @param string $datestring
+     *
+     * @return string
+     */
+    protected function format_date_string($datestring) {
+        foreach ($this->get_placeholders() as $search => $replace) {
+            $datestring = str_replace($search, $replace, $datestring);
+        }
+
+        return $datestring;
+    }
+
+    /**
+     * Return a list of placeholders to replace in date string as search => $replace pairs.
+     *
+     * @return array
+     */
+    protected function get_placeholders() {
+        return [
+            self::CURRENT_YEAR_PLACEHOLDER => date('Y', time()),
+        ];
     }
 
     /**
