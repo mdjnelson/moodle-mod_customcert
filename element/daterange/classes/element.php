@@ -119,44 +119,52 @@ class element extends \mod_customcert\element {
         for ($i = 0; $i < $maxranges; $i++) {
             $datarange = array();
 
-            $datarange[] = $mform->createElement(
-                'date_selector',
-                $this->build_element_name('startdate', $i),
-                get_string('start', 'customcertelement_daterange')
+            $mform->addElement('static',
+                $this->build_element_name('group', $i),
+                get_string('daterange', 'customcertelement_daterange', $i + 1),
+                ''
             );
 
-            $datarange[] = $mform->createElement(
-                'date_selector',
-                $this->build_element_name('enddate', $i),
-                get_string('end', 'customcertelement_daterange')
-            );
-
-            $datarange[] = $mform->createElement(
-                'text',
-                $this->build_element_name('datestring', $i),
-                get_string('datestring', 'customcertelement_daterange')
-            );
-
-            $datarange[] = $mform->createElement(
-                'checkbox',
-                $this->build_element_name('recurring', $i),
-                get_string('recurring', 'customcertelement_daterange')
-            );
-
-            $datarange[] = $mform->createElement(
+            $mform->addElement(
                 'checkbox',
                 $this->build_element_name('enabled', $i),
                 get_string('enable')
             );
+            $mform->setType($this->build_element_name('enabled', $i), PARAM_BOOL);
 
             $mform->addElement(
-                'group',
-                $this->build_element_name('group', $i),
-                get_string('daterange', 'customcertelement_daterange', $i + 1),
-                $datarange, '', false);
+                'date_selector',
+                $this->build_element_name('startdate', $i),
+                get_string('start', 'customcertelement_daterange')
+            );
+            $mform->setType($this->build_element_name('startdate', $i), PARAM_INT);
 
-            $mform->disabledIf($this->build_element_name('group', $i), $this->build_element_name('enabled', $i), 'notchecked');
+            $mform->addElement(
+                'date_selector',
+                $this->build_element_name('enddate', $i),
+                get_string('end', 'customcertelement_daterange')
+            );
+            $mform->setType($this->build_element_name('enddate', $i), PARAM_INT);
+
+            $mform->addElement(
+                'checkbox',
+                $this->build_element_name('recurring', $i),
+                get_string('recurring', 'customcertelement_daterange')
+            );
+            $mform->setType($this->build_element_name('recurring', $i), PARAM_BOOL);
+
+            $mform->addElement(
+                'text',
+                $this->build_element_name('datestring', $i),
+                get_string('datestring', 'customcertelement_daterange'),
+                ['class' => 'datestring']
+            );
             $mform->setType($this->build_element_name('datestring', $i), PARAM_NOTAGS);
+
+            $mform->disabledIf($this->build_element_name('startdate', $i), $this->build_element_name('enabled', $i), 'notchecked');
+            $mform->disabledIf($this->build_element_name('enddate', $i), $this->build_element_name('enabled', $i), 'notchecked');
+            $mform->disabledIf($this->build_element_name('recurring', $i), $this->build_element_name('enabled', $i), 'notchecked');
+            $mform->disabledIf($this->build_element_name('datestring', $i), $this->build_element_name('enabled', $i), 'notchecked');
         }
     }
 
@@ -201,13 +209,11 @@ class element extends \mod_customcert\element {
             }
 
             foreach ($this->get_decoded_data()->dateranges as $key => $range) {
-                $groupelement = $mform->getElement($this->build_element_name('group', $key));
-                $groupelements = $groupelement->getElements();
-                $mform->setDefault($groupelements[0]->getName(), $range->startdate);
-                $mform->setDefault($groupelements[1]->getName(), $range->enddate);
-                $mform->setDefault($groupelements[2]->getName(), $range->datestring);
-                $mform->setDefault($groupelements[3]->getName(), $range->recurring);
-                $mform->setDefault($groupelements[4]->getName(), $range->enabled);
+                $mform->setDefault($this->build_element_name('startdate', $key), $range->startdate);
+                $mform->setDefault($this->build_element_name('enddate', $key), $range->enddate);
+                $mform->setDefault($this->build_element_name('datestring', $key), $range->datestring);
+                $mform->setDefault($this->build_element_name('recurring', $key), $range->recurring);
+                $mform->setDefault($this->build_element_name('enabled', $key), $range->enabled);
             }
         }
 
@@ -241,7 +247,8 @@ class element extends \mod_customcert\element {
             $enabled = $this->build_element_name('enabled', $i);
             $datestring = $this->build_element_name('datestring', $i);
             if (!empty($data[$enabled]) && empty($data[$datestring])) {
-                $errors[$this->build_element_name('group', $i)] = get_string('error:datestring', 'customcertelement_daterange');
+                $name = $this->build_element_name('datestring', $i);
+                $errors[$name] = get_string('error:datestring', 'customcertelement_daterange');
             }
         }
 
@@ -252,7 +259,7 @@ class element extends \mod_customcert\element {
             $enddate = $this->build_element_name('enddate', $i);
 
             if (!empty($data[$enabled]) && $data[$startdate] >= $data[$enddate] ) {
-                $errors[$this->build_element_name('group', $i)] = get_string('error:enddate', 'customcertelement_daterange');
+                $errors[$this->build_element_name('enddate', $i)] = get_string('error:enddate', 'customcertelement_daterange');
             }
         }
 
