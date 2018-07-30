@@ -61,51 +61,41 @@ class mod_customcert_mod_form extends moodleform_mod {
             $mform->addElement('selectyesno', 'emailstudents', get_string('emailstudents', 'customcert'));
             $mform->setDefault('emailstudents', get_config('customcert', 'emailstudents'));
             $mform->addHelpButton('emailstudents', 'emailstudents', 'customcert');
+            $mform->setType('emailstudents', PARAM_INT);
             $firstoption = 'emailstudents';
-        } else {
-            $mform->addElement('hidden', 'emailstudents', get_config('customcert', 'emailstudents'));
         }
-        $mform->setType('emailstudents', PARAM_INT);
 
         if (has_capability('mod/customcert:manageemailteachers', $this->get_context())) {
             $mform->addElement('selectyesno', 'emailteachers', get_string('emailteachers', 'customcert'));
             $mform->setDefault('emailteachers', get_config('customcert', 'emailteachers'));
             $mform->addHelpButton('emailteachers', 'emailteachers', 'customcert');
+            $mform->setType('emailteachers', PARAM_INT);
             $firstoption = empty($firstoption) ? 'emailteachers' : $firstoption;
-        } else {
-            $mform->addElement('hidden', 'emailteachers', get_config('customcert', 'emailteachers'));
         }
-        $mform->setType('emailteachers', PARAM_INT);
 
         if (has_capability('mod/customcert:manageemailothers', $this->get_context())) {
             $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), array('size' => '40'));
             $mform->addHelpButton('emailothers', 'emailothers', 'customcert');
             $mform->setDefault('emailothers', get_config('customcert', 'emailothers'));
+            $mform->setType('emailothers', PARAM_TEXT);
             $firstoption = empty($firstoption) ? 'emailothers' : $firstoption;
-        } else {
-            $mform->addElement('hidden', 'emailothers', get_config('customcert', 'emailothers'));
         }
-        $mform->setType('emailothers', PARAM_TEXT);
 
         if (has_capability('mod/customcert:manageverifyany', $this->get_context())) {
             $mform->addElement('selectyesno', 'verifyany', get_string('verifycertificateanyone', 'customcert'));
             $mform->addHelpButton('verifyany', 'verifycertificateanyone', 'customcert');
             $mform->setDefault('verifyany', get_config('customcert', 'verifyany'));
+            $mform->setType('verifyany', PARAM_INT);
             $firstoption = empty($firstoption) ? 'verifyany' : $firstoption;
-        } else {
-            $mform->addElement('hidden', 'verifyany', get_config('customcert', 'verifyany'));
         }
-        $mform->setType('verifyany', PARAM_INT);
 
         if (has_capability('mod/customcert:managerequiredtime', $this->get_context())) {
             $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
             $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
-            $mform->setDefault('requiredtime', get_config('customcert', 'coursetimereq'));
+            $mform->setDefault('requiredtime', get_config('customcert', 'requiredtime'));
+            $mform->setType('requiredtime', PARAM_INT);
             $firstoption = empty($firstoption) ? 'requiredtime' : $firstoption;
-        } else {
-            $mform->addElement('hidden', 'requiredtime', 0);
         }
-        $mform->setType('requiredtime', PARAM_INT);
 
         if (has_capability('mod/customcert:manageprotection', $this->get_context())) {
             $mform->addElement('checkbox', 'protection_print', get_string('setprotection', 'customcert'),
@@ -113,18 +103,11 @@ class mod_customcert_mod_form extends moodleform_mod {
             $mform->addElement('checkbox', 'protection_modify', '', get_string('modify', 'customcert'));
             $mform->addElement('checkbox', 'protection_copy', '', get_string('copy', 'customcert'));
             $mform->addHelpButton('protection_print', 'setprotection', 'customcert');
-            $mform->setDefault('protection_print', get_config('customcert', 'protection_print'));
-            $mform->setDefault('protection_modify', get_config('customcert', 'protection_modify'));
-            $mform->setDefault('protection_copy', get_config('customcert', 'protection_copy'));
+            $mform->setType('protection_print', PARAM_BOOL);
+            $mform->setType('protection_modify', PARAM_BOOL);
+            $mform->setType('protection_copy', PARAM_BOOL);
             $firstoption = empty($firstoption) ? 'protection_print' : $firstoption;
-        } else {
-            $mform->addElement('hidden', 'protection_print', get_config('customcert', 'protection_print'));
-            $mform->addElement('hidden', 'protection_modify', get_config('customcert', 'protection_modify'));
-            $mform->addElement('hidden', 'protection_copy', get_config('customcert', 'protection_copy'));
         }
-        $mform->setType('protection_print', PARAM_BOOL);
-        $mform->setType('protection_modify', PARAM_BOOL);
-        $mform->setType('protection_copy', PARAM_BOOL);
 
         if (!empty($firstoption)) {
             $mform->insertElementBefore($optionsheader, $firstoption);
@@ -141,17 +124,51 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @param array $defaultvalues
      */
     public function data_preprocessing(&$defaultvalues) {
-        if (!empty($defaultvalues['protection'])) {
-            $protection = explode(', ', $defaultvalues['protection']);
-            // Set the values in the form to what has been set in database.
-            if (in_array(\mod_customcert\certificate::PROTECTION_PRINT, $protection)) {
-                $defaultvalues['protection_print'] = 1;
+        // Set the values in the form to what has been set in database if updating
+        // or set default configured values if creating.
+        if (!empty($defaultvalues['update'])) {
+            if (!empty($defaultvalues['protection'])) {
+                $protection = $this->build_protection_data($defaultvalues['protection']);
+
+                $defaultvalues['protection_print'] = $protection->protection_print;
+                $defaultvalues['protection_modify'] = $protection->protection_modify;
+                $defaultvalues['protection_copy'] = $protection->protection_copy;
             }
-            if (in_array(\mod_customcert\certificate::PROTECTION_MODIFY, $protection)) {
-                $defaultvalues['protection_modify'] = 1;
+        } else {
+            $defaultvalues['protection_print'] = get_config('customcert', 'protection_print');
+            $defaultvalues['protection_modify'] = get_config('customcert', 'protection_modify');
+            $defaultvalues['protection_copy'] = get_config('customcert', 'protection_copy');
+        }
+    }
+
+    /**
+     * Post process form data.
+     *
+     * @param \stdClass $data
+     *
+     * @throws \dml_exception
+     */
+    public function data_postprocessing($data) {
+        global $DB;
+
+        parent::data_postprocessing($data);
+
+        // If creating a new activity.
+        if (!empty($data->add)) {
+            foreach ($this->get_options_elements_with_required_caps() as $name => $capability) {
+                if (!isset($data->$name) && !has_capability($capability, $this->get_context())) {
+                    $data->$name = get_config('customcert', $name);
+                }
             }
-            if (in_array(\mod_customcert\certificate::PROTECTION_COPY, $protection)) {
-                $defaultvalues['protection_copy'] = 1;
+        } else {
+            // If updating, but a user can't manage protection, then get data from database.
+            if (!has_capability('mod/customcert:manageprotection', $this->get_context())) {
+                $customcert = $DB->get_record('customcert', array('id' => $data->instance));
+
+                $protection = $this->build_protection_data($customcert->protection);
+                $data->protection_print = $protection->protection_print;
+                $data->protection_modify = $protection->protection_modify;
+                $data->protection_copy = $protection->protection_copy;
             }
         }
     }
@@ -175,4 +192,52 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         return $errors;
     }
+
+    /**
+     * Get a list of all options form elements with required capabilities for managing each element.
+     *
+     * @return array
+     */
+    protected function get_options_elements_with_required_caps() {
+        return [
+            'emailstudents' => 'mod/customcert:manageemailstudents',
+            'emailteachers' => 'mod/customcert:manageemailteachers',
+            'emailothers' => 'mod/customcert:manageemailothers',
+            'verifyany' => 'mod/customcert:manageverifyany',
+            'requiredtime' => 'mod/customcert:managerequiredtime',
+            'protection_print' => 'mod/customcert:manageprotection',
+            'protection_modify' => 'mod/customcert:manageprotection',
+            'protection_copy' => 'mod/customcert:manageprotection'
+        ];
+    }
+
+    /**
+     * Build a protection data to be able to set to the form.
+     *
+     * @param string $protection Protection sting from database.
+     *
+     * @return \stdClass
+     */
+    protected function build_protection_data($protection) {
+        $data = new stdClass();
+
+        $data->protection_print = 0;
+        $data->protection_modify = 0;
+        $data->protection_copy = 0;
+
+        $protection = explode(', ', $protection);
+
+        if (in_array(\mod_customcert\certificate::PROTECTION_PRINT, $protection)) {
+            $data->protection_print = 1;
+        }
+        if (in_array(\mod_customcert\certificate::PROTECTION_MODIFY, $protection)) {
+            $data->protection_modify = 1;;
+        }
+        if (in_array(\mod_customcert\certificate::PROTECTION_COPY, $protection)) {
+            $data->protection_copy = 1;
+        }
+
+        return $data;
+    }
+
 }

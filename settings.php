@@ -68,7 +68,7 @@ $settings->add(new admin_setting_configtext('customcert/emailothers',
 $settings->add(new admin_setting_configselect('customcert/verifyany',
     get_string('verifycertificateanyone', 'customcert'), get_string('verifycertificateanyone_help', 'customcert'),
     0, $yesnooptions));
-$settings->add(new admin_setting_configtext('customcert/coursetimereq',
+$settings->add(new admin_setting_configtext('customcert/requiredtime',
     get_string('coursetimereq', 'customcert'), get_string('coursetimereq_help', 'customcert'), 0, PARAM_INT));
 $settings->add(new admin_setting_configcheckbox('customcert/protection_print',
     get_string('preventprint', 'customcert'),
