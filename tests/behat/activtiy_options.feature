@@ -125,7 +125,7 @@ Feature: Being able to correctly display options on the certificate activity edi
       | emailteachers     | 1               | customcert |
       | emailothers       | test@moodle.com | customcert |
       | verifyany         | 1               | customcert |
-      | coursetimereq     | 5               | customcert |
+      | requiredtime      | 5               | customcert |
       | protection_print  | 1               | customcert |
       | protection_modify | 1               | customcert |
       | protection_copy   | 1               | customcert |
