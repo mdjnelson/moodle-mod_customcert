@@ -44,6 +44,16 @@ class element extends \mod_customcert\element {
     const CURRENT_YEAR_PLACEHOLDER = '{{current_year}}';
 
     /**
+     * First year in a date range placeholder string.
+     */
+    const FIRST_YEAR_PLACEHOLDER = '{{first_year}}';
+
+    /**
+     * Last year in a date range placeholder string.
+     */
+    const LAST_YEAR_PLACEHOLDER = '{{last_year}}';
+
+    /**
      * Default max number of dateranges per element.
      */
     const DEFAULT_MAX_RANGES = 10;
@@ -406,6 +416,7 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_daterange_string($date) {
+        $rangematched = null;
         $outputstring = '';
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
@@ -415,6 +426,7 @@ class element extends \mod_customcert\element {
             }
 
             if ($date >= $range->startdate && $date <= $range->enddate) {
+                $rangematched = $range;
                 $outputstring = $range->datestring;
                 break;
             }
@@ -424,7 +436,7 @@ class element extends \mod_customcert\element {
             $outputstring = $this->get_decoded_data()->fallbackstring;
         }
 
-        return $this->format_date_string($outputstring);
+        return $this->format_date_string($outputstring, $rangematched);
     }
 
     /**
@@ -441,13 +453,20 @@ class element extends \mod_customcert\element {
     /**
      * Format date string.
      *
-     * @param string $datestring
+     * @param string $datestring Date string to format.
+     * @param \stdClass $range Optional range element element to process range related placeholders.
      *
      * @return string
      */
-    protected function format_date_string($datestring) {
+    protected function format_date_string($datestring, $range = null) {
         foreach ($this->get_placeholders() as $search => $replace) {
             $datestring = str_replace($search, $replace, $datestring);
+        }
+
+        if ($range) {
+            foreach ($this->get_range_placeholders($range) as $search => $replace) {
+                $datestring = str_replace($search, $replace, $datestring);
+            }
         }
 
         return $datestring;
@@ -461,6 +480,20 @@ class element extends \mod_customcert\element {
     protected function get_placeholders() {
         return [
             self::CURRENT_YEAR_PLACEHOLDER => date('Y', time()),
+        ];
+    }
+
+    /**
+     * Return a list of range related placeholders to replace in date string as search => $replace pairs.
+     *
+     * @param \stdClass $range
+     *
+     * @return array
+     */
+    protected function get_range_placeholders(\stdClass $range) {
+        return [
+            self::FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
+            self::LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),
         ];
     }
 
