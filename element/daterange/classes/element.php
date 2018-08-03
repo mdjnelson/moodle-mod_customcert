@@ -38,6 +38,12 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
+
+    /**
+     * Max recurring period in seconds.
+     */
+    const MAX_RECURRING_PERIOD = 31556926; // 12 months.
+
     /**
      * Current year placeholder string.
      */
@@ -262,14 +268,21 @@ class element extends \mod_customcert\element {
             }
         }
 
-        // Check that date is correctly set.
         for ($i = 0; $i < $data['numranges']; $i++) {
             $enabled = $this->build_element_name('enabled', $i);
+            $recurring = $this->build_element_name('recurring', $i);
             $startdate = $this->build_element_name('startdate', $i);
             $enddate = $this->build_element_name('enddate', $i);
+            $rangeperiod = $data[$enddate] - $data[$startdate];
 
+            // Check that end date is correctly set.
             if (!empty($data[$enabled]) && $data[$startdate] >= $data[$enddate] ) {
                 $errors[$this->build_element_name('enddate', $i)] = get_string('error:enddate', 'customcertelement_daterange');
+            }
+
+            // Check that recurring dateranges are not longer than 12 months.
+            if (!empty($data[$recurring]) && $rangeperiod > self::MAX_RECURRING_PERIOD ) {
+                $errors[$this->build_element_name('enddate', $i)] = get_string('error:recurring', 'customcertelement_daterange');
             }
         }
 
@@ -421,8 +434,7 @@ class element extends \mod_customcert\element {
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
             if (!empty($range->recurring)) {
-                $range->startdate = $this->build_recurring_date($range->startdate);
-                $range->enddate = $this->build_recurring_date($range->enddate);
+                $range = $this->build_recurring_daterange($range);
             }
 
             if ($date >= $range->startdate && $date <= $range->enddate) {
@@ -440,14 +452,24 @@ class element extends \mod_customcert\element {
     }
 
     /**
-     * Build requring date based on provided date.
+     * Build a recurring daterange by updating start and end dates if required.
      *
-     * @param int $date Unix timestamp.
+     * @param \stdClass $range Range object.
      *
-     * @return false|int
+     * @return \stdClass
      */
-    protected function build_recurring_date($date) {
-        return strtotime(date('d.m.', $date) . date('Y', time()));
+    protected function build_recurring_daterange(\stdClass $range) {
+        if ($range->enddate < time()) {
+            $startyear = date('Y', $range->startdate) + 1; // Max recurring period is 12 months.
+            $endyear = date('Y', $range->enddate) + 1;  // Max recurring period is 12 months.
+
+            $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
+            $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+
+            $range = $this->build_recurring_daterange($range);
+        }
+
+        return $range;
     }
 
     /**
