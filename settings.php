@@ -50,6 +50,39 @@ $settings->add(new \mod_customcert\admin_setting_link('customcert/managetemplate
 $settings->add(new \mod_customcert\admin_setting_link('customcert/uploadimage',
     get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'),
     get_string('uploadimage', 'customcert'), new moodle_url('/mod/customcert/upload_image.php'), ''));
+
+$settings->add(new admin_setting_heading('defaults',
+    get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
+
+$yesnooptions = [
+    0 => get_string('no'),
+    1 => get_string('yes'),
+];
+
+$settings->add(new admin_setting_configselect('customcert/emailstudents',
+    get_string('emailstudents', 'customcert'), get_string('emailstudents_help', 'customcert'), 0, $yesnooptions));
+$settings->add(new admin_setting_configselect('customcert/emailteachers',
+    get_string('emailteachers', 'customcert'), get_string('emailteachers_help', 'customcert'), 0, $yesnooptions));
+$settings->add(new admin_setting_configtext('customcert/emailothers',
+    get_string('emailothers', 'customcert'), get_string('emailothers_help', 'customcert'), '', PARAM_TEXT));
+$settings->add(new admin_setting_configselect('customcert/verifyany',
+    get_string('verifycertificateanyone', 'customcert'), get_string('verifycertificateanyone_help', 'customcert'),
+    0, $yesnooptions));
+$settings->add(new admin_setting_configtext('customcert/requiredtime',
+    get_string('coursetimereq', 'customcert'), get_string('coursetimereq_help', 'customcert'), 0, PARAM_INT));
+$settings->add(new admin_setting_configcheckbox('customcert/protection_print',
+    get_string('preventprint', 'customcert'),
+    get_string('preventprint_desc', 'customcert'),
+    0));
+$settings->add(new admin_setting_configcheckbox('customcert/protection_modify',
+    get_string('preventmodify', 'customcert'),
+    get_string('preventmodify_desc', 'customcert'),
+    0));
+$settings->add(new admin_setting_configcheckbox('customcert/protection_copy',
+    get_string('preventcopy', 'customcert'),
+    get_string('preventcopy_desc', 'customcert'),
+    0));
+
 $ADMIN->add('customcert', $settings);
 
 // Element plugin settings.
