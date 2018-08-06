@@ -136,12 +136,6 @@ function customcert_reset_userdata($data) {
             'error' => false);
     }
 
-    // Updating dates - shift may be negative too.
-    if ($data->timeshift) {
-        shift_course_mod_dates('customcert', array('timeopen', 'timeclose'), $data->timeshift, $data->courseid);
-        $status[] = array('component' => $componentstr, 'item' => get_string('datechanged'), 'error' => false);
-    }
-
     return $status;
 }
 
