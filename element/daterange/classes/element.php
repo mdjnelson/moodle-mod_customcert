@@ -281,7 +281,7 @@ class element extends \mod_customcert\element {
             }
 
             // Check that recurring dateranges are not longer than 12 months.
-            if (!empty($data[$recurring]) && $rangeperiod > self::MAX_RECURRING_PERIOD ) {
+            if (!empty($data[$recurring]) && $rangeperiod >= self::MAX_RECURRING_PERIOD ) {
                 $errors[$this->build_element_name('enddate', $i)] = get_string('error:recurring', 'customcertelement_daterange');
             }
         }
