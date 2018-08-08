@@ -353,6 +353,16 @@ abstract class element {
     }
 
     /**
+     * This defines if an element plugin can be added to a certificate.
+     * Can be overridden if an element plugin wants to take over the control.
+     *
+     * @return bool returns true if the element can be added, false otherwise
+     */
+    public static function allow_add() {
+        return true;
+    }
+
+    /**
      * Handles rendering the element on the pdf.
      *
      * Must be overridden.
