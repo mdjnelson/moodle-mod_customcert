@@ -412,8 +412,11 @@ class element_helper {
                 $classname = '\\customcertelement_' . $foldername . '\\element';
                 // Ensure the necessary class exists.
                 if (class_exists($classname)) {
-                    $component = "customcertelement_{$foldername}";
-                    $options[$foldername] = get_string('pluginname', $component);
+                    // Additionally, check if the user is allowed to add the element at all.
+                    if ($classname::allow_add()) {
+                        $component = "customcertelement_{$foldername}";
+                        $options[$foldername] = get_string('pluginname', $component);
+                    }
                 }
             }
         }
