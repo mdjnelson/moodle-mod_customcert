@@ -133,7 +133,6 @@ class element extends \mod_customcert\element {
         $mform->setType('numranges', PARAM_INT);
 
         for ($i = 0; $i < $maxranges; $i++) {
-            $datarange = array();
 
             $mform->addElement('static',
                 $this->build_element_name('group', $i),
@@ -433,14 +432,17 @@ class element extends \mod_customcert\element {
         $outputstring = '';
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
-            if (!empty($range->recurring)) {
-                $range = $this->build_recurring_daterange($range);
-            }
-
-            if ($date >= $range->startdate && $date <= $range->enddate) {
+            if ($this->is_date_in_range($date, $range)) {
                 $rangematched = $range;
                 $outputstring = $range->datestring;
                 break;
+            }
+
+            if (!empty($range->recurring)) {
+                if ($rangematched = $this->get_matched_recurring_range($date, $range)) {
+                    $outputstring = $rangematched->datestring;
+                    break;
+                }
             }
         }
 
@@ -452,24 +454,39 @@ class element extends \mod_customcert\element {
     }
 
     /**
-     * Build a recurring daterange by updating start and end dates if required.
+     * Check if the provided date is in the date range.
      *
+     * @param int $date Unix timestamp date to check.
      * @param \stdClass $range Range object.
      *
-     * @return \stdClass
+     * @return bool
      */
-    protected function build_recurring_daterange(\stdClass $range) {
-        if ($range->enddate < time()) {
+    protected function is_date_in_range($date, \stdClass $range) {
+        return ($date >= $range->startdate && $date <= $range->enddate);
+    }
+
+    /**
+     * Get recurring date range matched provided date.
+     *
+     * @param int $date Unix timestamp date to check.
+     * @param \stdClass $range Range object.
+     *
+     * @return \stdClass || null
+     */
+    protected function get_matched_recurring_range($date, \stdClass $range) {
+        while ($range->enddate < time()) {
             $startyear = date('Y', $range->startdate) + 1; // Max recurring period is 12 months.
             $endyear = date('Y', $range->enddate) + 1;  // Max recurring period is 12 months.
 
             $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
             $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
 
-            $range = $this->build_recurring_daterange($range);
+            if ($this->is_date_in_range($date, $range)) {
+                return $range;
+            }
         }
 
-        return $range;
+        return null;
     }
 
     /**
