@@ -60,6 +60,11 @@ class element extends \mod_customcert\element {
     const LAST_YEAR_PLACEHOLDER = '{{last_year}}';
 
     /**
+     * A year in the user's date.
+     */
+    const DATE_YEAR_PLACEHOLDER = '{{date_year}}';
+
+    /**
      * Default max number of dateranges per element.
      */
     const DEFAULT_MAX_RANGES = 10;
@@ -428,19 +433,19 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_daterange_string($date) {
-        $rangematched = null;
+        $matchedrange = null;
         $outputstring = '';
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
-            if ($this->is_date_in_range($date, $range)) {
-                $rangematched = $range;
-                $outputstring = $range->datestring;
-                break;
-            }
-
-            if (!empty($range->recurring)) {
-                if ($rangematched = $this->get_matched_recurring_range($date, $range)) {
-                    $outputstring = $rangematched->datestring;
+            if ($this->is_recurring_range($range)) {
+                if ($matchedrange = $this->get_matched_recurring_range($date, $range)) {
+                    $outputstring = $matchedrange->datestring;
+                    break;
+                }
+            } else {
+                if ($this->is_date_in_range($date, $range)) {
+                    $matchedrange = $range;
+                    $outputstring = $range->datestring;
                     break;
                 }
             }
@@ -450,7 +455,16 @@ class element extends \mod_customcert\element {
             $outputstring = $this->get_decoded_data()->fallbackstring;
         }
 
-        return $this->format_date_string($outputstring, $rangematched);
+        return $this->format_date_string($outputstring, $date, $matchedrange);
+    }
+
+    /**
+     * @param \stdClass $range Range object.
+     *
+     * @return bool
+     */
+    protected function is_recurring_range(\stdClass $range) {
+        return !empty($range->recurring);
     }
 
     /**
@@ -466,7 +480,84 @@ class element extends \mod_customcert\element {
     }
 
     /**
-     * Get recurring date range matched provided date.
+     * Check if provided date is in the recurring date range.
+     *
+     * @param int $date Unix timestamp date to check.
+     * @param \stdClass $range Range object.
+     *
+     * @return bool
+     */
+    protected function is_date_in_recurring_range($date, \stdClass $range) {
+        $intdate = $this->build_number_from_date($date);
+        $intstart = $this->build_number_from_date($range->startdate);
+        $intend = $this->build_number_from_date($range->enddate);
+
+        if (!$this->has_turn_of_the_year($range)) {
+            if ($intdate >= $intstart && $intdate <= $intend) {
+                return true;
+            }
+        } else {
+            if ($intdate >= $intstart && $intdate >= $intend) {
+                return true;
+            }
+
+            if ($intdate <= $intstart && $intdate <= $intend) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if provided recurring range has a turn of the year.
+     *
+     * @param \stdClass $reccurringrange Range object.
+     *
+     * @return bool
+     */
+    protected function has_turn_of_the_year(\stdClass $reccurringrange) {
+        return date('Y', $reccurringrange->startdate) != date('Y', $reccurringrange->enddate);
+    }
+
+    /**
+     * Check if provided date is in the start year of the recurring range with a turn of the year.
+     *
+     * @param int $date Unix timestamp date to check.
+     * @param \stdClass $range Range object.
+     *
+     * @return bool
+     */
+    protected function in_start_year($date, \stdClass $range) {
+        $intdate = $this->build_number_from_date($date);
+        $intstart = $this->build_number_from_date($range->startdate);
+        $intend = $this->build_number_from_date($range->enddate);
+
+        return $intdate >= $intstart && $intdate >= $intend;
+    }
+
+    /**
+     * Check if provided date is in the end year of the recurring range with a turn of the year.
+     *
+     * @param int $date Unix timestamp date to check.
+     * @param \stdClass $range Range object.
+     *
+     * @return bool
+     */
+    protected function in_end_year($date, \stdClass $range) {
+        $intdate = $this->build_number_from_date($date);
+        $intstart = $this->build_number_from_date($range->startdate);
+        $intend = $this->build_number_from_date($range->enddate);
+
+        return $intdate <= $intstart && $intdate <= $intend;
+    }
+
+    /**
+     * Return matched recurring date range.
+     *
+     * As recurring date ranges do not depend on the year,
+     * we will use a date's year to build a new matched recurring date range with
+     * start year and end year. This is required to replace placeholders like first_year and last_year.
      *
      * @param int $date Unix timestamp date to check.
      * @param \stdClass $range Range object.
@@ -474,31 +565,65 @@ class element extends \mod_customcert\element {
      * @return \stdClass || null
      */
     protected function get_matched_recurring_range($date, \stdClass $range) {
-        while ($range->enddate < time()) {
-            $startyear = date('Y', $range->startdate) + 1; // Max recurring period is 12 months.
-            $endyear = date('Y', $range->enddate) + 1;  // Max recurring period is 12 months.
+        if (!$this->is_date_in_recurring_range($date, $range)) {
+            return null;
+        }
 
-            $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
-            $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+        if ($this->has_turn_of_the_year($range)) {
 
-            if ($this->is_date_in_range($date, $range)) {
+            if ($this->in_start_year($date, $range)) {
+                $startyear = date('Y', $date);
+                $endyear = $startyear + 1;
+                $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
+                $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+
                 return $range;
             }
+
+            if ($this->in_end_year($date, $range)) {
+                $endyear = date('Y', $date);
+                $startyear = $endyear - 1;
+                $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
+                $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+
+                return $range;
+            }
+        } else {
+            $range->startdate = strtotime(date('d.m.', $range->startdate) . date('Y', $date));
+            $range->enddate = strtotime(date('d.m.', $range->enddate) . date('Y', $date));
+
+            return $range;
         }
 
         return null;
     }
 
     /**
-     * Format date string.
+     * Build number representation of the provided date.
+     *
+     * @param int $date Unix timestamp date to check.
+     *
+     * @return int
+     */
+    protected function build_number_from_date($date) {
+        return (int)date('md', $date);
+    }
+
+    /**
+     * Format date string based on different types of placeholders.
      *
      * @param string $datestring Date string to format.
+     * @param int $date Unix timestamp date to check.
      * @param \stdClass $range Optional range element element to process range related placeholders.
      *
      * @return string
      */
-    protected function format_date_string($datestring, $range = null) {
+    protected function format_date_string($datestring, $date, $range = null) {
         foreach ($this->get_placeholders() as $search => $replace) {
+            $datestring = str_replace($search, $replace, $datestring);
+        }
+
+        foreach ($this->get_date_placeholders($date) as $search => $replace) {
             $datestring = str_replace($search, $replace, $datestring);
         }
 
@@ -519,6 +644,19 @@ class element extends \mod_customcert\element {
     protected function get_placeholders() {
         return [
             self::CURRENT_YEAR_PLACEHOLDER => date('Y', time()),
+        ];
+    }
+
+    /**
+     * Return a list of user's date related placeholders to replace in date string as search => $replace pairs.
+
+     * @param int $date Unix timestamp date to check.
+     *
+     * @return array
+     */
+    protected function get_date_placeholders($date) {
+        return [
+            self::DATE_YEAR_PLACEHOLDER => date('Y', $date),
         ];
     }
 
