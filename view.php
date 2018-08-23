@@ -175,6 +175,8 @@ if (!$downloadown && !$downloadissue) {
 
     // Now we want to generate the PDF.
     $template = new \mod_customcert\template($template);
+    // Clear the Output buffer
+    ob_clean();
     $template->generate_pdf(false, $userid);
     exit();
 }
