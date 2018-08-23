@@ -358,7 +358,7 @@ abstract class element {
      *
      * @return bool returns true if the element can be added, false otherwise
      */
-    public static function allow_add() {
+    public static function can_add() {
         return true;
     }
 
