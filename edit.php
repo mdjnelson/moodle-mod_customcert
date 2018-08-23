@@ -230,7 +230,7 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-	ob_clean();    
+        ob_clean();
         $template->generate_pdf(true);
         exit();
     }
