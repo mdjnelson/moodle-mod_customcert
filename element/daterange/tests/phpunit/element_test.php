@@ -125,7 +125,7 @@ class customcertelement_daterange_element_test extends advanced_testcase {
             (object)[
                 'startdate' => strtotime('01.10.2017'),
                 'enddate' => strtotime('31.03.2018'),
-                'datestring' => 'WS {{range_first_year}}/{{range_last_year}}',
+                'datestring' => 'WS {{recurring_range_first_year}}/{{recurring_range_last_year}}',
                 'recurring' => true,
                 'enabled' => true,
             ],
@@ -207,6 +207,44 @@ class customcertelement_daterange_element_test extends advanced_testcase {
 
         $date = strtotime('1.07.2011');
         $this->assertEquals($fallbackstring, $element->get_daterange_string($date));
+    }
+
+    /**
+     * Test that display recurring_range_first_year and recurring_range_last_year placeholders.
+     */
+    public function test_recurring_range_first_year_and_recurring_range_last_year_placeholders() {
+        $datestring = '{{range_first_year}}-{{range_last_year}}-{{recurring_range_first_year}}-{{recurring_range_last_year}}';
+        $dateranges = [
+            (object) [
+                'startdate' => strtotime('01.04.2017'),
+                'enddate' => strtotime('30.09.2017'),
+                'datestring' => $datestring,
+                'recurring' => true,
+                'enabled' => true,
+            ],
+            (object)[
+                'startdate' => strtotime('01.10.2017'),
+                'enddate' => strtotime('31.03.2018'),
+                'datestring' => $datestring,
+                'recurring' => true,
+                'enabled' => true,
+            ],
+
+        ];
+
+        $element = $this->get_datarange_element($dateranges);
+
+        $date = strtotime('1.05.2020');
+        $this->assertEquals('2017-2017-2020-2020', $element->get_daterange_string($date));
+
+        $date = strtotime('1.05.2024');
+        $this->assertEquals('2017-2017-2024-2024', $element->get_daterange_string($date));
+
+        $date = strtotime('1.02.2020');
+        $this->assertEquals('2017-2018-2019-2020', $element->get_daterange_string($date));
+
+        $date = strtotime('1.02.2024');
+        $this->assertEquals('2017-2018-2023-2024', $element->get_daterange_string($date));
     }
 
 }
