@@ -52,12 +52,12 @@ class element extends \mod_customcert\element {
     /**
      * First year in a date range placeholder string.
      */
-    const FIRST_YEAR_PLACEHOLDER = '{{first_year}}';
+    const FIRST_YEAR_PLACEHOLDER = '{{range_first_year}}';
 
     /**
      * Last year in a date range placeholder string.
      */
-    const LAST_YEAR_PLACEHOLDER = '{{last_year}}';
+    const LAST_YEAR_PLACEHOLDER = '{{range_last_year}}';
 
     /**
      * A year in the user's date.
@@ -557,7 +557,7 @@ class element extends \mod_customcert\element {
      *
      * As recurring date ranges do not depend on the year,
      * we will use a date's year to build a new matched recurring date range with
-     * start year and end year. This is required to replace placeholders like first_year and last_year.
+     * start year and end year. This is required to replace placeholders like range_first_year and range_last_year.
      *
      * @param int $date Unix timestamp date to check.
      * @param \stdClass $range Range object.

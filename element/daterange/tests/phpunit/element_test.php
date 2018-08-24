@@ -125,7 +125,7 @@ class customcertelement_daterange_element_test extends advanced_testcase {
             (object)[
                 'startdate' => strtotime('01.10.2017'),
                 'enddate' => strtotime('31.03.2018'),
-                'datestring' => 'WS {{first_year}}/{{last_year}}',
+                'datestring' => 'WS {{range_first_year}}/{{range_last_year}}',
                 'recurring' => true,
                 'enabled' => true,
             ],
@@ -170,17 +170,17 @@ class customcertelement_daterange_element_test extends advanced_testcase {
             (object)[
                 'startdate' => strtotime('01.04.2017'),
                 'enddate' => strtotime('30.09.2018'),
-                'datestring' => '{{current_year}} - {{first_year}} - {{last_year}} - {{date_year}}',
+                'datestring' => '{{current_year}} - {{range_first_year}} - {{range_last_year}} - {{date_year}}',
                 'recurring' => false,
                 'enabled' => true,
             ],
         ];
 
-        $fallbackstring = '{{current_year}} - {{first_year}} - {{last_year}} - {{date_year}}';
+        $fallbackstring = '{{current_year}} - {{range_first_year}} - {{range_last_year}} - {{date_year}}';
         $element = $this->get_datarange_element($dateranges, $fallbackstring);
 
         $date = strtotime('1.01.2000');
-        $expected = date('Y', time()) . ' - {{first_year}} - {{last_year}} - 2000';
+        $expected = date('Y', time()) . ' - {{range_first_year}} - {{range_last_year}} - 2000';
         $this->assertEquals($expected, $element->get_daterange_string($date));
 
         $date = strtotime('1.07.2017');
@@ -196,7 +196,7 @@ class customcertelement_daterange_element_test extends advanced_testcase {
             (object)[
                 'startdate' => strtotime('01.04.2017'),
                 'enddate' => strtotime('30.09.2018'),
-                'datestring' => '{{current_year}} - {{first_year}} - {{last_year}} - {{date_year}}',
+                'datestring' => '{{current_year}} - {{range_first_year}} - {{range_last_year}} - {{date_year}}',
                 'recurring' => false,
                 'enabled' => true,
             ],
