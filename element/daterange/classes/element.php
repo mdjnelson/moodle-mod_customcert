@@ -470,7 +470,6 @@ class element extends \mod_customcert\element {
             $outputstring = $this->get_decoded_data()->fallbackstring;
         }
 
-
         return $this->format_date_string($outputstring, $formatdata);
     }
 
