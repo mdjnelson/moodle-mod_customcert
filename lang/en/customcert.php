@@ -72,10 +72,12 @@ Please note: The elements are rendered in this order. The order can be changed b
 $string['elementwidth'] = 'Width';
 $string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
 $string['emailnonstudentbody'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
+$string['emailnonstudentbodyplaintext'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentcertificatelinktext'] = 'View certificate report';
 $string['emailnonstudentgreeting'] = 'Hi';
 $string['emailnonstudentsubject'] = '{$a->coursefullname}: {$a->certificatename}';
 $string['emailstudentbody'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
+$string['emailstudentbodyplaintext'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
 $string['emailstudentcertificatelinktext'] = 'View certificate';
 $string['emailstudentgreeting'] = 'Dear {$a}';
 $string['emailstudentsubject'] = '{$a->coursefullname}: {$a->certificatename}';
