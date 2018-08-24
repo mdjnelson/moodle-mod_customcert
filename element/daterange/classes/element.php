@@ -52,12 +52,22 @@ class element extends \mod_customcert\element {
     /**
      * First year in a date range placeholder string.
      */
-    const FIRST_YEAR_PLACEHOLDER = '{{range_first_year}}';
+    const RANGE_FIRST_YEAR_PLACEHOLDER = '{{range_first_year}}';
 
     /**
      * Last year in a date range placeholder string.
      */
-    const LAST_YEAR_PLACEHOLDER = '{{range_last_year}}';
+    const RANGE_LAST_YEAR_PLACEHOLDER = '{{range_last_year}}';
+
+    /**
+     * First year in a date range placeholder string.
+     */
+    const RECUR_RANGE_FIRST_YEAR_PLACEHOLDER = '{{recurring_range_first_year}}';
+
+    /**
+     * Last year in a date range placeholder string.
+     */
+    const RECUR_RANGE_LAST_YEAR_PLACEHOLDER = '{{recurring_range_last_year}}';
 
     /**
      * A year in the user's date.
@@ -119,6 +129,7 @@ class element extends \mod_customcert\element {
 
         $mform->addElement('header', 'dateranges', get_string('dateranges', 'customcertelement_daterange'));
         $mform->addElement('static', 'help', '', get_string('help', 'customcertelement_daterange'));
+        $mform->addElement('static', 'placeholders', '', get_string('placeholders', 'customcertelement_daterange'));
 
         $mform->addElement('text', 'fallbackstring', get_string('fallbackstring', 'customcertelement_daterange'));
         $mform->addHelpButton('fallbackstring', 'fallbackstring', 'customcertelement_daterange');
@@ -435,17 +446,21 @@ class element extends \mod_customcert\element {
     protected function get_daterange_string($date) {
         $matchedrange = null;
         $outputstring = '';
+        $formatdata = [];
+        $formatdata['date'] = $date;
 
         foreach ($this->get_decoded_data()->dateranges as $key => $range) {
             if ($this->is_recurring_range($range)) {
                 if ($matchedrange = $this->get_matched_recurring_range($date, $range)) {
                     $outputstring = $matchedrange->datestring;
+                    $formatdata['range'] = $range;
+                    $formatdata['recurringrange'] = $matchedrange;
                     break;
                 }
             } else {
                 if ($this->is_date_in_range($date, $range)) {
-                    $matchedrange = $range;
                     $outputstring = $range->datestring;
+                    $formatdata['range'] = $range;
                     break;
                 }
             }
@@ -455,7 +470,8 @@ class element extends \mod_customcert\element {
             $outputstring = $this->get_decoded_data()->fallbackstring;
         }
 
-        return $this->format_date_string($outputstring, $date, $matchedrange);
+
+        return $this->format_date_string($outputstring, $formatdata);
     }
 
     /**
@@ -569,30 +585,32 @@ class element extends \mod_customcert\element {
             return null;
         }
 
-        if ($this->has_turn_of_the_year($range)) {
+        $matchedrage = clone $range;
 
-            if ($this->in_start_year($date, $range)) {
+        if ($this->has_turn_of_the_year($matchedrage)) {
+
+            if ($this->in_start_year($date, $matchedrage)) {
                 $startyear = date('Y', $date);
                 $endyear = $startyear + 1;
-                $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
-                $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+                $matchedrage->startdate = strtotime(date('d.m.', $matchedrage->startdate) . $startyear);
+                $matchedrage->enddate = strtotime(date('d.m.', $matchedrage->enddate) . $endyear);
 
-                return $range;
+                return $matchedrage;
             }
 
-            if ($this->in_end_year($date, $range)) {
+            if ($this->in_end_year($date, $matchedrage)) {
                 $endyear = date('Y', $date);
                 $startyear = $endyear - 1;
-                $range->startdate = strtotime(date('d.m.', $range->startdate) . $startyear);
-                $range->enddate = strtotime(date('d.m.', $range->enddate) . $endyear);
+                $matchedrage->startdate = strtotime(date('d.m.', $matchedrage->startdate) . $startyear);
+                $matchedrage->enddate = strtotime(date('d.m.', $matchedrage->enddate) . $endyear);
 
-                return $range;
+                return $matchedrage;
             }
         } else {
-            $range->startdate = strtotime(date('d.m.', $range->startdate) . date('Y', $date));
-            $range->enddate = strtotime(date('d.m.', $range->enddate) . date('Y', $date));
+            $matchedrage->startdate = strtotime(date('d.m.', $matchedrage->startdate) . date('Y', $date));
+            $matchedrage->enddate = strtotime(date('d.m.', $matchedrage->enddate) . date('Y', $date));
 
-            return $range;
+            return $matchedrage;
         }
 
         return null;
@@ -612,23 +630,29 @@ class element extends \mod_customcert\element {
     /**
      * Format date string based on different types of placeholders.
      *
-     * @param string $datestring Date string to format.
-     * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Optional range element element to process range related placeholders.
+     * @param array $formatdata A list of format data.
      *
      * @return string
      */
-    protected function format_date_string($datestring, $date, $range = null) {
+    protected function format_date_string($datestring, array $formatdata) {
         foreach ($this->get_placeholders() as $search => $replace) {
             $datestring = str_replace($search, $replace, $datestring);
         }
 
-        foreach ($this->get_date_placeholders($date) as $search => $replace) {
-            $datestring = str_replace($search, $replace, $datestring);
+        if (!empty($formatdata['date'])) {
+            foreach ($this->get_date_placeholders($formatdata['date']) as $search => $replace) {
+                $datestring = str_replace($search, $replace, $datestring);
+            }
         }
 
-        if ($range) {
-            foreach ($this->get_range_placeholders($range) as $search => $replace) {
+        if (!empty($formatdata['range'])) {
+            foreach ($this->get_range_placeholders($formatdata['range']) as $search => $replace) {
+                $datestring = str_replace($search, $replace, $datestring);
+            }
+        }
+
+        if (!empty($formatdata['recurringrange'])) {
+            foreach ($this->get_recurring_range_placeholders($formatdata['recurringrange']) as $search => $replace) {
                 $datestring = str_replace($search, $replace, $datestring);
             }
         }
@@ -669,8 +693,22 @@ class element extends \mod_customcert\element {
      */
     protected function get_range_placeholders(\stdClass $range) {
         return [
-            self::FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
-            self::LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),
+            self::RANGE_FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
+            self::RANGE_LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),
+        ];
+    }
+
+    /**
+     * Return a list of recurring range s placeholders to replace in date string as search => $replace pairs.
+     *
+     * @param \stdClass $range
+     *
+     * @return array
+     */
+    protected function get_recurring_range_placeholders(\stdClass $range) {
+        return [
+            self::RECUR_RANGE_FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
+            self::RECUR_RANGE_LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),
         ];
     }
 
