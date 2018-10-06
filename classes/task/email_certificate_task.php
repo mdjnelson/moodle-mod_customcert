@@ -153,7 +153,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                     if (!$tempdir) {
                         return false;
                     }
-                    
+
                     foreach ($issuedusers as $user) {
                         $userfullname = fullname($user);
 
