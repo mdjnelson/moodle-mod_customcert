@@ -144,7 +144,7 @@ class element extends \mod_customcert\element {
                    'SELECT * FROM {customcert_issues} WHERE userid=:userid AND customcertid=:customcertid ORDER BY timecreated DESC LIMIT 1',
                                                        array('userid' => $user->id, 'customcertid' => $customcert->id));
             }
-            
+
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
             } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
