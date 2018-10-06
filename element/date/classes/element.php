@@ -142,7 +142,7 @@ class element extends \mod_customcert\element {
                 // create new exception which will contain correct table name
                 throw new dml_missing_record_exception('customcert_issues',
                    'SELECT * FROM {customcert_issues} WHERE userid=:userid AND customcertid=:customcertid ORDER BY timecreated DESC LIMIT 1',
-                                                       array('userid' => $user->id, 'customcertid' => $customcert->id));
+                   array('userid' => $user->id, 'customcertid' => $customcert->id));
             }
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
