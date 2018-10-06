@@ -138,9 +138,11 @@ class element extends \mod_customcert\element {
             $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
             // Now we can get the issue for this user.
             $issue = $DB->get_records('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id), 'timecreated DESC', '*', null, 1);
-            if(empty($issue)) {
+            if (empty($issue)) {
                 // create new exception which will contain correct table name
-                throw new dml_missing_record_exception('customcert_issues', 'SELECT * FROM {customcert_issues} WHERE userid=:userid AND customcertid=:customcertid ORDER BY timecreated DESC LIMIT 1', array('userid' => $user->id, 'customcertid' => $customcert->id));
+                throw new dml_missing_record_exception('customcert_issues',
+                   'SELECT * FROM {customcert_issues} WHERE userid=:userid AND customcertid=:customcertid ORDER BY timecreated DESC LIMIT 1',
+                                                       array('userid' => $user->id, 'customcertid' => $customcert->id));
             }
             
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
