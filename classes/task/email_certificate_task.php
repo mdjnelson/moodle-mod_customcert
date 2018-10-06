@@ -64,7 +64,7 @@ class email_certificate_task extends \core\task\scheduled_task {
         if (!$customcerts = $DB->get_records_sql($sql, array('emailstudents' => 1, 'emailteachers' => 1))) {
             return false;
         }
-        
+
         // The renderers used for sending emails.
         $htmlrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'textemail');
@@ -153,7 +153,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             if (!$issuedusers) {
                 continue;
             }
-            
+
             foreach ($issuedusers as $user) {
                 $userfullname = fullname($user);
 
