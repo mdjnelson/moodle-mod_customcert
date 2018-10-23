@@ -1,6 +1,6 @@
 language: php
 
-sudo: false
+sudo: true
 
 cache:
   directories:
@@ -11,7 +11,8 @@ php:
  - 7.2
 
 addons:
- postgresql: 9.3
+ firefox: "47.0.1"
+ postgresql: "9.4"
 
 env:
  global:
@@ -23,8 +24,7 @@ env:
 before_install:
   - phpenv config-rm xdebug.ini
   - cd ../..
-  - composer selfupdate
-  - composer create-project -n --no-dev --prefer-dist moodlerooms/moodle-plugin-ci ci ^1
+  - composer create-project -n --no-dev --prefer-dist blackboard-open-source/moodle-plugin-ci ci ^2
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
 
 install:
@@ -33,9 +33,6 @@ install:
 script:
   - moodle-plugin-ci phplint
   - moodle-plugin-ci codechecker
-  - moodle-plugin-ci csslint
-  - moodle-plugin-ci shifter
-  - moodle-plugin-ci jshint
   - moodle-plugin-ci validate
   - moodle-plugin-ci phpunit
   - moodle-plugin-ci behat
