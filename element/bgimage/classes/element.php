@@ -38,7 +38,7 @@ class element extends \customcertelement_image\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance
+     * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());

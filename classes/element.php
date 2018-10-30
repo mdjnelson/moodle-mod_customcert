@@ -230,7 +230,7 @@ abstract class element {
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
-     * @param edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
         // Render the common elements.
@@ -246,7 +246,7 @@ abstract class element {
      * Sets the data on the form when editing an element.
      * Can be overridden if more functionality is needed.
      *
-     * @param edit_element_form $mform the edit_form instance
+     * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Loop through the properties of the element and set the values
