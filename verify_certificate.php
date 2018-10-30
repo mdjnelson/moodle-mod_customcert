@@ -22,6 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// This file does not need require_login because capability to verify can be granted to guests, skip codechecker here.
 // @codingStandardsIgnoreLine
 require_once('../../config.php');
 
