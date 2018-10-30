@@ -134,7 +134,7 @@ class element_helper {
     /**
      * Helper function to render the font elements.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_font($mform) {
         $mform->addElement('select', 'font', get_string('font', 'customcert'), \mod_customcert\certificate::get_fonts());
@@ -151,7 +151,7 @@ class element_helper {
     /**
      * Helper function to render the colour elements.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_colour($mform) {
         $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
@@ -163,7 +163,7 @@ class element_helper {
     /**
      * Helper function to render the position elements.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_position($mform) {
         $mform->addElement('text', 'posx', get_string('posx', 'customcert'), array('size' => 10));
@@ -179,7 +179,7 @@ class element_helper {
     /**
      * Helper function to render the width element.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_width($mform) {
         $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), array('size' => 10));
