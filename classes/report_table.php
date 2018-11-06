@@ -169,6 +169,7 @@ class report_table extends \table_sql {
             [
                 'id' => $this->cm->id,
                 'deleteissue' => $user->issueid,
+                'listissues' => true,
                 'sesskey' => sesskey()
             ]
         );

@@ -109,6 +109,7 @@ $string['landscape'] = 'Landscape';
 $string['leftmargin'] = 'Left margin';
 $string['leftmargin_help'] = 'This is the left margin of the certificate PDF in mm.';
 $string['listofissues'] = 'Recipients';
+$string['listofissueslink'] = 'List of issued certificates';
 $string['load'] = 'Load';
 $string['loadtemplate'] = 'Load template';
 $string['loadtemplatemsg'] = 'Are you sure you wish to load this template? This will remove any existing pages and elements for this certificate.';

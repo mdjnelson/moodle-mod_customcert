@@ -36,6 +36,7 @@ Feature: Being able to view the certificates that have been issued
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
+    And I follow "List of issued certificates"
     And I should see "Student 1"
     And I should see "Student 2"
 
@@ -53,6 +54,7 @@ Feature: Being able to view the certificates that have been issued
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
+    And I follow "List of issued certificates"
     And I should see "Student 1"
     And I should see "Student 2"
     And I click on ".delete-icon" "css_element" in the "Student 2" "table_row"

@@ -32,6 +32,7 @@ $deleteissue = optional_param('deleteissue', 0, PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
+$listissues = optional_param('listissues', false, PARAM_BOOL);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
@@ -63,7 +64,7 @@ if ($customcert->requiredtime && !$canmanage) {
 // Check if we are deleting an issue.
 if ($deleteissue && $canmanage && confirm_sesskey()) {
     if (!$confirm) {
-        $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
+        $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id, 'listissues' => $listissues]);
         $yesurl = new moodle_url('/mod/customcert/view.php',
             [
                 'id' => $id,
@@ -87,7 +88,7 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     $DB->delete_records('customcert_issues', array('id' => $deleteissue, 'customcertid' => $customcert->id));
 
     // Redirect back to the manage templates page.
-    redirect(new moodle_url('/mod/customcert/view.php', array('id' => $id)));
+    redirect(new moodle_url('/mod/customcert/view.php', array('id' => $id, 'listissues' => true)));
 }
 
 $event = \mod_customcert\event\course_module_viewed::create(array(
@@ -106,7 +107,7 @@ if (!$downloadown && !$downloadissue) {
     }
 
     // Generate the table to the report if there are issues to display.
-    if ($canviewreport) {
+    if ($canviewreport && ($listissues || $downloadtable)) {
         // Get the total number of issues.
         $reporttable = new \mod_customcert\report_table($customcert->id, $cm, $groupmode, $downloadtable);
         $reporttable->define_baseurl($pageurl);
@@ -145,11 +146,18 @@ if (!$downloadown && !$downloadissue) {
     echo $OUTPUT->heading(format_string($customcert->name));
     echo $intro;
     echo $issuehtml;
-    echo $downloadbutton;
+    if (!($canviewreport && $listissues)) {
+        echo $downloadbutton;
+    }
     if (isset($reporttable)) {
         echo $OUTPUT->heading(get_string('listofissues', 'customcert'), 3);
         groups_print_activity_menu($cm, $pageurl);
         echo $reporttable->out($perpage, false);
+    } else if ($canviewreport && !$listissues) {
+        echo $OUTPUT->heading(get_string('listofissues', 'customcert'), 3);
+        $uri = new moodle_url('/mod/customcert/view.php', array('id' => $id, 'listissues' => true));
+        $element = \html_writer::tag('p', \html_writer::link($uri, get_string('listofissueslink', 'customcert')));
+        echo $element;
     }
     echo $OUTPUT->footer($course);
     exit();
@@ -171,7 +179,7 @@ if (!$downloadown && !$downloadissue) {
 
     // Hack alert - don't initiate the download when running Behat.
     if (defined('BEHAT_SITE_RUNNING')) {
-        redirect(new moodle_url('/mod/customcert/view.php', array('id' => $cm->id)));
+        redirect(new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'listissues' => true)));
     }
 
     // Now we want to generate the PDF.
