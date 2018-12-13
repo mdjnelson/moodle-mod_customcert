@@ -25,9 +25,11 @@ namespace mod_customcert\privacy;
 
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
+use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\helper;
 use core_privacy\local\request\transform;
+use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
 defined('MOODLE_INTERNAL') || die();
@@ -94,6 +96,37 @@ class provider implements
         $contextlist->add_from_sql($sql, $params);
 
         return $contextlist;
+    }
+
+    /**
+     * Get the list of users who have data within a context.
+     *
+     * @param userlist $userlist The userlist containing the list of users who have data in this context/plugin combination.
+     */
+    public static function get_users_in_context(userlist $userlist) {
+        $context = $userlist->get_context();
+
+        if (!$context instanceof \context_module) {
+            return;
+        }
+
+        // Fetch all users who have a custom certificate.
+        $sql = "SELECT customcertissues.userid
+                  FROM {course_modules} cm
+                  JOIN {modules} m
+                    ON m.id = cm.module AND m.name = :modname
+                  JOIN {customcert} customcert
+                    ON customcert.id = cm.instance
+                  JOIN {customcert_issues} customcertissues
+                    ON customcertissues.customcertid = customcert.id
+                 WHERE cm.id = :cmid";
+
+        $params = [
+            'cmid'      => $context->instanceid,
+            'modname'   => 'customcert',
+        ];
+
+        $userlist->add_from_sql('userid', $sql, $params);
     }
 
     /**
@@ -180,6 +213,33 @@ class provider implements
             $instanceid = $DB->get_field('course_modules', 'instance', ['id' => $context->instanceid], MUST_EXIST);
             $DB->delete_records('customcert_issues', ['customcertid' => $instanceid, 'userid' => $userid]);
         }
+    }
+
+    /**
+     * Delete multiple users within a single context.
+     *
+     * @param approved_userlist $userlist The approved context and user information to delete information for.
+     */
+    public static function delete_data_for_users(approved_userlist $userlist) {
+        global $DB;
+
+        $context = $userlist->get_context();
+        if (!$context instanceof \context_module) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('customcert', $context->instanceid);
+        if (!$cm) {
+            // Only customcert module will be handled.
+            return;
+        }
+
+        $userids = $userlist->get_userids();
+        list($usersql, $userparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+
+        $select = "customcertid = :customcertid AND userid $usersql";
+        $params = ['customcertid' => $cm->instance] + $userparams;
+        $DB->delete_records_select('customcert_issues', $select, $params);
     }
 
     /**
