@@ -154,15 +154,15 @@ class email_certificate_task extends \core\task\scheduled_task {
                 continue;
             }
 
+            // Create a directory to store the PDF we will be sending.
+            $tempdir = make_temp_directory('certificate/attachment');
+            if (!$tempdir) {
+                return;
+            }
+
             // Now, email the people we need to.
             foreach ($issuedusers as $user) {
                 $userfullname = fullname($user);
-
-                // Create a directory to store the PDF we will be sending.
-                $tempdir = make_temp_directory('certificate/attachment');
-                if (!$tempdir) {
-                    return false;
-                }
 
                 // Now, get the PDF.
                 $template = new \stdClass();
