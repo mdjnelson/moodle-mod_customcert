@@ -73,7 +73,7 @@ class element extends \mod_customcert\element {
         // Get the possible date options.
         $dateoptions = array();
         $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
-        $completionenabled = $CFG->enablecompletion && $COURSE->enablecompletion;
+        $completionenabled = $CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion);
         if ($completionenabled) {
             $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
         }
