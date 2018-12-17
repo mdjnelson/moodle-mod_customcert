@@ -135,5 +135,16 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2017050506, 'customcert');
     }
 
+    if ($oldversion < 2017111306) {
+        $table = new xmldb_table('customcert_elements');
+        $field = new xmldb_field('element', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'name');
+
+        // Alter the 'element' column to be characters, rather than text.
+        $dbman->change_field_type($table, $field);
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2017111306, 'customcert');
+    }
+
     return true;
 }
