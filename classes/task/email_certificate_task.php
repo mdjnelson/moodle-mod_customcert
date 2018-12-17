@@ -62,7 +62,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                         OR c.emailteachers = :emailteachers
                         OR $emailotherslengthsql >= 3)";
         if (!$customcerts = $DB->get_records_sql($sql, array('emailstudents' => 1, 'emailteachers' => 1))) {
-            return false;
+            return;
         }
 
         // The renderers used for sending emails.
@@ -149,11 +149,12 @@ class email_certificate_task extends \core\task\scheduled_task {
                 }
             }
 
-            // Now, email the people we need to.
+            // If there are no users to email we can return early.
             if (!$issuedusers) {
                 continue;
             }
 
+            // Now, email the people we need to.
             foreach ($issuedusers as $user) {
                 $userfullname = fullname($user);
 
