@@ -116,8 +116,6 @@ if ($form->get_data()) {
         $params = ['code' => $code, 'customcertid' => $customcert->id];
     }
 
-    $sql .= " AND u.deleted = 0";
-
     // It is possible (though unlikely) that there is the same code for issued certificates.
     if ($issues = $DB->get_records_sql($sql, $params)) {
         $result->success = true;
