@@ -65,14 +65,22 @@ class report_table extends \table_sql {
     public function __construct($customcertid, $cm, $groupmode, $download = null) {
         parent::__construct('mod_customcert_report_table');
 
-        $columns = array(
-            'fullname',
-            'timecreated'
-        );
-        $headers = array(
-            get_string('fullname'),
-            get_string('receiveddate', 'customcert')
-        );
+        $context = \context_module::instance($cm->id);
+        $extrafields = get_extra_user_fields($context);
+
+        $columns = [];
+        $columns[] = 'fullname';
+        foreach ($extrafields as $extrafield) {
+            $columns[] = $extrafield;
+        }
+        $columns[] = 'timecreated';
+
+        $headers = [];
+        $headers[] = get_string('fullname');
+        foreach ($extrafields as $extrafield) {
+            $headers[] = get_user_field_name($extrafield);
+        }
+        $headers[] = get_string('receiveddate', 'customcert');
 
         // Check if we were passed a filename, which means we want to download it.
         if ($download) {
@@ -84,7 +92,7 @@ class report_table extends \table_sql {
             $headers[] = get_string('file');
         }
 
-        if (!$this->is_downloading() && has_capability('mod/customcert:manage', \context_module::instance($cm->id))) {
+        if (!$this->is_downloading() && has_capability('mod/customcert:manage', $context)) {
             $columns[] = 'actions';
             $headers[] = '';
         }
