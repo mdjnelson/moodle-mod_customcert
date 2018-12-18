@@ -260,7 +260,8 @@ class certificate {
         $allparams = $conditionsparams + array('customcertid' => $customcertid);
 
         // Return the issues.
-        $ufields = \user_picture::fields('u');
+        $extrafields = get_extra_user_fields(\context_module::instance($cm->id));
+        $ufields = \user_picture::fields('u', $extrafields);
         $sql = "SELECT $ufields, ci.id as issueid, ci.code, ci.timecreated
                   FROM {user} u
             INNER JOIN {customcert_issues} ci
