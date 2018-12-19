@@ -513,18 +513,12 @@ class element_helper {
             return false;
         }
 
-        // Define how many decimals to display.
-        $decimals = 2;
-        if ($gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
-            $decimals = 0;
-        }
-
         $grade = new \grade_grade(array('itemid' => $courseitem->id, 'userid' => $userid));
 
         return new grade_information(
             $courseitem->get_name(),
             $grade->finalgrade,
-            grade_format_gradevalue($grade->finalgrade, $courseitem, true, $gradeformat, $decimals),
+            grade_format_gradevalue($grade->finalgrade, $courseitem, true, $gradeformat),
             $grade->get_dategraded()
         );
     }
@@ -554,12 +548,6 @@ class element_helper {
             return false;
         }
 
-        // Define how many decimals to display.
-        $decimals = 2;
-        if ($gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
-            $decimals = 0;
-        }
-
         $item = new \grade_item();
         $item->gradetype = GRADE_TYPE_VALUE;
         $item->courseid = $cm->course;
@@ -578,7 +566,7 @@ class element_helper {
         return new grade_information(
             $item->name,
             $objgrade->grade,
-            grade_format_gradevalue($objgrade->grade, $item, true, $gradeformat, $decimals),
+            grade_format_gradevalue($objgrade->grade, $item, true, $gradeformat),
             $dategraded
         );
     }
@@ -596,18 +584,12 @@ class element_helper {
             return false;
         }
 
-        // Define how many decimals to display.
-        $decimals = 2;
-        if ($gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
-            $decimals = 0;
-        }
-
         $grade = new \grade_grade(array('itemid' => $gradeitem->id, 'userid' => $userid));
 
         return new grade_information(
             $gradeitem->get_name(),
             $grade->finalgrade,
-            grade_format_gradevalue($grade->finalgrade, $gradeitem, true, $gradeformat, $decimals),
+            grade_format_gradevalue($grade->finalgrade, $gradeitem, true, $gradeformat),
             $grade->get_dategraded()
         );
     }
