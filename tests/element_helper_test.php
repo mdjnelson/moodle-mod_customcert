@@ -136,6 +136,11 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade information for an activity.
      */
     public function test_get_mod_grade_info() {
+        global $CFG;
+
+        // Set that we want 3 decimals to display.
+        $CFG->grade_decimalpoints = 3;
+
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -181,7 +186,7 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
 
         $this->assertEquals($assign->name, $grade->get_name());
         $this->assertEquals('50.00000', $grade->get_grade());
-        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals('50.000 %', $grade->get_displaygrade());
         $this->assertEquals($time, $grade->get_dategraded());
 
         // Check that the user we did not grade has no grade.
@@ -204,6 +209,9 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
 
         // Including to use constant.
         require_once($CFG->dirroot . '/mod/customcert/element/grade/classes/element.php');
+
+        // Set that we want 3 decimals to display.
+        $CFG->grade_decimalpoints = 3;
 
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
@@ -241,7 +249,7 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
 
         $this->assertEquals(get_string('coursetotal', 'grades'), $grade->get_name());
         $this->assertEquals('50.00000', $grade->get_grade());
-        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals('50.000 %', $grade->get_displaygrade());
         $this->assertEquals($time, $grade->get_dategraded());
 
         // Check that the user we did not grade has no grade.
@@ -260,6 +268,11 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade information for a grade item.
      */
     public function test_get_grade_item_info() {
+        global $CFG;
+
+        // Set that we want 3 decimals to display.
+        $CFG->grade_decimalpoints = 3;
+
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -298,7 +311,7 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
 
         $this->assertEquals('Grade item yo', $grade->get_name());
         $this->assertEquals('50.00000', $grade->get_grade());
-        $this->assertEquals('50 %', $grade->get_displaygrade());
+        $this->assertEquals('50.000 %', $grade->get_displaygrade());
         $this->assertEquals($time, $grade->get_dategraded());
 
         // Check that the user we did not grade has no grade.
