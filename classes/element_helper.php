@@ -542,31 +542,44 @@ class element_helper {
             return false;
         }
 
-        $gradeitem = grade_get_grades($cm->course, 'mod', $module->name, $cm->instance, $userid);
+        $params = [
+            'itemtype' => 'mod',
+            'itemmodule' => $module->name,
+            'iteminstance' => $cm->instance,
+            'courseid' => $cm->course,
+            'itemnumber' => 0
+        ];
+        $gradeitem = \grade_item::fetch($params);
 
         if (empty($gradeitem)) {
             return false;
         }
 
-        $item = new \grade_item();
-        $item->gradetype = GRADE_TYPE_VALUE;
-        $item->courseid = $cm->course;
-        $itemproperties = reset($gradeitem->items);
-        foreach ($itemproperties as $key => $value) {
-            $item->$key = $value;
+        $grade = grade_get_grades(
+            $cm->course,
+            'mod',
+            $module->name,
+            $cm->instance,
+            $userid
+        );
+
+        if (!isset($grade->items[0]->grades[$userid])) {
+            return false;
         }
 
-        $objgrade = $item->grades[$userid];
+        $gradebookgrade = $grade->items[0]->grades[$userid];
 
         $dategraded = null;
-        if (!empty($objgrade->dategraded)) {
-            $dategraded = $objgrade->dategraded;
+        if (!empty($gradebookgrade->dategraded)) {
+            $dategraded = $gradebookgrade->dategraded;
         }
 
+        $displaygrade = grade_format_gradevalue($gradebookgrade->grade, $gradeitem, true, $gradeformat);
+
         return new grade_information(
-            $item->name,
-            $objgrade->grade,
-            grade_format_gradevalue($objgrade->grade, $item, true, $gradeformat),
+            $gradeitem->get_name(),
+            $gradebookgrade->grade,
+            $displaygrade,
             $dategraded
         );
     }
