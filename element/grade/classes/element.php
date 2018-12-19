@@ -106,14 +106,8 @@ class element extends \mod_customcert\element {
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
-            // Define how many decimals to display.
-            $decimals = 2;
-            if ($gradeinfo->gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
-                $decimals = 0;
-            }
-
             $courseitem = \grade_item::fetch_course_item($courseid);
-            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, $decimals);
+            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
         } else {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
                 $grade = \mod_customcert\element_helper::get_course_grade_info(
@@ -165,13 +159,7 @@ class element extends \mod_customcert\element {
 
         $courseitem = \grade_item::fetch_course_item($COURSE->id);
 
-        // Define how many decimals to display.
-        $decimals = 2;
-        if ($gradeinfo->gradeformat == GRADE_DISPLAY_TYPE_PERCENTAGE) {
-            $decimals = 0;
-        }
-
-        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat, $decimals);
+        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
 
         return \mod_customcert\element_helper::render_html_content($this, $grade);
     }
