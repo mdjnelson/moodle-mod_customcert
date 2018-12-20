@@ -75,6 +75,24 @@ class element extends \mod_customcert\element {
         $mform->setDefault('height', 0);
         $mform->addHelpButton('height', 'height', 'customcertelement_image');
 
+        $alphachannelvalues = [
+            '0' => 0,
+            '0.1' => 0.1,
+            '0.2' => 0.2,
+            '0.3' => 0.3,
+            '0.4' => 0.4,
+            '0.5' => 0.5,
+            '0.6' => 0.6,
+            '0.7' => 0.7,
+            '0.8' => 0.8,
+            '0.9' => 0.9,
+            '1' => 1
+        ];
+        $mform->addElement('select', 'alphachannel', get_string('alphachannel', 'customcertelement_image'), $alphachannelvalues);
+        $mform->setType('alphachannel', PARAM_FLOAT);
+        $mform->setDefault('alphachannel', 1);
+        $mform->addHelpButton('alphachannel', 'alphachannel', 'customcertelement_image');
+
         if (get_config('customcert', 'showposxy')) {
             \mod_customcert\element_helper::render_form_element_position($mform);
         }
@@ -148,6 +166,10 @@ class element extends \mod_customcert\element {
             'height' => !empty($data->height) ? (int) $data->height : 0
         ];
 
+        if (isset($data->alphachannel)) {
+            $arrtostore['alphachannel'] = (float) $data->alphachannel;
+        }
+
         if (!empty($data->fileid)) {
             // Array of data we will be storing in the database.
             $fs = get_file_storage();
@@ -189,12 +211,20 @@ class element extends \mod_customcert\element {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
+            // Check if the alpha channel is set, if it is, use it.
+            if (isset($imageinfo->alphachannel)) {
+                $pdf->SetAlpha($imageinfo->alphachannel);
+            }
+
             $mimetype = $file->get_mimetype();
             if ($mimetype == 'image/svg+xml') {
                 $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
             } else {
                 $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
             }
+
+            // Restore to full opacity.
+            $pdf->SetAlpha(1);
         }
     }
 
@@ -257,7 +287,7 @@ class element extends \mod_customcert\element {
     public function definition_after_data($mform) {
         global $COURSE, $SITE;
 
-        // Set the image, width and height for this element.
+        // Set the image, width, height and alpha channel for this element.
         if (!empty($this->get_data())) {
             $imageinfo = json_decode($this->get_data());
             if (!empty($imageinfo->filename)) {
@@ -275,6 +305,11 @@ class element extends \mod_customcert\element {
             if (isset($imageinfo->height) && $mform->elementExists('height')) {
                 $element = $mform->getElement('height');
                 $element->setValue($imageinfo->height);
+            }
+
+            if (isset($imageinfo->alphachannel) && $mform->elementExists('alphachannel')) {
+                $element = $mform->getElement('alphachannel');
+                $element->setValue($imageinfo->alphachannel);
             }
         }
 
