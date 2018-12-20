@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.4.6] - 2018-12-20
+### Added
+
+- GDPR: Add support for removal of users from a context (see MDL-62560) (#252).
+- Images can be made transparent (#186).
+- Set default values of activity instance settings (#180).
+- Allow element plugins to control if they can be added to a certificate (#225).
+- Allow element plugins to have their own admin settings (#213).
+- Added plaintext language variants for email bodies (#231).
+- Added possibility to selectively disable activity instance settings (#179).
+
+### Changed
+
+- Allow verification of deleted users (#159).
+- The 'element' field in the 'customcert_elements' table has been changed from a Text field to varchar(255) (#241).
+- The 'Completion date' option in the 'date' element is only displayed when completion is enabled (#160).
+
+### Fixed
+
+- Issue with scales not displaying correctly (#242).
+- The report now respects the setting 'Show user identity' (#224).
+- Removed incorrect course reset logic (#223).
+
 ## [3.4.5] - 2018-07-13
 ### Fixed
 
