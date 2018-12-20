@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['alphachannel'] = 'Alpha channel';
+$string['alphachannel_help'] = 'This value determines how transparent the image is. You can set the alpha channel from 0 (fully transparent) to 1 (fully opaque).';
 $string['height'] = 'Height';
 $string['height_help'] = 'Height of the image in mm. If equal to zero, it is automatically calculated.';
 $string['image'] = 'Image';

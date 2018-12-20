@@ -186,14 +186,16 @@ Feature: Being able to manage elements in a certificate template
     # Image.
     And I add the element "Image" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
-      | Width  | 25 |
-      | Height | 15 |
+      | Width         | 25  |
+      | Height        | 15  |
+      | Alpha channel | 0.7 |
     And I press "Save changes"
     And I should see "Image" in the "elementstable" "table"
     And I click on ".edit-icon" "css_element" in the "Image" "table_row"
     And the following fields match these values:
-      | Width  | 25 |
-      | Height | 15 |
+      | Width         | 25  |
+      | Height        | 15  |
+      | Alpha channel | 0.7 |
     And I press "Save changes"
     # Student name.
     And I add the element "Student name" to page "1" of the "Custom certificate 1" certificate template
