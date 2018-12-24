@@ -14,7 +14,7 @@ php:
 
 addons:
  firefox: 47.0.1
- postgresql: 9.3
+ postgresql: 9.4
  apt:
    packages:
    - oracle-java8-installer
