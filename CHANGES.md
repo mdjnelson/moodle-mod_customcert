@@ -20,12 +20,15 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Allow verification of deleted users (#159).
 - The 'element' field in the 'customcert_elements' table has been changed from a Text field to varchar(255) (#241).
 - The 'Completion date' option in the 'date' element is only displayed when completion is enabled (#160).
+- Instead of assuming 2 decimal points for percentages, we now make use of the decimal value setting, which the
+  function `grade_format_gradevalue` does by default if no decimal value is passed.
 
 ### Fixed
 
 - Issue with scales not displaying correctly (#242).
 - The report now respects the setting 'Show user identity' (#224).
 - Removed incorrect course reset logic (#223).
+- Description strings referring to the wrong setting (#254).
 
 ## [3.4.5] - 2018-07-13
 ### Fixed
