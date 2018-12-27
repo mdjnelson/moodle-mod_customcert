@@ -43,7 +43,7 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, self::get_category_name($this->get_id()));
+        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_category_name());
     }
 
     /**
@@ -55,30 +55,28 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        global $COURSE;
-
-        $categoryname = format_string($COURSE->fullname, true, ['context' => \context_course::instance($COURSE->id)]);
-        return \mod_customcert\element_helper::render_html_content($this, $categoryname);
+        return \mod_customcert\element_helper::render_html_content($this, $this->get_category_name());
     }
 
     /**
      * Helper function that returns the category name.
      *
-     * @param int $elementid
      * @return string
      */
-    protected static function get_category_name($elementid) {
+    protected function get_category_name() : string {
         global $DB, $SITE;
 
-        $courseid = \mod_customcert\element_helper::get_courseid($elementid);
+        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
         $course = get_course($courseid);
+        $context = \mod_customcert\element_helper::get_context($this->get_id());
 
         // Check that there is a course category available.
         if (!empty($course->category)) {
             $categoryname = $DB->get_field('course_categories', 'name', array('id' => $course->category), MUST_EXIST);
-            return format_string($categoryname, true, ['context' => \context_course::instance($courseid)]);
         } else { // Must be in a site template.
-            return format_string($SITE->fullname, true, ['context' => \context_system::instance()]);
+            $categoryname = $SITE->fullname;
         }
+
+        return format_string($categoryname, true, ['context' => $context]);
     }
 }
