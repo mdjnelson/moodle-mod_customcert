@@ -102,6 +102,11 @@ class element extends \mod_customcert\element {
     protected function get_list_of_teachers() {
         global $PAGE;
 
+        // Return early if we are in a site template.
+        if ($PAGE->context->id == \context_system::instance()->id) {
+            return [];
+        }
+
         // The list of teachers to return.
         $teachers = array();
 
