@@ -384,6 +384,27 @@ class element_helper {
     }
 
     /**
+     * Helper function that returns the context for this element.
+     *
+     * @param int $elementid The element id
+     * @return \context The context
+     */
+    public static function get_context(int $elementid) : \context {
+        global $DB;
+
+        $sql = "SELECT ct.contextid
+                  FROM {customcert_templates} ct
+            INNER JOIN {customcert_pages} cp
+                    ON ct.id = cp.templateid
+            INNER JOIN {customcert_elements} ce
+                    ON cp.id = ce.pageid
+                 WHERE ce.id = :elementid";
+        $contextid = $DB->get_field_sql($sql, array('elementid' => $elementid), MUST_EXIST);
+
+        return \context::instance_by_id($contextid);
+    }
+
+    /**
      * Return the list of possible elements to add.
      *
      * @return array the list of element types that can be used.
