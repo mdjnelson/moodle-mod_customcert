@@ -102,6 +102,64 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests we are returning the correct course module id for an element in a course customcert activity.
+     */
+    public function test_get_context_element_in_course_certificate() {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a custom certificate in the course.
+        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
+
+        // Get the template to add elements to.
+        $template = $DB->get_record('customcert_templates', array('contextid' => context_module::instance($customcert->cmid)->id));
+        $template = new \mod_customcert\template($template);
+
+        // Add a page to the template.
+        $pageid = $template->add_page();
+
+        // Add an element to this page.
+        $element = new \stdClass();
+        $element->name = 'Test element';
+        $element->element = 'testelement';
+        $element->pageid = $pageid;
+        $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
+        $element->timecreated = time();
+        $element->id = $DB->insert_record('customcert_elements', $element);
+
+        // Confirm the correct course module id is returned.
+        $this->assertEquals(context_module::instance($customcert->cmid),
+            \mod_customcert\element_helper::get_context($element->id));
+    }
+
+    /**
+     * Tests we are returning the correct course module id for an element in a site template.
+     */
+    public function test_get_context_element_in_site_template() {
+        global $DB;
+
+        // Add a template to the site.
+        $template = \mod_customcert\template::create('Site template', context_system::instance()->id);
+
+        // Add a page to the template.
+        $pageid = $template->add_page();
+
+        // Add an element to this page.
+        $element = new \stdClass();
+        $element->name = 'Test element';
+        $element->element = 'testelement';
+        $element->pageid = $pageid;
+        $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
+        $element->timecreated = time();
+        $element->id = $DB->insert_record('customcert_elements', $element);
+
+        // Confirm the correct course module id is returned.
+        $this->assertEquals(context_system::instance(), \mod_customcert\element_helper::get_context($element->id));
+    }
+
+    /**
      * Test we return the correct grade items in a course.
      */
     public function test_get_grade_items() {
