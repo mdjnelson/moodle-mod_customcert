@@ -125,7 +125,8 @@ $html .= html_writer::end_tag('div');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
-echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 4);
+echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 3);
+echo $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING);
 echo $html;
 $PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', array('#pdf'));
 echo $OUTPUT->footer();

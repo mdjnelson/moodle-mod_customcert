@@ -190,7 +190,12 @@ class element extends \mod_customcert\element {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            \mod_customcert\element_helper::render_content($pdf, $this, $this->get_date_format_string($date, $dateformat));
+            $date = $this->get_date_format_string($date, $dateformat);
+            // If we are previewing, we want to let the user know it's an example date so they don't get confused.
+            if ($preview) {
+                $date = get_string('exampledata', 'customcert', 'date') . ' ' . $date;
+            }
+            \mod_customcert\element_helper::render_content($pdf, $this, $date);
         }
     }
 
