@@ -108,6 +108,7 @@ class element extends \mod_customcert\element {
         if ($preview) {
             $courseitem = \grade_item::fetch_course_item($courseid);
             $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
+            $grade = get_string('exampledata', 'customcert', 'grade') . ' ' . $grade;
         } else {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
                 $grade = \mod_customcert\element_helper::get_course_grade_info(
