@@ -186,10 +186,19 @@ class element_helper {
         $mform->setType('width', PARAM_INT);
         $mform->setDefault('width', 0);
         $mform->addHelpButton('width', 'elementwidth', 'customcert');
+    }
+
+    /**
+     * Helper function to render the refpoint element.
+     *
+     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     */
+    public static function render_form_element_refpoint($mform) {
         $refpointoptions = array();
         $refpointoptions[self::CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
         $refpointoptions[self::CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
         $refpointoptions[self::CUSTOMCERT_REF_POINT_TOPRIGHT] = get_string('topright', 'customcert');
+
         $mform->addElement('select', 'refpoint', get_string('refpoint', 'customcert'), $refpointoptions);
         $mform->setType('refpoint', PARAM_INT);
         $mform->setDefault('refpoint', self::CUSTOMCERT_REF_POINT_TOPCENTER);

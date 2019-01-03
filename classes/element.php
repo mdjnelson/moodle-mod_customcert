@@ -245,6 +245,7 @@ abstract class element {
             element_helper::render_form_element_position($mform);
         }
         element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_refpoint($mform);
     }
 
     /**

@@ -28,6 +28,7 @@ require_once('../../config.php');
 
 $contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $code = optional_param('code', '', PARAM_ALPHANUM); // The code for the certificate we are verifying.
+$qrcode = optional_param('qrcode', false, PARAM_BOOL);
 
 $context = context::instance_by_id($contextid);
 
@@ -87,7 +88,7 @@ if ($checkallofsite) {
 // The form we are using to verify these codes.
 $form = new \mod_customcert\verify_certificate_form($pageurl);
 
-if ($form->get_data()) {
+if ($code) {
     $result = new stdClass();
     $result->issues = array();
 
@@ -128,7 +129,10 @@ if ($form->get_data()) {
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
-echo $form->display();
+// Don't show the form if we are coming from a QR code.
+if (!$qrcode) {
+    echo $form->display();
+}
 if (isset($result)) {
     $renderer = $PAGE->get_renderer('mod_customcert');
     $result = new \mod_customcert\output\verify_certificate_results($result);
