@@ -22,7 +22,7 @@ Feature: Being able to view the certificates that have been issued
       | activity   | name                 | intro                      | course | idnumber    |
       | customcert | Custom certificate 1 | Custom certificate 1 intro | C1     | customcert1 |
 
-  Scenario: View the issued certificates
+  Scenario: View the issued certificates on a dedicated page
     And I log in as "student1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
@@ -36,9 +36,14 @@ Feature: Being able to view the certificates that have been issued
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
+    And I should see "View certificate"
+    And I should not see "Student 1"
+    And I should not see "Student 2"
     And I follow "List of issued certificates"
+    And I should not see "View certificate"
     And I should see "Student 1"
     And I should see "Student 2"
+    And I should not see "List of issued certificates"
 
   Scenario: Delete an issued certificate
     And I log in as "student1"
