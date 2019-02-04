@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
 
+## [3.3.16] - 2019-02-04
+
+### Changed
+
+- Make it clear what element values are just an example when previewing the PDF (#144).
+
+### Fixed
+
+- Use course module context when calling format_string/text (#200).
+- Exception being thrown when adding the 'teachername' element to site template (#261).
+
 ## [3.3.15] - 2018-12-20
 ### Added
 
