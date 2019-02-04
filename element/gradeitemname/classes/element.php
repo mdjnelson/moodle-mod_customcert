@@ -114,7 +114,7 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_grade_item_name() : string {
+    protected function get_grade_item_name() {
         global $DB;
 
         // Get the course module information.

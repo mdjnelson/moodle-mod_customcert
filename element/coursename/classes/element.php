@@ -63,7 +63,7 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_course_name() : string {
+    protected function get_course_name() {
         $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
         $course = get_course($courseid);
         $context = \mod_customcert\element_helper::get_context($this->get_id());
