@@ -147,7 +147,8 @@ if (!$downloadown && !$downloadissue) {
     echo $issuehtml;
     echo $downloadbutton;
     if (isset($reporttable)) {
-        echo $OUTPUT->heading(get_string('listofissues', 'customcert'), 3);
+        $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
+        echo $OUTPUT->heading(get_string('listofissues', 'customcert', $numissues), 3);
         groups_print_activity_menu($cm, $pageurl);
         echo $reporttable->out($perpage, false);
     }
