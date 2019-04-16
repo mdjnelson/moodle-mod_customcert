@@ -191,7 +191,7 @@ class element_helper {
     /**
      * Helper function to render the refpoint element.
      *
-     * @param \mod_customcert\edit_element_form $mform the edit_form instance.
+     * @param \MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_refpoint($mform) {
         $refpointoptions = array();
