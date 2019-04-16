@@ -261,11 +261,6 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade information for a course.
      */
     public function test_get_course_grade_info() {
-        global $CFG;
-
-        // Including to use constant.
-        require_once($CFG->dirroot . '/mod/customcert/element/grade/classes/element.php');
-
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
