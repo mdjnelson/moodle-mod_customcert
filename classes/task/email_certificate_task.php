@@ -73,13 +73,10 @@ class email_certificate_task extends \core\task\scheduled_task {
             $context = \context::instance_by_id($customcert->contextid);
 
             // Get the person we are going to send this email on behalf of.
-            // Look through the teachers.
-            if ($teachers = get_enrolled_users($context, 'moodle/course:update')) {
-                $teachers = sort_by_roleassignment_authority($teachers, $context);
-                $userfrom = reset($teachers);
-            } else { // Ok, no teachers, use administrator name.
-                $userfrom = get_admin();
-            }
+            $userfrom = \core_user::get_noreply_user();
+
+            // Store teachers for later.
+            $teachers = get_enrolled_users($context, 'moodle/course:update');
 
             $courseshortname = format_string($customcert->courseshortname, true, array('context' => $context));
             $coursefullname = format_string($customcert->coursefullname, true, array('context' => $context));

@@ -95,11 +95,9 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Confirm that we sent out emails to the two users.
         $this->assertCount(2, $emails);
 
-        $this->assertContains(fullname($user3), $emails[0]->header);
         $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
         $this->assertEquals($user1->email, $emails[0]->to);
 
-        $this->assertContains(fullname($user3), $emails[1]->header);
         $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
         $this->assertEquals($user2->email, $emails[1]->to);
 
@@ -150,11 +148,9 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Confirm that we only sent out 2 emails, both emails to the teacher for the two students.
         $this->assertCount(2, $emails);
 
-        $this->assertContains(fullname($user3), utf8_encode($emails[0]->header));
         $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
         $this->assertEquals($user3->email, $emails[0]->to);
 
-        $this->assertContains(fullname($user3), utf8_encode($emails[1]->header));
         $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
         $this->assertEquals($user3->email, $emails[1]->to);
     }
@@ -189,11 +185,9 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Confirm that we only sent out 2 emails, both emails to the other address that was valid for the two students.
         $this->assertCount(2, $emails);
 
-        $this->assertContains(fullname(get_admin()), utf8_encode($emails[0]->header));
         $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
         $this->assertEquals('testcustomcert@example.com', $emails[0]->to);
 
-        $this->assertContains(fullname(get_admin()), utf8_encode($emails[1]->header));
         $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
         $this->assertEquals('testcustomcert@example.com', $emails[1]->to);
     }
