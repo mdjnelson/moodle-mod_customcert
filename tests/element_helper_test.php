@@ -194,13 +194,11 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade information for an activity.
      */
     public function test_get_mod_grade_info() {
-        global $CFG;
-
-        // Set that we want 3 decimals to display.
-        $CFG->grade_decimalpoints = 3;
-
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
+
+        // Set that we want 3 decimals to display.
+        grade_set_setting($course->id, 'decimalpoints', 3);
 
         // Create two users.
         $student1 = $this->getDataGenerator()->create_user();
@@ -268,11 +266,11 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         // Including to use constant.
         require_once($CFG->dirroot . '/mod/customcert/element/grade/classes/element.php');
 
-        // Set that we want 3 decimals to display.
-        $CFG->grade_decimalpoints = 3;
-
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
+
+        // Set that we want 3 decimals to display.
+        grade_set_setting($course->id, 'decimalpoints', 3);
 
         // Create two users.
         $student1 = $this->getDataGenerator()->create_user();
@@ -326,13 +324,11 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
      * Test we return the correct grade information for a grade item.
      */
     public function test_get_grade_item_info() {
-        global $CFG;
-
-        // Set that we want 3 decimals to display.
-        $CFG->grade_decimalpoints = 3;
-
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
+
+        // Set that we want 3 decimals to display.
+        grade_set_setting($course->id, 'decimalpoints', 3);
 
         // Create two users.
         $student1 = $this->getDataGenerator()->create_user();
