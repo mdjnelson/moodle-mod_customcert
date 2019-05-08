@@ -38,6 +38,11 @@ global $CFG;
 class mod_customcert_element_helper_testcase extends advanced_testcase {
 
     /**
+     * Static variable used for clearing cache
+     */
+    static $courseId;
+
+    /**
      * Test set up.
      */
     public function setUp() {
@@ -197,6 +202,9 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
+        // Assign course->id for cache
+        self::$courseId = $course->id;
+
         // Set that we want 3 decimals to display.
         grade_set_setting($course->id, 'decimalpoints', 3);
 
@@ -264,6 +272,9 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
+        // Assign course->id for cache
+        self::$courseId = $course->id;
+
         // Set that we want 3 decimals to display.
         grade_set_setting($course->id, 'decimalpoints', 3);
 
@@ -322,6 +333,9 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
+        // Assign course->id for cache
+        self::$courseId = $course->id;
+
         // Set that we want 3 decimals to display.
         grade_set_setting($course->id, 'decimalpoints', 3);
 
@@ -373,5 +387,17 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         $this->assertEquals(null, $grade->get_grade());
         $this->assertEquals('-', $grade->get_displaygrade());
         $this->assertEquals(null, $grade->get_dategraded());
+    }
+
+    /**
+     * Cleanup after all tests are executed.
+     *
+     *
+     * @static
+     * @return void
+     */
+    public static function tearDownAfterClass() {
+        // Clear the cache
+        grade_get_setting(self::$courseId, null, null, true);
     }
 }
