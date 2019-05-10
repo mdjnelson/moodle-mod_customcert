@@ -120,14 +120,12 @@ class customcertelement_daterange_element_test extends advanced_testcase {
                 'enddate' => strtotime('30.09.2017'),
                 'datestring' => 'SS {{date_year}}',
                 'recurring' => true,
-                'enabled' => true,
             ],
             (object)[
                 'startdate' => strtotime('01.10.2017'),
                 'enddate' => strtotime('31.03.2018'),
                 'datestring' => 'WS {{recurring_range_first_year}}/{{recurring_range_last_year}}',
                 'recurring' => true,
-                'enabled' => true,
             ],
         ];
 
@@ -146,14 +144,12 @@ class customcertelement_daterange_element_test extends advanced_testcase {
                 'enddate' => strtotime('30.09.2017'),
                 'datestring' => 'First range',
                 'recurring' => false,
-                'enabled' => true,
             ],
             (object)[
                 'startdate' => strtotime('01.05.2017'),
                 'enddate' => strtotime('01.07.2018'),
                 'datestring' => 'Second range',
                 'recurring' => false,
-                'enabled' => true,
             ],
         ];
 
@@ -172,7 +168,6 @@ class customcertelement_daterange_element_test extends advanced_testcase {
                 'enddate' => strtotime('30.09.2018'),
                 'datestring' => '{{current_year}} - {{range_first_year}} - {{range_last_year}} - {{date_year}}',
                 'recurring' => false,
-                'enabled' => true,
             ],
         ];
 
@@ -198,7 +193,6 @@ class customcertelement_daterange_element_test extends advanced_testcase {
                 'enddate' => strtotime('30.09.2018'),
                 'datestring' => '{{current_year}} - {{range_first_year}} - {{range_last_year}} - {{date_year}}',
                 'recurring' => false,
-                'enabled' => true,
             ],
         ];
 
@@ -220,16 +214,13 @@ class customcertelement_daterange_element_test extends advanced_testcase {
                 'enddate' => strtotime('30.09.2017'),
                 'datestring' => $datestring,
                 'recurring' => true,
-                'enabled' => true,
             ],
             (object)[
                 'startdate' => strtotime('01.10.2017'),
                 'enddate' => strtotime('31.03.2018'),
                 'datestring' => $datestring,
                 'recurring' => true,
-                'enabled' => true,
             ],
-
         ];
 
         $element = $this->get_datarange_element($dateranges);
