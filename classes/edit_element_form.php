@@ -64,6 +64,7 @@ class edit_element_form extends \moodleform {
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
         $this->element = \mod_customcert\element_factory::get_element_instance($element);
+        $this->element->set_edit_element_form($this);
         $this->element->render_form_elements($mform);
 
         $this->add_action_buttons(true);

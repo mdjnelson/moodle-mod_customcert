@@ -103,6 +103,11 @@ abstract class element {
     protected $showposxy;
 
     /**
+     * @var edit_element_form Element edit form instance.
+     */
+    private $editelementform;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $element the element data
@@ -421,4 +426,27 @@ abstract class element {
             return $this->element->$name;
         }
     }
+
+    /**
+     * Set edit form instance for the custom cert element.
+     *
+     * @param \mod_customcert\edit_element_form $editelementform
+     */
+    public function set_edit_element_form(edit_element_form $editelementform) {
+        $this->editelementform = $editelementform;
+    }
+
+    /**
+     * Get edit form instance for the custom cert element.
+     *
+     * @return \mod_customcert\edit_element_form
+     */
+    public function get_edit_element_form() {
+        if (empty($this->editelementform)) {
+            throw new \coding_exception('Edit element form instance is not set.');
+        }
+
+        return $this->editelementform;
+    }
+
 }
