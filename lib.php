@@ -368,10 +368,12 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @return bool
  */
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    $url = new moodle_url('/mod/customcert/my_certificates.php', array('userid' => $user->id));
-    $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
-        get_string('mycertificates', 'customcert'), null, $url);
-    $tree->add_node($node);
+    if (has_capability('mod/customcert:viewnavigation', $PAGE->cm->context)) {
+        $url = new moodle_url('/mod/customcert/my_certificates.php', array('userid' => $user->id));
+        $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
+            get_string('mycertificates', 'customcert'), null, $url);
+        $tree->add_node($node);
+    }
 }
 
 /**
