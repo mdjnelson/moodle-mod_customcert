@@ -30,6 +30,11 @@ $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $customcert = $DB->get_record('customcert', array('id' => $certificateid), '*', MUST_EXIST);
+
+    // Check there exists an issued certificate for this user.
+    if (!$issue = $DB->get_record('customcert_issues', ['userid' => $userid, 'customcertid' => $customcert->id])) {
+        throw new moodle_exception('You have not been issued a certificate');
+    }
 }
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
