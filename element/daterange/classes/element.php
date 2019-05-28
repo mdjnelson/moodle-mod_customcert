@@ -442,6 +442,8 @@ class element extends \mod_customcert\element {
     }
 
     /**
+     * Returns whether or not a range is recurring.
+     *
      * @param \stdClass $range Range object.
      *
      * @return bool
@@ -597,6 +599,7 @@ class element extends \mod_customcert\element {
     /**
      * Format date string based on different types of placeholders.
      *
+     * @param string $datestring The date string
      * @param array $formatdata A list of format data.
      *
      * @return string

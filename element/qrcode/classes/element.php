@@ -37,7 +37,9 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  */
 class element extends \mod_customcert\element {
 
-
+    /**
+     * @var string The barcode type.
+     */
     const BARCODETYPE = 'QRCODE';
 
     /**
