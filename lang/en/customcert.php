@@ -41,6 +41,7 @@ $string['customcert:manageemailothers'] = 'Manage email others setting';
 $string['customcert:manageverifyany'] = 'Manage verification setting';
 $string['customcert:managerequiredtime'] = 'Manage time required setting';
 $string['customcert:manageprotection'] = 'Manage protection setting';
+$string['customcert:receiveissue'] = 'Receive a certificate';
 $string['customcert:view'] = 'View a custom certificate';
 $string['customcert:viewreport'] = 'View course report';
 $string['customcert:viewallcertificates'] = 'View all certificates';

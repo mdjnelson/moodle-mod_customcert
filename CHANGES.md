@@ -15,6 +15,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Added QR code element (#146).
 - Added Date range element (#185).
 - Added the number of certificates issued above the report (#266).
+- Added new capability to control who can be issued a certificate (#270).
 
 ### Fixed
 

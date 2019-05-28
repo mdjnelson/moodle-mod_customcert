@@ -45,6 +45,39 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
     }
 
     /**
+     * Tests the email certificate task for users without a capability to receive a certificate.
+     */
+    public function test_email_certificates_no_cap() {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create some users.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        // Enrol two of them in the course as students but revoke their right to receive a certificate issue.
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+
+        unassign_capability('mod/customcert:receiveissue', $roleids['student']);
+
+        // Create a custom certificate.
+        $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new \mod_customcert\task\email_certificate_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Confirm that we did not send any emails.
+        $this->assertCount(0, $emails);
+    }
+
+    /**
      * Tests the email certificate task for students.
      */
     public function test_email_certificates_students() {
