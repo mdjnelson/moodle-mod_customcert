@@ -25,7 +25,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
-require_once($CFG->dirroot . '/mod/customcert/element/daterange/tests/phpunit/fixtures/fake_datarange_element.php');
+require_once($CFG->dirroot . '/mod/customcert/element/daterange/tests/fixtures/fake_datarange_element.php');
 
 class customcertelement_daterange_element_test extends advanced_testcase {
 
