@@ -2,6 +2,7 @@ language: php
 
 # For javascript behat tests we need sudo
 sudo: true
+dist: trusty
 
 cache:
   directories:
