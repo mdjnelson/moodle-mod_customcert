@@ -14,6 +14,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Added ability to specify the current date for date related elements (#289).
 - Added QR code element (#146).
 - Added Date range element (#185).
+- Added new capability to control who can be issued a certificate (#270).
 
 ### Changed
 

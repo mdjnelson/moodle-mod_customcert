@@ -112,8 +112,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                     continue;
                 }
 
-                // Don't want to email those with the capability to manage the certificate.
-                if (has_capability('mod/customcert:manage', $context, $enroluser->id)) {
+                // Only email those with the capability to receive the certificate.
+                if (!has_capability('mod/customcert:receiveissue', $context, $enroluser->id)) {
                     continue;
                 }
 
