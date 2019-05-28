@@ -27,6 +27,13 @@ global $CFG;
 
 require_once($CFG->dirroot . '/mod/customcert/element/daterange/tests/fixtures/fake_datarange_element.php');
 
+/**
+ * Test datarange element.
+ *
+ * @package    customcertelement_daterange
+ * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class customcertelement_daterange_element_test extends advanced_testcase {
 
     /**
