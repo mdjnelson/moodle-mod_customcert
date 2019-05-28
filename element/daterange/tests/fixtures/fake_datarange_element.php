@@ -24,6 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Fake datarange element for testing.
+ *
+ * @package    customcertelement_daterange
+ * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class fake_datarange_element extends \customcertelement_daterange\element {
 
     /**
