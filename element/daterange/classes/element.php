@@ -77,27 +77,27 @@ class element extends \mod_customcert\element {
     /**
      * Date - Issue
      */
-    const DATE_ISSUE = 1;
+    const DATE_ISSUE = -1;
 
     /**
      * Date - Completion
      */
-    const DATE_COMPLETION = 2;
+    const DATE_COMPLETION = -2;
 
     /**
      * Date - Course start
      */
-    const DATE_COURSE_START = 3;
+    const DATE_COURSE_START = -3;
 
     /**
      * Date - Course end
      */
-    const DATE_COURSE_END = 4;
+    const DATE_COURSE_END = -4;
 
     /**
      * Date - Course grade date
      */
-    const DATE_COURSE_GRADE = 5;
+    const DATE_COURSE_GRADE = -5;
 
     /**
      * This function renders the form elements when adding a customcert element.
