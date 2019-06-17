@@ -29,6 +29,7 @@ $string['completiondate'] = 'Completion date';
 $string['courseenddate'] = 'Course end date';
 $string['coursegradedate'] = 'Course grade date';
 $string['coursestartdate'] = 'Course start date';
+$string['currentdate'] = 'Current date';
 $string['dateitem'] = 'Date item';
 $string['dateitem_help'] = 'This will be the date that is printed on the certificate';
 $string['dateranges'] = 'Date ranges';

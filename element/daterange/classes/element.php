@@ -100,6 +100,11 @@ class element extends \mod_customcert\element {
     const DATE_COURSE_GRADE = -5;
 
     /**
+     * Date - Course current date
+     */
+    const DATE_CURRENT_DATE = -6;
+
+    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param \MoodleQuickForm $mform the edit form instance
@@ -110,6 +115,7 @@ class element extends \mod_customcert\element {
         // Get the possible date options.
         $dateoptions = array();
         $dateoptions[self::DATE_ISSUE] = get_string('issueddate', 'customcertelement_daterange');
+        $dateoptions[self::DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_daterange');
         $dateoptions[self::DATE_COMPLETION] = get_string('completiondate', 'customcertelement_daterange');
         $dateoptions[self::DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_daterange');
         $dateoptions[self::DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_daterange');
@@ -344,6 +350,10 @@ class element extends \mod_customcert\element {
             switch ($dateitem) {
                 case self::DATE_ISSUE:
                     $date = $issue->timecreated;
+                    break;
+
+                case self::DATE_CURRENT_DATE:
+                    $date = time();
                     break;
 
                 case self::DATE_COMPLETION:
