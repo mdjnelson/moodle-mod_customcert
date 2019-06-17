@@ -178,6 +178,7 @@ class element extends \mod_customcert\element {
         $rangeoptions['startdate']['type'] = PARAM_INT;
         $rangeoptions['enddate']['type'] = PARAM_INT;
         $rangeoptions['recurring']['type'] = PARAM_INT;
+        $rangeoptions['recurring']['helpbutton'] = ['recurring', 'customcertelement_daterange'];
         $rangeoptions['datestring']['type'] = PARAM_NOTAGS;
         $rangeoptions['rangedelete']['type'] = PARAM_BOOL;
 
