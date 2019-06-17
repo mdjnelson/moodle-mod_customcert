@@ -26,6 +26,7 @@ $string['completiondate'] = 'Completion date';
 $string['courseenddate'] = 'Course end date';
 $string['coursegradedate'] = 'Course grade date';
 $string['coursestartdate'] = 'Course start date';
+$string['currentdate'] = 'Current date';
 $string['dateformat'] = 'Date format';
 $string['dateformat_help'] = 'This is the format of the date that will be displayed';
 $string['dateitem'] = 'Date item';
