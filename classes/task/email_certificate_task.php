@@ -127,7 +127,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
                 $issueid = $DB->get_field('customcert_issues', 'id',
-                    array('userid' => $enroluser->id, 'customcertid' => $customcert->id));
+                    array('userid' => $enroluser->id, 'customcertid' => $customcert->id), IGNORE_MULTIPLE);
                 if (empty($issueid)) {
                     // Ok, issue them the certificate.
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id);
