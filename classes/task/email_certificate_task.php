@@ -140,7 +140,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                         $enroluser->emailed = 0;
                         $issuedusers[] = $enroluser;
                     } catch (Exception $e) {
-                        error_log("Error issuing certificate in courseid={$customcert->courseid} cmid={$cm->id} to userid={$enroluser->id}: " . $e->getMessage());
+                        error_log("Error issuing certificate in courseid={$customcert->courseid} cmid={$cm->id} ".
+                                  "to userid={$enroluser->id}: " . $e->getMessage());
                         continue;
                     }
                 }
@@ -233,7 +234,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                     // Set the field so that it is emailed.
                     $DB->set_field('customcert_issues', 'emailed', 1, array('id' => $user->issueid));
                 }
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 error_log("Error processing certificate in courseid={$customcert->courseid} cmid={$cm->id}: " . $e->getMessage());
                 continue;
             }
