@@ -47,7 +47,8 @@ class element extends \mod_customcert\element {
             \mod_customcert\element_helper::get_grade_items($COURSE));
         $mform->addHelpButton('gradefeedback', 'gradefeedback', 'customcertelement_gradefeedback');
 
-        $mform->addElement('text', 'gradefeedbacklength', get_string('gradefeedbacklength', 'customcertelement_gradefeedback'), array('size' => 10));
+        $mform->addElement('text', 'gradefeedbacklength',
+            get_string('gradefeedbacklength', 'customcertelement_gradefeedback'), array('size' => 10));
         $mform->setType('gradefeedbacklength', PARAM_INT);
         $mform->addHelpButton('gradefeedbacklength', 'gradefeedbacklength', 'customcertelement_gradefeedback');
 
@@ -62,12 +63,6 @@ class element extends \mod_customcert\element {
      * @return string the text
      */
     public function save_unique_data($data) {
-        /*if (!empty($data->gradefeedback)) {
-            return $data->gradefeedback;
-        }
-
-        return '';*/
-
         $arrtostore = array(
             'gradefeedback' => $data->gradefeedback,
             'gradefeedbacklength' => $data->gradefeedbacklength
@@ -131,32 +126,37 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_grade_feedback($user = NULL) : string {
+    protected function get_grade_feedback($user = null) : string {
         global $DB;
 
         $itemid = json_decode($this->get_data());
         $gradeitemlength = $itemid->gradefeedbacklength;
-        
-		if (strpos($itemid->gradefeedback, 'gradeitem:') === false) {
-			$cm = $DB->get_record('course_modules', array('id' => $itemid->gradefeedback), '*', MUST_EXIST);
-        	$module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
-        	$itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
-        	$gradeitem = $DB->get_record('grade_items', array('iteminstance' => $cm->instance, 'courseid' => $cm->course, 'itemmodule' => $module->name), '*', MUST_EXIST);
-		}else{
-        	$gradeitemid = str_replace ('gradeitem:' ,'' , $itemid->gradefeedback);
-        	$gradeitem = $DB->get_record('grade_items', array('id' => $gradeitemid), '*', MUST_EXIST);
-        	$itemname = $gradeitem->itemname;
-		}
-        
-        if($user){
+
+        if (strpos($itemid->gradefeedback, 'gradeitem:') === false) {
+            $cm = $DB->get_record('course_modules', array('id' => $itemid->gradefeedback), '*', MUST_EXIST);
+            $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
+            $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+            $gradeitem = $DB->get_record('grade_items',
+                array('iteminstance' => $cm->instance, 'courseid' => $cm->course, 'itemmodule' => $module->name), '*', MUST_EXIST);
+        } else {
+            $gradeitemid = str_replace ('gradeitem:' , '', $itemid->gradefeedback);
+            $gradeitem = $DB->get_record('grade_items', array('id' => $gradeitemid), '*', MUST_EXIST);
+            $itemname = $gradeitem->itemname;
+        }
+
+        if ($user) {
             $grade = $DB->get_record('grade_grades', array('itemid' => $gradeitem->id, 'userid' => $user->id), '*');
-            if(!empty($grade)){ $gradefeedback = $grade->feedback; }else{ $gradefeedback = ''; }
-        }else{
+            if (!empty($grade)) {
+                $gradefeedback = $grade->feedback;
+            } else {
+                $gradefeedback = '';
+            }
+        } else {
             $gradefeedback = 'Feedback item: ' . $itemname;
         }
 
-        if ($gradefeedback <> '' AND $gradeitemlength > 0 AND strlen($gradefeedback) >= $gradeitemlength){
-        	$gradefeedback = substr($gradefeedback, 0, $gradeitemlength) . '...';
+        if ($gradefeedback <> '' AND $gradeitemlength > 0 AND strlen($gradefeedback) >= $gradeitemlength) {
+            $gradefeedback = substr($gradefeedback, 0, $gradeitemlength) . '...';
         }
 
         return format_string($gradefeedback, true, ['context' => \mod_customcert\element_helper::get_context($this->get_id())] );
