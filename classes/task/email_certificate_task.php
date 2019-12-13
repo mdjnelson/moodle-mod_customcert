@@ -160,6 +160,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             // Now, email the people we need to.
             foreach ($issuedusers as $user) {
                 $userfullname = fullname($user);
+                $info->userfullname = $userfullname;
 
                 // Now, get the PDF.
                 $template = new \stdClass();
