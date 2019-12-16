@@ -23,7 +23,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert"/>
-        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_template" REFFIELDS="id"/>
+        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_templates" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="customcert_templates" COMMENT="Stores each customcert template">
@@ -67,7 +67,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert_pages"/>
-        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_template" REFFIELDS="id"/>
+        <KEY NAME="template" TYPE="foreign" FIELDS="templateid" REFTABLE="customcert_templates" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="customcert_elements" COMMENT="Stores the elements for a given page">
