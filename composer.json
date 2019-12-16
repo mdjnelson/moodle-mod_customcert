@@ -1,5 +1,5 @@
 {
-    "name": "markn86/moodle-mod_customcert",
+    "name": "mdjnelson/moodle-mod_customcert",
     "type": "moodle-mod",
     "require": {
         "composer/installers": "~1.0"
