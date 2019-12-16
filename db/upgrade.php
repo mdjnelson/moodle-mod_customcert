@@ -146,5 +146,25 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2018051705, 'customcert');
     }
 
+    if ($oldversion < 2019111803) {
+        $table = new xmldb_table('customcert');
+        $index = new xmldb_index('templateid', XMLDB_INDEX_UNIQUE, ['templateid']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('templateid', XMLDB_KEY_FOREIGN, array('templateid'), 'customcert_templates', array('id'));
+        $dbman->add_key($table, $key);
+
+        $table = new xmldb_table('customcert_pages');
+        $index = new xmldb_index('templateid', XMLDB_INDEX_UNIQUE, ['templateid']);
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        $key = new xmldb_key('templateid', XMLDB_KEY_FOREIGN, array('templateid'), 'customcert_templates', array('id'));
+        $dbman->add_key($table, $key);
+
+        upgrade_mod_savepoint(true, 2019111803, 'customcert');
+    }
+
     return true;
 }
