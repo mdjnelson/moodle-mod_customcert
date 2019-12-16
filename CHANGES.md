@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. 
 
-Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/markn86/moodle-mod_customcert/issues/169.
+Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
 ## [3.5.7] - 2019-05-28
 
