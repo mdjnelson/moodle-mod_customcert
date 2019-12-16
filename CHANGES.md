@@ -10,7 +10,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Added subplugins.json file (#312).
 - Re-added 'code' column to user report (#264).
-- Add 'userfullname' variable for email subject (#316) 
+- Add 'userfullname' variable for email subject (#316).
 
 ### Fixed
 
