@@ -15,7 +15,7 @@ This requires Git being installed. If you do not have Git installed, please visi
 Once you have Git installed, simply visit your Moodle mod directory and clone the repository using the following command.
 
 ```
-git clone https://github.com/markn86/moodle-mod_customcert.git customcert
+git clone https://github.com/mdjnelson/moodle-mod_customcert.git customcert
 ```
 
 Then checkout the branch corresponding to the version of Moodle you are using with the following command. Make sure to replace MOODLE_32_STABLE with the version of Moodle you are using.
