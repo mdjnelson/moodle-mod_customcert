@@ -74,6 +74,7 @@ class report_table extends \table_sql {
             $columns[] = $extrafield;
         }
         $columns[] = 'timecreated';
+        $columns[] = 'code';
 
         $headers = [];
         $headers[] = get_string('fullname');
@@ -81,6 +82,7 @@ class report_table extends \table_sql {
             $headers[] = get_user_field_name($extrafield);
         }
         $headers[] = get_string('receiveddate', 'customcert');
+        $headers[] = get_string('code', 'customcert');
 
         // Check if we were passed a filename, which means we want to download it.
         if ($download) {
@@ -101,6 +103,7 @@ class report_table extends \table_sql {
         $this->define_headers($headers);
         $this->collapsible(false);
         $this->sortable(true);
+        $this->no_sorting('code');
         $this->no_sorting('download');
         $this->is_downloadable(true);
 
@@ -133,6 +136,16 @@ class report_table extends \table_sql {
      */
     public function col_timecreated($user) {
         return userdate($user->timecreated);
+    }
+
+    /**
+     * Generate the code column.
+     *
+     * @param \stdClass $user
+     * @return string
+     */
+    public function col_code($user) {
+        return $user->code;
     }
 
     /**
