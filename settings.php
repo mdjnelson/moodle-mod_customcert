@@ -83,6 +83,10 @@ $settings->add(new admin_setting_configcheckbox('customcert/protection_copy',
     get_string('preventcopy_desc', 'customcert'),
     0));
 
+$settings->add(new admin_setting_configselect('customcert/requiredcompletion',
+    get_string('coursecompletionreq', 'customcert'), get_string('coursecompletionreq_help', 'customcert'),
+    0, $yesnooptions));    
+
 $ADMIN->add('customcert', $settings);
 
 // Element plugin settings.

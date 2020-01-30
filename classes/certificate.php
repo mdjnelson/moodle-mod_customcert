@@ -24,6 +24,8 @@
 
 namespace mod_customcert;
 
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -458,5 +460,268 @@ class certificate {
         }
 
         return $code;
+    }
+    /**
+     * Checks if a course is completed by current user.
+     *
+     * @param int $course The course to be checked.
+     * @return bool true if completed, otherwise false
+     */
+    public static function is_course_completed($course){
+        global $USER;
+        $info = new \completion_info($course);
+        return $info->is_course_complete($USER->id);
+    }
+    /**
+     * Fetches the completions
+     *
+     * @param int $course The course to be checked.
+     * @return bool true if completed, otherwise false
+     */
+    public static function get_completion_requirements($course) {
+        global $USER, $PAGE, $COMPLETION_CRITERIA_TYPES;
+        $info = new \completion_info($course);
+        $completions = $info->get_completions($USER->id);
+        $modinfo = get_fast_modinfo($course);
+
+        // Prepare return object
+        $completion_view = new stdClass();
+        $completion_view->aggregation_method = '';
+        // Markup for prerequisites
+        $completion_view->prerequisites = array();
+        $completion_view->has_prerequisites = false;
+        $completion_view->prerequisites_agg_all = false;
+        $completion_view->prerequisites_agg_any = false;
+        $completion_view->prerequisites_completed = false;
+        // Markup for activities
+        $completion_view->sections = array();
+        $completion_view->has_activities = false;
+        $completion_view->activities_agg_all = false;
+        $completion_view->activities_agg_any = false;
+        $completion_view->activities_completed = false;
+        // Markup for Grade
+        $completion_view->has_grade = new stdClass();
+        $completion_view->has_grade->enabled = false;
+        $completion_view->has_grade->grade = '';
+        $completion_view->has_grade->complete = '';
+        // Markup for Date
+        $completion_view->has_date = false;
+        $completion_view->dates = array();
+        // Markup for Duration
+        $completion_view->has_duration = false;
+        $completion_view->durations = array();
+        // Markup for SelfCompletion
+        $completion_view->has_selfcompletion = false;
+        $completion_view->selfcompletions = array();
+        // Markup for Role
+        $completion_view->has_role = false;
+        $completion_view->roles = array();
+        $completion_view->roles_agg_all = false;
+        $completion_view->roles_agg_any = false;
+        $completion_view->roles_completed = false;
+        // Markup for Unenrolment
+        $completion_view->has_unenrol = false;
+        $completion_view->unenrol = array();
+
+        // Check for aggregation method
+        $overall = $info->get_aggregation_method();
+        if ($overall == COMPLETION_AGGREGATION_ALL) {
+            $completion_view->aggregation_method = get_string('criteriarequiredall', 'completion');
+        } else {
+            $completion_view->aggregation_method = get_string('criteriarequiredany', 'completion');
+        }
+
+        // Prepare markup for mustache template and get section infos
+        for ($i = 0; $i <= count($modinfo->get_sections()); $i++){
+            $sectionname = get_section_name($course, $i);
+            array_push($completion_view->sections, ["name" => $sectionname, "criterias" => []]);
+        }
+        
+        // Loop through completions and handle different criteria types
+        $activity_count = 0;
+        $prerequisites_count = 0;
+        $roles_count = 0;
+        $activity_completed_count = 0;
+        $prerequisites_completed_count = 0;
+        $roles_completed_count = 0;
+        foreach ($completions as $key => $completion){
+            $criteria = $completion->get_criteria();
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_GRADE){
+                $completion_view->has_grade->enabled = true;
+                $completion_view->has_grade->grade = $completion->get_status();
+                $completion_view->has_grade->complete = $completion->is_complete();
+            }
+
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_ACTIVITY){
+                // $cmid and $cm needed to get belonging section
+                ++$activity_count;
+                $completion_view->has_activities = true;
+                $cmid = $criteria->moduleinstance;
+                $cm = $modinfo->get_cm($cmid);
+                if($info->get_aggregation_method($criteria->criteriatype) == COMPLETION_AGGREGATION_ALL){
+                    $completion_view->activities_agg_all = true;
+                }
+                else{
+                    $completion_view->activities_agg_any = true;
+                }
+                $row = array();
+                $row['type'] = ucfirst($criteria->module);
+                $row['status'] = $completion->get_status();
+                $row['complete'] = $completion->is_complete();
+                if ($completion->is_complete()){
+                    ++$activity_completed_count;
+                }
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                $details = $criteria->get_details($completion);
+                $row['requirement'] = $details["requirement"];
+                $row['criteria'] = $details['criteria'];
+                array_push($completion_view->sections[$cm->sectionnum]["criterias"], $row);
+            }
+
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_COURSE){
+                $completion_view->has_prerequisites = true;
+                ++$prerequisites_count;
+                if($info->get_aggregation_method($criteria->criteriatype) == COMPLETION_AGGREGATION_ALL){
+                    $completion_view->prerequisites_agg_all = true;
+                }
+                else{
+                    $completion_view->prerequisites_agg_any = true;
+                }
+                $row = array();
+                $row['status'] = $completion->get_status();
+                $row['complete'] = $completion->is_complete();
+                if ($completion->is_complete()){
+                    ++$prerequisites_completed_count;
+                }
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                $details = $criteria->get_details($completion);
+                $row['requirement'] = $details["requirement"];
+                $row['criteria'] = $details['criteria'];  
+                array_push($completion_view->prerequisites, $row);           
+            }
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_DATE){
+                $completion_view->has_date = true;
+                $row = array();
+                $row['status'] = $completion->get_status();
+                $row['complete'] = $completion->is_complete();
+                $details = $criteria->get_details($completion);
+                $row['type'] = $details['type'];
+                $row['criteria'] = $details['criteria'];
+                $row['requirement'] = $details['requirement'];
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                array_push($completion_view->dates, $row);
+            }
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_ROLE){
+                $completion_view->has_role = true;
+                ++$roles_count;
+                if($info->get_aggregation_method($criteria->criteriatype) == COMPLETION_AGGREGATION_ALL){
+                    $completion_view->roles_agg_all = true;
+                }
+                else{
+                    $completion_view->roles_agg_any = true;
+                }                
+                $row = array();
+                $row['status'] = $completion->get_status();
+                $row['complete'] = $completion->is_complete();
+                if ($completion->is_complete()){
+                    ++$roles_completed_count;
+                }                
+                $details = $criteria->get_details($completion);
+                $row['type'] = $details['type'];
+                $row['criteria'] = $details['criteria'];
+                $row['requirement'] = $details['requirement'];
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                array_push($completion_view->roles, $row);
+            }
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_SELF){
+                $completion_view->has_selfcompletion = true;
+                $row = array();
+                $row['complete'] = $completion->is_complete();
+                $details = $criteria->get_details($completion);
+                $row['type'] = $details['type'];
+                $row['requirement'] = $details['requirement'];
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                array_push($completion_view->selfcompletions, $row);
+            }
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_UNENROL){
+                $completion_view->has_unenrol = true;
+                $row = array();
+                $row['complete'] = $completion->is_complete();
+                $details = $criteria->get_details($completion);
+                $row['type'] = $details['type'];
+                $row['requirement'] = $details['requirement'];
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                array_push($completion_view->unenrol, $row);
+            }
+            if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_DURATION){
+                $completion_view->has_duration = true;
+                $row = array();
+                $row['status'] = $completion->get_status();
+                $row['complete'] = $completion->is_complete();
+                $details = $criteria->get_details($completion);
+                $row['type'] = $details['type'];
+                $row['criteria'] = $details['criteria'];
+                $row['requirement'] = $details['requirement'];
+                $row['timecompleted'] = $completion->timecompleted ? userdate($completion->timecompleted, get_string('strftimedate', 'langconfig')) : 0;
+                array_push($completion_view->durations, $row);
+            }
+
+        }
+        // We need to decide now based on activity completion aggregation if 
+        // activity criteria is completed 
+        // 1. Case: All activities need to be completed
+        if ($completion_view->activities_agg_all && 
+            ($activity_count == $activity_completed_count))
+        {
+            $completion_view->activities_completed = true;
+        } 
+        // 2. Case: Any activity needs to be completed
+        else if ($completion_view->activities_agg_any && 
+                 $activity_completed_count)
+        {
+            $completion_view->activities_completed = true;
+        }
+        // Otherwise $completion_view->activites_completed remains false.
+
+        // We need to decide based on course prerequisites completion aggregation
+        // if prerequisites are fulfilled
+        // 1. Case: All prerequisites need to be completed
+        if ($completion_view->prerequisites_agg_all && 
+            ($prerequisites_count == $prerequisites_completed_count))
+        {
+            $completion_view->prerequisites_completed = true;
+        } 
+        // 2. Case: Any prerequisite needs to be completed
+        else if ($completion_view->prerequisites_agg_any && 
+                 $prerequisites_completed_count)
+        {
+            $completion_view->prerequisites_completed = true;
+        }
+        // We need to decide based on manually completion by other roles
+        // if this criteria is fulfilled
+        // 1. Case: All roles need to confirm
+        if ($completion_view->roles_agg_all && 
+            ($roles_count == $roles_completed_count))
+        {
+            $completion_view->roles_completed = true;
+        } 
+        // 2. Case: Any role needs to confirm
+        else if ($completion_view->roles_agg_any && 
+                 $roles_completed_count)
+        {
+            $completion_view->roles_completed = true;
+        }        
+
+        // Remove sections from output if no activity/criteria was added
+        foreach ($completion_view->sections as $key => $section){
+            if (!count($section["criterias"])){
+                unset($completion_view->sections[$key]);
+            }
+        }
+        
+        $renderer = $PAGE->get_renderer('mod_customcert');
+        // Reindex array_values for mustache templates
+        $completion_view->sections = array_values($completion_view->sections);
+        return $renderer->render_from_template('mod_customcert/completion_view', $completion_view);
     }
 }

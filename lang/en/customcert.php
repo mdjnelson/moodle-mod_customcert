@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activityaggregation_all'] = 'ALL activities need to be completed.';
+$string['activityaggregation_any'] = 'ANY activity needs to be completed.';
 $string['addcertpage'] = 'Add page';
 $string['addelement'] = 'Add element';
 $string['awardedto'] = 'Awarded to';
@@ -29,6 +31,9 @@ $string['cannotverifyallcertificates'] = 'You do not have the permission to veri
 $string['certificate'] = 'Certificate';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
+$string['coursecompletionreq'] = 'Obtaining certificate requires course to be completed.';
+$string['coursecompletionreq_help'] = 'Certificate is available, if general completion requirements from the course completion settings are fulfilled. 
+In the certificate view, users will have an overview of which requirements are fulfilled or missing.';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
 the certificate.';
@@ -139,6 +144,8 @@ $string['posx'] = 'Position X';
 $string['posx_help'] = 'This is the position in mm from the top left corner you wish the element\'s reference point to locate in the x direction.';
 $string['posy'] = 'Position Y';
 $string['posy_help'] = 'This is the position in mm from the top left corner you wish the element\'s reference point to locate in the y direction.';
+$string['prerequisiteaggregation_all'] = 'ALL courses need to be completed.';
+$string['prerequisiteaggregation_any'] = 'ANY course needs to be completed.';
 $string['preventcopy'] = 'Prevent copy';
 $string['preventcopy_desc'] = 'Enable protection from copy action.';
 $string['preventprint'] = 'Prevent print';
@@ -157,10 +164,13 @@ $string['rearrangeelementsheading'] = 'Drag and drop elements to change where th
 $string['receiveddate'] = 'Awarded on';
 $string['refpoint'] = 'Reference point location';
 $string['refpoint_help'] = 'The reference point is the location of an element from which its x and y coordinates are determined. It is indicated by the \'+\' that appears in the centre or corners of the element.';
+$string['remainingdays'] = 'Remaining days';
 $string['replacetemplate'] = 'Replace';
 $string['requiredtimenotmet'] = 'You must spend at least a minimum of {$a->requiredtime} minutes in the course before you can access this certificate.';
 $string['rightmargin'] = 'Right margin';
 $string['rightmargin_help'] = 'This is the right margin of the certificate PDF in mm.';
+$string['roleaggregation_all'] = 'ALL roles need to manually complete.';
+$string['roleaggregation_any'] = 'ANY role needs to manually complete.';
 $string['save'] = 'Save';
 $string['saveandclose'] = 'Save and close';
 $string['saveandcontinue'] = 'Save and continue';

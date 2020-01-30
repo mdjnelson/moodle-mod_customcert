@@ -61,6 +61,21 @@ if ($customcert->requiredtime && !$canmanage) {
     }
 }
 
+// Check if the user can view the certificate based on required course completion
+$completionreq = '';
+if ($customcert->requiredcompletion) {
+    $completionreq_rendered = \mod_customcert\certificate::get_completion_requirements($course);
+    
+    if (\mod_customcert\certificate::is_course_completed($course)){
+        $completionreq = $completionreq_rendered;
+    }
+    else{
+        notice($completionreq_rendered, "$CFG->wwwroot/course/view.php?id=$course->id");
+        die;
+    }    
+}
+
+
 // Check if we are deleting an issue.
 if ($deleteissue && $canmanage && confirm_sesskey()) {
     if (!$confirm) {
@@ -148,6 +163,7 @@ if (!$downloadown && !$downloadissue) {
     echo $OUTPUT->header();
     echo $OUTPUT->heading(format_string($customcert->name));
     echo $intro;
+    echo $completionreq;
     echo $issuehtml;
     echo $downloadbutton;
     if (isset($reporttable)) {

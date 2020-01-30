@@ -1,0 +1,350 @@
+<div class="row mt-5">
+  <div class="col-12 py-3 h5 text-light bg-info">
+    <i class="fa fa-question-circle"></i>
+    {{# str}} overallaggregation, completion {{/ str }}: 
+    {{ aggregation_method }}.
+  </div>
+</div>
+
+{{# has_role }}
+  <div class="row my-4 border" id="{{ uniqid }}-completionreq">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{# str }} manualcompletionby, completion {{/ str}}
+      </div>
+    {{# roles_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-success">
+        <i class="fa fa-check"></i>
+        {{# str}} completion-y, completion {{/ str}}.
+        {{# roles_agg_all}} 
+          {{# str}} roleaggregation_all, customcert {{/ str}}
+        {{/ roles_agg_all}}
+        {{# roles_agg_any}}
+          {{# str}} roleaggregation_any, customcert {{/ str}}
+        {{/ roles_agg_any}}        
+      </div>
+    {{/ roles_completed}}
+    {{^ roles_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-danger">
+        <i class="fa fa-times"></i>
+        {{# str}} completion-n, completion {{/ str}}.
+        {{# roles_agg_all}} 
+          {{# str}} roleaggregation_all, customcert {{/ str}}
+        {{/ roles_agg_all}}
+        {{# roles_agg_any}}
+          {{# str}} roleaggregation_any, customcert {{/ str}}
+        {{/ roles_agg_any}}
+      </div>
+    {{/ roles_completed}}    
+
+    <div class="col-2 py-2 h6 font-weight-bold text-center">
+      {{# str }} status, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} role, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold text-break">
+      {{# str }} requirement, block_completionstatus {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} completiondate, report_completion {{/ str }}
+    </div>
+    {{# roles }}
+      <div class="col-2 py-2 d-flex align-items-center justify-content-center">
+        {{# complete }}
+          <div class="py-2 px-3 bg-success text-light">
+            <i class="fa fa-check"></i> 
+          </div>
+        {{/ complete }}
+        {{^ complete}}
+          <div class="py-2 px-3 bg-danger text-light">
+            <i class="fa fa-times"></i> 
+          </div>
+        {{/ complete}}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{{ criteria }}}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{ requirement }}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{# timecompleted }} {{ timecompleted }} {{/ timecompleted}}
+      </div>
+    {{/ roles }}
+  </div>
+{{/ has_role }}
+
+{{# has_unenrol }}
+  {{# unenrol }}
+    <div class="row my-4 border">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{ type }}
+      </div>
+      <div class="col-12 py-2 text-light
+                  {{# complete }} bg-success {{/ complete }}
+                  {{^ complete }} bg-danger {{/ complete }}">
+        {{# complete }}
+          <i class="fa fa-check"></i>
+          {{# str}} completion-y, completion {{/ str}}.
+          {{# str }} requiredcriteria, completion {{/ str}}: {{ requirement }}.
+        {{/ complete }}
+        {{^ complete }}
+          <i class="fa fa-times"></i>
+          {{# str}} completion-n, completion {{/ str}}.
+          {{# str}} requiredcriteria, completion {{/ str}}: 
+          {{ requirement }}.
+        {{/ complete }}        
+
+      </div>
+    </div>
+  {{/ unenrol }}
+{{/ has_unenrol }}
+
+{{# has_selfcompletion }}
+  {{# selfcompletions }}
+    <div class="row my-4 border">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{ type }}
+      </div>
+      <div class="col-12 py-2 text-light
+                  {{# complete }} bg-success {{/ complete }}
+                  {{^ complete }} bg-danger {{/ complete }}">
+        {{# complete }}
+          <i class="fa fa-check"></i>
+          {{# str}} completion-y, completion {{/ str}}.
+          {{# str }} requiredcriteria, completion {{/ str}}: {{ requirement }}.
+        {{/ complete }}
+        {{^ complete }}
+          <i class="fa fa-times"></i>
+          {{# str}} completion-n, completion {{/ str}}.
+          {{# str}} requiredcriteria, completion {{/ str}}: 
+          {{ requirement }}.
+        {{/ complete }}        
+
+      </div>
+    </div>
+  {{/ selfcompletions }}
+{{/ has_selfcompletion }}
+
+{{# has_duration }}
+  {{# durations }}
+    <div class="row my-4 border">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{ criteria }}
+      </div>
+      <div class="col-12 py-2 text-light
+                  {{# complete }} bg-success {{/ complete }}
+                  {{^ complete }} bg-danger {{/ complete }}">
+        {{# complete }}
+          <i class="fa fa-check"></i>
+          {{# str}} completion-y, completion {{/ str}}.
+          {{# str }} requiredcriteria, completion {{/ str}}: {{ requirement }}
+        {{/ complete }}
+        {{^ complete }}
+          <i class="fa fa-times"></i>
+          {{# str}} completion-n, completion {{/ str}}.
+          {{# str}} remainingdays, customcert {{/ str}}: 
+          {{ status }}
+        {{/ complete }}        
+
+      </div>
+    </div>
+  {{/ durations }}
+{{/ has_duration }}
+
+{{# has_date }}
+  {{# dates }}
+    <div class="row my-4 border">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{ criteria }}
+      </div>
+      <div class="col-12 py-2 text-light
+                  {{# complete }} bg-success {{/ complete }}
+                  {{^ complete }} bg-danger {{/ complete }}">
+        {{# complete }}
+          <i class="fa fa-check"></i>
+          {{# str}} completion-y, completion {{/ str}}.
+        {{/ complete }}
+        {{^ complete }}
+          <i class="fa fa-times"></i>
+          {{# str}} completion-n, completion {{/ str}}.
+        {{/ complete }}        
+        {{# str }} requiredcriteria, completion {{/ str}}: {{ requirement }}
+      </div>
+    </div>
+  {{/ dates }}
+{{/ has_date }}
+
+{{# has_grade }}
+  {{# enabled }}
+    <div class="row my-4 border">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{# str }} grade, core {{/ str}}
+      </div>
+      <div class="col-12 py-2 text-light
+                  {{# complete }} bg-success {{/ complete }}
+                  {{^ complete }} bg-danger {{/ complete }}">
+        {{# complete }}
+          <i class="fa fa-check"></i>
+          {{# str}} completion-y, completion {{/ str}}.
+        {{/ complete }}
+        {{^ complete }}
+          <i class="fa fa-times"></i>
+          {{# str}} completion-n, completion {{/ str}}.
+        {{/ complete }}        
+        {{# str }} coursegrade, completion {{/ str}}: {{grade}}
+      </div>
+    </div>
+  {{/ enabled }}
+{{/ has_grade }}
+
+
+{{# has_prerequisites }}
+  <div class="row my-4 border" id="{{ uniqid }}-completionreq">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{# str }} dependenciescompleted, completion {{/ str}}
+      </div>
+    {{# prerequisites_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-success">
+        <i class="fa fa-check"></i>
+        {{# str}} completion-y, completion {{/ str}}.
+        {{# prerequisites_agg_all}} 
+          {{# str}} prerequisiteaggregation_all, customcert {{/ str}}
+        {{/ prerequisites_agg_all}}
+        {{# prerequisites_agg_any}}
+          {{# str}} prerequisiteaggregation_any, customcert {{/ str}}
+        {{/ prerequisites_agg_any}}        
+      </div>
+    {{/ prerequisites_completed}}
+    {{^ prerequisites_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-danger">
+        <i class="fa fa-times"></i>
+        {{# str}} completion-n, completion {{/ str}}.
+        {{# prerequisites_agg_all}} 
+          {{# str}} prerequisiteaggregation_all, customcert {{/ str}}
+        {{/ prerequisites_agg_all}}
+        {{# prerequisites_agg_any}}
+          {{# str}} prerequisiteaggregation_any, customcert {{/ str}}
+        {{/ prerequisites_agg_any}}
+      </div>
+    {{/ prerequisites_completed}}    
+
+    <div class="col-2 py-2 h6 font-weight-bold text-center">
+      {{# str }} status, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} course, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold text-break">
+      {{# str }} requirement, block_completionstatus {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} completiondate, report_completion {{/ str }}
+    </div>
+    {{# prerequisites }}
+      <div class="col-2 py-2 d-flex align-items-center justify-content-center">
+        {{# complete }}
+          <div class="py-2 px-3 bg-success text-light">
+            <i class="fa fa-check"></i> 
+          </div>
+        {{/ complete }}
+        {{^ complete}}
+          <div class="py-2 px-3 bg-danger text-light">
+            <i class="fa fa-times"></i> 
+          </div>
+        {{/ complete}}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{{ criteria }}}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{ requirement }}
+      </div>
+      <div class="col-3 py-3 d-flex align-items-center">
+        {{# timecompleted }} {{ timecompleted }} {{/ timecompleted}}
+      </div>
+    {{/ prerequisites }}
+  </div>
+{{/ has_prerequisites }}
+
+
+{{# has_activities }}
+  <div class="row my-4 border" id="{{ uniqid }}-completionreq">
+      <div class="col-12 py-3 h4 bg-light">
+        <small class="text-muted pr-2">{{# str}} criteria, completion {{/ str}}</small>
+        {{# str }} activity, core {{/ str}}
+      </div>
+    {{# activities_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-success">
+        <i class="fa fa-check"></i>
+        {{# str}} completion-y, completion {{/ str}}.
+        {{# activities_agg_all}} 
+          {{# str}} activityaggregation_all, customcert {{/ str}}
+        {{/ activities_agg_all}}
+        {{# activities_agg_any}}
+          {{# str}} activityaggregation_any, customcert {{/ str}}
+        {{/ activities_agg_any}}        
+      </div>
+    {{/ activities_completed}}
+    {{^ activities_completed}}
+      <div class="col-12 py-2 mb-2 text-light bg-danger">
+        <i class="fa fa-times"></i>
+        {{# str}} completion-n, completion {{/ str}}.
+        {{# activities_agg_all}} 
+          {{# str}} activityaggregation_all, customcert {{/ str}}
+        {{/ activities_agg_all}}
+        {{# activities_agg_any}}
+          {{# str}} activityaggregation_any, customcert {{/ str}}
+        {{/ activities_agg_any}}
+      </div>
+    {{/ activities_completed}}    
+
+    <div class="col-2 py-2 h6 font-weight-bold text-center">
+      {{# str }} status, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} activity, core {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold text-break">
+      {{# str }} requirement, block_completionstatus {{/ str }}
+    </div>
+    <div class="col-3 py-2 h6 font-weight-bold">
+      {{# str }} completiondate, report_completion {{/ str }}
+    </div>
+    {{# sections }}
+      <div class="col-12 py-2 bg-light">
+        <h6>{{ name }}</h6>
+      </div>
+      {{# criterias }}
+        <div class="col-2 py-2 d-flex align-items-center justify-content-center">
+          {{# complete }}
+            <div class="py-2 px-3 bg-success text-light">
+              <i class="fa fa-check"></i> 
+            </div>
+          {{/ complete }}
+          {{^ complete}}
+            <div class="py-2 px-3 bg-danger text-light">
+              <i class="fa fa-times"></i> 
+            </div>
+          {{/ complete}}
+        </div>
+        <div class="col-3 py-3 d-flex align-items-center">
+          <small class="text-muted pr-2 d-none d-sm-block">{{ type }}:</small> {{{ criteria }}}
+        </div>
+        <div class="col-3 py-3 d-flex align-items-center">
+          {{ requirement }}
+        </div>
+        <div class="col-3 py-3 d-flex align-items-center">
+          {{# timecompleted }} {{ timecompleted }} {{/ timecompleted}}
+        </div>      
+      {{/ criterias }}
+    {{/ sections }}
+  </div>
+{{/ has_activities }}

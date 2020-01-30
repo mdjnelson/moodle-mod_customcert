@@ -146,5 +146,18 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2018051705, 'customcert');
     }
 
+    if ($oldversion < 2019111813) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('requiredcompletion', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', null);
+
+        // Alter the 'element' column to be characters, rather than text.
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2019111813, 'customcert');
+    }
+
     return true;
 }
