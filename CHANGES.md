@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.6.4] - 2020-02-01
+
+### Added
+
+- Re-added 'code' column to user report (#264).
+- Add 'userfullname' variable for email subject (#316).
+
+### Fixed
+
+- Do not fail if multiple certificate issues (#304) and (#295).
+
 ## [3.6.3] - 2019-06-17
 
 ### Added
