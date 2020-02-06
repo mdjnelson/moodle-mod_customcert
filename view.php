@@ -66,7 +66,7 @@ $completionreq = '';
 if ($customcert->requiredcompletion) {
     $completionreq_rendered = \mod_customcert\certificate::get_completion_requirements($course);
     
-    if (\mod_customcert\certificate::is_course_completed($course)){
+    if (\mod_customcert\certificate::is_course_completed($course) || $canmanage){
         $completionreq = $completionreq_rendered;
     }
     else{
