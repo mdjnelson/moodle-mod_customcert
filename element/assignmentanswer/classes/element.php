@@ -43,8 +43,7 @@ class element extends \mod_customcert\element
      *
      * @param \MoodleQuickForm $mform the edit_form instance
      */
-    public function render_form_elements($mform)
-    {
+    public function render_form_elements($mform) {
         global $COURSE;
 
         $mform->addElement('select', 'assignmentanswer', get_string('assignmentanswer', 'customcertelement_assignmentanswer'),
@@ -61,8 +60,7 @@ class element extends \mod_customcert\element
      * @param \stdClass $data the form data
      * @return string the text
      */
-    public function save_unique_data($data)
-    {
+    public function save_unique_data($data) {
         if (!empty($data->assignmentanswer)) {
             return $data->assignmentanswer;
         }
@@ -77,8 +75,7 @@ class element extends \mod_customcert\element
      * @param bool $preview true if it is a preview, false otherwise
      * @param \stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview, $user)
-    {
+    public function render($pdf, $preview, $user) {
         // Check that the assignment answer is not empty.
         if (!empty($this->get_data())) {
             \mod_customcert\element_helper::render_content($pdf, $this, $this->get_assignment_answer($user));
@@ -93,11 +90,11 @@ class element extends \mod_customcert\element
      *
      * @return string the html
      */
-    public function render_html()
-    {
+    public function render_html() {
+        global $USER;
         // Check that the assignment answer is not empty.
         if (!empty($this->get_data())) {
-            return \mod_customcert\element_helper::render_html_content($this, $this->get_assignment_answer());
+            return \mod_customcert\element_helper::render_html_content($this, $this->get_assignment_answer($USER));
         }
 
         return '';
@@ -108,8 +105,7 @@ class element extends \mod_customcert\element
      *
      * @param \MoodleQuickForm $mform the edit_form instance
      */
-    public function definition_after_data($mform)
-    {
+    public function definition_after_data($mform) {
         if (!empty($this->get_data())) {
             $element = $mform->getElement('assignmentanswer');
             $element->setValue($this->get_data());
@@ -122,16 +118,17 @@ class element extends \mod_customcert\element
      *
      * @param stdClass $user A {@link $USER} object to get full name of.
      * @return string
+     * @throws \coding_exception
+     * @throws \dml_exception
      */
-    protected function get_assignment_answer($user): string
-    {
+    protected function get_assignment_answer($user): string {
         global $DB;
 
         // Get the course module information (the assignment activity).
         $cm = $DB->get_record('course_modules', array('id' => $this->get_data()), '*', MUST_EXIST);
 
         // Get the assignment submission id.
-        $submission_id = $DB->get_field('assign_submission', 'id',
+        $submissionid = $DB->get_field('assign_submission', 'id',
             array('assignment' => $cm->instance,
                 'userid' => $user->id,
                 'status' => 'submitted')
@@ -139,8 +136,8 @@ class element extends \mod_customcert\element
 
         // Get the assignment answer, fallback to "not answered" string.
         $answer = $DB->get_field('assignsubmission_onlinetext', 'onlinetext',
-            array('submission' => $submission_id));
-        if (!$submission_id || !$answer) {
+            array('submission' => $submissionid));
+        if (!$submissionid || !$answer) {
             $answer = get_string('noassignmentanswer', 'customcertelement_assignmentanswer');
         }
 
