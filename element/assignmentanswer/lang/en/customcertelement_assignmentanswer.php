@@ -23,7 +23,6 @@
  */
 
 $string['assignmentanswer'] = 'Assignment';
-$string['assignmentanswer_help'] = 'The name of the selected item will be displayed on the PDF.';
-$string['noassignmentanswer'] = 'This assignment wasn\'t answered.';
+$string['assignmentanswer_help'] = 'The student\'s answer to the selected item will be displayed on the PDF. You can only select assignments that have online text answers enabled.';
 $string['pluginname'] = 'Assignment answer';
-$string['privacy:metadata'] = 'The Assignment answer name plugin does not store any personal data.';
+$string['privacy:metadata'] = 'The assignment answer plugin does not store any personal data.';
