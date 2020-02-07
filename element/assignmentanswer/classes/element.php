@@ -155,22 +155,29 @@ class element extends \mod_customcert\element
     protected function get_assignment_answer($user): string {
         global $DB;
 
-        // Get the course module information (the assignment activity).
-        $cm = $DB->get_record('course_modules', array('id' => $this->get_data()), '*', MUST_EXIST);
+        try {
+            // Get the course module information (the assignment activity).
+            $cm = $DB->get_record('course_modules', array('id' => $this->get_data()), '*', MUST_EXIST);
 
-        // Get the assignment submission id.
-        $submissionid = $DB->get_field('assign_submission', 'id',
-            array('assignment' => $cm->instance,
-                'userid' => $user->id,
-                'status' => 'submitted')
-        );
+            // Get the assignment submission id.
+            $submissionid = $DB->get_field('assign_submission', 'id',
+                array('assignment' => $cm->instance,
+                    'userid' => $user->id,
+                    'status' => 'submitted')
+            );
 
-        // Get the assignment answer, fallback to "not answered" string.
-        $answer = $DB->get_field('assignsubmission_onlinetext', 'onlinetext',
-            array('submission' => $submissionid));
-        if (!$submissionid || !$answer) {
-            $answer = get_string('noassignmentanswer', 'customcertelement_assignmentanswer');
+            // Get the assignment answer, fallback to "not answered" string.
+            $answer = $DB->get_field('assignsubmission_onlinetext', 'onlinetext',
+                array('submission' => $submissionid));
+
+            if (!$submissionid || !$answer) {
+                $answer = get_string('noassignmentanswer', 'customcertelement_assignmentanswer');
+            }
+        } catch (\dml_exception $e) {
+            // If the module is not found in DB, maybe because it was deleted, show error string
+            $answer = get_string('assignmentnotfound', 'customcertelement_assignmentanswer');
         }
+
 
         return format_string($answer, true, ['context' => \mod_customcert\element_helper::get_context($this->get_id())]);
     }

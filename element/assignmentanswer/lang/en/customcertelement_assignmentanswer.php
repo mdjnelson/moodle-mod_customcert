@@ -24,5 +24,7 @@
 
 $string['assignmentanswer'] = 'Assignment';
 $string['assignmentanswer_help'] = 'The student\'s answer to the selected item will be displayed on the PDF. You can only select assignments that have online text answers enabled.';
+$string['noassignmentanswer'] = 'This assignment was not answered.';
+$string['assignmentnotfound'] = 'The selected assignment could not be found in the course.';
 $string['pluginname'] = 'Assignment answer';
 $string['privacy:metadata'] = 'The assignment answer plugin does not store any personal data.';
