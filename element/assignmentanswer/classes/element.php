@@ -39,6 +39,36 @@ class element extends \mod_customcert\element
 {
 
     /**
+     * Helper function to return all the assignments items that use online text answers for a given course id.
+     *
+     * @param \stdClass $courseid The course id we want to return the grade items for
+     * @return array the array of assignments items with online text answers in the course
+     * @throws \dml_exception
+     */
+    private static function get_assignment_textanswer($courseid) {
+        global $DB;
+        $modules = array();
+
+        $records = $DB->get_records_sql(
+            "SELECT {assign}.id, {assign}.name
+                    FROM {assign}
+                    JOIN {assign_plugin_config} ON {assign_plugin_config}.assignment = {assign}.id
+                   WHERE {assign}.course = :courseid
+                         AND {assign_plugin_config}.plugin = 'onlinetext'
+                         AND {assign_plugin_config}.name = 'enabled'
+                         AND {assign_plugin_config}.value = 1
+                   ORDER BY {assign}.id",
+            ['courseid' => $courseid]
+        );
+
+        foreach ($records as $record) {
+            $modules[$record->id] = $record->name;
+        }
+
+        return $modules;
+    }
+
+    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param \MoodleQuickForm $mform the edit_form instance
@@ -46,8 +76,9 @@ class element extends \mod_customcert\element
     public function render_form_elements($mform) {
         global $COURSE;
 
-        $mform->addElement('select', 'assignmentanswer', get_string('assignmentanswer', 'customcertelement_assignmentanswer'),
-            \mod_customcert\element_helper::get_grade_items($COURSE));
+        $assignmentitems = self::get_assignment_textanswer($COURSE->id);
+
+        $mform->addElement('select', 'assignmentanswer', get_string('assignmentanswer', 'customcertelement_assignmentanswer'), $assignmentitems);
         $mform->addHelpButton('assignmentanswer', 'assignmentanswer', 'customcertelement_assignmentanswer');
 
         parent::render_form_elements($mform);
