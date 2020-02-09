@@ -178,7 +178,6 @@ class element extends \mod_customcert\element
             $answer = get_string('assignmentnotfound', 'customcertelement_assignmentanswer');
         }
 
-
         return format_string($answer, true, ['context' => \mod_customcert\element_helper::get_context($this->get_id())]);
     }
 }
