@@ -180,7 +180,7 @@ class element extends \mod_customcert\element
             if (!$submissionid || !$answer) {
                 $answer = get_string('noassignmentanswer', 'customcertelement_assignmentanswer');
             }
-        } catch (\dml_utexception $e) {
+        } catch (\dml_exception $e) {
             // If the module is not found in DB, maybe because it was deleted, show error string.
             $answer = get_string('assignmentnotfound', 'customcertelement_assignmentanswer');
         }
