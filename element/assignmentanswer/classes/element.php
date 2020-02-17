@@ -50,10 +50,14 @@ class element extends \mod_customcert\element
         $modules = array();
 
         $records = $DB->get_records_sql(
-            "SELECT {assign}.id, {assign}.name
-                    FROM {assign}
+            "SELECT {course_modules}.id, {assign}.name
+                   FROM {assign}
+                    JOIN {modules} ON {modules}.name = 'assign'
+                    JOIN {course_modules} ON {course_modules}.module = {modules}.id
                     JOIN {assign_plugin_config} ON {assign_plugin_config}.assignment = {assign}.id
                    WHERE {assign}.course = :courseid
+                   		 AND {course_modules}.course = {assign}.course
+						 AND {course_modules}.instance = {assign}.id
                          AND {assign_plugin_config}.plugin = 'onlinetext'
                          AND {assign_plugin_config}.name = 'enabled'
                          AND {assign_plugin_config}.value = 1
@@ -78,7 +82,10 @@ class element extends \mod_customcert\element
 
         $assignmentitems = self::get_assignment_textanswer($COURSE->id);
 
-        $mform->addElement('select', 'assignmentanswer', get_string('assignmentanswer', 'customcertelement_assignmentanswer'), $assignmentitems);
+        $mform->addElement('select',
+            'assignmentanswer',
+            get_string('assignmentanswer', 'customcertelement_assignmentanswer'),
+            $assignmentitems);
         $mform->addHelpButton('assignmentanswer', 'assignmentanswer', 'customcertelement_assignmentanswer');
 
         parent::render_form_elements($mform);
@@ -173,8 +180,8 @@ class element extends \mod_customcert\element
             if (!$submissionid || !$answer) {
                 $answer = get_string('noassignmentanswer', 'customcertelement_assignmentanswer');
             }
-        } catch (\dml_exception $e) {
-            // If the module is not found in DB, maybe because it was deleted, show error string
+        } catch (\dml_utexception $e) {
+            // If the module is not found in DB, maybe because it was deleted, show error string.
             $answer = get_string('assignmentnotfound', 'customcertelement_assignmentanswer');
         }
 
