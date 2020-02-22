@@ -65,7 +65,7 @@ class element extends \mod_customcert\element {
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
         $customfields = array();
         foreach ($arrcustomfields as $key => $customfield) {
-            $customfields[$customfield->id] = $key;
+            $customfields[$customfield->id] = $customfield->name;
         }
         // Combine the two.
         $fields = $userfields + $customfields;
