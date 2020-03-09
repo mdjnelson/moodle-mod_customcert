@@ -72,8 +72,12 @@ class element extends \mod_customcert\element {
         $errors = [];
 
         // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
-            $errors['height'] = get_string('invalidheight', 'customcertelement_qrcode');
+        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] <= 0)) {
+            $errors['height'] = get_string('invalidheight', 'mod_customcert');
+        }
+
+        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] <= 0)) {
+            $errors['width'] = get_string('invalidwidth', 'mod_customcert');
         }
 
         if ($this->showposxy) {
