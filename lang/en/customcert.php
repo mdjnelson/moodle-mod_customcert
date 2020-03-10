@@ -32,8 +32,7 @@ $string['certificate'] = 'Certificate';
 $string['code'] = 'Code';
 $string['copy'] = 'Copy';
 $string['coursecompletionreq'] = 'Obtaining certificate requires course to be completed.';
-$string['coursecompletionreq_help'] = 'Certificate is available, if general completion requirements from the course completion settings are fulfilled. 
-In the certificate view, users will have an overview of which requirements are fulfilled or missing.';
+$string['coursecompletionreq_help'] = 'Certificate is available, if general completion requirements from the course completion settings are fulfilled. In the certificate view, users will have an overview of which requirements are fulfilled or missing.';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
 the certificate.';

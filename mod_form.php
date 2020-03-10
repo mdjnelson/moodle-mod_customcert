@@ -109,7 +109,7 @@ class mod_customcert_mod_form extends moodleform_mod {
             $firstoption = empty($firstoption) ? 'protection_print' : $firstoption;
         }
         if (has_capability('mod/customcert:managerequiredcompletion', $this->get_context())) {
-            $mform->addElement('selectyesno','requiredcompletion',get_string('coursecompletionreq', 'customcert'));
+            $mform->addElement('selectyesno', 'requiredcompletion', get_string('coursecompletionreq', 'customcert'));
             $mform->addHelpButton('requiredcompletion', 'coursecompletionreq', 'customcert');
             $mform->setDefault('requiredcompletion', get_config('customcert', 'requiredcompletion'));
             $mform->setType('requiredcompletion', PARAM_INT);
