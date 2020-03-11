@@ -119,6 +119,42 @@ Feature: Being able to manage elements in a certificate template
       | Width                    | 20                |
       | Reference point location | Top left          |
     And I press "Save changes"
+    # Date range.
+    And I add the element "Date range" to page "1" of the "Custom certificate 1" certificate template
+    And I set the following fields to these values:
+      | Date item                | Course start date    |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+      | Fallback string          | {{range_first_year}} |
+      | id_startdate_0_day       | 24                   |
+      | id_startdate_0_month     | October              |
+      | id_startdate_0_year      | 2015                 |
+      | id_enddate_0_day         | 21                   |
+      | id_enddate_0_month       | March                |
+      | id_enddate_0_year        | 2016                 |
+      | String                   | Oct to March         |
+    And I press "Save changes"
+    And I should see "Date range" in the "elementstable" "table"
+    And I click on ".edit-icon" "css_element" in the "Date range" "table_row"
+    And the following fields match these values:
+      | Date item                | Course start date    |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+      | Fallback string          | {{range_first_year}} |
+      | id_startdate_0_day       | 24                   |
+      | id_startdate_0_month     | October              |
+      | id_startdate_0_year      | 2015                 |
+      | id_enddate_0_day         | 21                   |
+      | id_enddate_0_month       | March                |
+      | id_enddate_0_year        | 2016                 |
+      | String                   | Oct to March         |
+    And I press "Save changes"
     # Digital signature.
     And I add the element "Digital signature" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
@@ -286,6 +322,18 @@ Feature: Being able to manage elements in a certificate template
     And the following fields match these values:
       | Width  | 10 |
       | Height | 10 |
+    And I press "Save changes"
+    # QR Code.
+    And I add the element "QR code" to page "1" of the "Custom certificate 1" certificate template
+    And I set the following fields to these values:
+      | Width         | 25  |
+      | Height        | 15  |
+    And I press "Save changes"
+    And I should see "QR code" in the "elementstable" "table"
+    And I click on ".edit-icon" "css_element" in the "QR code" "table_row"
+    And the following fields match these values:
+      | Width         | 25  |
+      | Height        | 15  |
     And I press "Save changes"
     # Just to test there are no exceptions being thrown.
     And I follow "Reposition elements"
