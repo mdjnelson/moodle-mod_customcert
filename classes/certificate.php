@@ -461,17 +461,19 @@ class certificate {
 
         return $code;
     }
+
     /**
      * Checks if a course is completed by current user.
      *
      * @param int $course The course to be checked.
      * @return bool true if completed, otherwise false
      */
-    public static function is_course_completed($course){
+    public static function is_course_completed($course) {
         global $USER;
         $info = new \completion_info($course);
         return $info->is_course_complete($USER->id);
     }
+
     /**
      * Fetches the completions
      *
@@ -523,14 +525,14 @@ class certificate {
         $completionview->hasunenrol = false;
         $completionview->unenrol = array();
 
-        // Check for aggregation method
+        // Check for aggregation method.
         $overall = $info->get_aggregation_method();
         if ($overall == COMPLETION_AGGREGATION_ALL) {
             $completionview->aggregationmethod = get_string('criteriarequiredall', 'completion');
         } else {
             $completionview->aggregationmethod = get_string('criteriarequiredany', 'completion');
         }
-        // Prepare markup for mustache template and get section infos
+        // Prepare markup for mustache template and get section infos.
         for ($i = 0; $i <= count($modinfo->get_sections()); $i++) {
             $sectionname = get_section_name($course, $i);
             array_push($completionview->sections, ["name" => $sectionname, "criterias" => []]);
@@ -550,7 +552,7 @@ class certificate {
                 $completionview->hasgrade->complete = $completion->is_complete();
             }
             if ($criteria->criteriatype == COMPLETION_CRITERIA_TYPE_ACTIVITY) {
-                // $cmid and $cm needed to get belonging section
+                // $cmid and $cm needed to get belonging section.
                 ++$activitycount;
                 $completionview->hasactivities = true;
                 $cmid = $criteria->moduleinstance;
@@ -670,11 +672,11 @@ class certificate {
         // We need to decide now based on activity completion aggregation,
         // if activity criteria is completed.
         // 1. Case: All activities need to be completed.
+        // 2. Case: Any activity needs to be completed.
         if ($completionview->activitiesaggall &&
                 ($activitycount == $activitycompletedcount)) {
             $completionview->activitiescompleted = true;
-        } // 2. Case: Any activity needs to be completed.
-        else if ($completionview->activitiesaggany &&
+        } else if ($completionview->activitiesaggany &&
                 $activitycompletedcount) {
             $completionview->activitiescompleted = true;
         }
@@ -683,22 +685,22 @@ class certificate {
         // We need to decide based on course prerequisites completion aggregation,
         // if prerequisites are fulfilled.
         // 1. Case: All prerequisites need to be completed.
+        // 2. Case: Any prerequisite needs to be completed.
         if ($completionview->prerequisitesaggall &&
                 ($prerequisitescount == $prerequisitescompletedcount)) {
             $completionview->prerequisitescompleted = true;
-        } // 2. Case: Any prerequisite needs to be completed
-        else if ($completionview->prerequisitesaggany &&
+        } else if ($completionview->prerequisitesaggany &&
                 $prerequisitescompletedcount) {
             $completionview->prerequisitescompleted = true;
         }
         // We need to decide based on manually completion by other roles,
         // if this criteria is fulfilled.
         // 1. Case: All roles need to confirm.
+        // 2. Case: Any role needs to confirm.
         if ($completionview->rolesaggall &&
                 ($rolescount == $rolescompletedcount)) {
             $completionview->rolescompleted = true;
-        } // 2. Case: Any role needs to confirm.
-        else if ($completionview->rolesaggany &&
+        } else if ($completionview->rolesaggany &&
                 $rolescompletedcount) {
             $completionview->rolescompleted = true;
         }

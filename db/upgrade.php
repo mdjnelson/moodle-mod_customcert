@@ -110,7 +110,7 @@ function xmldb_customcert_upgrade($oldversion) {
         // Add column for new 'verifycertificateanyone' setting.
         $table = new xmldb_table('customcert');
         $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
-            'requiredtime');
+                'requiredtime');
 
         // Conditionally launch add field.
         if (!$dbman->field_exists($table, $field)) {
@@ -165,18 +165,19 @@ function xmldb_customcert_upgrade($oldversion) {
 
         upgrade_mod_savepoint(true, 2019111803, 'customcert');
 
-     if ($oldversion < 2019111813) {
-        $table = new xmldb_table('customcert');
-        $field = new xmldb_field('requiredcompletion', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', null);
+        if ($oldversion < 2019111813) {
+            $table = new xmldb_table('customcert');
+            $field = new xmldb_field('requiredcompletion', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', null);
 
-        // Alter the 'element' column to be characters, rather than text.
-        // Conditionally launch add field.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
+            // Alter the 'element' column to be characters, rather than text.
+            // Conditionally launch add field.
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+            // Savepoint reached.
+            upgrade_mod_savepoint(true, 2019111813, 'customcert');
         }
-        // Savepoint reached.
-        upgrade_mod_savepoint(true, 2019111813, 'customcert');
-    }
 
-    return true;
+        return true;
+    }
 }

@@ -63,7 +63,7 @@ if ($customcert->requiredtime && !$canmanage) {
 
 // Check if the user can view the certificate based on required course completion.
 $completionreq = '';
-if ($customcert->requiredcompletion) {
+if (property_exists($customcert, 'requiredcompletion') && $customcert->requiredcompletion) {
     $completionreqrendered = \mod_customcert\certificate::get_completion_requirements($course);
     if (\mod_customcert\certificate::is_course_completed($course) || $canmanage) {
         $completionreq = $completionreqrendered;
