@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.7.4] - 2020-03-12
+
+### Added
+
+- Added extra Behat steps for new elements (#309).
+
+### Fixed
+
+- Fixed the displaying of names of a custom user field (#326).
+- Do not allow '0' as a value for width or height in QR code (#321).
+
+## [3.7.3] - 2020-03-09
+
+### Fixed
+
+- Fixed foreign key violation (#331).
+
 ## [3.7.2] - 2020-02-01
 
 ### Added
