@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.5.8] - 2020-04-19
+
+### Added
+
+- Added extra Behat steps for new elements (#309).
+- Re-added 'code' column to user report (#264).
+- Add 'userfullname' variable for email subject (#316).
+- Added ability to specify the current date for date related elements (#289).
+- Added QR code element (#146).
+- Added Date range element (#185).
+
+### Changed
+
+- When copying a site template the site images are also copied to the course context and then those copied images are used.
+  Before, the elements would simply point to the site images. However, this meant when performing a backup/restore the
+  images were not stored in the backup file (#298).
+
+### Fixed
+
+- Fixed the displaying of names of a custom user field (#326).
+- Fixed foreign key violation (#331).
+- Do not fail if multiple certificate issues (#304) and (#295).
+
 ## [3.5.7] - 2019-05-28
 
 ### Changed
