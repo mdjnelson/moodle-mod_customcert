@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activity'] = 'Activity';
 $string['addcertpage'] = 'Add page';
 $string['addelement'] = 'Add element';
 $string['awardedto'] = 'Awarded to';
