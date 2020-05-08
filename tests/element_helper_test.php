@@ -180,14 +180,24 @@ class mod_customcert_element_helper_testcase extends advanced_testcase {
         $gc = $this->getDataGenerator()->create_grade_category(['courseid' => $course->id]);
         $gc = $DB->get_record('grade_items', ['itemtype' => 'category', 'iteminstance' => $gc->id]);
 
+        // Create an item attached to an outcome.
+        $outcome = $this->getDataGenerator()->create_grade_outcome(['courseid' => $course->id, 'shortname' => 'outcome']);
+        $go = $this->getDataGenerator()->create_grade_item(
+            [
+                'courseid' => $course->id,
+                'outcomeid' => $outcome->id
+            ]
+        );
+
         // Confirm the function returns the correct number of grade items.
         $gradeitems = \mod_customcert\element_helper::get_grade_items($course);
-        $this->assertCount(5, $gradeitems);
+        $this->assertCount(6, $gradeitems);
         $this->assertArrayHasKey($assign1->cmid, $gradeitems);
         $this->assertArrayHasKey($assign2->cmid, $gradeitems);
         $this->assertArrayHasKey($assign3->cmid, $gradeitems);
         $this->assertArrayHasKey('gradeitem:' . $gi->id, $gradeitems);
         $this->assertArrayHasKey('gradeitem:' . $gc->id, $gradeitems);
+        $this->assertArrayHasKey('gradeitem:' . $go->id, $gradeitems);
     }
 
     /**
