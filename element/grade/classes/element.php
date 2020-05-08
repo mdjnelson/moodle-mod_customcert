@@ -107,8 +107,7 @@ class element extends \mod_customcert\element {
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
             $courseitem = \grade_item::fetch_course_item($courseid);
-            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
-            $grade = get_string('exampledata', 'customcert', 'grade') . ' ' . $grade;
+            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);;
         } else {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
                 $grade = \mod_customcert\element_helper::get_course_grade_info(
