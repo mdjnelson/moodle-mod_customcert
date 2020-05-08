@@ -110,7 +110,7 @@ class element extends \mod_customcert\element {
     }
 
     /**
-     * Helper function that returns the category name.
+     * Helper function that returns the grade item name.
      *
      * @return string
      */
