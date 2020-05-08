@@ -88,7 +88,6 @@ $string['emailteachers'] = 'Email teachers';
 $string['emailteachers_help'] = 'If set this will email the teachers a copy of the certificate when it becomes available.';
 $string['emailothers'] = 'Email others';
 $string['emailothers_help'] = 'If set this will email the email addresses listed here (separated by a comma) with a copy of the certificate when it becomes available.';
-$string['exampledata'] = 'Example {$a}:';
 $string['exampledatawarning'] = 'Some of these values may just be an example to ensure positioning of the elements is possible.';
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';
