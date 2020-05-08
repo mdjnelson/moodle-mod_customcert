@@ -117,13 +117,33 @@ class element extends \mod_customcert\element {
     protected function get_grade_item_name() : string {
         global $DB;
 
-        // Get the course module information.
-        $cm = $DB->get_record('course_modules', array('id' => $this->get_data()), '*', MUST_EXIST);
-        $module = $DB->get_record('modules', array('id' => $cm->module), '*', MUST_EXIST);
+        $gradeitem = $this->get_data();
 
-        // Get the name of the item.
-        $itemname = $DB->get_field($module->name, 'name', array('id' => $cm->instance), MUST_EXIST);
+        if (strpos($gradeitem, 'gradeitem:') === 0) {
+            $gradeitemid = substr($gradeitem, 10);
+            $gradeitem = \grade_item::fetch(['id' => $gradeitemid]);
 
-        return format_string($itemname, true, ['context' => \mod_customcert\element_helper::get_context($this->get_id())]);
+            return $gradeitem->get_name();
+        } else {
+            if (!$cm = $DB->get_record('course_modules', array('id' => $gradeitem))) {
+                return '';
+            }
+
+            if (!$module = $DB->get_record('modules', array('id' => $cm->module))) {
+                return '';
+            }
+
+            $params = [
+                'itemtype' => 'mod',
+                'itemmodule' => $module->name,
+                'iteminstance' => $cm->instance,
+                'courseid' => $cm->course,
+                'itemnumber' => 0
+            ];
+
+            $gradeitem = \grade_item::fetch($params);
+
+            return $gradeitem->get_name();
+        }
     }
 }
