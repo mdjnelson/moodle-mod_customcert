@@ -198,44 +198,44 @@ Feature: Being able to manage elements in a certificate template
     # Grade.
     And I add the element "Grade" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
-      | Grade item               | Topic 0 : Assignment 1 |
-      | Grade format             | Percentage             |
-      | Font                     | Helvetica              |
-      | Size                     | 20                     |
-      | Colour                   | #045ECD                |
-      | Width                    | 20                     |
-      | Reference point location | Top left               |
+      | Grade item               | Activity : Assignment 1 |
+      | Grade format             | Percentage              |
+      | Font                     | Helvetica               |
+      | Size                     | 20                      |
+      | Colour                   | #045ECD                 |
+      | Width                    | 20                      |
+      | Reference point location | Top left                |
     And I press "Save changes"
     And I should see "Grade" in the "elementstable" "table"
     And I click on ".edit-icon" "css_element" in the "Grade" "table_row"
     And the following fields match these values:
-      | Grade item               | Topic 0 : Assignment 1 |
-      | Grade format             | Percentage             |
-      | Font                     | Helvetica              |
-      | Size                     | 20                     |
-      | Colour                   | #045ECD                |
-      | Width                    | 20                     |
-      | Reference point location | Top left               |
+      | Grade item               | Activity : Assignment 1 |
+      | Grade format             | Percentage              |
+      | Font                     | Helvetica               |
+      | Size                     | 20                      |
+      | Colour                   | #045ECD                 |
+      | Width                    | 20                      |
+      | Reference point location | Top left                |
     And I press "Save changes"
     # Grade item name.
     And I add the element "Grade item name" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
-      | Grade item               | Topic 0 : Assignment 2 |
-      | Font                     | Helvetica              |
-      | Size                     | 20                     |
-      | Colour                   | #045ECD                |
-      | Width                    | 20                     |
-      | Reference point location | Top left               |
+      | Grade item               | Activity : Assignment 2 |
+      | Font                     | Helvetica               |
+      | Size                     | 20                      |
+      | Colour                   | #045ECD                 |
+      | Width                    | 20                      |
+      | Reference point location | Top left                |
     And I press "Save changes"
     And I should see "Grade item name" in the "elementstable" "table"
     And I click on ".edit-icon" "css_element" in the "Grade item name" "table_row"
     And the following fields match these values:
-      | Grade item               | Topic 0 : Assignment 2 |
-      | Font                     | Helvetica              |
-      | Size                     | 20                     |
-      | Colour                   | #045ECD                |
-      | Width                    | 20                     |
-      | Reference point location | Top left               |
+      | Grade item               | Activity : Assignment 2 |
+      | Font                     | Helvetica               |
+      | Size                     | 20                      |
+      | Colour                   | #045ECD                 |
+      | Width                    | 20                      |
+      | Reference point location | Top left                |
     And I press "Save changes"
     # Image.
     And I add the element "Image" to page "1" of the "Custom certificate 1" certificate template
