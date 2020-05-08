@@ -462,93 +462,40 @@ class element_helper {
      * @return array the array of gradeable items in the course
      */
     public static function get_grade_items($course) {
-        global $DB;
-
         // Array to store the grade items.
-        $modules = array();
-
-        // Collect course modules data.
-        if ($modinfo = get_fast_modinfo($course)) {
-            $mods = $modinfo->get_cms();
-            $sections = $modinfo->get_section_info_all();
-
-            // Create the section label depending on course format.
-            $sectionlabel = get_string('section');
-            if ($course->format == 'topics') {
-                $sectionlabel = get_string('topic');
-            } else if ($course->format == 'weeks') {
-                $sectionlabel = get_string('week');
-            }
-
-            // Loop through each course section.
-            for ($i = 0; $i <= count($sections) - 1; $i++) {
-                // Confirm the index exists, should always be true.
-                if (isset($sections[$i])) {
-                    // Get the individual section.
-                    $section = $sections[$i];
-                    // Get the mods for this section.
-                    $sectionmods = explode(",", $section->sequence);
-                    // Loop through the section mods.
-                    foreach ($sectionmods as $sectionmod) {
-                        // Should never happen unless DB is borked.
-                        if (empty($mods[$sectionmod])) {
-                            continue;
-                        }
-                        $mod = $mods[$sectionmod];
-                        $instance = $DB->get_record($mod->modname, array('id' => $mod->instance));
-                        // Get the grade items for this activity.
-                        if ($gradeitems = grade_get_grade_items_for_activity($mod)) {
-                            $moditem = grade_get_grades($course->id, 'mod', $mod->modname, $mod->instance);
-                            $gradeitem = reset($moditem->items);
-                            if (isset($gradeitem->grademax)) {
-                                $modules[$mod->id] = $sectionlabel . ' ' . $section->section . ' : ' . $instance->name;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        $arrgradeitems = array();
 
         // Get other non-module related grade items.
         if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id])) {
-            $arrgradeitems = [];
             foreach ($gradeitems as $gi) {
-                // Skip the course and mod items since we already have them.
-                if ($gi->itemtype == 'mod' || $gi->itemtype == 'course') {
-                    continue;
+                if ($gi->is_course_item()) {
+                    continue; // Skipping for legacy reasons - this was added to individual elements.
                 }
-                $arrgradeitems['gradeitem:' . $gi->id] = get_string('gradeitem', 'grades') . ' : ' . $gi->get_name(true);
+
+                if ($gi->is_external_item()) {
+                    $cm = get_coursemodule_from_instance($gi->itemmodule, $gi->iteminstance, $course->id);
+                    $modcontext = \context_module::instance($cm->id);
+                    $modname = format_string($cm->name, true, array('context' => $modcontext));
+                }
+
+                if ($gi->is_external_item() && !$gi->is_outcome_item()) {
+                    // Due to legacy reasons we are storing the course module ID here rather than the grade item id.
+                    // If we were to change we would need to provide upgrade steps to convert cm->id to gi->id.
+                    $arrgradeitems[$cm->id] = get_string('activity', 'mod_customcert') . ' : ' . $gi->get_name();
+                } else if ($gi->is_external_item() && $gi->is_outcome_item()) {
+                    // Get the name of the activity.
+                    $optionname = get_string('gradeoutcome', 'mod_customcert') . ' : '  . $modname . " - " . $gi->get_name();
+                    $arrgradeitems['gradeitem:' . $gi->id] = $optionname;
+                } else {
+                    $arrgradeitems['gradeitem:' . $gi->id] = get_string('gradeitem', 'grades') . ' : ' . $gi->get_name(true);
+                }
             }
 
             // Alphabetise this.
             asort($arrgradeitems);
-
-            // Merge results.
-            $modules = $modules + $arrgradeitems;
         }
 
-        // Get outcomes being used by activities.
-        if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id, 'gradetype' => GRADE_TYPE_SCALE,
-                'itemtype' => 'mod'])) {
-            $selectoutcomes = [];
-            foreach ($gradeitems as $gradeitem) {
-                // Get the name of the activity.
-                $cm = get_coursemodule_from_instance($gradeitem->itemmodule, $gradeitem->iteminstance, $course->id);
-                $modcontext = \context_module::instance($cm->id);
-                $modname = format_string($cm->name, true, array('context' => $modcontext));
-
-                $optionname = get_string('gradeoutcome', 'mod_customcert') . ' : '  .$modname . " - " . $gradeitem->get_name();
-                $selectoutcomes['gradeitem:' . $gradeitem->id] = $optionname;
-            }
-
-            // Alphabetise this.
-            asort($selectoutcomes);
-
-            // Merge results.
-            $modules = $modules + $selectoutcomes;
-        }
-
-        return $modules;
+        return $arrgradeitems;
     }
 
     /**
