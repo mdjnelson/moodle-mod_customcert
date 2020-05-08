@@ -468,46 +468,48 @@ class element_helper {
         $modules = array();
 
         // Collect course modules data.
-        $modinfo = get_fast_modinfo($course);
-        $mods = $modinfo->get_cms();
-        $sections = $modinfo->get_section_info_all();
+        if ($modinfo = get_fast_modinfo($course)) {
+            $mods = $modinfo->get_cms();
+            $sections = $modinfo->get_section_info_all();
 
-        // Create the section label depending on course format.
-        $sectionlabel = get_string('section');
-        if ($course->format == 'topics') {
-            $sectionlabel = get_string('topic');
-        } else if ($course->format == 'weeks') {
-            $sectionlabel = get_string('week');
-        }
+            // Create the section label depending on course format.
+            $sectionlabel = get_string('section');
+            if ($course->format == 'topics') {
+                $sectionlabel = get_string('topic');
+            } else if ($course->format == 'weeks') {
+                $sectionlabel = get_string('week');
+            }
 
-        // Loop through each course section.
-        for ($i = 0; $i <= count($sections) - 1; $i++) {
-            // Confirm the index exists, should always be true.
-            if (isset($sections[$i])) {
-                // Get the individual section.
-                $section = $sections[$i];
-                // Get the mods for this section.
-                $sectionmods = explode(",", $section->sequence);
-                // Loop through the section mods.
-                foreach ($sectionmods as $sectionmod) {
-                    // Should never happen unless DB is borked.
-                    if (empty($mods[$sectionmod])) {
-                        continue;
-                    }
-                    $mod = $mods[$sectionmod];
-                    $instance = $DB->get_record($mod->modname, array('id' => $mod->instance));
-                    // Get the grade items for this activity.
-                    if ($gradeitems = grade_get_grade_items_for_activity($mod)) {
-                        $moditem = grade_get_grades($course->id, 'mod', $mod->modname, $mod->instance);
-                        $gradeitem = reset($moditem->items);
-                        if (isset($gradeitem->grademax)) {
-                            $modules[$mod->id] = $sectionlabel . ' ' . $section->section . ' : ' . $instance->name;
+            // Loop through each course section.
+            for ($i = 0; $i <= count($sections) - 1; $i++) {
+                // Confirm the index exists, should always be true.
+                if (isset($sections[$i])) {
+                    // Get the individual section.
+                    $section = $sections[$i];
+                    // Get the mods for this section.
+                    $sectionmods = explode(",", $section->sequence);
+                    // Loop through the section mods.
+                    foreach ($sectionmods as $sectionmod) {
+                        // Should never happen unless DB is borked.
+                        if (empty($mods[$sectionmod])) {
+                            continue;
+                        }
+                        $mod = $mods[$sectionmod];
+                        $instance = $DB->get_record($mod->modname, array('id' => $mod->instance));
+                        // Get the grade items for this activity.
+                        if ($gradeitems = grade_get_grade_items_for_activity($mod)) {
+                            $moditem = grade_get_grades($course->id, 'mod', $mod->modname, $mod->instance);
+                            $gradeitem = reset($moditem->items);
+                            if (isset($gradeitem->grademax)) {
+                                $modules[$mod->id] = $sectionlabel . ' ' . $section->section . ' : ' . $instance->name;
+                            }
                         }
                     }
                 }
             }
         }
 
+        // Get other non-module related grade items.
         if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id])) {
             $arrgradeitems = [];
             foreach ($gradeitems as $gi) {
@@ -523,6 +525,27 @@ class element_helper {
 
             // Merge results.
             $modules = $modules + $arrgradeitems;
+        }
+
+        // Get outcomes being used by activities.
+        if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id, 'gradetype' => GRADE_TYPE_SCALE,
+                'itemtype' => 'mod'])) {
+            $selectoutcomes = [];
+            foreach ($gradeitems as $gradeitem) {
+                // Get the name of the activity.
+                $cm = get_coursemodule_from_instance($gradeitem->itemmodule, $gradeitem->iteminstance, $course->id);
+                $modcontext = \context_module::instance($cm->id);
+                $modname = format_string($cm->name, true, array('context' => $modcontext));
+
+                $optionname = get_string('gradeoutcome', 'mod_customcert') . ' : '  .$modname . " - " . $gradeitem->get_name();
+                $selectoutcomes['gradeitem:' . $gradeitem->id] = $optionname;
+            }
+
+            // Alphabetise this.
+            asort($selectoutcomes);
+
+            // Merge results.
+            $modules = $modules + $selectoutcomes;
         }
 
         return $modules;
