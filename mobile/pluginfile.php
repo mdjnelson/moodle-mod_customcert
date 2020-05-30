@@ -34,6 +34,7 @@ define('NO_MOODLE_COOKIES', true);
 
 require_once('../../../config.php');
 require_once($CFG->libdir . '/filelib.php');
+require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/webservice/lib.php');
 
 // Allow CORS requests.
@@ -54,6 +55,7 @@ if (empty($enabledfiledownload)) {
 }
 
 $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 $template = $DB->get_record('customcert_templates', ['id' => $certificate->templateid], '*', MUST_EXIST);
 
@@ -80,6 +82,10 @@ if (!$issue) {
     }
 
     \mod_customcert\certificate::issue_certificate($certificate->id, $USER->id);
+
+    // Set the custom certificate as viewed.
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
 }
 
 // Now we want to generate the PDF.
