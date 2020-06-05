@@ -32,5 +32,7 @@ $string['gradepercent'] = 'Porcentaje';
 $string['gradepoints'] = 'Puntos';
 $string['gradeletter'] = 'Letra';
 $string['pluginname'] = 'Grade Average';
+$string['showcoursegrades'] = 'Mostrar notas de los cursos';
+$string['showcoursegrades_help'] = 'Mostrar el detalle de las notas de los cursos';
 $string['previewgrade'] = 'Vista previa de la calificación';
 $string['privacy:metadata'] = 'El plugin Grade Average no almacena ningún dato personal.';

@@ -35,7 +35,7 @@ use restore_customcert_activity_task;
 use restore_dbops;
 use stdClass;
 
-defined('MOODLE_INTERNAL') || die();
+defined( 'MOODLE_INTERNAL' ) || die();
 
 /**
  *
@@ -45,177 +45,241 @@ defined('MOODLE_INTERNAL') || die();
  */
 class element extends \mod_customcert\element {
 
-    /**
-     * This function renders the form elements when adding a customcert element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     * @throws coding_exception
-     */
-    public function render_form_elements($mform) {
-        global $COURSE;
-        if ((int)$COURSE->enablecompletion !== 1) {
-            notification::add(get_string('coursenotcompletion', 'customcertelement_gradeaverage'),
-                \core\output\notification::NOTIFY_WARNING);
-        }
-        $courses = get_courses('all', 'c.sortorder ASC');
-        unset($courses[SITEID]);
-        $options = [];
-        foreach ($courses as $course) {
-            if ((int)$course->enablecompletion === 1) {
-                $options[$course->id] = $course->fullname;
-            }
-        }
-        $attributes = ['multiple' => 'multiple', 'size' => count($options)];
-        $mform->addElement('select', 'coursescompletion', get_string('coursescompletion', 'customcertelement_gradeaverage'), $options, $attributes);
-        $mform->setType('coursescompletion', PARAM_TEXT);
-        $mform->addHelpButton('coursescompletion', 'coursescompletion', 'customcertelement_gradeaverage');
-        $mform->setDefault('coursescompletion', $COURSE->id);
+	/**
+	 * This function renders the form elements when adding a customcert element.
+	 *
+	 * @param MoodleQuickForm $mform the edit_form instance
+	 *
+	 * @throws coding_exception
+	 */
+	public function render_form_elements( $mform ) {
+		global $COURSE;
+		if ( (int) $COURSE->enablecompletion !== 1 ) {
+			notification::add( get_string( 'coursenotcompletion', 'customcertelement_gradeaverage' ),
+				\core\output\notification::NOTIFY_WARNING );
+		}
+		$courses = get_courses( 'all', 'c.sortorder ASC' );
+		unset( $courses[ SITEID ] );
+		$options = [];
+		foreach ( $courses as $course ) {
+			if ( (int) $course->enablecompletion === 1 ) {
+				$options[ $course->id ] = $course->fullname;
+			}
+		}
+		$attributes = [ 'multiple' => 'multiple', 'size' => count( $options ) ];
+		$mform->addElement( 'select', 'coursescompletion',
+			get_string( 'coursescompletion', 'customcertelement_gradeaverage' ), $options, $attributes );
+		$mform->setType( 'coursescompletion', PARAM_TEXT );
+		$mform->addHelpButton( 'coursescompletion', 'coursescompletion', 'customcertelement_gradeaverage' );
+		$mform->setDefault( 'coursescompletion', $COURSE->id );
 
-        // The grade format.
-        $mform->addElement('select', 'gradeformat', get_string('gradeformat', 'customcertelement_gradeaverage'),
-            self::get_grade_format_options());
-        $mform->setType('gradeformat', PARAM_INT);
-        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_gradeaverage');
+		// The grade format.
+		$mform->addElement( 'select', 'gradeformat', get_string( 'gradeformat', 'customcertelement_gradeaverage' ),
+			self::get_grade_format_options() );
+		$mform->setType( 'gradeformat', PARAM_INT );
+		$mform->addHelpButton( 'gradeformat', 'gradeformat', 'customcertelement_gradeaverage' );
 
-        parent::render_form_elements($mform);
-    }
+		// The show course details.
+		$choices = array( 0 => get_string( 'no' ), 1 => get_string( 'yes' ) );
+		$mform->addElement( 'select', 'showcoursegrades',
+			get_string( 'showcoursegrades', 'customcertelement_gradeaverage' ),
+			$choices );
+		$mform->setType( 'showcoursegrades', PARAM_INT );
+		$mform->addHelpButton( 'showcoursegrades', 'showcoursegrades', 'customcertelement_gradeaverage' );
 
-    /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
-     *
-     * @param stdClass $data the form data.
-     * @return string the json encoded array
-     */
-    public function save_unique_data($data) {
-        // Array of data we will be storing in the database.
-        $arrtostore = array(
-            'coursescompletion' => $data->coursescompletion,
-            'gradeformat' => $data->gradeformat
-        );
+		parent::render_form_elements( $mform );
+	}
 
-        // Encode these variables before saving into the DB.
-        return json_encode($arrtostore);
-    }
+	/**
+	 * This will handle how form data will be saved into the data column in the
+	 * customcert_elements table.
+	 *
+	 * @param stdClass $data the form data.
+	 *
+	 * @return string the json encoded array
+	 */
+	public function save_unique_data( $data ) {
+		// Array of data we will be storing in the database.
+		$arrtostore = array(
+			'coursescompletion' => $data->coursescompletion,
+			'gradeformat'       => $data->gradeformat,
+			'showcoursegrades'  => $data->showcoursegrades,
+		);
 
-    /**
-     * Handles rendering the element on the pdf.
-     *
-     * @param pdf $pdf the pdf object
-     * @param bool $preview true if it is a preview, false otherwise
-     * @param stdClass $user the user we are rendering this for
-     */
-    public function render($pdf, $preview, $user) {
-        if (empty($this->get_data())) {
-            return;
-        }
-        $courseid = element_helper::get_courseid($this->id);
-        $gradeaverageinfo = json_decode($this->get_data());
-        $coursescompletion = $gradeaverageinfo->coursescompletion;
-        $gradeformat = (int)$gradeaverageinfo->gradeformat;
+		// Encode these variables before saving into the DB.
+		return json_encode( $arrtostore );
+	}
 
-        if ($preview) {
-            $courseitem = grade_item::fetch_course_item($courseid);
-            $gradeaverage = grade_format_gradevalue('100', $courseitem, true, $gradeaverageinfo->gradeformat);
-        } else {
-            $grades = [];
-            foreach ($coursescompletion as $course) {
-                $coursegrade = element_helper::get_course_grade_info(
-                    $course,
-                    GRADE_DISPLAY_TYPE_REAL,
-                    $user->id
-                )->get_grade();
-                $grades[] = $coursegrade !== '' ? $coursegrade : 0;
-            }
-            $gradeaverage = array_sum($grades) / count($coursescompletion);
-            if ($gradeformat === GRADE_DISPLAY_TYPE_PERCENTAGE) {
-                $gradeitem = grade_item::fetch_course_item($courseid);
-                $gradeaverage = grade_format_gradevalue_percentage($gradeaverage, $gradeitem, $gradeitem->get_decimals(), true);
-            }
-            if ($gradeformat === GRADE_DISPLAY_TYPE_LETTER) {
-                $gradeitem = grade_item::fetch_course_item($courseid);
-                $gradeaverage = grade_format_gradevalue_letter($gradeaverage, $gradeitem);
-            }
-        }
-        element_helper::render_content($pdf, $this, $gradeaverage);
-    }
+	/**
+	 * Handles rendering the element on the pdf.
+	 *
+	 * @param pdf $pdf the pdf object
+	 * @param bool $preview true if it is a preview, false otherwise
+	 * @param stdClass $user the user we are rendering this for
+	 */
+	public function render( $pdf, $preview, $user ) {
+		if ( empty( $this->get_data() ) ) {
+			return;
+		}
+		$courseid             = element_helper::get_courseid( $this->id );
+		$gradeaverageinfo  = json_decode( $this->get_data() );
+		$coursescompletion = $gradeaverageinfo->coursescompletion;
+		$gradeformat       = (int) $gradeaverageinfo->gradeformat;
+		$showcoursegrades  = (int) $gradeaverageinfo->showcoursegrades;
+		$courses           = [];
 
-    /**
-     * Render the element in html.
-     *
-     * This function is used to render the element when we are using the
-     * drag and drop interface to position it.
-     *
-     * @return string the html
-     */
-    public function render_html() {
-        global $COURSE;
+		if ( $preview ) {
+			$courseitem           = grade_item::fetch_course_item( $courseid );
+			$gradeaverage         = grade_format_gradevalue( '100', $courseitem, true, $gradeformat );
+			$courses[ $courseid ] = [ 'fullname' => 'Course name', 'value' => '100' ];
+		} else {
+			$grades = [];
+			foreach ( $coursescompletion as $currentcourseid ) {
+				$coursegrade          = element_helper::get_course_grade_info(
+					$currentcourseid,
+					GRADE_DISPLAY_TYPE_REAL,
+					$user->id
+				)->get_grade();
+				$grades[]             = $coursegrade !== '' ? $coursegrade : 0;
+				$course               = get_course( $currentcourseid );
+				$courses[ $currentcourseid ] = [
+					'fullname' => $course->fullname,
+					'value'    => $coursegrade
+				];
+			}
+			$gradeaverage = array_sum( $grades ) / count( $coursescompletion );
+			if ( $gradeformat === GRADE_DISPLAY_TYPE_PERCENTAGE ) {
+				$gradeitem    = grade_item::fetch_course_item( $courseid );
+				$gradeaverage = grade_format_gradevalue_percentage( $gradeaverage, $gradeitem,
+					$gradeitem->get_decimals(), true );
+			}
+			if ( $gradeformat === GRADE_DISPLAY_TYPE_LETTER ) {
+				$gradeitem    = grade_item::fetch_course_item( $courseid );
+				$gradeaverage = grade_format_gradevalue_letter( $gradeaverage, $gradeitem );
+			}
+		}
+		if ( $showcoursegrades === 1 ) {
+			$gradeaverage = $this->get_list_of_courses( $courses, $gradeformat ) . $gradeaverage;
+		}
+		element_helper::render_content( $pdf, $this, $gradeaverage );
+	}
 
-        // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
-            return;
-        }
+	/**
+	 * Render the element in html.
+	 *
+	 * This function is used to render the element when we are using the
+	 * drag and drop interface to position it.
+	 *
+	 * @return string the html
+	 */
+	public function render_html() {
+		global $COURSE;
 
-        // Decode the information stored in the database.
-        $gradeaverageinfo = json_decode($this->get_data());
+		// If there is no element data, we have nothing to display.
+		if ( empty( $this->get_data() ) ) {
+			return;
+		}
 
-        $courseitem = grade_item::fetch_course_item($COURSE->id);
+		// Decode the information stored in the database.
+		$gradeaverageinfo = json_decode( $this->get_data() );
 
-        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeaverageinfo->gradeformat);
+		$courseitem = grade_item::fetch_course_item( $COURSE->id );
 
-        return element_helper::render_html_content($this, $grade);
-    }
+		$grade = grade_format_gradevalue( '100', $courseitem, true, $gradeaverageinfo->gradeformat );
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        // Set the item and format for this element.
-        if (!empty($this->get_data())) {
-            $gradeaverageinfo = json_decode($this->get_data());
+		return element_helper::render_html_content( $this, $grade );
+	}
 
-            $element = $mform->getElement('coursescompletion');
-            $element->setValue($gradeaverageinfo->coursescompletion);
+	/**
+	 * Sets the data on the form when editing an element.
+	 *
+	 * @param MoodleQuickForm $mform the edit_form instance
+	 */
+	public function definition_after_data( $mform ) {
+		// Set the item and format for this element.
+		if ( ! empty( $this->get_data() ) ) {
+			$gradeaverageinfo = json_decode( $this->get_data() );
 
-            $element = $mform->getElement('gradeformat');
-            $element->setValue($gradeaverageinfo->gradeformat);
-        }
+			$element = $mform->getElement( 'coursescompletion' );
+			$element->setValue( $gradeaverageinfo->coursescompletion );
 
-        parent::definition_after_data($mform);
-    }
+			$element = $mform->getElement( 'gradeformat' );
+			$element->setValue( $gradeaverageinfo->gradeformat );
 
-    /**
-     * This function is responsible for handling the restoration process of the element.
-     *
-     * We will want to update the course module the grade element is pointing to as it will
-     * have changed in the course restore.
-     *
-     * @param restore_customcert_activity_task $restore
-     * @throws dml_exception
-     */
-    public function after_restore($restore) {
-        global $DB;
-        $gradeaverageinfo = json_decode($this->get_data());
-        if ($newitem = restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $gradeaverageinfo->coursescompletion)) {
-            $gradeaverageinfo->coursescompletion = $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($gradeaverageinfo), array('id' => $this->get_id()));
-        }
-    }
+			$element = $mform->getElement( 'showcoursegrades' );
+			$element->setValue( $gradeaverageinfo->showcoursegrades );
+		}
 
-    /**
-     * Helper function to return all the possible grade formats.
-     *
-     * @return array returns an array of grade formats
-     * @throws coding_exception
-     */
-    public static function get_grade_format_options() {
-        $gradeformat = array();
-        $gradeformat[GRADE_DISPLAY_TYPE_REAL] = get_string('gradepoints', 'customcertelement_gradeaverage');
-        $gradeformat[GRADE_DISPLAY_TYPE_PERCENTAGE] = get_string('gradepercent', 'customcertelement_gradeaverage');
-        $gradeformat[GRADE_DISPLAY_TYPE_LETTER] = get_string('gradeletter', 'customcertelement_gradeaverage');
+		parent::definition_after_data( $mform );
+	}
 
-        return $gradeformat;
-    }
+	/**
+	 * This function is responsible for handling the restoration process of the element.
+	 *
+	 * We will want to update the course module the grade element is pointing to as it will
+	 * have changed in the course restore.
+	 *
+	 * @param restore_customcert_activity_task $restore
+	 *
+	 * @throws dml_exception
+	 */
+	public function after_restore( $restore ) {
+		global $DB;
+		$gradeaverageinfo = json_decode( $this->get_data() );
+		if ( $newitem = restore_dbops::get_backup_ids_record( $restore->get_restoreid(), 'course_module',
+			$gradeaverageinfo->coursescompletion ) ) {
+			$gradeaverageinfo->coursescompletion = $newitem->newitemid;
+			$DB->set_field( 'customcert_elements', 'data', $this->save_unique_data( $gradeaverageinfo ),
+				array( 'id' => $this->get_id() ) );
+		}
+	}
+
+	/**
+	 * Helper function to return all the possible grade formats.
+	 *
+	 * @return array returns an array of grade formats
+	 * @throws coding_exception
+	 */
+	public static function get_grade_format_options() {
+		$gradeformat                                  = array();
+		$gradeformat[ GRADE_DISPLAY_TYPE_REAL ]       = get_string( 'gradepoints', 'customcertelement_gradeaverage' );
+		$gradeformat[ GRADE_DISPLAY_TYPE_PERCENTAGE ] = get_string( 'gradepercent', 'customcertelement_gradeaverage' );
+		$gradeformat[ GRADE_DISPLAY_TYPE_LETTER ]     = get_string( 'gradeletter', 'customcertelement_gradeaverage' );
+
+		return $gradeformat;
+	}
+
+	/**
+	 * Get the lists of courses details
+	 *
+	 * @param $courses
+	 * @param $gradeformat
+	 *
+	 * @return string
+	 */
+	private function get_list_of_courses( $courses, $gradeformat ) {
+
+		$str = '';
+		foreach ( $courses as $courseid => $course ) {
+			$courseitem = grade_item::fetch_course_item( $courseid );
+			$grade      = grade_format_gradevalue( $course['value'], $courseitem, true, $gradeformat );
+			if ( $gradeformat === GRADE_DISPLAY_TYPE_PERCENTAGE ) {
+				$gradeitem = grade_item::fetch_course_item( $courseid );
+				$grade     = grade_format_gradevalue_percentage( $grade, $gradeitem,
+					$gradeitem->get_decimals(), true );
+			}
+			if ( $gradeformat === GRADE_DISPLAY_TYPE_LETTER ) {
+				$gradeitem = grade_item::fetch_course_item( $courseid );
+				$grade     = grade_format_gradevalue_letter( $grade, $gradeitem );
+			}
+
+			$str .= '<b>' . $course['fullname'] . '</b>: ' . $grade . '<br>';
+
+		}
+		$str .= '<br>';
+
+		return $str;
+
+	}
+
 }
