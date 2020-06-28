@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.8.5] - 2020-??-??
+
+### Added
+
+- Added ability to select outcomes in the Grade element (#329).
+- The Grade Item Name element now works with all grade items, whereas before it was just activities (#346).
+
+## Changed
+
+- Removed unnecessary and confusing 'exampledata' string.
+
+### Fixed
+
+- Certificates now get marked as viewed via the mobile app (#342).
+
 ## [3.8.4] - 2020-03-12
 
 ### Added
