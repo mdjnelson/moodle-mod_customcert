@@ -121,7 +121,7 @@ class element extends \mod_customcert\element {
     }
 
     /**
-     * Helper function that returns the text.
+     * Helper function that returns the field value in a human-readable format.
      *
      * @param \stdClass $user the user we are rendering this for
      * @param bool $preview Is this a preview?
@@ -141,7 +141,7 @@ class element extends \mod_customcert\element {
             $handler = \core_course\customfield\course_handler::create();
             $data = $handler->get_instance_data($course->id, true);
             if (!empty($data[$field])) {
-                $value = $data[$field]->get('value');
+                $value = $data[$field]->export_value();
             }
 
         } else if (!empty($course->$field)) { // Field in the course table.
