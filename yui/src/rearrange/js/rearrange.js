@@ -151,7 +151,7 @@ Y.extend(Rearrange, Y.Base, {
         this.setBoundaries();
         this.setpositions();
     },
-    
+
     /**
      * Creates the JS events for changing element positions.
      */
