@@ -59,12 +59,12 @@ define('CUSTOMCERT_DATE_CURRENT_DATE', '-5');
 /**
  * Date - Enrollment start
  */
-define('CUSTOMCERT_DATE_ENROLLMENT_START', '-6');
+define('CUSTOMCERT_DATE_ENROLMENT_START', '-6');
 
 /**
  * Date - Entrollment end
  */
-define('CUSTOMCERT_DATE_ENROLLMENT_END', '-7');
+define('CUSTOMCERT_DATE_ENROLMENT_END', '-7');
 
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
@@ -93,8 +93,8 @@ class element extends \mod_customcert\element {
         if ($completionenabled) {
             $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
         }
-        $dateoptions[CUSTOMCERT_DATE_ENROLLMENT_START] = get_string('enrollmentstartdate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_ENROLLMENT_END] = get_string('enrollmentenddate', 'customcertelement_date');
+        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_date');
+        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_date');
 
         $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
@@ -177,8 +177,8 @@ class element extends \mod_customcert\element {
                         $date = $timecompleted->timecompleted;
                     }
                 }
-            } else if ($dateitem == CUSTOMCERT_DATE_ENROLLMENT_START) {
-                // Get the enrollment start date
+            } else if ($dateitem == CUSTOMCERT_DATE_ENROLMENT_START) {
+                // Get the enrolment start date.
                 $sql = "SELECT ue.timestart FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
                            AND ue.userid = :userid";
@@ -187,8 +187,8 @@ class element extends \mod_customcert\element {
                         $date = $timestart->timestart;
                     }
                 }
-            } else if ($dateitem == CUSTOMCERT_DATE_ENROLLMENT_END) {
-                // Get the enrollment end date
+            } else if ($dateitem == CUSTOMCERT_DATE_ENROLMENT_END) {
+                // Get the enrolment end date.
                 $sql = "SELECT ue.timeend FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
                            AND ue.userid = :userid";
