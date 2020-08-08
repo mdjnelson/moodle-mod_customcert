@@ -10,6 +10,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Added ability to select outcomes in the Grade element (#329).
 - The Grade Item Name element now works with all grade items, whereas before it was just activities (#346).
+- Added enrolment start and end dates to the date element (#328).
 
 ## Changed
 
@@ -18,6 +19,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Certificates now get marked as viewed via the mobile app (#342).
+- Fix repositioning elements page when resizing the browser (#343).
+- Prevent error when duplicate issues exist when using the code element (#363).
 
 ## [3.6.6] - 2020-03-12
 
