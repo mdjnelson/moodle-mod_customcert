@@ -179,12 +179,14 @@ if ($data = $mform->get_data()) {
         // Associate all the data from the form to the newly created page.
         $width = 'pagewidth_' . $pageid;
         $height = 'pageheight_' . $pageid;
+        $direction = 'pagedirection_' . $pageid;
         $leftmargin = 'pageleftmargin_' . $pageid;
         $rightmargin = 'pagerightmargin_' . $pageid;
         $rightmargin = 'pagerightmargin_' . $pageid;
 
         $data->$width = $data->pagewidth_0;
         $data->$height = $data->pageheight_0;
+        $data->$direction = $data->pagedirection_0;
         $data->$leftmargin = $data->pageleftmargin_0;
         $data->$rightmargin = $data->pagerightmargin_0;
 

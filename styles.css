@@ -43,7 +43,12 @@
 }
 
 #page-mod-customcert-rearrange .element.refpoint-left:before {
+    /*rtl:ignore*/
     background-position: left top;
+    /*rtl:raw:
+        margin: -4px 4px -5px -5px;
+    */
+    /*rtl:remove*/
     margin: -4px -5px -5px -4px;
 }
 
@@ -53,7 +58,12 @@
 }
 
 #page-mod-customcert-rearrange .element.refpoint-right:before {
+    /*rtl:ignore*/
     background-position: right top;
+    /*rtl:raw:
+        margin: -4px -4px -5px -5px;
+    */
+    /*rtl:remove*/
     margin: -4px -5px -5px 4px;
 }
 
@@ -61,6 +71,18 @@
     border-style: solid;
     border-width: 1px;
     clear: both;
+}
+
+/*rtl:ignore*/
+#page-mod-customcert-rearrange #pdf.page-ltr {
+    direction: ltr;
+    text-align: left;
+}
+
+/*rtl:ignore*/
+#page-mod-customcert-rearrange #pdf.page-rtl {
+    direction: rtl;
+    text-align: right;
 }
 
 #page-mod-customcert-rearrange div#leftmargin {

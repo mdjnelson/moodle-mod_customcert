@@ -94,6 +94,8 @@ Y.extend(Rearrange, Y.Base, {
      * Sets the current position of the elements.
      */
     setpositions: function() {
+        var isRtl = this.page.direction == 1;
+
         // Go through the elements and set their positions.
         for (var key in this.elements) {
             var element = this.elements[key];
@@ -106,12 +108,17 @@ Y.extend(Rearrange, Y.Base, {
                 nodewidth = maxwidth;
             }
 
+            // Recalculate posx if the page's direction is right-to-left.
+            if (isRtl) {
+                posx = this.pdfx + this.pdfwidth - element.posx * this.pixelsinmm;
+            }
+
             switch (element.refpoint) {
                 case '1': // Top-center.
                     posx -= nodewidth / 2;
                     break;
                 case '2': // Top-right.
-                    posx = posx - nodewidth + 2;
+                    posx = posx - nodewidth;
                     break;
             }
 
@@ -227,6 +234,8 @@ Y.extend(Rearrange, Y.Base, {
      * @param {Event} e
      */
     savepositions: function(e) {
+        var isRtl = this.page.direction == 1;
+
         // The parameters to send the AJAX call.
         var params = {
             tid: this.templateid,
@@ -245,12 +254,21 @@ Y.extend(Rearrange, Y.Base, {
 
             var nodewidth = parseFloat(node.getComputedStyle('width'));
 
+            // Recalculate posx if the page's direction is right-to-left.
+            if (isRtl) {
+                posx = this.pdfx + this.pdfwidth - node.getX();
+            }
+
             switch (refpoint) {
                 case '1': // Top-center.
                     posx += nodewidth / 2;
                     break;
                 case '2': // Top-right.
-                    posx += nodewidth;
+                    if (isRtl) {
+                        posx -= nodewidth;
+                    } else {
+                        posx += nodewidth;
+                    }
                     break;
             }
 

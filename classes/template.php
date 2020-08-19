@@ -126,6 +126,7 @@ class template {
                 // Get the name of the fields we want from the form.
                 $width = 'pagewidth_' . $page->id;
                 $height = 'pageheight_' . $page->id;
+                $direction = 'pagedirection_' . $page->id;
                 $leftmargin = 'pageleftmargin_' . $page->id;
                 $rightmargin = 'pagerightmargin_' . $page->id;
                 // Create the page data to update the DB with.
@@ -133,6 +134,7 @@ class template {
                 $p->id = $page->id;
                 $p->width = $data->$width;
                 $p->height = $data->$height;
+                $p->direction = $data->$direction;
                 $p->leftmargin = $data->$leftmargin;
                 $p->rightmargin = $data->$rightmargin;
                 $p->timemodified = $time;
@@ -293,6 +295,7 @@ class template {
                     $orientation = 'P';
                 }
                 $pdf->AddPage($orientation, array($page->width, $page->height));
+                $pdf->setRTL($page->direction);
                 $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
                 // Get the elements for the page.
                 if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {

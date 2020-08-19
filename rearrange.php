@@ -86,13 +86,15 @@ $html .= html_writer::end_tag('div');
 
 // Create the div that represents the PDF.
 $style = 'height: ' . $page->height . 'mm; line-height: normal; width: ' . $page->width . 'mm;';
+$class = $page->direction == 1 ? 'page-rtl' : 'page-ltr';
 $marginstyle = 'height: ' . $page->height . 'mm; width:1px; float:left; position:relative;';
-$html .= html_writer::start_tag('div', array(
+$html .= html_writer::start_tag('div', [
     'data-templateid' => $template->get_id(),
     'data-contextid' => $template->get_contextid(),
     'id' => 'pdf',
-    'style' => $style)
-);
+    'style' => $style,
+    'class' => $class,
+]);
 if ($page->leftmargin) {
     $position = 'left:' . $page->leftmargin . 'mm;';
     $html .= "<div id='leftmargin' style='$position $marginstyle'></div>";

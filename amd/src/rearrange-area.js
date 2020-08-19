@@ -117,8 +117,13 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
 
             RearrangeArea.prototype._setPosition = function(elementid, refpoint, posx, posy) {
                 var element = Y.one('#element-' + elementid);
+                var isRtl = Y.one('#pdf').getComputedStyle('direction') === 'rtl';
 
-                posx = Y.one('#pdf').getX() + posx * this.PIXELSINMM;
+                if (isRtl) {
+                    posx = Y.one('#pdf').getX() + parseFloat(Y.one('#pdf').getComputedStyle('width')) - posx * this.PIXELSINMM;
+                } else {
+                    posx = Y.one('#pdf').getX() + posx * this.PIXELSINMM;
+                }
                 posy = Y.one('#pdf').getY() + posy * this.PIXELSINMM;
                 var nodewidth = parseFloat(element.getComputedStyle('width'));
                 var maxwidth = element.width * this.PIXELSINMM;
@@ -132,7 +137,7 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                         posx -= nodewidth / 2;
                         break;
                     case this.CUSTOMCERT_REF_POINT_TOPRIGHT:
-                        posx = posx - nodewidth + 2;
+                        posx = posx - nodewidth;
                         break;
                 }
 
@@ -143,6 +148,7 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
             RearrangeArea.prototype._setPositionInForm = function(elementid) {
                 var posxelement = $('#editelementform #id_posx');
                 var posyelement = $('#editelementform #id_posy');
+                var isRtl = Y.one('#pdf').getComputedStyle('direction') === 'rtl';
 
                 if (posxelement.length && posyelement.length) {
                     var element = Y.one('#element-' + elementid);
@@ -151,12 +157,25 @@ define(['jquery', 'core/yui', 'core/fragment', 'mod_customcert/dialogue', 'core/
                     var refpoint = parseInt(element.getData('refpoint'));
                     var nodewidth = parseFloat(element.getComputedStyle('width'));
 
+                    // Recalculate posx if the page's direction is right-to-left.
+                    if (isRtl) {
+                        posx = Y.one('#pdf').getX() + parseFloat(Y.one('#pdf').getComputedStyle('width')) - element.getX();
+                    }
+
                     switch (refpoint) {
                         case this.CUSTOMCERT_REF_POINT_TOPCENTER:
-                            posx += nodewidth / 2;
+                            if (isRtl) {
+                                posx -= nodewidth / 2;
+                            } else {
+                                posx += nodewidth / 2;
+                            }
                             break;
                         case this.CUSTOMCERT_REF_POINT_TOPRIGHT:
-                            posx += nodewidth;
+                            if (isRtl) {
+                                posx -= nodewidth;
+                            } else {
+                                posx += nodewidth;
+                            }
                             break;
                     }
 

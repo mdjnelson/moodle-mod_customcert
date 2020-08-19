@@ -166,5 +166,20 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2019111803, 'customcert');
     }
 
+    if ($oldversion < 2020082000) {
+
+        // Define field direction to be added to customcert_pages.
+        $table = new xmldb_table('customcert_pages');
+        $field = new xmldb_field('direction', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'height');
+
+        // Conditionally launch add field direction.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2020082000, 'customcert');
+    }
+
     return true;
 }

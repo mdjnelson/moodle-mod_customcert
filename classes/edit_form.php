@@ -126,6 +126,9 @@ class edit_form extends \moodleform {
                     // Set the height.
                     $element = $mform->getElement('pageheight_' . $p->id);
                     $element->setValue($p->height);
+                    // Set the direction.
+                    $element = $mform->getElement('pagedirection_' . $p->id);
+                    $element->setValue($p->direction);
                     // Set the left margin.
                     $element = $mform->getElement('pageleftmargin_' . $p->id);
                     $element->setValue($p->leftmargin);
@@ -229,6 +232,15 @@ class edit_form extends \moodleform {
         $mform->setDefault('pageheight_' . $page->id, '297');
         $mform->addRule('pageheight_' . $page->id, null, 'required', null, 'client');
         $mform->addHelpButton('pageheight_' . $page->id, 'height', 'customcert');
+
+        $directions = [
+            0 => get_string('ltr', 'customcert'),
+            1 => get_string('rtl', 'customcert'),
+        ];
+        $mform->addElement('select', 'pagedirection_' . $page->id, get_string('direction', 'customcert'), $directions);
+        $mform->setDefault('pagedirection_' . $page->id, 'ltr');
+        $mform->addRule('pagedirection_' . $page->id, null, 'required', null, 'client');
+        $mform->addHelpButton('pagedirection_' . $page->id, 'direction', 'customcert');
 
         $mform->addElement('text', 'pageleftmargin_' . $page->id, get_string('leftmargin', 'customcert'));
         $mform->setType('pageleftmargin_' . $page->id, PARAM_INT);
