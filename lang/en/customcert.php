@@ -39,6 +39,12 @@ $string['customcert:manage'] = 'Manage a custom certificate';
 $string['customcert:manageemailstudents'] = 'Manage email students setting';
 $string['customcert:manageemailteachers'] = 'Manage email teachers setting';
 $string['customcert:manageemailothers'] = 'Manage email others setting';
+
+//////////////////////
+// added by Timo Pitt
+$string['customcert:manageemailuserfield'] = 'Manage email user field setting';
+//////////////////////
+
 $string['customcert:manageverifyany'] = 'Manage verification setting';
 $string['customcert:managerequiredtime'] = 'Manage time required setting';
 $string['customcert:manageprotection'] = 'Manage protection setting';
@@ -89,6 +95,13 @@ $string['emailteachers'] = 'Email teachers';
 $string['emailteachers_help'] = 'If set this will email the teachers a copy of the certificate when it becomes available.';
 $string['emailothers'] = 'Email others';
 $string['emailothers_help'] = 'If set this will email the email addresses listed here (separated by a comma) with a copy of the certificate when it becomes available.';
+
+//////////////////////
+// added by Timo Pitt
+$string['emailuserfield'] = 'Email custom user field';
+$string['emailuserfield_help'] = 'If set this will email the email address in a custom user field with a copy of the certificate when it becomes available.';
+//////////////////////
+
 $string['exampledatawarning'] = 'Some of these values may just be an example to ensure positioning of the elements is possible.';
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';

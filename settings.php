@@ -65,6 +65,20 @@ $settings->add(new admin_setting_configselect('customcert/emailteachers',
     get_string('emailteachers', 'customcert'), get_string('emailteachers_help', 'customcert'), 0, $yesnooptions));
 $settings->add(new admin_setting_configtext('customcert/emailothers',
     get_string('emailothers', 'customcert'), get_string('emailothers_help', 'customcert'), '', PARAM_TEXT));
+
+//////////////////////
+// added by Timo Pitt
+    $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
+    $customfields = array(0 => "- ".$yesnooptions[0]." -");
+    foreach ($arrcustomfields as $key => $customfield) {
+        $customfields[$customfield->id] = $customfield->name;
+    }
+    \core_collator::asort($customfields);
+
+    $settings->add(new admin_setting_configselect('customcert/emailuserfield',
+        get_string('emailuserfield', 'customcert'), get_string('emailuserfield_help', 'customcert'), 0, $customfields));
+//////////////////////
+
 $settings->add(new admin_setting_configselect('customcert/verifyany',
     get_string('verifycertificateanyone', 'customcert'), get_string('verifycertificateanyone_help', 'customcert'),
     0, $yesnooptions));
