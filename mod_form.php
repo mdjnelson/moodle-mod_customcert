@@ -83,8 +83,15 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         //////////////////////
         // added by Timo Pitt
+        $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
+        $customfields = array();
+        foreach ($arrcustomfields as $key => $customfield) {
+            $customfields[$customfield->id] = $customfield->name;
+        }
+        \core_collator::asort($customfields);
+
         if (has_capability('mod/customcert:manageemailuserfield', $this->get_context())) {
-            $mform->addElement('text', 'emailuserfield', get_string('emailuserfield', 'customcert'), array('size' => '40'));
+            $mform->addElement('select', 'emailuserfield', get_string('emailuserfield', 'customcert'), $customfields);
             $mform->addHelpButton('emailuserfield', 'emailuserfield', 'customcert');
             $mform->setDefault('emailuserfield', get_config('customcert', 'emailuserfield'));
             $mform->setType('emailuserfield', PARAM_TEXT);

@@ -60,7 +60,8 @@ class email_certificate_task extends \core\task\scheduled_task {
                     ON c.course = co.id
                  WHERE (c.emailstudents = :emailstudents
                         OR c.emailteachers = :emailteachers
-                        OR $emailotherslengthsql >= 3)";
+                        OR $emailotherslengthsql >= 3
+                        OR c.emailuserfield > 0 )";
         if (!$customcerts = $DB->get_records_sql($sql, array('emailstudents' => 1, 'emailteachers' => 1))) {
             return;
         }
@@ -224,6 +225,49 @@ class email_certificate_task extends \core\task\scheduled_task {
                         }
                     }
                 }
+
+                //////////////////////
+                // added by Timo Pitt
+                if (\intval($customcert->emailuserfield) !== 0 ) {
+                    global $CFG;
+
+                    $field = $customcert->emailuserfield;
+                    $value = '';
+
+                    // 1. get user field value
+                    if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
+                        // Found the field name, let's update the value to display.
+                        $value = $field->name;
+                        $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
+                        if (file_exists($file)) {
+                            require_once($CFG->dirroot . '/user/profile/lib.php');
+                            require_once($file);
+                            $class = "profile_field_{$field->datatype}";
+                            $field = new $class($field->id, $user->id);
+                            $value = $field->display_data();
+                        }
+                    }
+                    $email = trim($value);
+        
+                    // 2. validate if is email
+                    if (validate_email($email)) { 
+
+                        // 3. render and send mail
+                        $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
+                        $courseshortname, $coursefullname, $certificatename, $customcert->contextid);
+
+                        $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+                        $message = $textrenderer->render($renderable);
+                        $messagehtml = $htmlrenderer->render($renderable);
+
+                        $emailuser = new \stdClass();
+                        $emailuser->id = -1;
+                        $emailuser->email = $email;
+                        email_to_user($emailuser, fullname($userfrom), $subject, $message, $messagehtml, $tempfile,
+                            $filename);
+                    }
+                }
+                //////////////////////
 
                 // Set the field so that it is emailed.
                 $DB->set_field('customcert_issues', 'emailed', 1, array('id' => $user->issueid));

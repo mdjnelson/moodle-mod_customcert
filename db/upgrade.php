@@ -166,5 +166,15 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2019111803, 'customcert');
     }
 
+    if ($oldversion < 2020082000) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('emailuserfield', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+    }
+
     return true;
 }
