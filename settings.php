@@ -69,7 +69,7 @@ $settings->add(new admin_setting_configtext('customcert/emailothers',
 //////////////////////
 // added by Timo Pitt
     $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
-    $customfields = array(0 => "- ".$yesnooptions[0]." -");
+    $customfields = array(0 => "- ".get_string('no')." -");
     foreach ($arrcustomfields as $key => $customfield) {
         $customfields[$customfield->id] = $customfield->name;
     }

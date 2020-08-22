@@ -84,7 +84,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         //////////////////////
         // added by Timo Pitt
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
-        $customfields = array();
+        $customfields = array(0 => "- ".get_string('no')." -");
         foreach ($arrcustomfields as $key => $customfield) {
             $customfields[$customfield->id] = $customfield->name;
         }
