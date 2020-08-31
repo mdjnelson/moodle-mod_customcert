@@ -42,4 +42,13 @@ class course_module_viewed extends \core\event\course_module_viewed {
         $this->data['objecttable'] = 'customcert';
         parent::init();
     }
+
+    public static function get_objectid_mapping() {
+        return array('db' => 'customcert', 'restore' => 'customcert');
+    }
+
+    public static function get_other_mapping() {
+        // No need to map.
+        return false;
+    }
 }
