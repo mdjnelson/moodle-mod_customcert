@@ -15,12 +15,16 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ## Changed
 
 - Removed unnecessary and confusing 'exampledata' string.
+- Do not email those who can manage the certificate (#376).
 
 ### Fixed
 
 - Certificates now get marked as viewed via the mobile app (#342).
 - Fix repositioning elements page when resizing the browser (#343).
 - Prevent error when duplicate issues exist when using the code element (#363).
+- Implemented get_objectid_mapping for the course_module_viewed.php event to avoid warning (#374).
+- Fixed exception being thrown when loading a template that has an image element but no image selected (#369).
+- Fixed issue with PDF being generated without a name (#333).
 
 ## [3.5.8] - 2020-04-19
 
