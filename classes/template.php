@@ -283,6 +283,16 @@ class template {
             $pdf->SetAutoPageBreak(true, 0);
             // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
             $filename = rtrim($this->name, '.');
+
+            // This is the logic the TCPDF library uses when processing the name. This makes names
+            // such as 'الشهادة' become empty, so set a default name in these cases.
+            $filename = preg_replace('/[\s]+/', '_', $filename);
+            $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
+
+            if (empty($filename)) {
+                $filename = get_string('certificate', 'customcert');
+            }
+
             $filename = clean_filename($filename . '.pdf');
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
@@ -305,9 +315,13 @@ class template {
                     }
                 }
             }
+
+
+
             if ($return) {
                 return $pdf->Output('', 'S');
             }
+
             $pdf->Output($filename, 'D');
         }
     }
