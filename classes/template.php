@@ -316,8 +316,6 @@ class template {
                 }
             }
 
-
-
             if ($return) {
                 return $pdf->Output('', 'S');
             }
