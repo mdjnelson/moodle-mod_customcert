@@ -30,7 +30,7 @@ $addons = [
             'issueview' => [ // Handler unique name.
                 'displaydata' => [
                     'icon' => $CFG->wwwroot . '/mod/customcert/pix/icon.png',
-                    'class' => '',
+                    'class' => 'core-course-module-customcert-handler',
                 ],
                 'delegate' => 'CoreCourseModuleDelegate', // Delegate (where to display the link to the plugin).
                 'method' => 'mobile_view_activity', // Main function in \mod_customcert\output\mobile.
