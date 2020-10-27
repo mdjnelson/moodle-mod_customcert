@@ -59,6 +59,7 @@ class element_factory {
         $data->posy = isset($element->posy) ? $element->posy : null;
         $data->width = isset($element->width) ? $element->width : null;
         $data->refpoint = isset($element->refpoint) ? $element->refpoint : null;
+        $data->alignment = isset($element->alignment) ? $element->alignment : null;
 
         // Ensure the necessary class exists.
         if (class_exists($classname)) {

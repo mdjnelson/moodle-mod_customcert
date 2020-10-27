@@ -166,5 +166,14 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2019111803, 'customcert');
     }
 
+    if ($oldversion < 2019111803) { // Replace with the actual version number.
+        $table = new xmldb_table('customcert_elements');
+        $field = new xmldb_field('alignment', XMLDB_TYPE_CHAR, '1', null, XMLDB_NOTNULL, null, 'L', 'refpoint');
+
+        $dbman->add_field($table, $field);
+
+        upgrade_mod_savepoint(true, 2019111803, 'customcert'); // Replace with the actual version number.
+    }
+
     return true;
 }
