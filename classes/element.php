@@ -38,6 +38,21 @@ defined('MOODLE_INTERNAL') || die();
 abstract class element {
 
     /**
+     * @var string The left alignment constant.
+     */
+    const ALIGN_LEFT = 'L';
+
+    /**
+     * @var string The centered alignment constant.
+     */
+    const ALIGN_CENTER = 'C';
+
+    /**
+     * @var string The right alignment constant.
+     */
+    const ALIGN_RIGHT = 'R';
+    
+    /**
      * @var \stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
      */
     protected $element;
@@ -98,6 +113,11 @@ abstract class element {
     protected $refpoint;
 
     /**
+     * @var string The alignment.
+     */
+    protected $alignment;
+
+    /**
      * @var bool $showposxy Show position XY form elements?
      */
     protected $showposxy;
@@ -130,6 +150,7 @@ abstract class element {
         $this->width = $element->width;
         $this->refpoint = $element->refpoint;
         $this->showposxy = isset($showposxy) && $showposxy;
+        $this->set_alignment(isset($element->alignment) ? $element->alignment : element::ALIGN_LEFT);
     }
 
     /**
@@ -232,6 +253,30 @@ abstract class element {
     }
 
     /**
+     * Returns the alignment.
+     * 
+     * @return string The current alignment value.
+     */
+    public function get_alignment() {
+        return isset($this->alignment) ? $this->alignment : element::ALIGN_LEFT;
+    }
+
+    /**
+     * Sets the alignment.
+     * 
+     * @param string $alignment The new alignment.
+     * 
+     * @throws InvalidArgumentException if the provided new alignment is not valid.
+     */
+    protected function set_alignment($alignment) {
+        $valid_values = array(element::ALIGN_LEFT, element::ALIGN_CENTER, element::ALIGN_RIGHT);
+        if (!in_array($alignment, $valid_values)) {
+            throw new \InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " . implode(', ', $valid_values));
+        }
+        $this->alignment = $alignment;
+    }
+
+    /**
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
@@ -246,6 +291,7 @@ abstract class element {
         }
         element_helper::render_form_element_width($mform);
         element_helper::render_form_element_refpoint($mform);
+        element_helper::render_form_element_alignment($mform);
     }
 
     /**
@@ -265,7 +311,8 @@ abstract class element {
             'posx' => $this->posx,
             'posy' => $this->posy,
             'width' => $this->width,
-            'refpoint' => $this->refpoint
+            'refpoint' => $this->refpoint,
+            'alignment' => $this->get_alignment()
         ];
         foreach ($properties as $property => $value) {
             if (!is_null($value) && $mform->elementExists($property)) {
@@ -320,6 +367,7 @@ abstract class element {
         }
         $element->width = (isset($data->width)) ? $data->width : null;
         $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
+        $element->alignment = (isset($data->alignment)) ? $data->alignment : element::ALIGN_LEFT;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
