@@ -320,7 +320,7 @@ class template {
                 return $pdf->Output('', 'S');
             }
 
-            $pdf->Output($filename, 'D');
+            $pdf->Output($filename, 'I');
         }
     }
 
