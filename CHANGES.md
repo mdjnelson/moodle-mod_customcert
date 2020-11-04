@@ -16,6 +16,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Removed unnecessary and confusing 'exampledata' string.
 - Do not email those who can manage the certificate (#376).
+- Do not force the PDF to be downloaded, instead send the file inline to the browser (#153).
 
 ### Fixed
 
