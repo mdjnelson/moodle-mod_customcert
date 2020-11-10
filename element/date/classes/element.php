@@ -195,8 +195,6 @@ class element extends \mod_customcert\element {
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
-            }  else if ($dateitem == CUSTOMCERT_DATE_CURRENT_DATE) {
-                $date = time();
             } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_ONE) {
                 $date = strtotime('+1 years', $issue->timecreated); 
                 
