@@ -45,6 +45,7 @@ class element extends \mod_customcert\element {
         $userfields = array(
             'firstname' => get_user_field_name('firstname'),
             'lastname' => get_user_field_name('lastname'),
+            'username' => get_user_field_name('username'),
             'email' => get_user_field_name('email'),
             'city' => get_user_field_name('city'),
             'country' => get_user_field_name('country'),
