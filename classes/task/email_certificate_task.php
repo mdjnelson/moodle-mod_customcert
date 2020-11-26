@@ -69,6 +69,18 @@ class email_certificate_task extends \core\task\scheduled_task {
         $htmlrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'textemail');
         foreach ($customcerts as $customcert) {
+            // Do not process an empty certificate.
+            $sql = "SELECT ce.*
+                      FROM {customcert_elements} ce
+                      JOIN {customcert_pages} cp
+                        ON cp.id = ce.pageid
+                      JOIN {customcert_templates} ct
+                        ON ct.id = cp.templateid
+                     WHERE ct.contextid = :contextid";
+            if (!$DB->record_exists_sql($sql, ['contextid' => $customcert->contextid])) {
+                continue;
+            }
+
             // Get the context.
             $context = \context::instance_by_id($customcert->contextid);
 
