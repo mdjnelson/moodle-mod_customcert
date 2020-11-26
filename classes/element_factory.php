@@ -47,18 +47,18 @@ class element_factory {
         $classname = '\\customcertelement_' . $element->element . '\\element';
 
         $data = new \stdClass();
-        $data->id = isset($element->id) ? $element->id : null;
-        $data->pageid = isset($element->pageid) ? $element->pageid : null;
-        $data->name = isset($element->name) ? $element->name : get_string('pluginname', 'customcertelement_' . $element->element);
+        $data->id = $element->id ?? null;
+        $data->pageid = $element->pageid ?? null;
+        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . $element->element);
         $data->element = $element->element;
-        $data->data = isset($element->data) ? $element->data : null;
-        $data->font = isset($element->font) ? $element->font : null;
-        $data->fontsize = isset($element->fontsize) ? $element->fontsize : null;
-        $data->colour = isset($element->colour) ? $element->colour : null;
-        $data->posx = isset($element->posx) ? $element->posx : null;
-        $data->posy = isset($element->posy) ? $element->posy : null;
-        $data->width = isset($element->width) ? $element->width : null;
-        $data->refpoint = isset($element->refpoint) ? $element->refpoint : null;
+        $data->data = $element->data ?? null;
+        $data->font = $element->font ?? null;
+        $data->fontsize = $element->fontsize ?? null;
+        $data->colour = $element->colour ?? null;
+        $data->posx = $element->posx ?? null;
+        $data->posy = $element->posy ?? null;
+        $data->width = $element->width ?? null;
+        $data->refpoint = $element->refpoint ?? null;
 
         // Ensure the necessary class exists.
         if (class_exists($classname)) {
