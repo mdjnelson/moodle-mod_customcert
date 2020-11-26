@@ -10,19 +10,19 @@ cache:
     - $HOME/.npm
 
 php:
- - 7.1
  - 7.2
+ - 7.4
 
 addons:
  firefox: 47.0.1
- postgresql: 9.4
+ postgresql: 9.5
  apt:
    packages:
     - openjdk-8-jre-headless
 
 env:
  global:
-  - MOODLE_BRANCH=MOODLE_38_STABLE
+  - MOODLE_BRANCH=MOODLE_39_STABLE
   - IGNORE_NAMES=mobile_*.mustache # Mobile mustache has specific syntax, ignore their templates
  matrix:
   - DB=pgsql
