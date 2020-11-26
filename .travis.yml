@@ -15,14 +15,14 @@ php:
 
 addons:
  firefox: 47.0.1
- postgresql: 9.5
+ postgresql: 9.6
  apt:
    packages:
     - openjdk-8-jre-headless
 
 env:
  global:
-  - MOODLE_BRANCH=MOODLE_39_STABLE
+  - MOODLE_BRANCH=MOODLE_310_STABLE
   - IGNORE_NAMES=mobile_*.mustache # Mobile mustache has specific syntax, ignore their templates
  matrix:
   - DB=pgsql
