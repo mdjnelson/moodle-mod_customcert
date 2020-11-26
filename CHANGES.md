@@ -13,7 +13,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Added enrolment start and end dates to the date element (#328).
 - Added username to userfield form element (#390).
 
-## Changed
+### Changed
 
 - Removed unnecessary and confusing 'exampledata' string.
 - Do not email those who can manage the certificate (#376).
