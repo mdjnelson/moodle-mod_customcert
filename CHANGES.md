@@ -11,6 +11,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Added ability to select outcomes in the Grade element (#329).
 - The Grade Item Name element now works with all grade items, whereas before it was just activities (#346).
 - Added enrolment start and end dates to the date element (#328).
+- Added username to userfield form element (#390).
 
 ## Changed
 
