@@ -123,7 +123,7 @@ class element extends \mod_customcert\element {
     /**
      * Helper function that returns the field value in a human-readable format.
      *
-     * @param \stdClass $user the user we are rendering this for
+     * @param \stdClass $course the course we are rendering this for
      * @param bool $preview Is this a preview?
      * @return string
      */
