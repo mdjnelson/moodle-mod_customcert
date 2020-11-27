@@ -38,7 +38,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
     /**
      * Test set up.
      */
-    public function setUp() {
+    public function setUp(): void {
         $this->resetAfterTest();
     }
 
