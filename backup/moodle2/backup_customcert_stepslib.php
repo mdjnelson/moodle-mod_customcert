@@ -59,7 +59,7 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         $element = new backup_nested_element('element', array('id'), array(
             'pageid', 'name', 'element', 'data', 'font', 'fontsize',
             'colour', 'posx', 'posy', 'width', 'refpoint', 'sequence',
-            'timecreated', 'timemodified'));
+            'alignment', 'timecreated', 'timemodified'));
 
         // The issues.
         $issues = new backup_nested_element('issues');
