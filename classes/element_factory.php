@@ -51,15 +51,15 @@ class element_factory {
         $data->pageid = isset($element->pageid) ? $element->pageid : null;
         $data->name = isset($element->name) ? $element->name : get_string('pluginname', 'customcertelement_' . $element->element);
         $data->element = $element->element;
-        $data->data = isset($element->data) ? $element->data : null;
-        $data->font = isset($element->font) ? $element->font : null;
-        $data->fontsize = isset($element->fontsize) ? $element->fontsize : null;
-        $data->colour = isset($element->colour) ? $element->colour : null;
-        $data->posx = isset($element->posx) ? $element->posx : null;
-        $data->posy = isset($element->posy) ? $element->posy : null;
-        $data->width = isset($element->width) ? $element->width : null;
-        $data->refpoint = isset($element->refpoint) ? $element->refpoint : null;
-        $data->alignment = isset($element->alignment) ? $element->alignment : null;
+        $data->data = $element->data ?? null;
+        $data->font = $element->font ?? null;
+        $data->fontsize = $element->fontsize ?? null;
+        $data->colour = $element->colour ?? null;
+        $data->posx = $element->posx ?? null;
+        $data->posy = $element->posy ?? null;
+        $data->width = $element->width ?? null;
+        $data->refpoint = $element->refpoint ?? null;
+        $data->alignment = $element->alignment ?? null;
 
         // Ensure the necessary class exists.
         if (class_exists($classname)) {
