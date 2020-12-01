@@ -139,7 +139,7 @@ if (!$downloadown && !$downloadissue) {
     if ($canreceive) {
         $linkname = get_string('getcustomcert', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'downloadown' => true));
-        $downloadbutton = new single_button($link, $linkname, 'post', true);
+        $downloadbutton = new single_button($link, $linkname, 'get', true);
         $downloadbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadbutton = $OUTPUT->render($downloadbutton);
     }
@@ -178,6 +178,8 @@ if (!$downloadown && !$downloadissue) {
     if (defined('BEHAT_SITE_RUNNING')) {
         redirect(new moodle_url('/mod/customcert/view.php', array('id' => $cm->id)));
     }
+
+    \core\session\manager::write_close();
 
     // Now we want to generate the PDF.
     $template = new \mod_customcert\template($template);

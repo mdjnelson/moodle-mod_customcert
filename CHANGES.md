@@ -4,18 +4,22 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [3.8.5] - 2020-??-??
+## [3.8.5] - 2020-11-26
 
 ### Added
 
 - Added ability to select outcomes in the Grade element (#329).
 - The Grade Item Name element now works with all grade items, whereas before it was just activities (#346).
 - Added enrolment start and end dates to the date element (#328).
+- Added username to userfield form element (#390).
 
-## Changed
+### Changed
 
 - Removed unnecessary and confusing 'exampledata' string.
 - Do not email those who can manage the certificate (#376).
+- Do not force the PDF to be downloaded, instead send the file inline to the browser (#153).
+- Updated the 'emailstudents_help', 'emailteachers_help' and 'emailothers_help' strings to warn users about prematurely emailing the certificate (#276).
+- Do not email out certificates that contain no elements (#276).
 
 ### Fixed
 
