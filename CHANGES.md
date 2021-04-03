@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.8.6] - 2021-XX-YY
+
+### Added
+- Usage of github actions (#407).
+- The ability to show the description on the course page (#406).
+
+### Fixed
+- Managers are now able to download their students' certificates (#412).
+
 ## [3.8.5] - 2020-11-26
 
 ### Added
