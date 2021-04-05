@@ -166,5 +166,17 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2019111803, 'customcert');
     }
 
+    if ($oldversion < 2019111806) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('deliveryoption', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'verifyany');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2019111806, 'customcert');
+    }
+
     return true;
 }
