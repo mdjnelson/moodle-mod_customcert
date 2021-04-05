@@ -56,7 +56,8 @@ if ($customcert->requiredtime && !$canmanage) {
     if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
         $a = new stdClass;
         $a->requiredtime = $customcert->requiredtime;
-        notice(get_string('requiredtimenotmet', 'customcert', $a), "$CFG->wwwroot/course/view.php?id=$course->id");
+        $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+        notice(get_string('requiredtimenotmet', 'customcert', $a), $url);
         die;
     }
 }
