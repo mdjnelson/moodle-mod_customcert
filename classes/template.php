@@ -253,7 +253,7 @@ class template {
      * @param bool $return Do we want to return the contents of the PDF?
      * @return string|void Can return the PDF in string format if specified.
      */
-    public function generate_pdf($preview = false, $userid = null, $return = false) {
+    public function generate_pdf(bool $preview = false, int $userid = null, bool $return = false) {
         global $CFG, $DB, $USER;
 
         if (empty($userid)) {
@@ -269,12 +269,18 @@ class template {
             // Create the pdf object.
             $pdf = new \pdf();
 
+            $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
+
             // If the template belongs to a certificate then we need to check what permissions we set for it.
-            if ($protection = $DB->get_field('customcert', 'protection', array('templateid' => $this->id))) {
-                if (!empty($protection)) {
-                    $protection = explode(', ', $protection);
-                    $pdf->SetProtection($protection);
-                }
+            $protection = $customcert->protection;
+            if (!empty($protection)) {
+                $protection = explode(', ', $protection);
+                $pdf->SetProtection($protection);
+            }
+
+            $deliveryoption = $customcert->deliveryoption;
+            if (empty($deliveryoption)) {
+                $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
             }
 
             $pdf->setPrintHeader(false);
@@ -320,7 +326,7 @@ class template {
                 return $pdf->Output('', 'S');
             }
 
-            $pdf->Output($filename, 'I');
+            $pdf->Output($filename, $deliveryoption);
         }
     }
 

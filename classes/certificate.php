@@ -38,6 +38,16 @@ defined('MOODLE_INTERNAL') || die();
 class certificate {
 
     /**
+     * Send the file inline to the browser.
+     */
+    const DELIVERY_OPTION_INLINE = 'I';
+
+    /**
+     * Send to the browser and force a file download
+     */
+    const DELIVERY_OPTION_DOWNLOAD = 'D';
+
+    /**
      * @var string the print protection variable
      */
     const PROTECTION_PRINT = 'print';
