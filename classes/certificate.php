@@ -175,7 +175,7 @@ class certificate {
      * @param int $userid
      * @return int the total time spent in seconds
      */
-    public static function get_course_time($courseid, $userid = 0) {
+    public static function get_course_time(int $courseid, int $userid = 0): int {
         global $CFG, $DB, $USER;
 
         if (empty($userid)) {
