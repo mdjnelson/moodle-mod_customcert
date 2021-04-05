@@ -7,7 +7,6 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ## [3.8.6] - 2021-XX-YY
 
 ### Added
-- Usage of github actions (#407).
 - The ability to show the description on the course page (#406).
 - The ability to choose how to deliver the certificate (#401).
 
