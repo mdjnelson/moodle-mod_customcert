@@ -272,15 +272,15 @@ class template {
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
 
             // If the template belongs to a certificate then we need to check what permissions we set for it.
-            $protection = $customcert->protection;
-            if (!empty($protection)) {
-                $protection = explode(', ', $protection);
+            if (!empty($customcert->protection)) {
+                $protection = explode(', ', $customcert->protection);
                 $pdf->SetProtection($protection);
             }
 
-            $deliveryoption = $customcert->deliveryoption;
-            if (empty($deliveryoption)) {
+            if (empty($customcert->deliveryoption)) {
                 $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
+            } else {
+                $deliveryoption = $customcert->deliveryoption;
             }
 
             $pdf->setPrintHeader(false);
