@@ -49,7 +49,7 @@ $user = \core_user::get_user($userid, '*', MUST_EXIST);
 
 // If we are viewing certificates that are not for the currently logged in user then do a capability check.
 if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
-    print_error('You are not allowed to view these certificates');
+    throw new moodle_exception('You are not allowed to view these certificates');
 }
 
 $PAGE->set_url($pageurl);
