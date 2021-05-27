@@ -47,7 +47,7 @@ class helper {
      * @param string $tableprefix table query prefix to use in front of each field.
      * @return string All name fields.
      */
-    public static function get_all_user_name_fields($tableprefix = '') {
+    public static function get_all_user_name_fields(string $tableprefix = ''): string {
         $alternatenames = [];
         foreach (fields::get_name_fields() as $field) {
             $alternatenames[$field] = $field;
