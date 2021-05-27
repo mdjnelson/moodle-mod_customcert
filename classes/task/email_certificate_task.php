@@ -23,6 +23,8 @@
  */
 namespace mod_customcert\task;
 
+use mod_customcert\helper;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -102,7 +104,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             $info->certificatename = $certificatename;
 
             // Get a list of all the issues.
-            $userfields = get_all_user_name_fields(true, 'u');
+            $userfields = helper::get_all_user_name_fields('u');
             $sql = "SELECT u.id, u.username, $userfields, u.email, ci.id as issueid, ci.emailed
                       FROM {customcert_issues} ci
                       JOIN {user} u

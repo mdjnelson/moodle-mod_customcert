@@ -93,7 +93,7 @@ if ($code) {
     $result->issues = array();
 
     // Ok, now check if the code is valid.
-    $userfields = get_all_user_name_fields(true, 'u');
+    $userfields = \mod_customcert\helper::get_all_user_name_fields('u');
     $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
                    co.fullname as coursefullname, c.id as certificateid,
                    c.name as certificatename, c.verifyany
