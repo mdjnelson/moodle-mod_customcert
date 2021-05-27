@@ -103,6 +103,7 @@ jobs:
         run: moodle-plugin-ci mustache
 
       - name: Grunt
+        continue-on-error: true # This step will show errors but will not fail
         if: ${{ always() }}
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 

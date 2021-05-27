@@ -55,7 +55,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Create a custom certificate with no elements.
         $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
-        // Enrol the user as a student
+        // Enrol the user as a student.
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
 
         // Run the task.
