@@ -98,9 +98,9 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
         // Check this time there are 2 users.
         $this->assertCount(2, $userlist->get_userids());
-        $this->assertContains($user1->id, $userlist->get_userids());
-        $this->assertContains($user2->id, $userlist->get_userids());
-        $this->assertNotContains($user3->id, $userlist->get_userids());
+        $this->assertContains((int) $user1->id, $userlist->get_userids());
+        $this->assertContains((int) $user2->id, $userlist->get_userids());
+        $this->assertNotContains((int) $user3->id, $userlist->get_userids());
     }
 
     /**
