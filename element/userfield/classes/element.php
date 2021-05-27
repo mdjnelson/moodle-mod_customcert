@@ -24,6 +24,8 @@
 
 namespace customcertelement_userfield;
 
+use core_user\fields;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -43,24 +45,24 @@ class element extends \mod_customcert\element {
     public function render_form_elements($mform) {
         // Get the user profile fields.
         $userfields = array(
-            'firstname' => get_user_field_name('firstname'),
-            'lastname' => get_user_field_name('lastname'),
-            'username' => get_user_field_name('username'),
-            'email' => get_user_field_name('email'),
-            'city' => get_user_field_name('city'),
-            'country' => get_user_field_name('country'),
-            'url' => get_user_field_name('url'),
-            'icq' => get_user_field_name('icq'),
-            'skype' => get_user_field_name('skype'),
-            'aim' => get_user_field_name('aim'),
-            'yahoo' => get_user_field_name('yahoo'),
-            'msn' => get_user_field_name('msn'),
-            'idnumber' => get_user_field_name('idnumber'),
-            'institution' => get_user_field_name('institution'),
-            'department' => get_user_field_name('department'),
-            'phone1' => get_user_field_name('phone1'),
-            'phone2' => get_user_field_name('phone2'),
-            'address' => get_user_field_name('address')
+            'firstname' => fields::get_display_name('firstname'),
+            'lastname' => fields::get_display_name('lastname'),
+            'username' => fields::get_display_name('username'),
+            'email' => fields::get_display_name('email'),
+            'city' => fields::get_display_name('city'),
+            'country' => fields::get_display_name('country'),
+            'url' => fields::get_display_name('url'),
+            'icq' => fields::get_display_name('icq'),
+            'skype' => fields::get_display_name('skype'),
+            'aim' => fields::get_display_name('aim'),
+            'yahoo' => fields::get_display_name('yahoo'),
+            'msn' => fields::get_display_name('msn'),
+            'idnumber' => fields::get_display_name('idnumber'),
+            'institution' => fields::get_display_name('institution'),
+            'department' => fields::get_display_name('department'),
+            'phone1' => fields::get_display_name('phone1'),
+            'phone2' => fields::get_display_name('phone2'),
+            'address' => fields::get_display_name('address')
         );
         // Get the user custom fields.
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();

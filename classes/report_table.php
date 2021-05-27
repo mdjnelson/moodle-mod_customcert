@@ -66,7 +66,7 @@ class report_table extends \table_sql {
         parent::__construct('mod_customcert_report_table');
 
         $context = \context_module::instance($cm->id);
-        $extrafields = get_extra_user_fields($context);
+        $extrafields = \core_user\fields::for_identity($context)->get_required_fields();
 
         $columns = [];
         $columns[] = 'fullname';
@@ -79,7 +79,7 @@ class report_table extends \table_sql {
         $headers = [];
         $headers[] = get_string('fullname');
         foreach ($extrafields as $extrafield) {
-            $headers[] = get_user_field_name($extrafield);
+            $headers[] = \core_user\fields::get_display_name($extrafield);
         }
         $headers[] = get_string('receiveddate', 'customcert');
         $headers[] = get_string('code', 'customcert');
