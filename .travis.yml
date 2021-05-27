@@ -9,7 +9,7 @@ cache:
     - $HOME/.npm
 
 php:
-  - 7.2
+  - 7.3
   - 7.4
 
 addons:
@@ -25,7 +25,7 @@ services:
 
 env:
   global:
-    - MOODLE_BRANCH=MOODLE_310_STABLE
+    - MOODLE_BRANCH=MOODLE_311_STABLE
     - IGNORE_NAMES=mobile_*.mustache # Mobile mustache has specific syntax, ignore their templates
   matrix:
     - DB=pgsql
