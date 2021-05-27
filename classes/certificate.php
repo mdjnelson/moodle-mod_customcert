@@ -274,7 +274,7 @@ class certificate {
         $extrafields = \core_user\fields::for_identity($context)->get_required_fields();
 
         $ufields = \core_user\fields::for_userpic()->including(...$extrafields);
-        $ufields = $ufields->get_sql('u', false, '','', false)->selects;
+        $ufields = $ufields->get_sql('u', false, '', '', false)->selects;
         $sql = "SELECT $ufields, ci.id as issueid, ci.code, ci.timecreated
                   FROM {user} u
             INNER JOIN {customcert_issues} ci
