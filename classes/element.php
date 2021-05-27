@@ -377,7 +377,7 @@ abstract class element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param \stdClass $user the user we are rendering this for
      */
-    public abstract function render($pdf, $preview, $user);
+    abstract public function render($pdf, $preview, $user);
 
     /**
      * Render the element in html.
@@ -389,7 +389,7 @@ abstract class element {
      *
      * @return string the html
      */
-    public abstract function render_html();
+    abstract public function render_html();
 
     /**
      * Handles deleting any data this element may have introduced.
