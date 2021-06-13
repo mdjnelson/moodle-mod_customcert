@@ -15,6 +15,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Users being able to view the certificate before the required time set (#403).
 - Fixed the issue with displaying PDF when debugging is ON (#420).
 - Using incorrect context when sending emails (#402).
+- Use `cron_setup_user` when sending emails (#414).
 
 ## [3.8.5] - 2020-11-26
 
