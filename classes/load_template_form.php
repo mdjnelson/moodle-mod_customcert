@@ -60,6 +60,10 @@ class load_template_form extends \moodleform {
         $templates = $DB->get_records_menu('customcert_templates',
             array('contextid' => \context_system::instance()->id), 'name ASC', 'id, name');
         if ($templates) {
+            $context = \context_system::instance()->id;
+            foreach ($templates as $key => $template) {
+                $templates[$key] = format_string($template, true, ['context' => $context]);
+            }
             $group = array();
             $group[] = $mform->createElement('select', 'ltid', '', $templates);
             $group[] = $mform->createElement('submit', 'loadtemplatesubmit', get_string('load', 'customcert'));
