@@ -24,6 +24,7 @@
 
 namespace mod_customcert;
 
+
 defined('MOODLE_INTERNAL') || die;
 
 global $CFG;
@@ -77,7 +78,7 @@ class manage_templates_table extends \table_sql {
      * @return string
      */
     public function col_name($template) {
-        return $template->name;
+        return format_string($template->name, true, ['context' => $this->context]);
     }
 
     /**
