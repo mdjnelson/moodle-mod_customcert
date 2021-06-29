@@ -283,12 +283,13 @@ class template {
                 $deliveryoption = $customcert->deliveryoption;
             }
 
+            // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
+            $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
+
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
-            $pdf->SetTitle($this->name);
+            $pdf->SetTitle($filename);
             $pdf->SetAutoPageBreak(true, 0);
-            // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
-            $filename = rtrim($this->name, '.');
 
             // This is the logic the TCPDF library uses when processing the name. This makes names
             // such as 'الشهادة' become empty, so set a default name in these cases.
