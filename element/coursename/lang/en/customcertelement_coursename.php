@@ -24,3 +24,7 @@
 
 $string['pluginname'] = 'Course name';
 $string['privacy:metadata'] = 'The Course name plugin does not store any personal data.';
+$string['coursenamedisplay'] = 'Course name / short description';
+$string['coursenamedisplay_help'] = 'Course name or short description you wish to display on certificate.';
+$string['coursename'] = 'Course name';
+$string['courseshortdescription'] = 'Course short description';
