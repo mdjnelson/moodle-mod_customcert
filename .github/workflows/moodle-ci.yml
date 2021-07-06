@@ -111,9 +111,9 @@ jobs:
         run: |
           moodle-plugin-ci phpunit
           cd moodle
-          vendor/bin/phpunit --fail-on-risky --disallow-test-output -v admin/tool/dataprivacy/tests/metadata_registry_test.php
-          vendor/bin/phpunit --fail-on-risky --disallow-test-output -v lib/tests/externallib_test.php
-          vendor/bin/phpunit --fail-on-risky --disallow-test-output -v privacy/tests/provider_test.php
+          vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter tool_dataprivacy_metadata_registry_testcase
+          vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter core_externallib_testcase
+          vendor/bin/phpunit --fail-on-risky --disallow-test-output --testsuite core_privacy_testsuite --filter provider_testcase
 
       - name: Behat features
         if: ${{ always() }}
