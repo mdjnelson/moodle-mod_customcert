@@ -139,7 +139,7 @@ class element extends \mod_customcert\element {
         global $DB;
 
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        if (empty(json_decode($this->get_data()))) {
             return;
         }
 
@@ -245,7 +245,7 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
+        if (empty(json_decode($this->get_data()))) {
             return;
         }
 
@@ -263,7 +263,7 @@ class element extends \mod_customcert\element {
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
-        if (!empty($this->get_data())) {
+        if (!empty(json_decode($this->get_data()))) {
             $dateinfo = json_decode($this->get_data());
 
             $element = $mform->getElement('dateitem');
