@@ -24,7 +24,6 @@
 
 namespace mod_customcert;
 
-
 defined('MOODLE_INTERNAL') || die;
 
 global $CFG;
