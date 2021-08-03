@@ -22,9 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['coursenamedisplay'] = 'Type';
+$string['coursenamedisplay_help'] = 'Display the course full name or short name?';
+$string['coursefullname'] = 'Full name';
+$string['courseshortname'] = 'Short name';
 $string['pluginname'] = 'Course name';
 $string['privacy:metadata'] = 'The Course name plugin does not store any personal data.';
-$string['coursenamedisplay'] = 'Course name / short description';
-$string['coursenamedisplay_help'] = 'Course name or short description you wish to display on certificate.';
-$string['coursename'] = 'Course name';
-$string['courseshortdescription'] = 'Course short description';
+
