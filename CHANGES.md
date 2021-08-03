@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [3.11.2] - 2021-??-??
+
+### Fixed
+- Fix places not using the multi-language filter (#433).
+
 ## [3.11.1] - 2021-06-13
 
 ### Fixed
