@@ -36,16 +36,25 @@ defined('MOODLE_INTERNAL') || die();
 class element extends \mod_customcert\element {
 
     /**
+     * The course short name.
+     */
+    const COURSE_SHORT_NAME = 1;
+
+    /**
+     * The course fullname.
+     */
+    const COURSE_FULL_NAME = 2;
+
+    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-
         // The course name display options.
         $mform->addElement('select', 'coursenamedisplay', get_string('coursenamedisplay', 'customcertelement_coursename'),
             self::get_course_name_display_options());
-        $mform->setType('coursenamedisplay', PARAM_ALPHA);
+        $mform->setType('coursenamedisplay', PARAM_INT);
         $mform->addHelpButton('coursenamedisplay', 'coursenamedisplay', 'customcertelement_coursename');
 
         parent::render_form_elements($mform);
@@ -103,7 +112,7 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_course_name_detail() : string {
+    protected function get_course_name_detail(): string {
         $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
         $course = get_course($courseid);
         $context = \mod_customcert\element_helper::get_context($this->get_id());
@@ -112,7 +121,7 @@ class element extends \mod_customcert\element {
         $field = $this->get_data();
         // The name value to display.
         $value = $course->fullname;
-        if ($field == 'courseshortdescription') {
+        if ($field == self::COURSE_SHORT_NAME) {
             $value = $course->shortname;
         }
 
@@ -124,12 +133,10 @@ class element extends \mod_customcert\element {
      *
      * @return array returns an array of name options
      */
-    public static function get_course_name_display_options() {
-        $coursenamedisplayoptions = array(
-            'coursename' => get_string('coursename', 'customcertelement_coursename'),
-            'courseshortdescription' => get_string('courseshortdescription', 'customcertelement_coursename')
-        );
-
-        return $coursenamedisplayoptions;
+    public static function get_course_name_display_options(): array {
+        return [
+            self::COURSE_FULL_NAME => get_string('coursefullname', 'customcertelement_coursename'),
+            self::COURSE_SHORT_NAME => get_string('courseshortname', 'customcertelement_coursename')
+        ];
     }
 }
