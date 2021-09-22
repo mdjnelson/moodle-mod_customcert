@@ -28,6 +28,17 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * The customcert element digital signature's core interaction API.
+ * 
+ * The digital signature private elements (private key and password) can be hidden behind
+ * the Moodle's instance configuration, so they are not exposed in the site interface.
+ * 
+ * These parameters are two associative arrays, customcert_signature_private_keys and
+ * customcert_signature_passwords, storing the private keys and passwords respectively,
+ * of the digitalsignature instances (both with the same structure). The keys in these
+ * arrays are the elements' context ids. As a fallback, a special key '*' can be used
+ * for every instance. In case none of these is defined for either the private key or
+ * the password, falls back to the default behaviour (configuring it through the site
+ * administration interface).
  *
  * @package    customcertelement_digitalsignature
  * @copyright  2017 Mark Nelson <markn@moodle.com>
@@ -232,7 +243,17 @@ class element extends \customcertelement_image\element {
                 'Reason' => $imageinfo->signaturereason,
                 'ContactInfo' => $imageinfo->signaturecontactinfo
             ];
-            $pdf->setSignature('file://' . $location, '', $imageinfo->signaturepassword, '', 2, $info);
+            global $CFG;
+            $configured_private_key = property_exists($CFG, 'customcert_signature_private_keys') ? $CFG->customcert_signature_private_keys[$imageinfo->signaturecontextid] ?? $CFG->customcert_signature_private_keys['*'] : null;
+            $configured_password = property_exists($CFG, 'customcert_signature_passwords') ? $CFG->customcert_signature_passwords[$imageinfo->signaturecontextid] ?? $CFG->customcert_signature_passwords['*'] : null;
+            $pdf->setSignature(
+                'file://' . $location,
+                $configured_private_key ?? '',
+                $configured_password ?? $imageinfo->signaturepassword,
+                '',
+                2,
+                $info
+            );
             $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
         }
     }
