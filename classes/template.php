@@ -301,7 +301,7 @@ class template {
                 $filename = get_string('certificate', 'customcert');
             }
             
-            $sql = "SELECT course,full_name
+            $sql = "SELECT course,fullname as full_name
                     FROM {customcert} c, 
 	            {course} cr
                     WHERE c.id = :templateid
