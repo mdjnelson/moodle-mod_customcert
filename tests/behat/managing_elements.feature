@@ -21,6 +21,16 @@ Feature: Being able to manage elements in a certificate template
       | assign     | Assignment 1         | Assignment 1 intro         | C1     | assign1     |
       | assign     | Assignment 2         | Assignment 2 intro         | C1     | assign2     |
       | customcert | Custom certificate 1 | Custom certificate 1 intro | C1     | customcert1 |
+    And I log in as "admin"
+    And I navigate to "Plugins > Activity modules > Custom certificate" in site administration
+    And I set the field "Manage date format" to multiline:
+    """
+    %B %d, %Y
+    %B %d#, %Y
+    %d# %B, %Y
+    """
+    And I press "Save changes"
+    And I log out
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I follow "Custom certificate 1"
@@ -121,7 +131,7 @@ Feature: Being able to manage elements in a certificate template
     And I add the element "Date" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
       | Date item                | Course start date |
-      | Date format              | 2                 |
+      | Date format              | =%d# %B, %Y       |
       | Font                     | Helvetica         |
       | Size                     | 20                |
       | Colour                   | #045ECD           |
@@ -132,7 +142,7 @@ Feature: Being able to manage elements in a certificate template
     And I click on ".edit-icon" "css_element" in the "Date" "table_row"
     And the following fields match these values:
       | Date item                | Course start date |
-      | Date format              | 2                 |
+      | Date format              | =%d# %B, %Y       |
       | Font                     | Helvetica         |
       | Size                     | 20                |
       | Colour                   | #045ECD           |

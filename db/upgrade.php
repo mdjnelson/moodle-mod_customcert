@@ -178,5 +178,46 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2020110901, 'customcert');
     }
 
+    if ($oldversion < 2021101100) {
+        $transaction = $DB->start_delegated_transaction();
+        $records = $DB->get_records('customcert_elements', ['element' => 'date']);
+        $total = count($records);
+        $done = 0;
+        $pbar = new progress_bar('mod_customcert_change_formatdate', 500, true);
+        foreach ($records as $record) {
+            $dateinfo = json_decode($record->data);
+            $done += 1;
+            $pbar->update($done, $total, "Changing date format data - $done/$total.");
+            if (empty($dateinfo)) {
+                continue;
+            }
+            $dateformat = $dateinfo->dateformat;
+            $update = false;
+            if ($dateformat == 1) {
+                $dateformat = '=%B %d, %Y';
+                $update = true;
+            } else if ($dateformat == 2) {
+                $dateformat = '=%B %d#, %Y';
+                $update = true;
+            } else if ($dateformat == 3) {
+                $dateformat = '=%d %B %Y';
+                $update = true;
+            } else if ($dateformat == 4) {
+                $dateformat = '=%B %Y';
+                $update = true;
+            }
+
+            if ($update) {
+                $updateelement = new stdClass();
+                $updateelement->id = $record->id;
+                $updateelement->data = json_encode([
+                    'dateitem' => $dateinfo->dateitem,
+                    'dateformat' => $dateformat
+                ]);
+                $DB->update_record('customcert_elements', $updateelement);
+            }}
+        $transaction->allow_commit();upgrade_mod_savepoint(true, 2021101100, 'customcert');
+    }
+
     return true;
 }

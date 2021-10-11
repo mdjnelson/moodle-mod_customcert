@@ -305,11 +305,12 @@ class element extends \mod_customcert\element {
         $date = 1530849658;
 
         $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-
-        $dateformats = [
-            1 => userdate($date, '%B %d, %Y'),
-            2 => userdate($date, '%B %d' . $suffix . ', %Y')
-        ];
+        $dateformats = [];
+        $setting = get_config('customcert', 'managedateformat');
+        $strdateformats = preg_split("~(\r|\n)+~",  $setting, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($strdateformats as $strdateformat) {
+            $dateformats['=' . $strdateformat] = userdate($date, str_replace("#", $suffix, $strdateformat));
+        }
 
         $strdateformats = [
             'strftimedate',
@@ -350,25 +351,11 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_date_format_string($date, $dateformat) {
-        // Keeping for backwards compatibility.
-        if (is_number($dateformat)) {
-            switch ($dateformat) {
-                case 1:
-                    $certificatedate = userdate($date, '%B %d, %Y');
-                    break;
-                case 2:
-                    $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-                    $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                    break;
-                case 3:
-                    $certificatedate = userdate($date, '%d %B %Y');
-                    break;
-                case 4:
-                    $certificatedate = userdate($date, '%B %Y');
-                    break;
-                default:
-                    $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
-            }
+        // Logic to check custom format date.
+        if (substr($dateformat, 0, 1) === '=') {
+            // Now we use custom format that stored in DB.
+            $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
+            $certificatedate = userdate($date, str_replace("#", $suffix, substr($dateformat, 1)));
         }
 
         // Ok, so we must have been passed the actual format in the lang file.
