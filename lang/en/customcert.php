@@ -117,6 +117,11 @@ $string['listofissues'] = 'Recipients: {$a}';
 $string['load'] = 'Load';
 $string['loadtemplate'] = 'Load template';
 $string['loadtemplatemsg'] = 'Are you sure you wish to load this template? This will remove any existing pages and elements for this certificate.';
+$string['managedateformat'] = 'Manage date format';
+$string['managedateformat_desc'] = 'Custom date formats are available for selection when adding a certificate, listed one per line.
+Example: %d %m %y. (<a href="https://www.php.net/manual/en/datetime.format.php">See PHP documentation.</a>)
+In addition, the special symbol # can be used to indicate \'st\', \'nd\', \'rd\' or \'th\', for 1st 2nd 3rd 4th of the month.
+Changing this list does not affect existing certificates, only the options available when creating or updating a certificate.';
 $string['managetemplates'] = 'Manage templates';
 $string['managetemplatesdesc'] = 'This link will take you to a new screen where you will be able to manage templates used by Custom certificate activities in courses.';
 $string['modify'] = 'Modify';
