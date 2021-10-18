@@ -43,10 +43,20 @@ class course_module_viewed extends \core\event\course_module_viewed {
         parent::init();
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return string[]
+     */
     public static function get_objectid_mapping() {
         return array('db' => 'customcert', 'restore' => 'customcert');
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
     public static function get_other_mapping() {
         // No need to map.
         return false;

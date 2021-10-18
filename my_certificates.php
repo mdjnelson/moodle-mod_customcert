@@ -49,8 +49,14 @@ $user = \core_user::get_user($userid, '*', MUST_EXIST);
 
 // If we are viewing certificates that are not for the currently logged in user then do a capability check.
 if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
-    print_error('You are not allowed to view these certificates');
+    throw new moodle_exception('You are not allowed to view these certificates');
 }
+
+$PAGE->set_url($pageurl);
+$PAGE->set_context(context_user::instance($userid));
+$PAGE->set_title(get_string('mycertificates', 'customcert'));
+$PAGE->set_pagelayout('standard');
+$PAGE->navigation->extend_for_user($user);
 
 // Check if we requested to download a certificate.
 if ($downloadcert) {
@@ -67,12 +73,6 @@ if ($table->is_downloading()) {
     $table->download();
     exit();
 }
-
-$PAGE->set_url($pageurl);
-$PAGE->set_context(context_user::instance($userid));
-$PAGE->set_title(get_string('mycertificates', 'customcert'));
-$PAGE->set_pagelayout('standard');
-$PAGE->navigation->extend_for_user($user);
 
 // Additional page setup.
 $PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php', array('id' => $userid)));
