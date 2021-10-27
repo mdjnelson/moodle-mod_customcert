@@ -216,7 +216,7 @@ class element_helper {
         $alignmentoptions[element::ALIGN_LEFT] = get_string('alignleft', 'customcert');
         $alignmentoptions[element::ALIGN_CENTER] = get_string('aligncenter', 'customcert');
         $alignmentoptions[element::ALIGN_RIGHT] = get_string('alignright', 'customcert');
-        
+
         $mform->addElement('select', 'alignment', get_string('alignment', 'customcert'), $alignmentoptions);
         $mform->setType('alignment', PARAM_ALPHA);
         $mform->setDefault('alignment', element::ALIGN_LEFT);
