@@ -11,6 +11,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Fix user IDs in the issue table not being mapped during restore (#449).
 - Fix emails displaying HTML entities encoded (#457).
 - Fix error message when we have custom profile fields (#465).
+- Respect multiple languages in manage template page title (#467).
 
 ### Added
 - You can now choose the course short or full name to display (#415).
