@@ -10,6 +10,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Fix places not using the multi-language filter (#433).
 - Fix user IDs in the issue table not being mapped during restore (#449).
 - Fix emails displaying HTML entities encoded (#457).
+- Respect multiple languages in manage template page title (#467).
 
 ### Added
 - You can now choose the course short or full name to display (#415).
