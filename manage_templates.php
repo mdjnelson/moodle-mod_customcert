@@ -47,7 +47,6 @@ require_login();
 require_capability('mod/customcert:manage', $context);
 
 $title = $SITE->fullname;
-$heading = $title;
 
 // Set up the page.
 $pageurl = new moodle_url('/mod/customcert/manage_templates.php');
@@ -60,6 +59,8 @@ if ($tid && $action && confirm_sesskey()) {
 } else {
     $PAGE->navbar->add(get_string('managetemplates', 'customcert'));
 }
+
+$heading = format_string($title, true, ['context' => $context]);
 
 if ($tid) {
     if ($action && confirm_sesskey()) {
