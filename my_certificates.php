@@ -26,6 +26,7 @@ require_once('../../config.php');
 
 $userid = optional_param('userid', $USER->id, PARAM_INT);
 $download = optional_param('download', null, PARAM_ALPHA);
+$courseid = optional_param('course', null, PARAM_INT);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
@@ -42,7 +43,11 @@ $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', array('u
     'page' => $page, 'perpage' => $perpage));
 
 // Requires a login.
-require_login();
+if ($courseid) {
+    require_login($courseid);
+} else {
+    require_login();
+}
 
 // Check that we have a valid user.
 $user = \core_user::get_user($userid, '*', MUST_EXIST);
