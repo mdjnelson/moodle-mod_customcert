@@ -21,6 +21,13 @@
  * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace customcertelement_daterange;
+
+use stdClass;
+use advanced_testcase;
+use fake_datarange_element;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -34,7 +41,7 @@ require_once($CFG->dirroot . '/mod/customcert/element/daterange/tests/fixtures/f
  * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class customcertelement_daterange_element_test extends advanced_testcase {
+class element_test extends advanced_testcase {
 
     /**
      * Helper function to build element data.
@@ -82,7 +89,7 @@ class customcertelement_daterange_element_test extends advanced_testcase {
      * @param array $dataranges A list of dataranges.
      * @param string $fallbackstring Fall back strin
      *
-     * @return \fake_datarange_element
+     * @return fake_datarange_element
      */
     protected function get_datarange_element(array $dataranges, $fallbackstring = '') {
         $datarangedata = $this->build_datarange_data($dataranges, $fallbackstring);
