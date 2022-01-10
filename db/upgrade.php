@@ -184,7 +184,7 @@ function xmldb_customcert_upgrade($oldversion) {
 
         // Conditionally launch add field.
         if (!$dbman->field_exists($table, $field)) {
-           $dbman->add_field($table, $field);
+            $dbman->add_field($table, $field);
         }
 
         upgrade_mod_savepoint(true, 2020061503, 'customcert'); // Replace with the actual version number.
