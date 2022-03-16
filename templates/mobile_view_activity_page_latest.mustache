@@ -89,7 +89,7 @@
                 <br />
                 <div class="timerewarded">
                     <%#issue%>
-                        {{ <% timecreated %> | coreToLocaleString }}
+                        {{ <% timecreated %> * 1000 | coreFormatDate }}
                     <%/issue%>
                     <%^issue%>
                         {{ 'plugin.mod_customcert.notissued' | translate }}
@@ -139,7 +139,7 @@
                 <ion-label>
                     <% displayname %>
                     <br />
-                    <div class="timerewarded">{{ <% timecreated %> | coreToLocaleString }}</div>
+                    <div class="timerewarded">{{ <% timecreated %> * 1000 | coreFormatDate }}</div>
                 </ion-label>
                 <div slot="end" class="flex-row">
                     <ion-button fill="clear" [core-download-file]="{fileurl: '<% fileurl %>', timemodified: '<% currenttimestamp %>'}" moduleId="<% cmid %>" courseId="<% certificate.course %>" component="mod_customcert" [attr.aria-label]="'core.download' | translate">
