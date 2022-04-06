@@ -99,20 +99,52 @@ class email_certificate implements \renderable, \templatable {
         $info->courseshortname = $this->courseshortname;
         $info->coursefullname = $this->coursefullname;
 
-        if ($this->isstudent) {
+        $studentpattern = '/\$studentname/';
+        $certificatepattern = '/\$certificatename/';
+        $coursepattern = '/\$coursename/';
+
+        $studentmessage = get_config('customcert', 'emailstudentmessage');
+
+        if($studentmessage != "" && $this->isstudent){
+
+            //replace all variables in email message
+            $studentmessage = preg_replace($studentpattern, $this->userfullname, $studentmessage);
+            $studentmessage = preg_replace($certificatepattern, $info->certificatename, $studentmessage);
+            $studentmessage = preg_replace($coursepattern, $info->coursefullname, $studentmessage);
+
+            $data->emailgreeting="";
+            $data->emailbody = $studentmessage;
+            $data->emailbodyplaintext = $studentmessage;
+            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
+            $data->emailcertificatetext = get_string('emailstudentcertificatelinktext', 'customcert');
+        }elseif ($studentmessage == "" && $this->isstudent) {
             $data->emailgreeting = get_string('emailstudentgreeting', 'customcert', $this->userfullname);
             $data->emailbody = get_string('emailstudentbody', 'customcert', $info);
             $data->emailbodyplaintext = get_string('emailstudentbodyplaintext', 'customcert', $info);
             $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
             $data->emailcertificatetext = get_string('emailstudentcertificatelinktext', 'customcert');
         } else {
-            $data->emailgreeting = get_string('emailnonstudentgreeting', 'customcert');
-            $data->emailbody = get_string('emailnonstudentbody', 'customcert', $info);
-            $data->emailbodyplaintext = get_string('emailnonstudentbodyplaintext', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
-            $data->emailcertificatetext = get_string('emailnonstudentcertificatelinktext', 'customcert');
-        }
+            $nonstudentmessage = get_config('customcert', 'emailnonstudentmessage');
+            if($nonstudentmessage!=""){
 
+                //replace all variables in email message
+                $nonstudentmessage = preg_replace($studentpattern, $this->userfullname, $nonstudentmessage);
+                $nonstudentmessage = preg_replace($certificatepattern, $info->certificatename, $nonstudentmessage);
+                $nonstudentmessage = preg_replace($coursepattern, $info->coursefullname, $nonstudentmessage);
+
+                $data->emailgreeting = "";
+                $data->emailbody = $nonstudentmessage;
+                $data->emailbodyplaintext = $nonstudentmessage;
+                $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
+                $data->emailcertificatetext = get_string('emailnonstudentcertificatelinktext', 'customcert');
+            }else{
+                $data->emailgreeting = get_string('emailnonstudentgreeting', 'customcert');
+                $data->emailbody = get_string('emailnonstudentbody', 'customcert', $info);
+                $data->emailbodyplaintext = get_string('emailnonstudentbodyplaintext', 'customcert', $info);
+                $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
+                $data->emailcertificatetext = get_string('emailnonstudentcertificatelinktext', 'customcert');
+            }
+        }
         return $data;
     }
 }
