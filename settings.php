@@ -61,10 +61,14 @@ $yesnooptions = [
 
 $settings->add(new admin_setting_configselect('customcert/emailstudents',
     get_string('emailstudents', 'customcert'), get_string('emailstudents_help', 'customcert'), 0, $yesnooptions));
+$settings->add(new admin_setting_configtextarea('customcert/emailstudentmessage',
+    get_string('emailstudentmessage', 'customcert'), get_string('emailstudentmessage_help', 'customcert'),"", PARAM_RAW, '60','8'));
 $settings->add(new admin_setting_configselect('customcert/emailteachers',
     get_string('emailteachers', 'customcert'), get_string('emailteachers_help', 'customcert'), 0, $yesnooptions));
 $settings->add(new admin_setting_configtext('customcert/emailothers',
     get_string('emailothers', 'customcert'), get_string('emailothers_help', 'customcert'), '', PARAM_TEXT));
+$settings->add(new admin_setting_configtextarea('customcert/emailnonstudentmessage',
+    get_string('emailnonstudentmessage', 'customcert'), get_string('emailnonstudentmessage_help', 'customcert'),"", PARAM_RAW, '60','8'));
 $settings->add(new admin_setting_configselect('customcert/verifyany',
     get_string('verifycertificateanyone', 'customcert'), get_string('verifycertificateanyone_help', 'customcert'),
     0, $yesnooptions));
