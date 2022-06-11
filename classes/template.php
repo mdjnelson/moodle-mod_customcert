@@ -263,6 +263,7 @@ class template {
         }
 
         require_once($CFG->libdir . '/pdflib.php');
+        require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
         // Get the pages for the template, there should always be at least one page for each template.
         if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'sequence ASC')) {
@@ -270,6 +271,15 @@ class template {
             $pdf = new \pdf();
 
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
+
+            // I want to have my digital diplomas without having to change my preferred language.
+            $userlang = $USER->lang;
+            $forcelang = mod_customcert_force_current_language($customcert->language);
+            if (!empty($forcelang)) {
+                // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                // Preventing a user from getting trapped with the wrong language.
+                \core_shutdown_manager::register_function('force_current_language', [$userlang]);
+            }
 
             // If the template belongs to a certificate then we need to check what permissions we set for it.
             if (!empty($customcert->protection)) {
@@ -321,6 +331,11 @@ class template {
                         }
                     }
                 }
+            }
+
+            // We restore original language.
+            if ($userlang != $customcert->language) {
+                mod_customcert_force_current_language($userlang);
             }
 
             if ($return) {
