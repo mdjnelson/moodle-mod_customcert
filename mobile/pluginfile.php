@@ -36,6 +36,7 @@ require_once('../../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/webservice/lib.php');
+require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
 // Allow CORS requests.
 header('Access-Control-Allow-Origin: *');

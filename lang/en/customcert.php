@@ -204,3 +204,10 @@ $string['verifycertificateanyone'] = 'Allow anyone to verify a certificate';
 $string['verifycertificateanyone_help'] = 'This setting enables anyone with the certificate verification link (including users not logged in) to verify a certificate.';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
+
+$string['userlanguage'] = 'Use user preferences';
+$string['languageoptions'] = 'Force Certificate Language';
+$string['userlanguage_help'] = 'You can force the language of the certificate to override the user\'s language preferences.';
+
+// Acess API.
+$string['customcert:managelanguages'] = 'Manage language on edit form';
