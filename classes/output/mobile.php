@@ -44,9 +44,10 @@ class mobile {
         global $OUTPUT, $DB, $USER;
 
         $args = (object) $args;
+        $versionname = $args->appversioncode >= 3950 ? 'latest' : 'ionic3';
 
         $cmid = $args->cmid;
-        $groupid = empty($args->group) ? 0 : $args->group; // By default, group 0.
+        $groupid = empty($args->group) ? 0 : (int) $args->group; // By default, group 0.
 
         // Capabilities check.
         $cm = get_coursemodule_from_id('customcert', $cmid);
@@ -114,6 +115,7 @@ class mobile {
             'showreport' => $showreport,
             'hasrecipients' => !empty($recipients),
             'recipients' => array_values($recipients),
+            'numrecipients' => count($recipients),
             'currenttimestamp' => time()
         ];
 
@@ -121,11 +123,13 @@ class mobile {
             'templates' => [
                 [
                     'id' => 'main',
-                    'html' => $OUTPUT->render_from_template('mod_customcert/mobile_view_activity_page', $data),
+                    'html' => $OUTPUT->render_from_template("mod_customcert/mobile_view_activity_page_$versionname", $data),
                 ],
             ],
             'javascript' => '',
-            'otherdata' => ''
+            'otherdata' => [
+                'group' => $groupid,
+            ]
         ];
     }
 

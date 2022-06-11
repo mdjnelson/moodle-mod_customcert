@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_customcert;
+
+use stdClass;
+use context_module;
+use context_system;
 use mod_customcert\privacy\provider;
 
 defined('MOODLE_INTERNAL') || die();
@@ -33,7 +38,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2018 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
+class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test for provider::get_contexts_for_userid().
@@ -293,7 +298,7 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcertid;
         $customcertissue->userid = $userid;
-        $customcertissue->code = \mod_customcert\certificate::generate_code();
+        $customcertissue->code = certificate::generate_code();
         $customcertissue->timecreated = time() + $i;
 
         // Insert the record into the database.

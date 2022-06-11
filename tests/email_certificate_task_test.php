@@ -23,6 +23,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_customcert;
+
+use stdClass;
+use context_course;
+use advanced_testcase;
+use mod_customcert\task\email_certificate_task;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -33,7 +40,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_customcert_task_email_certificate_task_testcase extends advanced_testcase {
+class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Test set up.
@@ -60,7 +67,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -96,7 +103,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -109,7 +116,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -148,7 +155,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -167,7 +174,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -192,7 +199,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Now, run the task again and ensure we did not issue any more certificates.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -233,7 +240,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -246,7 +253,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -286,7 +293,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -299,7 +306,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -337,7 +344,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -353,7 +360,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -392,7 +399,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -405,7 +412,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 

@@ -100,20 +100,22 @@ Feature: Being able to manage elements in a certificate template
     # Course name.
     And I add the element "Course name" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
-      | Font                     | Helvetica |
-      | Size                     | 20        |
-      | Colour                   | #045ECD   |
-      | Width                    | 20        |
-      | Reference point location | Top left  |
+      | Font                     | Helvetica  |
+      | Type                     | Short name |
+      | Size                     | 20         |
+      | Colour                   | #045ECD    |
+      | Width                    | 20         |
+      | Reference point location | Top left   |
     And I press "Save changes"
     And I should see "Course name" in the "elementstable" "table"
     And I click on ".edit-icon" "css_element" in the "Course name" "table_row"
     And the following fields match these values:
-      | Font                     | Helvetica |
-      | Size                     | 20        |
-      | Colour                   | #045ECD   |
-      | Width                    | 20        |
-      | Reference point location | Top left  |
+      | Font                     | Helvetica  |
+      | Type                     | Short name |
+      | Size                     | 20         |
+      | Colour                   | #045ECD    |
+      | Width                    | 20         |
+      | Reference point location | Top left   |
     And I press "Save changes"
     # Date.
     And I add the element "Date" to page "1" of the "Custom certificate 1" certificate template

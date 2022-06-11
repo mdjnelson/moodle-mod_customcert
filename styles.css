@@ -57,6 +57,18 @@
     margin: -4px -5px -5px 4px;
 }
 
+#page-mod-customcert-rearrange .element.align-left {
+    text-align: left;
+}
+
+#page-mod-customcert-rearrange .element.align-center {
+    text-align: center;
+}
+
+#page-mod-customcert-rearrange .element.align-right {
+    text-align: right;
+}
+
 #page-mod-customcert-rearrange #pdf {
     border-style: solid;
     border-width: 1px;

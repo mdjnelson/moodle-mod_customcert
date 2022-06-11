@@ -159,6 +159,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
 
         $data->customcertid = $this->get_new_parentid('customcert');
         $data->timecreated = $this->apply_date_offset($data->timecreated);
+        $data->userid = $this->get_mappingid('user', $data->userid);
 
         $newitemid = $DB->insert_record('customcert_issues', $data);
         $this->set_mapping('customcert_issue', $oldid, $newitemid);
