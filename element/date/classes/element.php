@@ -389,14 +389,6 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_date_format_string($date, $dateformat) {
-        // Aprende Patch LMSDEV-2771: I want to have my digital diplomas without having to change my preferred language.
-        $acceptlangs = ['en', 'es_mx'];
-        if (!empty($_GET['langcert'])) {
-            if (in_array($_GET['langcert'], $acceptlangs)) {
-                force_current_language($_GET['langcert']);
-            }
-        }
-
         // Keeping for backwards compatibility.
         if (is_number($dateformat)) {
             switch ($dateformat) {

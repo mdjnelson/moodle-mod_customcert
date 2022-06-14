@@ -190,5 +190,17 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2021051702, 'customcert'); // Replace with the actual version number.
     }
 
+    if ($oldversion < 2022061400) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('language', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'protection');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2022061400, 'customcert'); // Replace with the actual version number.
+    }
+
     return true;
 }
