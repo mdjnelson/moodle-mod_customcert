@@ -274,11 +274,16 @@ class certificate {
         $extrafields = \core_user\fields::for_identity($context)->get_required_fields();
 
         $ufields = \core_user\fields::for_userpic()->including(...$extrafields);
-        $ufields = $ufields->get_sql('u', false, '', '', false)->selects;
-        $sql = "SELECT $ufields, ci.id as issueid, ci.code, ci.timecreated
+        [
+            'selects' => $userfieldsselects,
+            'joins' => $userfieldsjoin,
+            'params' => $userfieldsparams
+        ] = (array) $ufields->get_sql('u', true);
+        $allparams = array_merge($allparams, $userfieldsparams);
+        $sql = "SELECT ci.id as issueid, ci.code, ci.timecreated $userfieldsselects
                   FROM {user} u
-            INNER JOIN {customcert_issues} ci
-                    ON u.id = ci.userid
+            INNER JOIN {customcert_issues} ci ON u.id = ci.userid
+                       $userfieldsjoin
                  WHERE u.deleted = 0
                    AND ci.customcertid = :customcertid
                        $conditionssql";

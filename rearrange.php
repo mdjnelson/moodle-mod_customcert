@@ -112,6 +112,18 @@ if ($elements) {
                 default:
                     $class = 'element refpoint-left';
             }
+            switch ($element->alignment) {
+                case \mod_customcert\element::ALIGN_CENTER:
+                    $class .= ' align-center';
+                    break;
+                case \mod_customcert\element::ALIGN_RIGHT:
+                    $class .= ' align-right';
+                    break;
+                case \mod_customcert\element::ALIGN_LEFT:
+                default:
+                    $class .= ' align-left';
+                    break;
+            }
             $html .= html_writer::tag('div', $e->render_html(), array('class' => $class,
                 'data-refpoint' => $element->refpoint, 'id' => 'element-' . $element->id));
         }

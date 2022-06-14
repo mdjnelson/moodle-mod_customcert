@@ -38,6 +38,21 @@ defined('MOODLE_INTERNAL') || die();
 abstract class element {
 
     /**
+     * @var string The left alignment constant.
+     */
+    const ALIGN_LEFT = 'L';
+
+    /**
+     * @var string The centered alignment constant.
+     */
+    const ALIGN_CENTER = 'C';
+
+    /**
+     * @var string The right alignment constant.
+     */
+    const ALIGN_RIGHT = 'R';
+
+    /**
      * @var \stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
      */
     protected $element;
@@ -98,6 +113,11 @@ abstract class element {
     protected $refpoint;
 
     /**
+     * @var string The alignment.
+     */
+    protected $alignment;
+
+    /**
      * @var bool $showposxy Show position XY form elements?
      */
     protected $showposxy;
@@ -130,6 +150,7 @@ abstract class element {
         $this->width = $element->width;
         $this->refpoint = $element->refpoint;
         $this->showposxy = isset($showposxy) && $showposxy;
+        $this->set_alignment($element->alignment ?? self::ALIGN_LEFT);
     }
 
     /**
@@ -232,6 +253,31 @@ abstract class element {
     }
 
     /**
+     * Returns the alignment.
+     *
+     * @return string The current alignment value.
+     */
+    public function get_alignment() {
+        return $this->alignment ?? self::ALIGN_LEFT;
+    }
+
+    /**
+     * Sets the alignment.
+     *
+     * @param string $alignment The new alignment.
+     *
+     * @throws \InvalidArgumentException if the provided new alignment is not valid.
+     */
+    protected function set_alignment(string $alignment) {
+        $validvalues = array(self::ALIGN_LEFT, self::ALIGN_CENTER, self::ALIGN_RIGHT);
+        if (!in_array($alignment, $validvalues)) {
+            throw new \InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " .
+                implode(', ', $validvalues));
+        }
+        $this->alignment = $alignment;
+    }
+
+    /**
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
@@ -246,6 +292,7 @@ abstract class element {
         }
         element_helper::render_form_element_width($mform);
         element_helper::render_form_element_refpoint($mform);
+        element_helper::render_form_element_alignment($mform);
     }
 
     /**
@@ -265,7 +312,8 @@ abstract class element {
             'posx' => $this->posx,
             'posy' => $this->posy,
             'width' => $this->width,
-            'refpoint' => $this->refpoint
+            'refpoint' => $this->refpoint,
+            'alignment' => $this->get_alignment()
         ];
         foreach ($properties as $property => $value) {
             if (!is_null($value) && $mform->elementExists($property)) {
@@ -311,15 +359,16 @@ abstract class element {
         $element = new \stdClass();
         $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
-        $element->font = (isset($data->font)) ? $data->font : null;
-        $element->fontsize = (isset($data->fontsize)) ? $data->fontsize : null;
-        $element->colour = (isset($data->colour)) ? $data->colour : null;
+        $element->font = $data->font ?? null;
+        $element->fontsize = $data->fontsize ?? null;
+        $element->colour = $data->colour ?? null;
         if ($this->showposxy) {
-            $element->posx = (isset($data->posx)) ? $data->posx : null;
-            $element->posy = (isset($data->posy)) ? $data->posy : null;
+            $element->posx = $data->posx ?? null;
+            $element->posy = $data->posy ?? null;
         }
-        $element->width = (isset($data->width)) ? $data->width : null;
-        $element->refpoint = (isset($data->refpoint)) ? $data->refpoint : null;
+        $element->width = $data->width ?? null;
+        $element->refpoint = $data->refpoint ?? null;
+        $element->alignment = $data->alignment ?? self::ALIGN_LEFT;
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.

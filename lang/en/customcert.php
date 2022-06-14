@@ -25,6 +25,11 @@
 $string['activity'] = 'Activity';
 $string['addcertpage'] = 'Add page';
 $string['addelement'] = 'Add element';
+$string['aligncenter'] = 'Centered';
+$string['alignleft'] = 'Left alignment';
+$string['alignment'] = 'Alignment';
+$string['alignment_help'] = 'This property sets the horizontal alignment of the element. Some elements may not support this, while the behaviour of others may differ.';
+$string['alignright'] = 'Right alignment';
 $string['awardedto'] = 'Awarded to';
 $string['cannotverifyallcertificates'] = 'You do not have the permission to verify all certificates on the site.';
 $string['certificate'] = 'Certificate';
