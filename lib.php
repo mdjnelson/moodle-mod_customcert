@@ -435,7 +435,7 @@ function mod_customcert_get_fontawesome_icon_map() {
  * @param $language
  * @return bool
  */
-function mod_customcert_force_current_language($language = ''): bool {
+function mod_customcert_force_current_language($language): bool {
     global $USER;
 
     $forced = false;
