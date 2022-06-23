@@ -429,3 +429,27 @@ function mod_customcert_get_fontawesome_icon_map() {
         'mod_customcert:download' => 'fa-download'
     ];
 }
+
+/**
+ * Force custom language for current session.
+ * @param $language
+ * @return bool
+ */
+function mod_customcert_force_current_language($language): bool {
+    global $USER;
+
+    $forced = false;
+    if (empty($language)) {
+        return $forced;
+    }
+
+    $activelangs = get_string_manager()->get_list_of_translations();
+    $userlang = $USER->lang;
+
+    if (array_key_exists($language, $activelangs) && $language != $userlang) {
+        force_current_language($language);
+        $forced = true;
+    }
+
+    return $forced;
+}
