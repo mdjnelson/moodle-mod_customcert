@@ -266,32 +266,22 @@ class certificate {
             return array();
         }
 
-        // Add the conditional SQL and the customcertid to form all used parameters.
-        $allparams = $conditionsparams + array('customcertid' => $customcertid);
-
         // Return the issues.
         $context = \context_module::instance($cm->id);
-        $extrafields = \core_user\fields::for_identity($context)->get_required_fields();
+        $query = \core_user\fields::for_identity($context)->with_userpic()->get_sql('u', true, '', '', false);
 
-        $ufields = \core_user\fields::for_userpic()->including(...$extrafields);
-        [
-            'selects' => $userfieldsselects,
-            'joins' => $userfieldsjoin,
-            'params' => $userfieldsparams
-        ] = (array) $ufields->get_sql('u', true);
-        $allparams = array_merge($allparams, $userfieldsparams);
-        $sql = "SELECT ci.id as issueid, ci.code, ci.timecreated $userfieldsselects
-                  FROM {user} u
-            INNER JOIN {customcert_issues} ci ON u.id = ci.userid
-                       $userfieldsjoin
-                 WHERE u.deleted = 0
-                   AND ci.customcertid = :customcertid
-                       $conditionssql";
-        if ($sort) {
-            $sql .= "ORDER BY " . $sort;
-        } else {
-            $sql .= "ORDER BY " . $DB->sql_fullname();
-        }
+        // Add the conditional SQL and the customcertid to form all used parameters.
+        $allparams = $query->params + $conditionsparams + array('customcertid' => $customcertid);
+
+        $orderby = $sort ?: $DB->sql_fullname();
+
+        $sql = "SELECT   $query->selects, ci.id as issueid, ci.code, ci.timecreated 
+                FROM     {user} u 
+                            INNER JOIN {customcert_issues} ci ON (u.id = ci.userid)
+                            $query->joins
+                WHERE    u.deleted = 0 AND ci.customcertid = :customcertid
+                         $conditionssql
+                ORDER BY $orderby";
 
         return $DB->get_records_sql($sql, $allparams, $limitfrom, $limitnum);
     }
