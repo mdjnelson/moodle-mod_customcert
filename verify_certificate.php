@@ -56,15 +56,15 @@ if ($context->contextlevel != CONTEXT_SYSTEM) {
     }
 
     $title = $customcert->name;
-    $heading = format_string($title);
     $checkallofsite = false;
 } else {
     $title = $SITE->fullname;
-    $heading = $title;
     $checkallofsite = true;
 }
 
 \mod_customcert\page_helper::page_setup($pageurl, $context, $title);
+$PAGE->activityheader->set_attrs(['hidecompletion' => true,
+            'description' => '']);
 
 // Additional page setup.
 if ($context->contextlevel == CONTEXT_SYSTEM) {
@@ -78,7 +78,6 @@ if ($checkallofsite) {
     $canverifyallcertificates = has_capability('mod/customcert:verifyallcertificates', $context);
     if (!$verifyallcertificates && !$canverifyallcertificates) {
         echo $OUTPUT->header();
-        echo $OUTPUT->heading($heading);
         echo $OUTPUT->notification(get_string('cannotverifyallcertificates', 'customcert'));
         echo $OUTPUT->footer();
         exit();
@@ -128,7 +127,6 @@ if ($code) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
 // Don't show the form if we are coming from a QR code.
 if (!$qrcode) {
     echo $form->display();

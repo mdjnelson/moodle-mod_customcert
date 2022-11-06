@@ -44,10 +44,8 @@ $template->require_manage();
 if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
     $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
     $title = $customcert->name;
-    $heading = format_string($title);
 } else {
     $title = $SITE->fullname;
-    $heading = $title;
 }
 
 if ($action == 'edit') {
@@ -66,6 +64,8 @@ if ($action == 'edit') {
 
 // Set up the page.
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
+$PAGE->activityheader->set_attrs(['hidecompletion' => true,
+            'description' => '']);
 
 // Additional page setup.
 if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
@@ -103,6 +103,5 @@ if ($data = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
 $mform->display();
 echo $OUTPUT->footer();

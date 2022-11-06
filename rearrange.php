@@ -54,6 +54,8 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 // Set the $PAGE settings.
 $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid));
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
+$PAGE->activityheader->set_attrs(['hidecompletion' => true,
+            'description' => '']);
 
 // Add more links to the navigation.
 if (!$cm = $template->get_cm()) {
@@ -136,7 +138,6 @@ if ($page->rightmargin) {
 $html .= html_writer::end_tag('div');
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 3);
 echo $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING);
 echo $html;
