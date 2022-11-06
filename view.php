@@ -119,12 +119,6 @@ if (!$downloadown && !$downloadissue) {
         }
     }
 
-    // Generate the intro content if it exists.
-    $intro = '';
-    if (!empty($customcert->intro)) {
-        $intro = $OUTPUT->box(format_module_intro('customcert', $customcert, $cm->id), 'generalbox', 'intro');
-    }
-
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuehtml = '';
     $issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id));
@@ -147,8 +141,6 @@ if (!$downloadown && !$downloadissue) {
 
     // Output all the page data.
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(format_string($customcert->name));
-    echo $intro;
     echo $issuehtml;
     echo $downloadbutton;
     if (isset($reporttable)) {

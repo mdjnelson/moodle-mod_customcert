@@ -54,17 +54,17 @@ if ($context->contextlevel == CONTEXT_MODULE) {
 
     $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
     $title = $customcert->name;
-    $heading = format_string($title);
 } else {
     require_login();
     $title = $SITE->fullname;
-    $heading = $title;
 }
 
 require_capability('mod/customcert:manage', $context);
 
 // Set up the page.
 \mod_customcert\page_helper::page_setup($pageurl, $context, $title);
+$PAGE->activityheader->set_attrs(['hidecompletion' => true,
+            'description' => '']);
 
 if ($context->contextlevel == CONTEXT_SYSTEM) {
     // We are managing a template - add some navigation.
@@ -154,7 +154,6 @@ if ($deleting) {
     // Show a confirmation page.
     $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
     echo $OUTPUT->header();
-    echo $OUTPUT->heading($heading);
     echo $OUTPUT->confirm($message, $yesurl, $nourl);
     echo $OUTPUT->footer();
     exit();
@@ -240,7 +239,6 @@ if ($data = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
 $mform->display();
 if ($tid && $context->contextlevel == CONTEXT_MODULE) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
