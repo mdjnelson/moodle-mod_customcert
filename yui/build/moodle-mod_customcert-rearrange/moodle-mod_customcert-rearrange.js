@@ -208,6 +208,9 @@ Y.extend(Rearrange, Y.Base, {
         var top = node.getY();
         var bottom = top + nodeheight;
 
+        this.pdfx = Y.one('#pdf').getX();
+        this.pdfy = Y.one('#pdf').getY();
+
         // Check if it is out of bounds horizontally.
         if ((left < this.pdfleftboundary) || (right > this.pdfrightboundary)) {
             return true;
