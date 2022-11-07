@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [3.11.2] - 2021-??-??
+## [4.0.1] - 2022-11-07
+
+### Fixed
+
+- Fix problem repositioning elements (#513).
+- Fixed title and description shown twice (#521).
+
+## [3.11.2] - 2022-11-07
 
 ### Fixed
 - Fix places not using the multi-language filter (#433).
@@ -13,6 +20,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Fix error message when we have custom profile fields (#465).
 - Respect multiple languages in manage template page title (#467).
 - Add field exist check for alignment field in upgrade script to prevent upgrades from dying.
+- Stop using deprecated pipe coreToLocaleString.
 
 ### Changed
 - User breadcrumbs on the my_certificates.php page changes when a course is specified (#469).
