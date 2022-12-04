@@ -236,6 +236,9 @@ Y.extend(Rearrange, Y.Base, {
             values: []
         };
 
+        this.pdfx = Y.one("#pdf").getX();
+        this.pdfy = Y.one("#pdf").getY();
+
         // Go through the elements and save their positions.
         for (var key in this.elements) {
             var element = this.elements[key];
