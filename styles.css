@@ -73,6 +73,7 @@
     border-style: solid;
     border-width: 1px;
     clear: both;
+    position: relative;
 }
 
 #page-mod-customcert-rearrange div#leftmargin {
