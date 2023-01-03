@@ -157,7 +157,13 @@ if (!$downloadown && !$downloadissue) {
     if ($downloadown) {
         // Create new customcert issue record if one does not already exist.
         if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
-            \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
+            /**
+             * Do not write a line in the table if the user is admin, teacher or manager and only looking at a student's certificate.
+             * Only students viewing their certificate are written as a row in the table, otherwise do nothing.
+             */
+            if(!has_capability('enrol/manual:enrol', $context)){
+                \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
+            }
         }
 
         // Set the custom certificate as viewed.
