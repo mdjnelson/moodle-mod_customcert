@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.0.2] - 2023-01-26
+
+- Fix problem repositioning elements (#500).
+
 ## [4.0.1] - 2022-11-07
 
 ### Fixed
