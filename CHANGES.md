@@ -5,8 +5,9 @@ All notable changes to this project will be documented in this file.
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
 ## [3.11.3] - 2023-02-07
+
 ### Added
-- You can now optionally force the language of a certificate.
+- You can now optionally force the language of a certificate (#532).
 
 ## [3.11.2] - 2022-11-07
 
