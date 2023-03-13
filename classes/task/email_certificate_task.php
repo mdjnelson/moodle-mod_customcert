@@ -49,7 +49,7 @@ class email_certificate_task extends \core\task\scheduled_task {
      * Execute.
      */
     public function execute() {
-        global $DB, $PAGE;
+        global $DB;
 
         // Get all the certificates that have requested someone get emailed.
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
@@ -67,9 +67,10 @@ class email_certificate_task extends \core\task\scheduled_task {
             return;
         }
 
+        $page = new \moodle_page();
         // The renderers used for sending emails.
-        $htmlrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'htmlemail');
-        $textrenderer = $PAGE->get_renderer('mod_customcert', 'email', 'textemail');
+        $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
+        $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
         foreach ($customcerts as $customcert) {
             // Do not process an empty certificate.
             $sql = "SELECT ce.*
@@ -86,8 +87,8 @@ class email_certificate_task extends \core\task\scheduled_task {
             // Get the context.
             $context = \context::instance_by_id($customcert->contextid);
 
-            // Set the $PAGE context - this ensure settings, such as language, are kept and don't default to the site settings.
-            $PAGE->set_context($context);
+            // Set the $page context - this ensure settings, such as language, are kept and don't default to the site settings.
+            $page->set_context($context);
 
             // Get the person we are going to send this email on behalf of.
             $userfrom = \core_user::get_noreply_user();
