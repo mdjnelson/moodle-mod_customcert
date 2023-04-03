@@ -75,6 +75,8 @@ class template {
         $savedata->timemodified = time();
 
         $DB->update_record('customcert_templates', $savedata);
+
+        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
     }
 
     /**
@@ -105,7 +107,17 @@ class template {
         $page->timemodified = $page->timecreated;
 
         // Insert the page.
-        return $DB->insert_record('customcert_pages', $page);
+        $page = $DB->insert_record('customcert_pages', $page);
+
+        if ($sequence === 1) {
+            // Page == 1: Trigger 'created' event
+            \mod_customcert\event\template_created::create_from_template($this)->trigger();
+        } else {
+            // Page > 1: Trigger 'updated' event
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
+
+        return $page;
     }
 
     /**
@@ -178,6 +190,8 @@ class template {
             return false;
         }
 
+        \mod_customcert\event\template_deleted::create_from_template($this)->trigger();
+
         return true;
     }
 
@@ -215,6 +229,8 @@ class template {
                  WHERE templateid = :templateid
                    AND sequence > :sequence";
         $DB->execute($sql, array('templateid' => $this->id, 'sequence' => $page->sequence));
+
+        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
     }
 
     /**
@@ -243,6 +259,8 @@ class template {
                  WHERE pageid = :pageid
                    AND sequence > :sequence";
         $DB->execute($sql, array('pageid' => $element->pageid, 'sequence' => $element->sequence));
+
+        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
     }
 
     /**
@@ -349,10 +367,12 @@ class template {
     /**
      * Handles copying this template into another.
      *
-     * @param int $copytotemplateid The template id to copy to
+     * @param object $copytotemplate The template instance to copy to
      */
-    public function copy_to_template($copytotemplateid) {
+    public function copy_to_template($copytotemplate) {
         global $DB;
+
+        $copytotemplateid = $copytotemplate->get_id();
 
         // Get the pages for the template, there should always be at least one page for each template.
         if ($templatepages = $DB->get_records('customcert_pages', array('templateid' => $this->id))) {
@@ -382,6 +402,15 @@ class template {
                         }
                     }
                 }
+            }
+
+            // Trigger event for template instance being copied to
+            if ($copytotemplate->get_context() == \context_system::instance()) {
+                // If CONTEXT_SYSTEM we're creating a new template
+                \mod_customcert\event\template_created::create_from_template($copytotemplate)->trigger();
+            } else {
+                // Otherwise we're loading template in a course module instance
+                \mod_customcert\event\template_updated::create_from_template($copytotemplate)->trigger();
             }
         }
     }
@@ -425,6 +454,8 @@ class template {
         if ($moveitem && !empty($swapitem)) {
             $DB->set_field($table, 'sequence', $swapitem->sequence, array('id' => $moveitem->id));
             $DB->set_field($table, 'sequence', $moveitem->sequence, array('id' => $swapitem->id));
+
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
         }
     }
 
