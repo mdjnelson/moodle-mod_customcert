@@ -201,8 +201,10 @@ if ($data = $mform->get_data()) {
         }
     }
 
-    // Save any data for the template.
-    $template->save($data);
+    if ($tid) {
+        // Save any data for the template.
+        $template->save($data);
+    }
 
     // Save any page data.
     $template->save_page($data);
