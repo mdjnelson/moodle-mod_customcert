@@ -273,7 +273,7 @@ class template {
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
 
             // I want to have my digital diplomas without having to change my preferred language.
-            $userlang = $USER->lang;
+            $userlang = $USER->lang ?? current_language();
             $forcelang = mod_customcert_force_current_language($customcert->language);
             if (!empty($forcelang)) {
                 // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
