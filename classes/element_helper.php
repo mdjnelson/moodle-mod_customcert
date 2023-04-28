@@ -434,9 +434,10 @@ class element_helper {
     /**
      * Return the list of possible elements to add.
      *
+     * @param boolean $skipbackground whether to skip the background image
      * @return array the list of element types that can be used.
      */
-    public static function get_available_element_types() {
+    public static function get_available_element_types(bool $skipbackground = false) {
         global $CFG;
 
         // Array to store the element types.
@@ -449,8 +450,9 @@ class element_helper {
             $elementfolders = new \DirectoryIterator($elementdir);
             // Loop through the elements folder.
             foreach ($elementfolders as $elementfolder) {
-                // If it is not a directory or it is '.' or '..', skip it.
-                if (!$elementfolder->isDir() || $elementfolder->isDot()) {
+                // If it is not a directory or it is '.' or '..', or skip background, skip it.
+                if (!$elementfolder->isDir() || $elementfolder->isDot()
+                    || (substr($elementfolder->getPathname(), -7) === 'bgimage' && $skipbackground)) {
                     continue;
                 }
                 // Check that the standard class exists, if not we do

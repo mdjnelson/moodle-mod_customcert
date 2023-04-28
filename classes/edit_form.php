@@ -241,6 +241,7 @@ class edit_form extends \moodleform {
         $mform->addHelpButton('pagerightmargin_' . $page->id, 'rightmargin', 'customcert');
 
         // Check if there are elements to add.
+        $hasbackground = false;
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
             // Get the total number of elements.
             $numelements = count($elements);
@@ -257,6 +258,9 @@ class edit_form extends \moodleform {
                 $row = new \html_table_row();
                 $row->cells[] = $OUTPUT->render($elementname);
                 $row->cells[] = $element->element;
+                if (!$hasbackground && $element->element === 'bgimage') {
+                    $hasbackground = true;
+                }
                 // Link to edit this element.
                 $link = new \moodle_url($editelementlink, $editelementlinkparams + array('id' => $element->id,
                     'action' => 'edit'));
@@ -297,7 +301,7 @@ class edit_form extends \moodleform {
         }
 
         $group = array();
-        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element_helper::get_available_element_types());
+        $group[] = $mform->createElement('select', 'element_' . $page->id, '', element_helper::get_available_element_types($hasbackground));
         $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'),
             array(), false);
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
