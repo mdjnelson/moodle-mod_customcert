@@ -130,6 +130,8 @@ class email_certificate_task_test extends advanced_testcase {
     public function test_email_certificates_students() {
         global $CFG, $DB;
 
+        \core\cron::setup_user()
+
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
