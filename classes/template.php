@@ -252,6 +252,7 @@ class template {
      * @param int $userid the id of the user whose certificate we want to view
      * @param bool $return Do we want to return the contents of the PDF?
      * @return string|void Can return the PDF in string format if specified.
+     * @param stdClass $user
      */
     public function generate_pdf(bool $preview = false, int $userid = null, bool $return = false) {
         global $CFG, $DB, $USER;
@@ -273,7 +274,13 @@ class template {
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
 
             // I want to have my digital diplomas without having to change my preferred language.
-            $userlang = $USER->lang;
+            if (!empty($USER->lang)) {
+                $userlang = $USER->lang;
+                } else if (isset($CFG->lang)) {
+                $userlang = $CFG->lang;
+                } else {
+                $userlang = 'en';
+                }
             $forcelang = mod_customcert_force_current_language($customcert->language);
             if (!empty($forcelang)) {
                 // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.

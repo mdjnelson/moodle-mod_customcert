@@ -444,7 +444,13 @@ function mod_customcert_force_current_language($language): bool {
     }
 
     $activelangs = get_string_manager()->get_list_of_translations();
-    $userlang = $USER->lang;
+    if (!empty($USER->lang)) {
+        $userlang = $USER->lang;
+        } else if (isset($CFG->lang)) {
+        $userlang = $CFG->lang;
+        } else {
+        $userlang = 'en';
+    }
 
     if (array_key_exists($language, $activelangs) && $language != $userlang) {
         force_current_language($language);
