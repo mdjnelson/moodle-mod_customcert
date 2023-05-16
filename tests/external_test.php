@@ -92,6 +92,7 @@ class external_test extends advanced_testcase {
 
     /**
      * Test the delete_issue web service.
+     * @runTestsInSeparateProcesses
      */
     public function test_delete_issue_no_login() {
         global $DB;
