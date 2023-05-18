@@ -4,12 +4,23 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.2.1] - 2023-05-18
+
+### Fixed
+
+- Fix course settings error on single activity format (#544).
+- Fix deprecated usage of rendering primary buttons (#555).
+- Fix usage of deprecated `cron_setup_user` function (#547).
+
 ## [4.0.3] - 2023-02-07
 
 ### Added
+
 - You can now optionally force the language of a certificate (#532).
 
 ## [4.0.2] - 2023-01-26
+
+### Fixed
 
 - Fix problem repositioning elements (#500).
 
