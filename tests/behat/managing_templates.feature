@@ -21,7 +21,6 @@ Feature: Being able to manage site templates
 
   Scenario: Adding a site template and loading it into a course certificate
     And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
     And I click on "Settings" "link" in the "Custom certificate" "table_row"
     And I follow "Manage templates"
     And I press "Create template"
@@ -44,13 +43,13 @@ Feature: Being able to manage site templates
     And I follow "Custom certificate 1"
     And I navigate to "Edit certificate" in current page administration
     And I set the field "ltid" to "Site template"
-    And I click on "Load" "button" in the "#loadtemplateform" "css_element"
-    And I should see "Are you sure you wish to load this template"
+    And I click on "#id_loadtemplatesubmit" "css_element" in the "#loadtemplateform" "css_element"
+    And I should see "Are you sure you wish to load this template?"
     And I press "Cancel"
     And "elementstable" "table" should not exist
     And I set the field "ltid" to "Site template"
-    And I click on "Load" "button" in the "#loadtemplateform" "css_element"
-    And I should see "Are you sure you wish to load this template"
+    And I click on "#id_loadtemplatesubmit" "css_element" in the "#loadtemplateform" "css_element"
+    And I should see "Are you sure you wish to load this template?"
     And I press "Continue"
     And I should see "Border" in the "elementstable" "table"
     And I should see "Category name" in the "elementstable" "table"
@@ -69,7 +68,6 @@ Feature: Being able to manage site templates
 
   Scenario: Deleting a site template
     And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
     And I click on "Settings" "link" in the "Custom certificate" "table_row"
     And I follow "Manage templates"
     And I press "Create template"
@@ -85,7 +83,6 @@ Feature: Being able to manage site templates
 
   Scenario: Duplicating a site template
     And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
     And I click on "Settings" "link" in the "Custom certificate" "table_row"
     And I follow "Manage templates"
     And I press "Create template"

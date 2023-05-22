@@ -19,7 +19,7 @@ Feature: Being able to correctly display options on the certificate activity edi
     And I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I follow "Custom certificate 1"
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     And I should see "Email students"
     And I should see "Email teachers"
     And I should see "Email others"
@@ -63,7 +63,7 @@ Feature: Being able to correctly display options on the certificate activity edi
     When I log in as "teacher1"
     And I am on "Course 1" course homepage with editing mode on
     And I follow "Custom certificate 1"
-    And I navigate to "Edit settings" in current page administration
+    And I navigate to "Settings" in current page administration
     And I should not see "Email students"
     And I should not see "Email teachers"
     And I should not see "Email others"

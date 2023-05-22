@@ -30,7 +30,6 @@ Feature: Being able to set a site setting to determine whether or not to display
   Scenario: Adding an element with the show position X and Y setting enabled
     And I log in as "admin"
     And I navigate to "Plugins" in site administration
-    And I follow "Manage activities"
     And I click on "Settings" "link" in the "Custom certificate" "table_row"
     And I set the field "Show position X and Y" to "1"
     And I press "Save changes"

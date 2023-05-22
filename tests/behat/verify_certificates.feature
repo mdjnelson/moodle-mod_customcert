@@ -39,7 +39,7 @@ Feature: Being able to verify that a certificate is valid or not
   Scenario: Attempt to verify a certificate as a non-user
     And I visit the verification url for the "Custom certificate 1" certificate
     # User should get redirected to log in as we do not allow non-users to verify.
-    And I should see "Remember username"
+    And I should see "Lost password?"
 
   Scenario: Verify a certificate as a non-user
     And I log in as "student1"
