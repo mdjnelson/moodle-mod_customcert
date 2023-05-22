@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [4.2.1] - 2023-05-18
+## [4.2.1] - 2023-05-22
 
 ### Fixed
 
 - Fix course settings error on single activity format (#544).
 - Fix deprecated usage of rendering primary buttons (#555).
 - Fix usage of deprecated `cron_setup_user` function (#547).
+- Fix broken webservice functions used by the mobile app.
 
 ## [4.0.3] - 2023-02-07
 
