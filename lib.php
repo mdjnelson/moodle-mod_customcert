@@ -427,7 +427,8 @@ function mod_customcert_get_fontawesome_icon_map() {
 
 /**
  * Force custom language for current session.
- * @param $language
+ *
+ * @param string $language
  * @return bool
  */
 function mod_customcert_force_current_language($language): bool {
