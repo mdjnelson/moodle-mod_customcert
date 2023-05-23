@@ -258,17 +258,12 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  */
 function customcert_supports($feature) {
     switch ($feature) {
-        case FEATURE_GROUPS:
-            return true;
         case FEATURE_GROUPINGS:
-            return true;
         case FEATURE_MOD_INTRO:
-            return true;
         case FEATURE_SHOW_DESCRIPTION:
-            return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
-            return true;
         case FEATURE_BACKUP_MOODLE2:
+        case FEATURE_GROUPS:
             return true;
         default:
             return null;
