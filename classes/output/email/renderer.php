@@ -24,8 +24,6 @@
 
 namespace mod_customcert\output\email;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Email certificate as html renderer.
  *

@@ -29,8 +29,6 @@ use context_module;
 use context_system;
 use mod_customcert\privacy\provider;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy provider tests class.
  *

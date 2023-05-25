@@ -25,8 +25,6 @@
 
 namespace customcertelement_coursefield;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element coursefield's core interaction API.
  *

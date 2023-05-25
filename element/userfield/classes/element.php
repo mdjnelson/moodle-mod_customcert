@@ -26,8 +26,6 @@ namespace customcertelement_userfield;
 
 use core_user\fields;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element userfield's core interaction API.
  *

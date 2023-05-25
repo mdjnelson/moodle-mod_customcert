@@ -24,8 +24,6 @@
 
 namespace mod_customcert\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Mobile output class for the custom certificate.
  *

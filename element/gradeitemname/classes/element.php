@@ -24,8 +24,6 @@
 
 namespace customcertelement_gradeitemname;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element gradeitemname's core interaction API.
  *

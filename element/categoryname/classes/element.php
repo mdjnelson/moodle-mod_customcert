@@ -24,8 +24,6 @@
 
 namespace customcertelement_categoryname;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element categoryname's core interaction API.
  *

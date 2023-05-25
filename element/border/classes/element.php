@@ -24,8 +24,6 @@
 
 namespace customcertelement_border;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element border's core interaction API.
  *

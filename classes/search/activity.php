@@ -24,8 +24,6 @@
 
 namespace mod_customcert\search;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Search area for mod_customcert activities.
  *

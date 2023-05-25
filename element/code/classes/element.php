@@ -24,8 +24,6 @@
 
 namespace customcertelement_code;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element code's core interaction API.
  *
