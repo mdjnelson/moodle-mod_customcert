@@ -24,8 +24,6 @@
 
 namespace customcertelement_image;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element image's core interaction API.
  *
