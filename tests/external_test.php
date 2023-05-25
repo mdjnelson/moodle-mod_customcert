@@ -28,8 +28,6 @@ namespace mod_customcert;
 use external_api;
 use advanced_testcase;
 
-global $CFG;
-
 /**
  * Unit tests for the webservices.
  *
