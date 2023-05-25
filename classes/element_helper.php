@@ -76,7 +76,7 @@ class element_helper {
         $actualwidth = $pdf->GetStringWidth($content);
         $alignment = $element->get_alignment();
 
-        if ($w and $w < $actualwidth) {
+        if ($w && $w < $actualwidth) {
             $actualwidth = $w;
         }
 
