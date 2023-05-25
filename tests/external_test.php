@@ -28,8 +28,6 @@ namespace mod_customcert;
 use external_api;
 use advanced_testcase;
 
-defined('MOODLE_INTERNAL') || die();
-
 global $CFG;
 
 /**
