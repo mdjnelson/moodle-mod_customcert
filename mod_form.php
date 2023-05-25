@@ -111,7 +111,7 @@ class mod_customcert_mod_form extends moodleform_mod {
             $mform->setType('protection_modify', PARAM_BOOL);
             $mform->setType('protection_copy', PARAM_BOOL);
         }
-        
+
         // Create an element for language selector.
         if (has_capability('mod/customcert:managelanguages', $this->get_context())) {
             $languages = get_string_manager()->get_list_of_translations();
