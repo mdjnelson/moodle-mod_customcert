@@ -29,8 +29,6 @@ use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * This is the external API for this tool.
  *
