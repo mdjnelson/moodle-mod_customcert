@@ -24,8 +24,6 @@
 
 namespace customcertelement_bgimage;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element background image's core interaction API.
  *

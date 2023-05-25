@@ -25,8 +25,6 @@ namespace mod_customcert\plugininfo;
 
 use core\plugininfo\base;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Subplugin info class.
  *

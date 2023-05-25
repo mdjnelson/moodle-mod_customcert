@@ -25,8 +25,6 @@ namespace mod_customcert\task;
 
 use mod_customcert\helper;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * A scheduled task for emailing certificates.
  *

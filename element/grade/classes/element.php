@@ -24,8 +24,6 @@
 
 namespace customcertelement_grade;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Grade - Course
  */

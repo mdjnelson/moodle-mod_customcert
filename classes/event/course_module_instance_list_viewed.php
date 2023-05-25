@@ -24,8 +24,6 @@
 
 namespace mod_customcert\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The course module instance list viewed event class.
  *

@@ -30,8 +30,6 @@ use context_course;
 use advanced_testcase;
 use mod_customcert\task\email_certificate_task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for the email certificate task.
  *

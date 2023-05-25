@@ -24,8 +24,6 @@
 
 namespace customcertelement_digitalsignature;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element digital signature's core interaction API.
  *

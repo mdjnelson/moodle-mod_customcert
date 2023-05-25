@@ -24,8 +24,6 @@
 
 namespace customcertelement_gradeitemname\privacy;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem for customcertelement_gradeitemname implementing null_provider.
  *
