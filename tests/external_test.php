@@ -28,8 +28,6 @@ namespace mod_customcert;
 use core_external\external_api;
 use advanced_testcase;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Unit tests for the webservices.
  *
