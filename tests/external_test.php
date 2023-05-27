@@ -48,7 +48,7 @@ class external_test extends advanced_testcase {
     /**
      * Test the delete_issue web service.
      *
-     * @covers external::delete_issue
+     * @covers \external::delete_issue
      */
     public function test_delete_issue() {
         global $DB;
@@ -90,7 +90,7 @@ class external_test extends advanced_testcase {
     /**
      * Test the delete_issue web service.
      *
-     * @covers external::delete_issue
+     * @covers \external::delete_issue
      */
     public function test_delete_issue_no_login() {
         global $DB;
@@ -123,7 +123,7 @@ class external_test extends advanced_testcase {
     /**
      * Test the delete_issue web service.
      *
-     * @covers external::delete_issue
+     * @covers \external::delete_issue
      */
     public function test_delete_issue_no_capability() {
         global $DB;
