@@ -92,7 +92,7 @@ class lib_test extends advanced_testcase {
      * @return bool
      */
     private function install_languagues(): bool {
-        core_php_time_limit::raise();
+        \core_php_time_limit::raise();
 
         $langcodes = [
             'es' => 'es_mx',
