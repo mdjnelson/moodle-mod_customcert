@@ -50,6 +50,8 @@ class lib_test extends advanced_testcase {
 
     /**
      * Tests force custom language for current session.
+     *
+     * @covers ::mod_customcert_force_current_language
      */
     public function test_mod_customcert_force_current_language() {
         global $USER;
