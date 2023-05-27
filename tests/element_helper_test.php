@@ -54,6 +54,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course id for an element in a course customcert activity.
+     *
+     * @covers element_helper::get_courseid
      */
     public function test_get_courseid_element_in_course_certificate() {
         global $DB;
@@ -86,6 +88,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course id for an element in a site template.
+     *
+     * @covers element_helper::get_courseid
      */
     public function test_get_courseid_element_in_site_template() {
         global $DB, $SITE;
@@ -111,6 +115,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course module id for an element in a course customcert activity.
+     *
+     * @covers element_helper::get_context
      */
     public function test_get_context_element_in_course_certificate() {
         global $DB;
@@ -144,6 +150,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course module id for an element in a site template.
+     *
+     * @covers element_helper::get_context
      */
     public function test_get_context_element_in_site_template() {
         global $DB;
@@ -169,6 +177,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade items in a course.
+     *
+     * @covers element_helper::get_grade_items
      */
     public function test_get_grade_items() {
         global $DB;
@@ -210,6 +220,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for an activity.
+     *
+     * @covers element_helper::get_mod_grade_info
      */
     public function test_get_mod_grade_info() {
         // Create a course.
@@ -279,6 +291,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for a course.
+     *
+     * @covers element_helper::get_course_grade_info
      */
     public function test_get_course_grade_info() {
         // Create a course.
@@ -339,6 +353,8 @@ class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for a grade item.
+     *
+     * @covers element_helper::get_grade_item_info
      */
     public function test_get_grade_item_info() {
         // Create a course.
