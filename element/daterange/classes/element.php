@@ -210,7 +210,9 @@ class element extends \mod_customcert\element {
      * @return \stdClass
      */
     protected function get_decoded_data() {
-        return json_decode($this->get_data());
+        if ($this->get_data()) {
+            return json_decode($this->get_data());
+        }
     }
 
     /**
