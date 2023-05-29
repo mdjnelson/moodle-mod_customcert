@@ -263,14 +263,30 @@ class element_helper {
      * Helper function to perform validation on the width element.
      *
      * @param array $data the submitted data
+     * @param bool $allowzero allow zero as a valid value
      * @return array the validation errors
      */
-    public static function validate_form_element_width($data) {
-        $errors = array();
+    public static function validate_form_element_width($data, bool $allowzero = true) {
+        $errors = [];
+
+        // If there is no width element no validation is needed.
+        if (!isset($data['width'])) {
+            return [];
+        }
 
         // Check if width is less than 0.
-        if (isset($data['width']) && $data['width'] < 0) {
+        if (!is_numeric($data['width'])) {
             $errors['width'] = get_string('invalidelementwidth', 'customcert');
+        } else {
+            if ($allowzero) {
+                if ($data['width'] < 0) {
+                    $errors['width'] = get_string('invalidelementwidth', 'customcert');
+                }
+            } else {
+                if ($data['width'] <= 0) {
+                    $errors['width'] = get_string('invalidelementwidth', 'customcert');
+                }
+            }
         }
 
         return $errors;
