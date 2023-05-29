@@ -80,7 +80,7 @@ $string['elements_help'] = 'This is the list of elements that will be displayed 
 
 Please note: The elements are rendered in this order. The order can be changed by using the arrows next to each element.';
 $string['elementwidth'] = 'Width';
-$string['elementwidth_help'] = 'Specify the width of the element - \'0\' means that there is no width constraint.';
+$string['elementwidth_help'] = 'Specify the width of the element. If \'0\' is allowed then there is no width constraint.';
 $string['emailnonstudentbody'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentbodyplaintext'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentcertificatelinktext'] = 'View certificate report';
