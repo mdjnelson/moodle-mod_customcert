@@ -40,9 +40,7 @@ class element extends \mod_customcert\element {
      */
     public function render_form_elements($mform) {
         // We want to define the width of the border.
-        $mform->addElement('text', 'width', get_string('width', 'customcertelement_border'), array('size' => 10));
-        $mform->setType('width', PARAM_INT);
-        $mform->addHelpButton('width', 'width', 'customcertelement_border');
+        \mod_customcert\element_helper::render_form_element_width($mform);
 
         // The only other thing to define is the colour we want the border to be.
         \mod_customcert\element_helper::render_form_element_colour($mform);
@@ -87,10 +85,8 @@ class element extends \mod_customcert\element {
         // Array to return the errors.
         $errors = array();
 
-        // Check if width is not set, or not numeric or less than 0.
-        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] <= 0)) {
-            $errors['width'] = get_string('invalidwidth', 'customcertelement_border');
-        }
+        // Validate the width.
+        $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);
 
         // Validate the colour.
         $errors += \mod_customcert\element_helper::validate_form_element_colour($data);

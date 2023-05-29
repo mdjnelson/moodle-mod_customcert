@@ -76,15 +76,11 @@ class element extends \mod_customcert\element {
             $errors['height'] = get_string('invalidheight', 'mod_customcert');
         }
 
-        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] <= 0)) {
-            $errors['width'] = get_string('invalidwidth', 'mod_customcert');
-        }
+        $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);
 
         if ($this->showposxy) {
             $errors += \mod_customcert\element_helper::validate_form_element_position($data);
         }
-
-        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
         return $errors;
     }

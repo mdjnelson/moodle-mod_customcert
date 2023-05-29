@@ -26,5 +26,3 @@ $string['height'] = 'Height';
 $string['height_help'] = 'Height help';
 $string['pluginname'] = 'QR code';
 $string['privacy:metadata'] = 'The QR code plugin does not store any personal data.';
-$string['width'] = 'Width';
-$string['width_help'] = 'width help';

@@ -39,10 +39,7 @@ class element extends \mod_customcert\element {
      * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        $mform->addElement('text', 'width', get_string('width', 'customcertelement_userpicture'), array('size' => 10));
-        $mform->setType('width', PARAM_INT);
-        $mform->setDefault('width', 0);
-        $mform->addHelpButton('width', 'width', 'customcertelement_userpicture');
+        \mod_customcert\element_helper::render_form_element_width($mform);
 
         $mform->addElement('text', 'height', get_string('height', 'customcertelement_userpicture'), array('size' => 10));
         $mform->setType('height', PARAM_INT);
@@ -65,10 +62,8 @@ class element extends \mod_customcert\element {
         // Array to return the errors.
         $errors = array();
 
-        // Check if width is not set, or not numeric or less than 0.
-        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] < 0)) {
-            $errors['width'] = get_string('invalidwidth', 'customcertelement_userpicture');
-        }
+        // Validate the width.
+        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
         // Check if height is not set, or not numeric or less than 0.
         if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
