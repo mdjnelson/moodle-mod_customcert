@@ -50,10 +50,7 @@ class element extends \mod_customcert\element {
     public function render_form_elements($mform) {
         \mod_customcert\element_helper::render_form_element_width($mform);
 
-        $mform->addElement('text', 'height', get_string('height', 'customcertelement_qrcode'), array('size' => 10));
-        $mform->setType('height', PARAM_INT);
-        $mform->setDefault('height', 0);
-        $mform->addHelpButton('height', 'height', 'customcertelement_qrcode');
+        \mod_customcert\element_helper::render_form_element_height($mform);
 
         if ($this->showposxy) {
             \mod_customcert\element_helper::render_form_element_position($mform);
@@ -71,12 +68,11 @@ class element extends \mod_customcert\element {
         // Array to return the errors.
         $errors = [];
 
-        // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] <= 0)) {
-            $errors['height'] = get_string('invalidheight', 'mod_customcert');
-        }
-
+        // Validate the width.
         $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);
+
+        // Validate the height.
+        $errors += \mod_customcert\element_helper::validate_form_element_height($data, false);
 
         if ($this->showposxy) {
             $errors += \mod_customcert\element_helper::validate_form_element_position($data);
