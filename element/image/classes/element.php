@@ -65,10 +65,7 @@ class element extends \mod_customcert\element {
 
         \mod_customcert\element_helper::render_form_element_width($mform);
 
-        $mform->addElement('text', 'height', get_string('height', 'customcertelement_image'), array('size' => 10));
-        $mform->setType('height', PARAM_INT);
-        $mform->setDefault('height', 0);
-        $mform->addHelpButton('height', 'height', 'customcertelement_image');
+        \mod_customcert\element_helper::render_form_element_height($mform);
 
         $alphachannelvalues = [
             '0' => 0,
@@ -110,10 +107,8 @@ class element extends \mod_customcert\element {
         // Validate the width.
         $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
-        // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
-            $errors['height'] = get_string('invalidheight', 'customcertelement_image');
-        }
+        // Validate the height.
+        $errors += \mod_customcert\element_helper::validate_form_element_height($data, false);
 
         // Validate the position.
         if (get_config('customcert', 'showposxy')) {
