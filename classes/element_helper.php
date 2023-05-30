@@ -288,15 +288,15 @@ class element_helper {
 
         // Check if width is less than 0.
         if (!is_numeric($data['width'])) {
-            $errors['width'] = get_string('invalidelementwidth', 'customcert');
+            $errors['width'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
             if ($allowzero) {
                 if ($data['width'] < 0) {
-                    $errors['width'] = get_string('invalidelementwidth', 'customcert');
+                    $errors['width'] = get_string('invalidelementwidthorheightzeroallowed', 'customcert');
                 }
             } else {
                 if ($data['width'] <= 0) {
-                    $errors['width'] = get_string('invalidelementwidth', 'customcert');
+                    $errors['width'] = get_string('invalidelementwidthorheightzeronotallowed', 'customcert');
                 }
             }
         }
@@ -321,15 +321,15 @@ class element_helper {
 
         // Check if height is less than 0.
         if (!is_numeric($data['height'])) {
-            $errors['height'] = get_string('invalidelementheight', 'customcert');
+            $errors['height'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
             if ($allowzero) {
                 if ($data['height'] < 0) {
-                    $errors['height'] = get_string('invalidelementheight', 'customcert');
+                    $errors['height'] = get_string('invalidelementwidthorheightzeroallowed', 'customcert');
                 }
             } else {
                 if ($data['height'] <= 0) {
-                    $errors['height'] = get_string('invalidelementheight', 'customcert');
+                    $errors['height'] = get_string('invalidelementwidthorheightzeronotallowed', 'customcert');
                 }
             }
         }
