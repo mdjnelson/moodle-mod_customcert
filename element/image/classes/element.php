@@ -108,7 +108,7 @@ class element extends \mod_customcert\element {
         $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
         // Validate the height.
-        $errors += \mod_customcert\element_helper::validate_form_element_height($data, false);
+        $errors += \mod_customcert\element_helper::validate_form_element_height($data);
 
         // Validate the position.
         if (get_config('customcert', 'showposxy')) {
