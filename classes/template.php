@@ -273,7 +273,7 @@ class template {
             // I want to have my digital diplomas without having to change my preferred language.
             $userlang = $USER->lang ?? current_language();
     
-            // Check $customcert ($customcert is false when preview from mod/customcert/manage_templates.php)
+            // Check $customcert ($customcert is false when preview from mod/customcert/manage_templates.php).
             if ($customcert) {
                 $forcelang = mod_customcert_force_current_language($customcert->language);
                 if (!empty($forcelang)) {
@@ -335,7 +335,7 @@ class template {
                 }
             }
 
-            // Checkck $customcert ($customcert is false when preview from mod/customcert/manage_templates.php)
+            // Checkck $customcert ($customcert is false when preview from mod/customcert/manage_templates.php).
             if ($customcert) {
                 // We restore original language.
                 if ($userlang != $customcert->language) {
