@@ -62,7 +62,7 @@ class template_deleted extends \core\event\base {
     /**
      * {@inheritdoc}
      *
-     * @return string[]
+     * @return string
      */
     public static function get_name() {
         return get_string('eventtemplatedeleted', 'customcert');
