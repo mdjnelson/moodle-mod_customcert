@@ -62,7 +62,7 @@ class template_created extends \core\event\base {
     /**
      * {@inheritdoc}
      *
-     * @return string[]
+     * @return string
      */
     public static function get_name() {
         return get_string('eventtemplatecreated', 'customcert');
