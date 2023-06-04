@@ -18,7 +18,7 @@
  * Certificate template created event.
  *
  * @package   mod_customcert
- * @copyright 2017 Mark Nelson <markn@moodle.com>
+ * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +30,7 @@ use mod_customcert\template;
  * Certificate template created event class.
  *
  * @package   mod_customcert
- * @copyright 2017 Mark Nelson <markn@moodle.com>
+ * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_created extends \core\event\base {
