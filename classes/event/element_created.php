@@ -24,8 +24,6 @@
 
 namespace mod_customcert\event;
 
-use mod_customcert\template;
-
 /**
  * Certificate template element created event class.
  *
@@ -52,11 +50,11 @@ class element_created extends \core\event\base {
     public function get_description() {
         if ($this->contextlevel == \context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
-            return "The user with id '$this->userid' created an element in the certificate template with id '$this->objectid'.";
+            return "The user with id '$this->userid' created an element with id '$this->objectid'.";
         } else {
             // Else assume it's a module instance in a course.
-            return "The user with id '$this->userid' created an element in the certificate in course module " .
-                "'$this->contextinstanceid'.";
+            return "The user with id '$this->userid' created an element with id '$this->objectid' in the certificate " .
+                "in course module '$this->contextinstanceid'.";
         }
     }
 
