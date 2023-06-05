@@ -415,12 +415,12 @@ class template {
                 }
             }
 
-            // Trigger event for template instance being copied to
+            // Trigger event for template instance being copied to.
             if ($copytotemplate->get_context() == \context_system::instance()) {
-                // If CONTEXT_SYSTEM we're creating a new template
+                // If CONTEXT_SYSTEM we're creating a new template.
                 \mod_customcert\event\template_created::create_from_template($copytotemplate)->trigger();
             } else {
-                // Otherwise we're loading template in a course module instance
+                // Otherwise we're loading template in a course module instance.
                 \mod_customcert\event\template_updated::create_from_template($copytotemplate)->trigger();
             }
         }
