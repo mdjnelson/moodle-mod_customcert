@@ -88,6 +88,7 @@ if ($data = $mform->get_data()) {
     // Set the id, or page id depending on if we are editing an element, or adding a new one.
     if ($action == 'edit') {
         $data->id = $id;
+        $data->pageid = $element->pageid;
     } else {
         $data->pageid = $pageid;
     }
