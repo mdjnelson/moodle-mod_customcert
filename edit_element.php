@@ -97,11 +97,8 @@ if ($data = $mform->get_data()) {
     if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
         $e->save_form_elements($data);
 
-        // Trigger updated event
-        $params = array('context' => $template->get_context(),
-                    'objectid' => $template->get_id());
-        $event = \mod_customcert\event\template_updated::create($params);
-        $event->trigger();
+        // Trigger updated event.
+        \mod_customcert\event\template_updated::create_from_template($template)->trigger();
     }
 
     $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
