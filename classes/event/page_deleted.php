@@ -72,6 +72,7 @@ class page_deleted extends \core\event\base {
     /**
      * Create instance of event.
      *
+     * @param \stdClass $page
      * @param template $template
      * @return page_deleted
      */

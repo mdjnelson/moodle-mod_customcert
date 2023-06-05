@@ -72,6 +72,7 @@ class page_created extends \core\event\base {
     /**
      * Create instance of event.
      *
+     * @param \stdClass $page
      * @param template $template
      * @return page_created
      */
