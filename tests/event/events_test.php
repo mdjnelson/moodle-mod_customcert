@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains the event tests for the module assign.
+ * Contains the event tests for the module customcert.
  *
- * @package   mod_assign
+ * @package   mod_customcert
  * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,9 +25,9 @@
 namespace mod_customcert\event;
 
 /**
- * Contains the event tests for the module assign.
+ * Contains the event tests for the module customcert.
  *
- * @package   mod_assign
+ * @package   mod_customcert
  * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
