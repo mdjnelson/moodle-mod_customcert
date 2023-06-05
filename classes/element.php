@@ -372,13 +372,22 @@ abstract class element {
         // Check if we are updating, or inserting a new element.
         if (!empty($this->id)) { // Must be updating a record in the database.
             $element->id = $this->id;
-            return $DB->update_record('customcert_elements', $element);
+            $return = $DB->update_record('customcert_elements', $element);
+
+            \mod_customcert\event\element_updated::create_from_element($this)->trigger();
+
+            return $return;
         } else { // Must be adding a new one.
             $element->element = $data->element;
             $element->pageid = $data->pageid;
             $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
             $element->timecreated = time();
-            return $DB->insert_record('customcert_elements', $element, false);
+            $element->id = $DB->insert_record('customcert_elements', $element, true);
+            $this->id = $element->id;
+
+            \mod_customcert\event\element_created::create_from_element($this)->trigger();
+
+            return $element->id;
         }
     }
 
@@ -447,7 +456,11 @@ abstract class element {
     public function delete() {
         global $DB;
 
-        return $DB->delete_records('customcert_elements', array('id' => $this->id));
+        $return = $DB->delete_records('customcert_elements', array('id' => $this->id));
+
+        \mod_customcert\event\element_deleted::create_from_element($this)->trigger();
+
+        return $return;
     }
 
     /**
