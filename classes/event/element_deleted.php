@@ -15,33 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Certificate template created event.
+ * Certificate template element deleted event.
  *
  * @package   mod_customcert
- * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
+ * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace mod_customcert\event;
 
-use mod_customcert\template;
-
 /**
- * Certificate template created event class.
+ * Certificate template element deleted event class.
  *
  * @package   mod_customcert
- * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
+ * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class template_created extends \core\event\base {
+class element_deleted extends \core\event\base {
 
     /**
      * Initialises the event.
      */
     protected function init() {
-        $this->data['crud'] = 'c';
+        $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'customcert_templates';
+        $this->data['objecttable'] = 'customcert_elements';
     }
 
     /**
@@ -65,19 +63,24 @@ class template_created extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventtemplatecreated', 'customcert');
+        return get_string('eventelementdeleted', 'customcert');
     }
 
     /**
      * Create instance of event.
      *
-     * @param template $template
-     * @return template_created
+     * @param \mod_customcert\element $element
+     * @return element_deleted
      */
-    public static function create_from_template(template $template) : template_created {
+    public static function create_from_element(\mod_customcert\element $element) : element_deleted {
+        global $DB;
+
+        $page = $DB->get_record('customcert_pages', ['id' => $element->get_pageid()]);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid]);
+
         $data = array(
-            'context' => $template->get_context(),
-            'objectid' => $template->get_id(),
+            'contextid' => $template->contextid,
+            'objectid' => $element->get_id(),
         );
 
         return self::create($data);
@@ -92,7 +95,7 @@ class template_created extends \core\event\base {
             return new \moodle_url('/mod/customcert/manage_templates.php');
         } else {
             return new \moodle_url('/mod/customcert/view.php',
-                    array('id' => $this->contextinstanceid));
+                array('id' => $this->contextinstanceid));
         }
     }
 
@@ -102,7 +105,7 @@ class template_created extends \core\event\base {
      * @return string[]
      */
     public static function get_objectid_mapping() {
-        return array('db' => 'customcert_templates', 'restore' => 'customcert_templates');
+        return array('db' => 'customcert_elements', 'restore' => 'customcert_elements');
     }
 
     /**

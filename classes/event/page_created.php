@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Certificate template created event.
+ * Certificate template page created event.
  *
  * @package   mod_customcert
- * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
+ * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,13 +27,13 @@ namespace mod_customcert\event;
 use mod_customcert\template;
 
 /**
- * Certificate template created event class.
+ * Certificate template page created event class.
  *
  * @package   mod_customcert
- * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
+ * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class template_created extends \core\event\base {
+class page_created extends \core\event\base {
 
     /**
      * Initialises the event.
@@ -41,7 +41,7 @@ class template_created extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'customcert_templates';
+        $this->data['objecttable'] = 'customcert_pages';
     }
 
     /**
@@ -52,10 +52,10 @@ class template_created extends \core\event\base {
     public function get_description() {
         if ($this->contextlevel == \context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template
-            return "The user with id '$this->userid' created the certificate template with id '$this->objectid'.";
+            return "The user with id '$this->userid' created a page in a certificate template with id '$this->objectid'.";
         } else {
             // Else assume it's a module instance in a course
-            return "The user with id '$this->userid' created the certificate in course module '$this->contextinstanceid'.";
+            return "The user with id '$this->userid' created a page in the certificate in course module '$this->contextinstanceid'.";
         }
     }
 
@@ -65,19 +65,19 @@ class template_created extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventtemplatecreated', 'customcert');
+        return get_string('eventpagecreated', 'customcert');
     }
 
     /**
      * Create instance of event.
      *
      * @param template $template
-     * @return template_created
+     * @return page_created
      */
-    public static function create_from_template(template $template) : template_created {
+    public static function create_from_page(\stdClass $page, template $template) : page_created {
         $data = array(
             'context' => $template->get_context(),
-            'objectid' => $template->get_id(),
+            'objectid' => $page->id,
         );
 
         return self::create($data);
@@ -92,7 +92,7 @@ class template_created extends \core\event\base {
             return new \moodle_url('/mod/customcert/manage_templates.php');
         } else {
             return new \moodle_url('/mod/customcert/view.php',
-                    array('id' => $this->contextinstanceid));
+                array('id' => $this->contextinstanceid));
         }
     }
 
@@ -102,7 +102,7 @@ class template_created extends \core\event\base {
      * @return string[]
      */
     public static function get_objectid_mapping() {
-        return array('db' => 'customcert_templates', 'restore' => 'customcert_templates');
+        return array('db' => 'customcert_pages', 'restore' => 'customcert_pages');
     }
 
     /**
