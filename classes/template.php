@@ -105,17 +105,14 @@ class template {
         $page->timemodified = $page->timecreated;
 
         // Insert the page.
-        $page = $DB->insert_record('customcert_pages', $page);
+        $pageid = $DB->insert_record('customcert_pages', $page);
 
-        if ($sequence === 1) {
-            // Page == 1: Trigger 'created' event
-            \mod_customcert\event\template_created::create_from_template($this)->trigger();
-        } else {
-            // Page > 1: Trigger 'updated' event
-            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
-        }
+        $page->id = $pageid;
 
-        return $page;
+        \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
+        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+
+        return $page->id;
     }
 
     /**
@@ -148,7 +145,11 @@ class template {
                 $p->timemodified = $time;
                 // Update the page.
                 $DB->update_record('customcert_pages', $p);
+
+                \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
             }
+
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
         }
     }
 
@@ -206,6 +207,8 @@ class template {
 
         // Delete this page.
         $DB->delete_records('customcert_pages', array('id' => $page->id));
+
+        \mod_customcert\event\page_deleted::create_from_page($page, $this)->trigger();
 
         // The element may have some extra tasks it needs to complete to completely delete itself.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
@@ -389,6 +392,7 @@ class template {
                 $page->timemodified = $page->timecreated;
                 // Insert into the database.
                 $page->id = $DB->insert_record('customcert_pages', $page);
+                \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
                 // Now go through the elements we want to load.
                 if ($templateelements = $DB->get_records('customcert_elements', array('pageid' => $templatepage->id))) {
                     foreach ($templateelements as $templateelement) {
@@ -403,6 +407,8 @@ class template {
                             if (!$e->copy_element($templateelement)) {
                                 // Failed to copy - delete the element.
                                 $e->delete();
+                            } else {
+                                \mod_customcert\event\element_created::create_from_element($e)->trigger();
                             }
                         }
                     }
@@ -540,6 +546,10 @@ class template {
         $template->timemodified = $template->timecreated;
         $template->id = $DB->insert_record('customcert_templates', $template);
 
-        return new \mod_customcert\template($template);
+        $template = new \mod_customcert\template($template);
+
+        \mod_customcert\event\template_created::create_from_template($template)->trigger();
+
+        return $template;
     }
 }
