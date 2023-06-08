@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [4.0.5] - 2023-06-XX
+## [4.0.5] - 2023-06-08
 
 ### Fixed
 
