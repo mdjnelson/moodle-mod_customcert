@@ -29,7 +29,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Fix course settings error on single activity format (#544).
-- Remove debugging message in the user field element which was listing Skype as a field (#478).
+- Remove debugging message caused by the user field element listing the Skype field (#478).
 
 ## [4.0.3] - 2023-02-07
 
