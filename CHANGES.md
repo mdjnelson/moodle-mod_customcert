@@ -29,6 +29,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Fix course settings error on single activity format (#544).
+- Remove debugging message caused by the user field element listing the Skype field (#478).
 - Fix deprecated usage of rendering primary buttons (#555).
 - Fix usage of deprecated `cron_setup_user` function (#547).
 - Fix broken webservice functions used by the mobile app.
