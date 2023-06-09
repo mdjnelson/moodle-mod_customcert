@@ -50,10 +50,10 @@ class element_deleted extends \core\event\base {
     public function get_description() {
         if ($this->contextlevel == \context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
-            return "The user with id '$this->userid' deleted an element with id '$this->objectid'.";
+            return "The user with id '$this->userid' deleted the element with id '$this->objectid'.";
         } else {
             // Else assume it's a module instance in a course.
-            return "The user with id '$this->userid' deleted an element with id '$this->objectid' in the certificate " .
+            return "The user with id '$this->userid' deleted the element with id '$this->objectid' in the certificate " .
                 "in course module '$this->contextinstanceid'.";
         }
     }
