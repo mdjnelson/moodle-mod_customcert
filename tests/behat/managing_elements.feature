@@ -26,6 +26,7 @@ Feature: Being able to manage elements in a certificate template
     And I follow "Custom certificate 1"
     And I navigate to "Edit certificate" in current page administration
 
+    @javascript
   Scenario: Add and edit elements in a certificate template
     # Background image.
     And I add the element "Background image" to page "1" of the "Custom certificate 1" certificate template

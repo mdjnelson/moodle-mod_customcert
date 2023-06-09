@@ -136,7 +136,7 @@ class element extends \mod_customcert\element {
         $mform->addHelpButton('fallbackstring', 'fallbackstring', 'customcertelement_daterange');
         $mform->setType('fallbackstring', PARAM_NOTAGS);
 
-        if (empty($this->get_decoded_data()->dateranges)) {
+        if (empty($this->get_data()) || empty($this->get_decoded_data()->dateranges)) {
             $repeats = 1;
         } else {
             $repeats = count($this->get_decoded_data()->dateranges);
