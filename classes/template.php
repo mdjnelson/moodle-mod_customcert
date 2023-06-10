@@ -74,15 +74,19 @@ class template {
 
         $DB->update_record('customcert_templates', $savedata);
 
-        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        // Only trigger event if the name has changed.
+        if ($savedata->name != $data->name) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
     }
 
     /**
      * Handles adding another page to the template.
      *
+     * @param bool $triggertemplateupdatedevent
      * @return int the id of the page
      */
-    public function add_page() {
+    public function add_page(bool $triggertemplateupdatedevent = true) {
         global $DB;
 
         // Set the page number to 1 to begin with.
@@ -110,7 +114,10 @@ class template {
         $page->id = $pageid;
 
         \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
-        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+
+        if ($triggertemplateupdatedevent) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
 
         return $page->id;
     }
@@ -130,26 +137,29 @@ class template {
         if ($pages = $DB->get_records('customcert_pages', array('templateid' => $data->tid))) {
             // Loop through existing pages.
             foreach ($pages as $page) {
-                // Get the name of the fields we want from the form.
-                $width = 'pagewidth_' . $page->id;
-                $height = 'pageheight_' . $page->id;
-                $leftmargin = 'pageleftmargin_' . $page->id;
-                $rightmargin = 'pagerightmargin_' . $page->id;
-                // Create the page data to update the DB with.
-                $p = new \stdClass();
-                $p->id = $page->id;
-                $p->width = $data->$width;
-                $p->height = $data->$height;
-                $p->leftmargin = $data->$leftmargin;
-                $p->rightmargin = $data->$rightmargin;
-                $p->timemodified = $time;
-                // Update the page.
-                $DB->update_record('customcert_pages', $p);
+                // Only update if there is a difference.
+                if ($this->has_page_been_updated($page, $data)) {
+                    $width = 'pagewidth_' . $page->id;
+                    $height = 'pageheight_' . $page->id;
+                    $leftmargin = 'pageleftmargin_' . $page->id;
+                    $rightmargin = 'pagerightmargin_' . $page->id;
 
-                \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
+                    $p = new \stdClass();
+                    $p->id = $page->id;
+                    $p->width = $data->$width;
+                    $p->height = $data->$height;
+                    $p->leftmargin = $data->$leftmargin;
+                    $p->rightmargin = $data->$rightmargin;
+                    $p->timemodified = $time;
+
+                    // Update the page.
+                    $DB->update_record('customcert_pages', $p);
+
+                    \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
+
+                    \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+                }
             }
-
-            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
         }
     }
 
@@ -551,5 +561,37 @@ class template {
         \mod_customcert\event\template_created::create_from_template($template)->trigger();
 
         return $template;
+    }
+
+    /**
+     * Checks if a page has been updated given form information
+     *
+     * @param $page
+     * @param $formdata
+     * @return bool
+     */
+    private function has_page_been_updated($page, $formdata): bool {
+        $width = 'pagewidth_' . $page->id;
+        $height = 'pageheight_' . $page->id;
+        $leftmargin = 'pageleftmargin_' . $page->id;
+        $rightmargin = 'pagerightmargin_' . $page->id;
+
+        if ($page->width != $formdata->$width) {
+            return true;
+        }
+
+        if ($page->height != $formdata->$height) {
+            return true;
+        }
+
+        if ($page->leftmargin != $formdata->$leftmargin) {
+            return true;
+        }
+
+        if ($page->rightmargin != $formdata->$rightmargin) {
+            return true;
+        }
+
+        return false;
     }
 }
