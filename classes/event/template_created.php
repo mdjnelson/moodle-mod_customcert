@@ -55,7 +55,8 @@ class template_created extends \core\event\base {
             return "The user with id '$this->userid' created the certificate template with id '$this->objectid'.";
         } else {
             // Else assume it's a module instance in a course.
-            return "The user with id '$this->userid' created the certificate in course module '$this->contextinstanceid'.";
+            return "The user with id '$this->userid' created the certificate template in course module "
+                . "'$this->contextinstanceid'.";
         }
     }
 
