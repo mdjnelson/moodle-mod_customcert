@@ -566,8 +566,8 @@ class template {
     /**
      * Checks if a page has been updated given form information
      *
-     * @param $page
-     * @param $formdata
+     * @param \stdClass $page
+     * @param \stdClass $formdata
      * @return bool
      */
     private function has_page_been_updated($page, $formdata): bool {
