@@ -55,7 +55,8 @@ class template_updated extends \core\event\base {
             return "The user with id '$this->userid' updated the certificate template with id '$this->objectid'.";
         } else {
             // Else assume it's a module instance in a course.
-            return "The user with id '$this->userid' updated the certificate for course module '$this->contextinstanceid'.";
+            return "The user with id '$this->userid' updated the certificate template for course module "
+                . "'$this->contextinstanceid'.";
         }
     }
 
