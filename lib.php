@@ -44,7 +44,7 @@ function customcert_add_instance($data, $mform) {
     $data->id = $DB->insert_record('customcert', $data);
 
     // Add a page to this customcert.
-    $template->add_page();
+    $template->add_page(false);
 
     return $data->id;
 }
