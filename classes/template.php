@@ -215,11 +215,6 @@ class template {
         // Get the page.
         $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
 
-        // Delete this page.
-        $DB->delete_records('customcert_pages', array('id' => $page->id));
-
-        \mod_customcert\event\page_deleted::create_from_page($page, $this)->trigger();
-
         // The element may have some extra tasks it needs to complete to completely delete itself.
         if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
             foreach ($elements as $element) {
@@ -232,6 +227,11 @@ class template {
                 }
             }
         }
+
+        // Delete this page.
+        $DB->delete_records('customcert_pages', array('id' => $page->id));
+
+        \mod_customcert\event\page_deleted::create_from_page($page, $this)->trigger();
 
         // Now we want to decrease the page number values of
         // the pages that are greater than the page we deleted.
