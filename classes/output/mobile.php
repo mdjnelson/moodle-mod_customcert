@@ -24,6 +24,8 @@
 
 namespace mod_customcert\output;
 
+require_once($CFG->libdir . '/externallib.php');
+
 /**
  * Mobile output class for the custom certificate.
  *
