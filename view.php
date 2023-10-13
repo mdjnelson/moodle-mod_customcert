@@ -30,6 +30,7 @@ $downloadall = optional_param('downloadall', 0, PARAM_INT);
 $downloadtable = optional_param('download', null, PARAM_ALPHA);
 $downloadissue = optional_param('downloadissue', 0, PARAM_INT);
 $deleteissue = optional_param('deleteissue', 0, PARAM_INT);
+$deletelocalcopy = optional_param('deletelocalcopy', 0, PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
@@ -47,6 +48,7 @@ require_capability('mod/customcert:view', $context);
 $canreceive = has_capability('mod/customcert:receiveissue', $context);
 $canmanage = has_capability('mod/customcert:manage', $context);
 $canviewreport = has_capability('mod/customcert:viewreport', $context);
+$candeletelocalcopy = has_capability('mod/customcert:deletelocalcopy', $context);
 
 // Initialise $PAGE.
 $pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
@@ -71,14 +73,20 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
             [
                 'id' => $id,
                 'deleteissue' => $deleteissue,
+                'deletelocalcopy' => $deletelocalcopy,
                 'confirm' => 1,
                 'sesskey' => sesskey(),
             ]
         );
 
         // Show a confirmation page.
-        $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
-        $message = get_string('deleteissueconfirm', 'customcert');
+        if ($deletelocalcopy) {
+            $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
+            $message = get_string('deletelocalcopyconfirm', 'customcert');
+        } else if ($deleteissue) {
+            $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
+            $message = get_string('deleteissueconfirm', 'customcert');
+        }
         echo $OUTPUT->header();
         echo $OUTPUT->heading(format_string($customcert->name));
         echo $OUTPUT->confirm($message, $yesurl, $nourl);
@@ -86,19 +94,19 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
         exit();
     }
 
-    // Delete the issue.
-    $issue = $DB->get_record('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id], '*', MUST_EXIST);
-    $DB->delete_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
+    // Always delete local copy.
+    if ($candeletelocalcopy) {
+        $issues = $DB->get_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
+        if (!empty($issues)) {
+            $lf = new \mod_customcert\localfile(new \mod_customcert\template($template));
+            array_map(fn($issue) => $lf->deletePDF($issue->userid), $issues);
+        }
+    }
 
-    // Trigger event.
-    $cm = get_coursemodule_from_instance('customcert', $customcert->id, 0, false, MUST_EXIST);
-    $context = \context_module::instance($cm->id);
-    $event = \mod_customcert\event\issue_deleted::create([
-        'objectid' => $issue->id,
-        'context' => $context,
-        'relateduserid' => $issue->userid,
-    ]);
-    $event->trigger();
+    if (!$deletelocalcopy) {
+        // Delete the issue.
+        $DB->delete_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
+    }
 
     // Redirect back to the manage templates page.
     redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));

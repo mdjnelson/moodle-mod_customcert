@@ -104,6 +104,26 @@ $capabilities = [
         ],
     ],
 
+    'mod/customcert:managekeeplocalcopy' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ],
+
+    'mod/customcert:deletelocalcopy' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ],
+
     'mod/customcert:manageemailstudents' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,

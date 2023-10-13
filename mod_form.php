@@ -77,6 +77,13 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->addHelpButton('customfilenamepattern', 'customfilenamepattern', 'customcert');
         $mform->disabledIf('customfilenamepattern', 'usecustomfilename', 'notchecked');
 
+        if (has_capability('mod/customcert:managekeeplocalcopy', $this->get_context())) {
+            $mform->addElement('selectyesno', 'keeplocalcopy', get_string('keeplocalcopy', 'customcert'));
+            $mform->setDefault('keeplocalcopy', get_config('customcert', 'keeplocalcopy'));
+            $mform->addHelpButton('keeplocalcopy', 'keeplocalcopy', 'customcert');
+            $mform->setType('keeplocalcopy', PARAM_INT);
+        }
+
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
             $mform->addElement('selectyesno', 'emailstudents', get_string('emailstudents', 'customcert'));
             $mform->setDefault('emailstudents', get_config('customcert', 'emailstudents'));
@@ -218,6 +225,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      */
     protected function get_options_elements_with_required_caps() {
         return [
+            'keeplocalcopy' => 'mod/customcert:managekeeplocalcopy',
             'emailstudents' => 'mod/customcert:manageemailstudents',
             'emailteachers' => 'mod/customcert:manageemailteachers',
             'emailothers' => 'mod/customcert:manageemailothers',

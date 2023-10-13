@@ -15,19 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code fragment to define the version of the customcert module
+ * Language strings for the customcert module.
  *
  * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-
-$plugin->version   = 2025041402; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2025041400; // Requires this Moodle version (5.0).
-$plugin->cron      = 0; // Period for cron to check this module (secs).
-$plugin->component = 'mod_customcert';
-
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "5.0.0"; // User-friendly version number.
+ $string['keeplocalcopy'] = 'Mantieni copia dei certificati';
+ $string['keeplocalcopy_help'] = 'Se impostato a Sì, mantiene una copia del PDF dei certificati. La copia sarà scaricata ad ogni futura richiesta del certificato, finché il file non è cancellato dalla tabella files di moodle.';
+ $string['deletelocalcopy'] = 'Cancella copia locale del certificato';
+ $string['bulkdownloadlink'] = 'Download certificati';
+ $string['deletelocalcopyconfirm'] = 'Sei sicuro di voler cancellare il file PDF del certificato?';
+ $string['customcert:managekeeplocalcopy'] = 'Gestire impostazioni copia locale certificati';
+ $string['customcert:deletelocalcopy'] = 'Cancella copia locale dei certificati';

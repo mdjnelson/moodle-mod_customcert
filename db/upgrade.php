@@ -335,5 +335,16 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025041401, 'customcert');
     }
 
+    if ($oldversion < 2025041402) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('keeplocalcopy', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'language');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2025041402, 'customcert');
+    }
+
     return true;
 }

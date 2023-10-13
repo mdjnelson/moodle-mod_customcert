@@ -49,6 +49,11 @@ class template {
     protected $contextid;
 
     /**
+     * @var \mod_customcert\localfile the local file for the template.
+     */
+    protected $localfile;
+
+    /**
      * The constructor.
      *
      * @param \stdClass $template
@@ -57,6 +62,7 @@ class template {
         $this->id = $template->id;
         $this->name = $template->name;
         $this->contextid = $template->contextid;
+        $this->localfile = new localfile($this);
     }
 
     /**
@@ -314,7 +320,13 @@ class template {
                 $deliveryoption = $customcert->deliveryoption;
             }
 
-            // Set up PDF document properties — no header/footer, auto page break.
+            if ($customcert->keeplocalcopy) {
+                $retval = $this->localfile->sendPDF($userid, $deliveryoption, $return);
+                if ($return && !empty($retval)) {
+                    return $retval;
+                }
+            }
+
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
             $pdf->SetAutoPageBreak(true, 0);
@@ -411,6 +423,10 @@ class template {
                 if ($userlang != $customcert->language) {
                     mod_customcert_force_current_language($userlang);
                 }
+            }
+
+            if ($customcert->keeplocalcopy) {
+                $this->localfile->savePDF($pdf->Output('', 'S'), $userid);
             }
 
             if ($return) {
