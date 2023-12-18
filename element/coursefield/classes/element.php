@@ -138,7 +138,10 @@ class element extends \mod_customcert\element {
         if (is_number($field)) { // Must be a custom course profile field.
             $handler = \core_course\customfield\course_handler::create();
             $data = $handler->get_instance_data($course->id, true);
-            if (!empty($data[$field])) {
+            if ($preview && empty($data[$field]->export_value())) {
+                $fields = $handler->get_fields();
+                $value = $fields[$field]->get('shortname');
+            } else if (!empty($data[$field])) {
                 $value = $data[$field]->export_value();
             }
 
