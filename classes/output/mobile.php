@@ -24,6 +24,8 @@
 
 namespace mod_customcert\output;
 
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
 require_once($CFG->libdir . '/externallib.php');
 
 /**
