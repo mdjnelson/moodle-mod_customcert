@@ -207,7 +207,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 if ($customcert->emailstudents) {
                     $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                        $coursefullname, $certificatename, $customcert->contextid);
+                        $coursefullname, $certificatename, $context->instanceid);
 
                     $subject = get_string('emailstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
@@ -218,7 +218,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 if ($customcert->emailteachers) {
                     $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                        $coursefullname, $certificatename, $customcert->contextid);
+                        $coursefullname, $certificatename, $context->instanceid);
 
                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
@@ -235,7 +235,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                         $email = trim($email);
                         if (validate_email($email)) {
                             $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                                $courseshortname, $coursefullname, $certificatename, $customcert->contextid);
+                                $courseshortname, $coursefullname, $certificatename, $context->instanceid);
 
                             $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                             $message = $textrenderer->render($renderable);
