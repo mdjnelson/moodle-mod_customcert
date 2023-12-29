@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_customcert\event;
+namespace mod_customcert;
 
 /**
  * Contains tests for template's page operations.
@@ -32,6 +32,10 @@ namespace mod_customcert\event;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_test extends \advanced_testcase {
+
+    /**
+     * @return void
+     */
     public function setUp(): void {
         $this->resetAfterTest();
     }
@@ -43,26 +47,28 @@ class page_test extends \advanced_testcase {
      *   3. Add an element to the second page.
      *   4. Delete the second page.
      * Previously the above scenario resulted in an error (#571).
+     *
+     * @covers \template::delete_page
      */
     public function test_delete_non_empty_page(): void {
-	global $DB;
+        global $DB;
 
         $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
 
-	// Add a second page and add an element to it.
+        // Add a second page and add an element to it.
         $page2id = $template->add_page();
         $element = new \stdClass();
         $element->pageid = $page2id;
         $element->name = 'Image';
         $element->element = 'image';
-        $elementid = $DB->insert_record('customcert_elements', $element);
+        $DB->insert_record('customcert_elements', $element);
 
         $template->delete_page($page2id);
 
-	$records = $DB->get_records('customcert_elements', array('pageid' => $page2id));
-        $this->assertCount(0, $records);
+        $records = $DB->count_records('customcert_elements', array('pageid' => $page2id));
+        $this->assertEquals(0, $records);
 
-	$records = $DB->get_records('customcert_pages', array('id' => $page2id));
-        $this->assertCount(0, $records);
+        $records = $DB->count_records('customcert_pages', array('id' => $page2id));
+        $this->assertEquals(0, $records);
     }
 }
