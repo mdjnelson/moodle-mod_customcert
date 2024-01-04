@@ -361,9 +361,16 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @param stdClass $user user object
  * @param bool $iscurrentuser
  * @param stdClass $course Course object
- * @return bool
+ * @return void
  */
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
+    global $USER;
+
+    if (($user->id != $USER->id)
+            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+        return;
+    }
+
     $params = [
         'userid' => $user->id
     ];
