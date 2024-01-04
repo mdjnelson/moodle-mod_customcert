@@ -12,9 +12,11 @@ Feature: Being able to view the certificates you have been issued
     And the following "users" exist:
       | username | firstname | lastname | email                |
       | student1 | Student   | 1        | student1@example.com |
+      | student2 | Student   | 2        | student2@example.com |
     And the following "course enrolments" exist:
       | user     | course | role    |
       | student1 | C1     | student |
+      | student2 | C1     | student |
       | student1 | C2     | student |
     And the following "activities" exist:
       | activity   | name                 | intro                      | course | idnumber    |
@@ -37,3 +39,14 @@ Feature: Being able to view the certificates you have been issued
     And I follow "My certificates"
     And I should see "Custom certificate 1"
     And I should see "Custom certificate 2"
+
+  Scenario: User does not see link for another user's certificates
+    And I log in as "student1"
+    And I am on "Course 1" course homepage
+    And I follow "Custom certificate 1"
+    And I press "View certificate"
+    And I log in as "student2"
+    And I am on "Course 1" course homepage
+    And I follow "Participants"
+    And I follow "Student 1"
+    And I should not see "My certificates"
