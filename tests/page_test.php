@@ -34,6 +34,8 @@ namespace mod_customcert;
 class page_test extends \advanced_testcase {
 
     /**
+     * Set the test up.
+     *
      * @return void
      */
     public function setUp(): void {
