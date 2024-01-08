@@ -213,5 +213,14 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022112802, 'customcert'); // Replace with the actual version number.
     }
 
+    if ($oldversion < 2022112803) {
+        $table = new xmldb_table('customcert_issues');
+        $key = new xmldb_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        $dbman->add_key($table, $key);
+
+        upgrade_mod_savepoint(true, 2022112803, 'customcert');
+    }
+
     return true;
 }
