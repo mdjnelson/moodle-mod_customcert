@@ -55,7 +55,7 @@
         <KEY NAME="customcert" TYPE="foreign" FIELDS="customcertid" REFTABLE="customcert" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="userid-customcertid" UNIQUE="true" FIELDS="userid, customcertid"/>
+        <INDEX NAME="userid-customcertid" UNIQUE="false" FIELDS="userid, customcertid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="customcert_pages" COMMENT="Stores each page of a custom cert">

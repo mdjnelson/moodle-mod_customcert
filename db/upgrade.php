@@ -203,7 +203,7 @@ function xmldb_customcert_upgrade($oldversion) {
     if ($oldversion < 2022112802) {
         // Define index to be added to customcert_issues.
         $table = new xmldb_table('customcert_issues');
-        $index = new xmldb_index('userid-customcertid', XMLDB_INDEX_UNIQUE, ['userid', 'customcertid']);
+        $index = new xmldb_index('userid-customcertid', XMLDB_INDEX_NOTUNIQUE, ['userid', 'customcertid']);
 
         // Conditionally launch add index.
         if (!$dbman->index_exists($table, $index)) {
