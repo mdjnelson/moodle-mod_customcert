@@ -200,5 +200,18 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022041903, 'customcert'); // Replace with the actual version number.
     }
 
+    if ($oldversion < 2023042403) {
+        // Define index to be added to customcert_issues.
+        $table = new xmldb_table('customcert_issues');
+        $index = new xmldb_index('userid-customcertid', XMLDB_INDEX_UNIQUE, ['userid', 'customcertid']);
+
+        // Conditionally launch add index.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_mod_savepoint(true, 2023042403, 'customcert'); // Replace with the actual version number.
+    }
+
     return true;
 }
