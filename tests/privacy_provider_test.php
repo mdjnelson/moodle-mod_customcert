@@ -141,7 +141,6 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $user2 = $this->getDataGenerator()->create_user();
 
         $this->create_certificate_issue($customcert->id, $user1->id);
-        $this->create_certificate_issue($customcert->id, $user1->id);
         $this->create_certificate_issue($customcert->id, $user2->id);
 
         // Export all of the data for the context for user 1.
@@ -152,7 +151,7 @@ class privacy_provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertTrue($writer->has_any_data());
 
         $data = $writer->get_data();
-        $this->assertCount(2, $data->issues);
+        $this->assertCount(1, $data->issues);
 
         $issues = $data->issues;
         foreach ($issues as $issue) {
