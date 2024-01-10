@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.2.3] - 20XX-XX-XX
+
+### Fixed
+
+- Stopped PHP notice caused by the email certificate task (#443).
+- Fixed undefined external_format_error in the mobile app (#565).
+- Fixed being unable to reposition the course field element if it is empty (#579).
+- Fixed incorrect name of mustache variable in email_certificate_html.mustache (#574).
+- Fixed passing incorrect course module id value to \mod_customcert\output\email_certificate (#574).
+- Delete the pages after deleting the elements otherwise it was breaking in element_deleted::create_from_element() (#571).
+- Do not also show the 'My certificates' profile link when the user can not view the content of that page (#585).
+- Added missing foreign key relationship for 'userid' in the 'customcert_issues' table (#537).
+- Handle missing gradeitems as gracefully as possible so we don't break the email task (#592).
+
+### Added
+
+- Added the unique index 'userid-customcertid' to the 'customcert_issues' table (#537).
+
 ## [4.2.2] - 2023-06-08
 
 ### Fixed
