@@ -271,6 +271,7 @@ class events_test extends \advanced_testcase {
         $element->pageid = $page1id;
         $element->name = 'image';
         $element->element = 'image';
+        $element->data = '';
         $DB->insert_record('customcert_elements', $element);
 
         // Add another template.
