@@ -54,6 +54,7 @@ class email_certificate_task_test extends advanced_testcase {
      * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_no_elements() {
+        global $DB;
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -65,6 +66,9 @@ class email_certificate_task_test extends advanced_testcase {
 
         // Enrol the user as a student.
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Run the task.
         $sink = $this->redirectEmails();
@@ -100,6 +104,9 @@ class email_certificate_task_test extends advanced_testcase {
 
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
+
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Create template object.
         $template = new stdClass();
@@ -154,6 +161,9 @@ class email_certificate_task_test extends advanced_testcase {
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
             'emailstudents' => 1));
+
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Create template object.
         $template = new stdClass();
@@ -241,6 +251,8 @@ class email_certificate_task_test extends advanced_testcase {
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
             'emailteachers' => 1));
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Create template object.
         $template = new stdClass();
@@ -297,6 +309,9 @@ class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
             'emailothers' => 'testcustomcert@example.com, doo@dah'));
 
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
+
         // Create template object.
         $template = new stdClass();
         $template->id = $customcert->templateid;
@@ -349,6 +364,9 @@ class email_certificate_task_test extends advanced_testcase {
 
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
+
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Create template object.
         $template = new stdClass();
@@ -406,6 +424,9 @@ class email_certificate_task_test extends advanced_testcase {
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id, 'emailstudents' => 1,
             'requiredtime' => '60'));
+
+        // Register activity in the course to make it valid to be sent.
+        $DB->insert_record('user_lastaccess', ['userid' => $user1->id, 'courseid' => $course->id, 'lastaccess' => time()]);
 
         // Create template object.
         $template = new stdClass();
