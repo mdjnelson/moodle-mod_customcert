@@ -222,5 +222,18 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023042404, 'customcert');
     }
 
+    if ($oldversion < 2023042405) {
+        // Changing precision of field verifyany on table customcert to (1).
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
+            'requiredtime');
+
+        // Launch change of precision for field verifyany.
+        $dbman->change_field_precision($table, $field);
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2023042405, 'customcert');
+    }
+
     return true;
 }
