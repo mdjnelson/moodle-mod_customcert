@@ -16,7 +16,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Delete the pages after deleting the elements otherwise it was breaking in element_deleted::create_from_element() (#571).
 - Do not also show the 'My certificates' profile link when the user can not view the content of that page (#585).
 - Added missing foreign key relationship for 'userid' in the 'customcert_issues' table (#537).
-- Handle missing gradeitems as gracefully as possible so we don't break the email task (#592).
+- Handle missing gradeitems as gracefully as possible, so we don't break the email task (#592).
+- Fixed logic breaking the generation of the QR code URL (#545).
+- Do not allow non-editing teachers to manage the certificate (#515).
+- Ensure the 'verifyany' column length is valid on all sites (#597).
 
 ### Added
 
