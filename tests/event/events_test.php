@@ -47,6 +47,8 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
+
         $event = reset($events);
 
         // Check that the event data is valid.
@@ -66,7 +68,6 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $page = $template->add_page();
         $events = $sink->get_events();
-
         $this->assertCount(2, $events);
 
         $pagecreatedevent = array_shift($events);
@@ -97,6 +98,7 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $template->move_item('page', $page1id, 'down');
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
 
         $event = reset($events);
         $this->assertInstanceOf('\mod_customcert\event\template_updated', $event);
@@ -112,13 +114,18 @@ class events_test extends \advanced_testcase {
      */
     public function test_updating_a_template(): void {
         $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
-        // Trigger and capture the event.
-        $sink = $this->redirectEvents();
+
+        // Date we are updating to.
         $data = new \stdClass();
         $data->id = $template->get_id();
         $data->name = 'Test name 2';
+
+        // Trigger and capture the event.
+        $sink = $this->redirectEvents();
         $template->save($data);
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
+
         $event = reset($events);
 
         // Check that the event data is valid.
@@ -135,11 +142,13 @@ class events_test extends \advanced_testcase {
      */
     public function test_updating_a_template_no_change(): void {
         $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
-        // Trigger and capture the event.
-        $sink = $this->redirectEvents();
+
         $data = new \stdClass();
         $data->id = $template->get_id();
         $data->name = $template->get_name();
+
+        // Trigger and capture the event.
+        $sink = $this->redirectEvents();
         $template->save($data);
         $events = $sink->get_events();
 
@@ -156,9 +165,11 @@ class events_test extends \advanced_testcase {
         global $DB;
 
         $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+
         $data = new \stdClass();
         $data->name = $template->get_name();
         $template->save($data);
+
         $page1id = $template->add_page();
 
         // Check the created objects exist in the database as we will check the
@@ -205,9 +216,10 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $template->delete_page($page1id);
         $events = $sink->get_events();
+        $this->assertCount(2, $events);
 
         $pagedeletedevent = array_shift($events);
-        $templatedeletedevent = array_shift($events);
+        $templateupdatedevent = array_shift($events);
 
         // Check that the event data is valid.
         $this->assertInstanceOf('\mod_customcert\event\page_deleted', $pagedeletedevent);
@@ -215,9 +227,9 @@ class events_test extends \advanced_testcase {
         $this->assertEquals(\context_system::instance()->id, $pagedeletedevent->contextid);
         $this->assertDebuggingNotCalled();
 
-        $this->assertInstanceOf('\mod_customcert\event\template_updated', $templatedeletedevent);
-        $this->assertEquals($template->get_id(), $templatedeletedevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $templatedeletedevent->contextid);
+        $this->assertInstanceOf('\mod_customcert\event\template_updated', $templateupdatedevent);
+        $this->assertEquals($template->get_id(), $templateupdatedevent->objectid);
+        $this->assertEquals(\context_system::instance()->id, $templateupdatedevent->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -245,9 +257,9 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $template->save_page($p);
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
 
         $pageupdatedevent = array_shift($events);
-        $templateupdatedevent = array_shift($events);
 
         // Check that the event data is valid.
         $this->assertInstanceOf('\mod_customcert\event\page_updated', $pageupdatedevent);
@@ -266,23 +278,17 @@ class events_test extends \advanced_testcase {
         $page1id = $template->add_page();
 
         $data = new \stdClass();
+        $data->pageid = $page1id;
         $data->name = 'A name';
         $data->element = 'text';
         $data->text = 'Some text';
-        $data->pageid = $page1id;
-        $data->data = '';
-        $data->font = $data->font ?? null;
-        $data->fontsize = $data->fontsize ?? null;
-        $data->colour = $data->colour ?? null;
-        $data->width = $data->width ?? null;
-        $data->refpoint = $data->refpoint ?? null;
-        $data->alignment = $data->alignment ?? \mod_customcert\element::ALIGN_LEFT;
-        $data->timemodified = time();
 
         $sink = $this->redirectEvents();
         $e = \mod_customcert\element_factory::get_element_instance($data);
         $e->save_form_elements($data);
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
+
         $event = reset($events);
 
         // Check that the event data is valid.
@@ -321,6 +327,8 @@ class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
         $element->save_form_elements($data);
         $events = $sink->get_events();
+        $this->assertCount(1, $events);
+
         $event = reset($events);
 
         // Check that the event data is valid.
@@ -388,7 +396,7 @@ class events_test extends \advanced_testcase {
         $element->name = 'image';
         $element->element = 'image';
         $element->data = '';
-        $DB->insert_record('customcert_elements', $element);
+        $element->id = $DB->insert_record('customcert_elements', $element);
 
         $course = $this->getDataGenerator()->create_course();
         $activity = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
@@ -434,11 +442,13 @@ class events_test extends \advanced_testcase {
         $element->pageid = $page1id;
         $element->name = 'image';
         $element->element = 'image';
+        $element->data = '';
         $element->id = $DB->insert_record('customcert_elements', $element);
 
         $sink = $this->redirectEvents();
         $template->delete_element($element->id);
         $events = $sink->get_events();
+        $this->assertCount(2, $events);
 
         $elementdeletedevent = array_shift($events);
         $templateupdatedevent = array_shift($events);

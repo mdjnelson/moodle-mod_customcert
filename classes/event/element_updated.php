@@ -73,7 +73,7 @@ class element_updated extends \core\event\base {
      * @param \mod_customcert\element $element
      * @return element_updated
      */
-    public static function create_from_element(\mod_customcert\element $element) : element_updated {
+    public static function create_from_element(\mod_customcert\element $element): element_updated {
         global $DB;
 
         $page = $DB->get_record('customcert_pages', ['id' => $element->get_pageid()]);

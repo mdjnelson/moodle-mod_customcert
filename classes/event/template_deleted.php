@@ -75,7 +75,7 @@ class template_deleted extends \core\event\base {
      * @param template $template
      * @return template_deleted
      */
-    public static function create_from_template(template $template) : template_deleted {
+    public static function create_from_template(template $template): template_deleted {
         $data = array(
             'context' => $template->get_context(),
             'objectid' => $template->get_id(),
