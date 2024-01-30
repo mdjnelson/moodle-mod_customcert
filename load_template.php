@@ -51,22 +51,11 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 // Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
     // First, remove all the existing elements and pages.
-    $sql = "SELECT e.*
-              FROM {customcert_elements} e
-        INNER JOIN {customcert_pages} p
-                ON e.pageid = p.id
-             WHERE p.templateid = :templateid";
-    if ($elements = $DB->get_records_sql($sql, array('templateid' => $template->get_id()))) {
-        foreach ($elements as $element) {
-            // Get an instance of the element class.
-            if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                $e->delete();
-            }
+    if ($pages = $DB->get_records('customcert_pages', ['templateid' => $template->get_id()])) {
+        foreach ($pages as $page) {
+            $template->delete_page($page->id, false);
         }
     }
-
-    // Delete the pages.
-    $DB->delete_records('customcert_pages', array('templateid' => $template->get_id()));
 
     // Copy the items across.
     $loadtemplate->copy_to_template($template);
