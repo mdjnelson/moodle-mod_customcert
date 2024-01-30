@@ -88,6 +88,23 @@ class element_updated extends \core\event\base {
     }
 
     /**
+     * Create instance of event for the specified element.
+     *
+     * @param int $elementid ID of the element.
+     * @param \mod_customcert\template $template Template containing the above
+     * element.
+     * @return element_updated
+     */
+    public static function create_from_id(int $elementid, \mod_customcert\template $template): element_updated {
+        $data = [
+            'contextid' => $template->get_contextid(),
+            'objectid' => $elementid,
+        ];
+
+        return self::create($data);
+    }
+
+    /**
      * Returns relevant URL.
      * @return \moodle_url
      */
