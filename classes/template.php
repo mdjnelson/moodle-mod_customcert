@@ -75,7 +75,7 @@ class template {
         $DB->update_record('customcert_templates', $savedata);
 
         // Only trigger event if the name has changed.
-        if ($savedata->name != $data->name) {
+        if ($this->get_name() != $data->name) {
             \mod_customcert\event\template_updated::create_from_template($this)->trigger();
         }
     }
@@ -155,9 +155,9 @@ class template {
                     // Update the page.
                     $DB->update_record('customcert_pages', $p);
 
+                    // Calling code is expected to trigger template_updated
+                    // after this method.
                     \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
-
-                    \mod_customcert\event\template_updated::create_from_template($this)->trigger();
                 }
             }
         }
@@ -171,27 +171,11 @@ class template {
     public function delete() {
         global $DB;
 
-        // Delete the elements.
-        $sql = "SELECT e.*
-                  FROM {customcert_elements} e
-            INNER JOIN {customcert_pages} p
-                    ON e.pageid = p.id
-                 WHERE p.templateid = :templateid";
-        if ($elements = $DB->get_records_sql($sql, array('templateid' => $this->id))) {
-            foreach ($elements as $element) {
-                // Get an instance of the element class.
-                if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                    $e->delete();
-                } else {
-                    // The plugin files are missing, so just remove the entry from the DB.
-                    $DB->delete_records('customcert_elements', array('id' => $element->id));
-                }
-            }
-        }
-
         // Delete the pages.
-        if (!$DB->delete_records('customcert_pages', array('templateid' => $this->id))) {
-            return false;
+        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id))) {
+            foreach ($pages as $page) {
+                $this->delete_page($page->id, false);
+            }
         }
 
         // Now, finally delete the actual template.
@@ -208,8 +192,10 @@ class template {
      * Handles deleting a page from the template.
      *
      * @param int $pageid the template page
+     * @param bool $triggertemplateupdatedevent False if page is being deleted
+     * during deletion of template.
      */
-    public function delete_page($pageid) {
+    public function delete_page(int $pageid, bool $triggertemplateupdatedevent = true): void {
         global $DB;
 
         // Get the page.
@@ -241,7 +227,9 @@ class template {
                    AND sequence > :sequence";
         $DB->execute($sql, array('templateid' => $this->id, 'sequence' => $page->sequence));
 
-        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        if ($triggertemplateupdatedevent) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
     }
 
     /**
@@ -402,7 +390,7 @@ class template {
                 $page->timemodified = $page->timecreated;
                 // Insert into the database.
                 $page->id = $DB->insert_record('customcert_pages', $page);
-                \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
+                \mod_customcert\event\page_created::create_from_page($page, $copytotemplate)->trigger();
                 // Now go through the elements we want to load.
                 if ($templateelements = $DB->get_records('customcert_elements', array('pageid' => $templatepage->id))) {
                     foreach ($templateelements as $templateelement) {
@@ -425,12 +413,10 @@ class template {
                 }
             }
 
-            // Trigger event for template instance being copied to.
-            if ($copytotemplate->get_context() == \context_system::instance()) {
-                // If CONTEXT_SYSTEM we're creating a new template.
-                \mod_customcert\event\template_created::create_from_template($copytotemplate)->trigger();
-            } else {
-                // Otherwise we're loading template in a course module instance.
+            // Trigger event if loading a template in a course module instance.
+            // (No event triggered if copying a system-wide template as
+            // create() triggers this).
+            if ($copytotemplate->get_context() != \context_system::instance()) {
                 \mod_customcert\event\template_updated::create_from_template($copytotemplate)->trigger();
             }
         }

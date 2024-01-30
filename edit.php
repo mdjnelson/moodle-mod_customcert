@@ -173,7 +173,7 @@ if ($data = $mform->get_data()) {
         $template = \mod_customcert\template::create($data->name, $contextid);
 
         // Create a page for this template.
-        $pageid = $template->add_page();
+        $pageid = $template->add_page(false);
 
         // Associate all the data from the form to the newly created page.
         $width = 'pagewidth_' . $pageid;
