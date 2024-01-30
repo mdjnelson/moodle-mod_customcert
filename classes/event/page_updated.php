@@ -76,7 +76,7 @@ class page_updated extends \core\event\base {
      * @param template $template
      * @return page_updated
      */
-    public static function create_from_page(\stdClass $page, template $template) : page_updated {
+    public static function create_from_page(\stdClass $page, template $template): page_updated {
         $data = array(
             'context' => $template->get_context(),
             'objectid' => $page->id,
