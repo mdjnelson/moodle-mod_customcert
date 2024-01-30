@@ -54,4 +54,7 @@ foreach ($values as $value) {
     $element->posx = $value->posx;
     $element->posy = $value->posy;
     $DB->update_record('customcert_elements', $element);
+    \mod_customcert\event\element_updated::create_from_id($element->id, $template)->trigger();
 }
+
+\mod_customcert\event\template_updated::create_from_template($template)->trigger();
