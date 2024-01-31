@@ -20,10 +20,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Fixed logic breaking the generation of the QR code URL (#545).
 - Do not allow non-editing teachers to manage the certificate (#515).
 - Ensure the 'verifyany' column length is valid on all sites (#597).
+- Fixed events being triggered incorrectly (#570).
 
 ### Added
 
 - Added the unique index 'userid-customcertid' to the 'customcert_issues' table (#537).
+- Added events on the reposition element page (#599).
 
 ## [4.2.2] - 2023-06-08
 
