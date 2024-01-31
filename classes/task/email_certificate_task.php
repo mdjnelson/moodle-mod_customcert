@@ -61,7 +61,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                  WHERE (c.emailstudents = :emailstudents
                         OR c.emailteachers = :emailteachers
                         OR $emailotherslengthsql >= 3)";
-        if (!$customcerts = $DB->get_records_sql($sql, array('emailstudents' => 1, 'emailteachers' => 1))) {
+        if (!$customcerts = $DB->get_records_sql($sql, ['emailstudents' => 1, 'emailteachers' => 1])) {
             return;
         }
 
@@ -94,9 +94,9 @@ class email_certificate_task extends \core\task\scheduled_task {
             // Store teachers for later.
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
-            $courseshortname = format_string($customcert->courseshortname, true, array('context' => $context));
-            $coursefullname = format_string($customcert->coursefullname, true, array('context' => $context));
-            $certificatename = format_string($customcert->name, true, array('context' => $context));
+            $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
+            $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
+            $certificatename = format_string($customcert->name, true, ['context' => $context]);
 
             // Used to create the email subject.
             $info = new \stdClass;
@@ -112,7 +112,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                       JOIN {user} u
                         ON ci.userid = u.id
                      WHERE ci.customcertid = :customcertid";
-            $issuedusers = $DB->get_records_sql($sql, array('customcertid' => $customcert->id));
+            $issuedusers = $DB->get_records_sql($sql, ['customcertid' => $customcert->id]);
 
             // Now, get a list of users who can access the certificate but have not yet.
             $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
@@ -148,7 +148,7 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
                 $issueid = $DB->get_field('customcert_issues', 'id',
-                    array('userid' => $enroluser->id, 'customcertid' => $customcert->id), IGNORE_MULTIPLE);
+                    ['userid' => $enroluser->id, 'customcertid' => $customcert->id], IGNORE_MULTIPLE);
                 if (empty($issueid)) {
                     // Ok, issue them the certificate.
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id);
@@ -251,7 +251,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                 }
 
                 // Set the field so that it is emailed.
-                $DB->set_field('customcert_issues', 'emailed', 1, array('id' => $user->issueid));
+                $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $user->issueid]);
             }
         }
     }

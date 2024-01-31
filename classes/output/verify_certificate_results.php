@@ -76,7 +76,7 @@ class verify_certificate_results implements templatable, renderable {
         $result = new \stdClass();
         $result->success = $this->success;
         $result->message = $this->message;
-        $result->issues = array();
+        $result->issues = [];
         foreach ($this->issues as $issue) {
             $resultissue = new verify_certificate_result($issue);
             $result->issues[] = $resultissue->export_for_template($output);

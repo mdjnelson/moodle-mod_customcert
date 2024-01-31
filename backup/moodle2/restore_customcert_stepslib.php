@@ -38,7 +38,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
      */
     protected function define_structure() {
         // The array used to store the path to the items we want to restore.
-        $paths = array();
+        $paths = [];
 
         // The customcert instance.
         $paths[] = new restore_path_element('customcert', '/activity/customcert');

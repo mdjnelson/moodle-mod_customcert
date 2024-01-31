@@ -64,13 +64,13 @@ class load_template_form extends \moodleform {
             foreach ($arrtemplates as $key => $template) {
                 $templates[$key] = format_string($template, true, ['context' => $context]);
             }
-            $group = array();
+            $group = [];
             $group[] = $mform->createElement('select', 'ltid', '', $templates);
             $group[] = $mform->createElement('submit', 'loadtemplatesubmit', get_string('load', 'customcert'));
             $mform->addElement('group', 'loadtemplategroup', '', $group, '', false);
             $mform->setType('ltid', PARAM_INT);
         } else {
-            $msg = \html_writer::tag('div', get_string('notemplates', 'customcert'), array('class' => 'alert'));
+            $msg = \html_writer::tag('div', get_string('notemplates', 'customcert'), ['class' => 'alert']);
             $mform->addElement('static', 'notemplates', '', $msg);
         }
     }

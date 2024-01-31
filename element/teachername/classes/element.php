@@ -69,7 +69,7 @@ class element extends \mod_customcert\element {
     public function render($pdf, $preview, $user) {
         global $DB;
 
-        $teacher = $DB->get_record('user', array('id' => $this->get_data()));
+        $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
 
         \mod_customcert\element_helper::render_content($pdf, $this, $teachername);
@@ -86,7 +86,7 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $DB;
 
-        $teacher = $DB->get_record('user', array('id' => $this->get_data()));
+        $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
 
         return \mod_customcert\element_helper::render_html_content($this, $teachername);
@@ -106,7 +106,7 @@ class element extends \mod_customcert\element {
         }
 
         // The list of teachers to return.
-        $teachers = array();
+        $teachers = [];
 
         // Now return all users who can manage the customcert in this context.
         if ($users = get_enrolled_users($PAGE->context, 'mod/customcert:manage')) {

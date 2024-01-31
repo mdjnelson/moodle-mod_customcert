@@ -56,7 +56,7 @@ if (empty($enabledfiledownload)) {
 }
 
 $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 $template = $DB->get_record('customcert_templates', ['id' => $certificate->templateid], '*', MUST_EXIST);
 

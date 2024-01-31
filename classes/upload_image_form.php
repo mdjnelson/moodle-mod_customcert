@@ -38,7 +38,7 @@ require_once($CFG->libdir.'/formslib.php');
 class upload_image_form extends \moodleform {
 
     /** @var array the filemanager options */
-    protected $filemanageroptions = array();
+    protected $filemanageroptions = [];
 
     /**
      * Form definition.
@@ -47,10 +47,10 @@ class upload_image_form extends \moodleform {
         global $CFG;
 
         $mform = $this->_form;
-        $this->filemanageroptions = array(
+        $this->filemanageroptions = [
             'maxbytes' => $CFG->maxbytes,
             'subdirs' => 1,
-            'accepted_types' => 'image');
+            'accepted_types' => 'image'];
         $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
             $this->filemanageroptions);
 

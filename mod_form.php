@@ -47,7 +47,7 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        $mform->addElement('text', 'name', get_string('name', 'customcert'), array('size' => '64'));
+        $mform->addElement('text', 'name', get_string('name', 'customcert'), ['size' => '64']);
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
         } else {
@@ -81,7 +81,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         }
 
         if (has_capability('mod/customcert:manageemailothers', $this->get_context())) {
-            $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), array('size' => '40'));
+            $mform->addElement('text', 'emailothers', get_string('emailothers', 'customcert'), ['size' => '40']);
             $mform->addHelpButton('emailothers', 'emailothers', 'customcert');
             $mform->setDefault('emailothers', get_config('customcert', 'emailothers'));
             $mform->setType('emailothers', PARAM_TEXT);
@@ -95,7 +95,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         }
 
         if (has_capability('mod/customcert:managerequiredtime', $this->get_context())) {
-            $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), array('size' => '3'));
+            $mform->addElement('text', 'requiredtime', get_string('coursetimereq', 'customcert'), ['size' => '3']);
             $mform->addHelpButton('requiredtime', 'coursetimereq', 'customcert');
             $mform->setDefault('requiredtime', get_config('customcert', 'requiredtime'));
             $mform->setType('requiredtime', PARAM_INT);
@@ -170,7 +170,7 @@ class mod_customcert_mod_form extends moodleform_mod {
         } else {
             // If updating, but a user can't manage protection, then get data from database.
             if (!has_capability('mod/customcert:manageprotection', $this->get_context())) {
-                $customcert = $DB->get_record('customcert', array('id' => $data->instance));
+                $customcert = $DB->get_record('customcert', ['id' => $data->instance]);
 
                 $protection = $this->build_protection_data($customcert->protection);
                 $data->protection_print = $protection->protection_print;

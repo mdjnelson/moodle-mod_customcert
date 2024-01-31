@@ -43,13 +43,13 @@ class mod_customcert_generator extends testing_module_generator {
     public function create_instance($record = null, array $options = null) {
         $record = (object)(array)$record;
 
-        $defaultsettings = array(
+        $defaultsettings = [
             'requiredtime' => 0,
             'emailstudents' => 0,
             'emailteachers' => 0,
             'emailothers' => '',
             'protection' => ''
-        );
+        ];
 
         foreach ($defaultsettings as $name => $value) {
             if (!isset($record->{$name})) {
