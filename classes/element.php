@@ -267,7 +267,7 @@ abstract class element {
      * @throws \InvalidArgumentException if the provided new alignment is not valid.
      */
     protected function set_alignment(string $alignment) {
-        $validvalues = array(self::ALIGN_LEFT, self::ALIGN_CENTER, self::ALIGN_RIGHT);
+        $validvalues = [self::ALIGN_LEFT, self::ALIGN_CENTER, self::ALIGN_RIGHT];
         if (!in_array($alignment, $validvalues)) {
             throw new \InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " .
                 implode(', ', $validvalues));
@@ -331,7 +331,7 @@ abstract class element {
      */
     public function validate_form_elements($data, $files) {
         // Array to return the errors.
-        $errors = array();
+        $errors = [];
 
         // Common validation methods.
         $errors += element_helper::validate_form_element_colour($data);
@@ -456,7 +456,7 @@ abstract class element {
     public function delete() {
         global $DB;
 
-        $return = $DB->delete_records('customcert_elements', array('id' => $this->id));
+        $return = $DB->delete_records('customcert_elements', ['id' => $this->id]);
 
         \mod_customcert\event\element_deleted::create_from_element($this)->trigger();
 

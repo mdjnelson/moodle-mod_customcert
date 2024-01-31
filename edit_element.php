@@ -27,7 +27,7 @@ require_once('../../config.php');
 $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-$template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
 
 // Set the template object.
 $template = new \mod_customcert\template($template);
@@ -51,15 +51,15 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
-    $element = $DB->get_record('customcert_elements', array('id' => $id), '*', MUST_EXIST);
-    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('id' => $id, 'tid' => $tid, 'action' => $action));
+    $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+    $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['id' => $id, 'tid' => $tid, 'action' => $action]);
 } else { // Must be adding an element.
     // We need to supply what element we want added to what page.
     $pageid = required_param('pageid', PARAM_INT);
     $element = new stdClass();
     $element->element = required_param('element', PARAM_ALPHA);
-    $pageurl = new moodle_url('/mod/customcert/edit_element.php', array('tid' => $tid, 'element' => $element->element,
-        'pageid' => $pageid, 'action' => $action));
+    $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['tid' => $tid, 'element' => $element->element,
+        'pageid' => $pageid, 'action' => $action]);
 }
 
 // Set up the page.
@@ -73,14 +73,14 @@ if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
         new moodle_url('/mod/customcert/manage_templates.php'));
 }
 $PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url('/mod/customcert/edit.php',
-    array('tid' => $tid)));
+    ['tid' => $tid]));
 $PAGE->navbar->add(get_string('editelement', 'customcert'));
 
-$mform = new \mod_customcert\edit_element_form($pageurl, array('element' => $element));
+$mform = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
-    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+    $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
     redirect($url);
 }
 
@@ -102,7 +102,7 @@ if ($data = $mform->get_data()) {
         \mod_customcert\event\template_updated::create_from_template($template)->trigger();
     }
 
-    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+    $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
     redirect($url);
 }
 

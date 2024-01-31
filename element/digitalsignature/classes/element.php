@@ -36,7 +36,7 @@ class element extends \customcertelement_image\element {
     /**
      * @var array The file manager options for the certificate.
      */
-    protected $signaturefilemanageroptions = array();
+    protected $signaturefilemanageroptions = [];
 
     /**
      * Constructor.
@@ -292,7 +292,7 @@ class element extends \customcertelement_image\element {
         $fs = get_file_storage();
 
         // The array used to store the digital signatures.
-        $arrfiles = array();
+        $arrfiles = [];
         // Loop through the files uploaded in the system context.
         if ($files = $fs->get_area_files(\context_system::instance()->id, 'mod_customcert', 'signature', false,
                 'filename', false)) {
@@ -309,7 +309,7 @@ class element extends \customcertelement_image\element {
         }
 
         \core_collator::asort($arrfiles);
-        $arrfiles = array('0' => get_string('nosignature', 'customcertelement_digitalsignature')) + $arrfiles;
+        $arrfiles = ['0' => get_string('nosignature', 'customcertelement_digitalsignature')] + $arrfiles;
 
         return $arrfiles;
     }

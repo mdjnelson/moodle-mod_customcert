@@ -30,7 +30,7 @@ $courseid = optional_param('course', null, PARAM_INT);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
-    $customcert = $DB->get_record('customcert', array('id' => $certificateid), '*', MUST_EXIST);
+    $customcert = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 
     // Check there exists an issued certificate for this user.
     if (!$issue = $DB->get_record('customcert_issues', ['userid' => $userid, 'customcertid' => $customcert->id])) {
@@ -39,8 +39,8 @@ if ($downloadcert) {
 }
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
-$pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', array('userid' => $userid,
-    'page' => $page, 'perpage' => $perpage));
+$pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid' => $userid,
+    'page' => $page, 'perpage' => $perpage]);
 
 // Requires a login.
 if ($courseid) {
@@ -65,7 +65,7 @@ $PAGE->navigation->extend_for_user($user);
 
 // Check if we requested to download a certificate.
 if ($downloadcert) {
-    $template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
+    $template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
     $template = new \mod_customcert\template($template);
     $template->generate_pdf(false, $userid);
     exit();
@@ -80,7 +80,7 @@ if ($table->is_downloading()) {
 }
 
 // Additional page setup.
-$PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php', array('id' => $userid)));
+$PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php', ['id' => $userid]));
 $PAGE->navbar->add(get_string('mycertificates', 'customcert'));
 
 echo $OUTPUT->header();

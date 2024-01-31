@@ -27,9 +27,9 @@ require_once('../../config.php');
 // The page of the customcert we are editing.
 $pid = required_param('pid', PARAM_INT);
 
-$page = $DB->get_record('customcert_pages', array('id' => $pid), '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', array('id' => $page->templateid), '*', MUST_EXIST);
-$elements = $DB->get_records('customcert_elements', array('pageid' => $pid), 'sequence');
+$page = $DB->get_record('customcert_pages', ['id' => $pid], '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+$elements = $DB->get_records('customcert_elements', ['pageid' => $pid], 'sequence');
 
 // Set the template.
 $template = new \mod_customcert\template($template);
@@ -52,7 +52,7 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 }
 
 // Set the $PAGE settings.
-$pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid));
+$pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]);
 \mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
@@ -65,35 +65,35 @@ if (!$cm = $template->get_cm()) {
 }
 
 $str = get_string('editcustomcert', 'customcert');
-$link = new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id()));
+$link = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]);
 $PAGE->navbar->add($str, new \action_link($link, $str));
 
 $PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
 
 // Include the JS we need.
 $PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'Y.M.mod_customcert.rearrange.init',
-    array($template->get_id(),
+    [$template->get_id(),
           $page,
-          $elements));
+          $elements]);
 
 // Create the buttons to save the position of the elements.
-$html = html_writer::start_tag('div', array('class' => 'buttons'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id())),
-        get_string('saveandclose', 'customcert'), 'get', array('class' => 'savepositionsbtn'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', array('pid' => $pid)),
-        get_string('saveandcontinue', 'customcert'), 'get', array('class' => 'applypositionsbtn'));
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id())),
-        get_string('cancel'), 'get', array('class' => 'cancelbtn'));
+$html = html_writer::start_tag('div', ['class' => 'buttons']);
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
+        get_string('saveandclose', 'customcert'), 'get', ['class' => 'savepositionsbtn']);
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]),
+        get_string('saveandcontinue', 'customcert'), 'get', ['class' => 'applypositionsbtn']);
+$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
+        get_string('cancel'), 'get', ['class' => 'cancelbtn']);
 $html .= html_writer::end_tag('div');
 
 // Create the div that represents the PDF.
 $style = 'height: ' . $page->height . 'mm; line-height: normal; width: ' . $page->width . 'mm;';
 $marginstyle = 'height: ' . $page->height . 'mm; width:1px; float:left; position:relative;';
-$html .= html_writer::start_tag('div', array(
+$html .= html_writer::start_tag('div', [
     'data-templateid' => $template->get_id(),
     'data-contextid' => $template->get_contextid(),
     'id' => 'pdf',
-    'style' => $style)
+    'style' => $style]
 );
 if ($page->leftmargin) {
     $position = 'left:' . $page->leftmargin . 'mm;';
@@ -126,8 +126,8 @@ if ($elements) {
                     $class .= ' align-left';
                     break;
             }
-            $html .= html_writer::tag('div', $e->render_html(), array('class' => $class,
-                'data-refpoint' => $element->refpoint, 'id' => 'element-' . $element->id));
+            $html .= html_writer::tag('div', $e->render_html(), ['class' => $class,
+                'data-refpoint' => $element->refpoint, 'id' => 'element-' . $element->id]);
         }
     }
 }
@@ -141,5 +141,5 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 3);
 echo $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING);
 echo $html;
-$PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', array('#pdf'));
+$PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', ['#pdf']);
 echo $OUTPUT->footer();

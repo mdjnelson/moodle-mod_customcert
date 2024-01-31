@@ -41,13 +41,13 @@ class element extends \mod_customcert\element {
      */
     public function render_form_elements($mform) {
         // Get the user profile fields.
-        $coursefields = array(
+        $coursefields = [
             'fullname' => get_string('fullnamecourse'),
             'shortname' => get_string('shortnamecourse'),
             'idnumber' => get_string('idnumbercourse')
-        );
+        ];
         // Get the course custom fields.
-        $arrcustomfields = array();
+        $arrcustomfields = [];
         $handler = \core_course\customfield\course_handler::create();
         $customfields = $handler->get_fields();
 

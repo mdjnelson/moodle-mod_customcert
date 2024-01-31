@@ -34,9 +34,9 @@ $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+$customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
 
 // Ensure the user is allowed to view this page.
 require_login($course, false, $cm);
@@ -48,7 +48,7 @@ $canmanage = has_capability('mod/customcert:manage', $context);
 $canviewreport = has_capability('mod/customcert:viewreport', $context);
 
 // Initialise $PAGE.
-$pageurl = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id));
+$pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
 \mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
 // Check if the user can view the certificate based on time spent in course.
@@ -86,16 +86,16 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     }
 
     // Delete the issue.
-    $DB->delete_records('customcert_issues', array('id' => $deleteissue, 'customcertid' => $customcert->id));
+    $DB->delete_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
 
     // Redirect back to the manage templates page.
-    redirect(new moodle_url('/mod/customcert/view.php', array('id' => $id)));
+    redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
 }
 
-$event = \mod_customcert\event\course_module_viewed::create(array(
+$event = \mod_customcert\event\course_module_viewed::create([
     'objectid' => $customcert->id,
     'context' => $context,
-));
+]);
 $event->add_record_snapshot('course', $course);
 $event->add_record_snapshot('customcert', $customcert);
 $event->trigger();
@@ -121,7 +121,7 @@ if (!$downloadown && !$downloadissue) {
 
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuehtml = '';
-    $issues = $DB->get_records('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id));
+    $issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id]);
     if ($issues && !$canmanage) {
         // Get the most recent issue (there should only be one).
         $issue = reset($issues);
@@ -133,7 +133,7 @@ if (!$downloadown && !$downloadissue) {
     $downloadbutton = '';
     if ($canreceive) {
         $linkname = get_string('getcustomcert', 'customcert');
-        $link = new moodle_url('/mod/customcert/view.php', array('id' => $cm->id, 'downloadown' => true));
+        $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'downloadown' => true]);
         $downloadbutton = new single_button($link, $linkname, 'get', single_button::BUTTON_PRIMARY);
         $downloadbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadbutton = $OUTPUT->render($downloadbutton);
@@ -156,7 +156,7 @@ if (!$downloadown && !$downloadissue) {
     $userid = $USER->id;
     if ($downloadown) {
         // Create new customcert issue record if one does not already exist.
-        if (!$DB->record_exists('customcert_issues', array('userid' => $USER->id, 'customcertid' => $customcert->id))) {
+        if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
             \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
         }
 
@@ -169,7 +169,7 @@ if (!$downloadown && !$downloadissue) {
 
     // Hack alert - don't initiate the download when running Behat.
     if (defined('BEHAT_SITE_RUNNING')) {
-        redirect(new moodle_url('/mod/customcert/view.php', array('id' => $cm->id)));
+        redirect(new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]));
     }
 
     \core\session\manager::write_close();

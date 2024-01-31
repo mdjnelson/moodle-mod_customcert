@@ -151,7 +151,7 @@ class element extends \mod_customcert\element {
                        AND cp.id = :pageid";
 
             // Now we can get the issue for this user.
-            $issue = $DB->get_record_sql($sql, array('userid' => $user->id, 'pageid' => $this->get_pageid()),
+            $issue = $DB->get_record_sql($sql, ['userid' => $user->id, 'pageid' => $this->get_pageid()],
                 '*', MUST_EXIST);
             $code = $issue->code;
 

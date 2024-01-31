@@ -33,7 +33,7 @@ $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
 // Make sure the template exists.
-$template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
 
 // Set the template.
 $template = new \mod_customcert\template($template);
