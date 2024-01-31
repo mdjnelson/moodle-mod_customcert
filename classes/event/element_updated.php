@@ -79,10 +79,10 @@ class element_updated extends \core\event\base {
         $page = $DB->get_record('customcert_pages', ['id' => $element->get_pageid()]);
         $template = $DB->get_record('customcert_templates', ['id' => $page->templateid]);
 
-        $data = array(
+        $data = [
             'contextid' => $template->contextid,
             'objectid' => $element->get_id(),
-        );
+        ];
 
         return self::create($data);
     }
@@ -113,7 +113,7 @@ class element_updated extends \core\event\base {
             return new \moodle_url('/mod/customcert/manage_templates.php');
         } else {
             return new \moodle_url('/mod/customcert/view.php',
-                array('id' => $this->contextinstanceid));
+                ['id' => $this->contextinstanceid]);
         }
     }
 
@@ -123,7 +123,7 @@ class element_updated extends \core\event\base {
      * @return string[]
      */
     public static function get_objectid_mapping() {
-        return array('db' => 'customcert_elements', 'restore' => 'customcert_elements');
+        return ['db' => 'customcert_elements', 'restore' => 'customcert_elements'];
     }
 
     /**

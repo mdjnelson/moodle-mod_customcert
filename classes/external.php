@@ -42,18 +42,18 @@ class external extends \external_api {
      */
     public static function save_element_parameters() {
         return new \external_function_parameters(
-            array(
+            [
                 'templateid' => new \external_value(PARAM_INT, 'The template id'),
                 'elementid' => new \external_value(PARAM_INT, 'The element id'),
                 'values' => new \external_multiple_structure(
                     new \external_single_structure(
-                        array(
+                        [
                             'name' => new \external_value(PARAM_ALPHANUMEXT, 'The field to update'),
                             'value' => new \external_value(PARAM_RAW, 'The value of the field'),
-                        )
+                        ]
                     )
                 )
-            )
+            ]
         );
     }
 
@@ -68,15 +68,15 @@ class external extends \external_api {
     public static function save_element($templateid, $elementid, $values) {
         global $DB;
 
-        $params = array(
+        $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
             'values' => $values
-        );
+        ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
-        $template = $DB->get_record('customcert_templates', array('id' => $templateid), '*', MUST_EXIST);
-        $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $templateid], '*', MUST_EXIST);
+        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
         $template = new \mod_customcert\template($template);
@@ -123,10 +123,10 @@ class external extends \external_api {
      */
     public static function get_element_html_parameters() {
         return new \external_function_parameters(
-            array(
+            [
                 'templateid' => new \external_value(PARAM_INT, 'The template id'),
                 'elementid' => new \external_value(PARAM_INT, 'The element id'),
-            )
+            ]
         );
     }
 
@@ -140,14 +140,14 @@ class external extends \external_api {
     public static function get_element_html($templateid, $elementid) {
         global $DB;
 
-        $params = array(
+        $params = [
             'templateid' => $templateid,
             'elementid' => $elementid
-        );
+        ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
-        $template = $DB->get_record('customcert_templates', array('id' => $templateid), '*', MUST_EXIST);
-        $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $templateid], '*', MUST_EXIST);
+        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
         $template = new \mod_customcert\template($template);
@@ -183,10 +183,10 @@ class external extends \external_api {
      */
     public static function delete_issue_parameters() {
         return new \external_function_parameters(
-            array(
+            [
                 'certificateid' => new \external_value(PARAM_INT, 'The certificate id'),
                 'issueid' => new \external_value(PARAM_INT, 'The issue id'),
-            )
+            ]
         );
     }
 

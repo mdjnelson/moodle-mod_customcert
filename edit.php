@@ -34,17 +34,17 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Edit an existing template.
 if ($tid) {
     // Create the template object.
-    $template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+    $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
     $template = new \mod_customcert\template($template);
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.
-    $pageurl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+    $pageurl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
 } else { // Adding a new template.
     // Need to supply the contextid.
     $contextid = required_param('contextid', PARAM_INT);
     // Set the page url.
-    $pageurl = new moodle_url('/mod/customcert/edit.php', array('contextid' => $contextid));
+    $pageurl = new moodle_url('/mod/customcert/edit.php', ['contextid' => $contextid]);
 }
 
 $context = context::instance_by_id($contextid);
@@ -98,13 +98,13 @@ if ($tid) {
                 break;
             case 'addpage' :
                 $template->add_page();
-                $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                 redirect($url);
                 break;
             case 'deletepage' :
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
                     $template->delete_page($actionid);
-                    $url = new \moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     redirect($url);
                 } else {
                     // Set deletion flag to true.
@@ -112,15 +112,15 @@ if ($tid) {
                     // Create the message.
                     $message = get_string('deletepageconfirm', 'customcert');
                     // Create the link options.
-                    $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     $yesurl = new moodle_url('/mod/customcert/edit.php',
-                        array(
+                        [
                             'tid' => $tid,
                             'action' => 'deletepage',
                             'aid' => $actionid,
                             'confirm' => 1,
                             'sesskey' => sesskey()
-                        )
+                        ]
                     );
                 }
                 break;
@@ -133,15 +133,15 @@ if ($tid) {
                     // Create the message.
                     $message = get_string('deleteelementconfirm', 'customcert');
                     // Create the link options.
-                    $nourl = new moodle_url('/mod/customcert/edit.php', array('tid' => $tid));
+                    $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     $yesurl = new moodle_url('/mod/customcert/edit.php',
-                        array(
+                        [
                             'tid' => $tid,
                             'action' => 'deleteelement',
                             'aid' => $actionid,
                             'confirm' => 1,
                             'sesskey' => sesskey()
-                        )
+                        ]
                     );
                 }
                 break;
@@ -160,9 +160,9 @@ if ($deleting) {
 }
 
 if ($tid) {
-    $mform = new \mod_customcert\edit_form($pageurl, array('tid' => $tid));
+    $mform = new \mod_customcert\edit_form($pageurl, ['tid' => $tid]);
     // Set the name for the form.
-    $mform->set_data(array('name' => $template->get_name()));
+    $mform->set_data(['name' => $template->get_name()]);
 } else {
     $mform = new \mod_customcert\edit_form($pageurl);
 }
@@ -219,7 +219,7 @@ if ($data = $mform->get_data()) {
             $element = "element_" . $pageid;
             $element = $data->$element;
             // Create the URL to redirect to to add this element.
-            $params = array();
+            $params = [];
             $params['tid'] = $template->get_id();
             $params['action'] = 'add';
             $params['element'] = $element;
@@ -236,16 +236,16 @@ if ($data = $mform->get_data()) {
     }
 
     // Redirect to the editing page to show form with recent updates.
-    $url = new moodle_url('/mod/customcert/edit.php', array('tid' => $template->get_id()));
+    $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]);
     redirect($url);
 }
 
 echo $OUTPUT->header();
 $mform->display();
 if ($tid && $context->contextlevel == CONTEXT_MODULE) {
-    $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', array('tid' => $tid));
-    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, array('context' => $context), 'post',
-        '', array('id' => 'loadtemplateform'));
+    $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid]);
+    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, ['context' => $context], 'post',
+        '', ['id' => 'loadtemplateform']);
     $loadtemplateform->display();
 }
 echo $OUTPUT->footer();

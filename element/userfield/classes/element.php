@@ -42,7 +42,7 @@ class element extends \mod_customcert\element {
      */
     public function render_form_elements($mform) {
         // Get the user profile fields.
-        $userfields = array(
+        $userfields = [
             'firstname' => fields::get_display_name('firstname'),
             'lastname' => fields::get_display_name('lastname'),
             'username' => fields::get_display_name('username'),
@@ -56,10 +56,10 @@ class element extends \mod_customcert\element {
             'phone1' => fields::get_display_name('phone1'),
             'phone2' => fields::get_display_name('phone2'),
             'address' => fields::get_display_name('address')
-        );
+        ];
         // Get the user custom fields.
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
-        $customfields = array();
+        $customfields = [];
         foreach ($arrcustomfields as $key => $customfield) {
             $customfields[$customfield->id] = $customfield->name;
         }
@@ -141,7 +141,7 @@ class element extends \mod_customcert\element {
             $value = '';
         }
         if (is_number($field)) { // Must be a custom user profile field.
-            if ($field = $DB->get_record('user_info_field', array('id' => $field))) {
+            if ($field = $DB->get_record('user_info_field', ['id' => $field])) {
                 // Found the field name, let's update the value to display.
                 $value = $field->name;
                 $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';

@@ -55,7 +55,7 @@ class element extends \mod_customcert\element {
      */
     public function render($pdf, $preview, $user) {
         $colour = \TCPDF_COLORS::convertHTMLColorToDec($this->get_colour(), $colour);
-        $pdf->SetLineStyle(array('width' => $this->get_data(), 'color' => $colour));
+        $pdf->SetLineStyle(['width' => $this->get_data(), 'color' => $colour]);
         $pdf->Line(0, 0, $pdf->getPageWidth(), 0);
         $pdf->Line($pdf->getPageWidth(), 0, $pdf->getPageWidth(), $pdf->getPageHeight());
         $pdf->Line(0, $pdf->getPageHeight(), $pdf->getPageWidth(), $pdf->getPageHeight());
@@ -83,7 +83,7 @@ class element extends \mod_customcert\element {
      */
     public function validate_form_elements($data, $files) {
         // Array to return the errors.
-        $errors = array();
+        $errors = [];
 
         // Validate the width.
         $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);

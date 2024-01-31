@@ -57,7 +57,7 @@ class element extends \mod_customcert\element {
      */
     public function validate_form_elements($data, $files) {
         // Array to return the errors.
-        $errors = array();
+        $errors = [];
 
         // Validate the width.
         $errors += \mod_customcert\element_helper::validate_form_element_width($data);
@@ -82,10 +82,10 @@ class element extends \mod_customcert\element {
      */
     public function save_unique_data($data) {
         // Array of data we will be storing in the database.
-        $arrtostore = array(
+        $arrtostore = [
             'width' => (int) $data->width,
             'height' => (int) $data->height
-        );
+        ];
 
         return json_encode($arrtostore);
     }
@@ -172,7 +172,7 @@ class element extends \mod_customcert\element {
             $style .= 'height: ' . $imageinfo->height . 'mm';
         }
 
-        return \html_writer::tag('img', '', array('src' => $url, 'style' => $style));
+        return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
     }
 
     /**

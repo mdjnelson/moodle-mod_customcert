@@ -70,7 +70,7 @@ class element extends \mod_customcert\element {
 
         // Check that there is a course category available.
         if (!empty($course->category)) {
-            $categoryname = $DB->get_field('course_categories', 'name', array('id' => $course->category), MUST_EXIST);
+            $categoryname = $DB->get_field('course_categories', 'name', ['id' => $course->category], MUST_EXIST);
         } else { // Must be in a site template.
             $categoryname = $SITE->fullname;
         }

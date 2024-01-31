@@ -113,7 +113,7 @@ class element extends \mod_customcert\element {
         global $COURSE;
 
         // Get the possible date options.
-        $dateoptions = array();
+        $dateoptions = [];
         $dateoptions[self::DATE_ISSUE] = get_string('issueddate', 'customcertelement_daterange');
         $dateoptions[self::DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_daterange');
         $dateoptions[self::DATE_COMPLETION] = get_string('completiondate', 'customcertelement_daterange');
@@ -180,7 +180,7 @@ class element extends \mod_customcert\element {
             [0, 1]
         );
 
-        $rangeoptions = array();
+        $rangeoptions = [];
         $rangeoptions['startdate']['type'] = PARAM_INT;
         $rangeoptions['enddate']['type'] = PARAM_INT;
         $rangeoptions['recurring']['type'] = PARAM_INT;
@@ -298,11 +298,11 @@ class element extends \mod_customcert\element {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        $arrtostore = array(
+        $arrtostore = [
             'dateitem' => $data->dateitem,
             'fallbackstring' => $data->fallbackstring,
             'dateranges' => [],
-        );
+        ];
 
         for ($i = 0; $i < $data->repeats; $i++) {
             if (empty($data->rangedelete[$i])) {
@@ -342,11 +342,11 @@ class element extends \mod_customcert\element {
             $date = time();
         } else {
             // Get the page.
-            $page = $DB->get_record('customcert_pages', array('id' => $this->get_pageid()), '*', MUST_EXIST);
+            $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
             // Get the customcert this page belongs to.
-            $customcert = $DB->get_record('customcert', array('templateid' => $page->templateid), '*', MUST_EXIST);
+            $customcert = $DB->get_record('customcert', ['templateid' => $page->templateid], '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', array('userid' => $user->id, 'customcertid' => $customcert->id),
+            $issue = $DB->get_record('customcert_issues', ['userid' => $user->id, 'customcertid' => $customcert->id],
                 '*', MUST_EXIST);
 
             switch ($dateitem) {
@@ -364,7 +364,7 @@ class element extends \mod_customcert\element {
                           FROM {course_completions} c
                          WHERE c.userid = :userid
                            AND c.course = :courseid";
-                    if ($timecompleted = $DB->get_record_sql($sql, array('userid' => $issue->userid, 'courseid' => $courseid))) {
+                    if ($timecompleted = $DB->get_record_sql($sql, ['userid' => $issue->userid, 'courseid' => $courseid])) {
                         if (!empty($timecompleted->timecompleted)) {
                             $date = $timecompleted->timecompleted;
                         }
@@ -372,11 +372,11 @@ class element extends \mod_customcert\element {
                     break;
 
                 case self::DATE_COURSE_START:
-                    $date = $DB->get_field('course', 'startdate', array('id' => $courseid));
+                    $date = $DB->get_field('course', 'startdate', ['id' => $courseid]);
                     break;
 
                 case self::DATE_COURSE_END:
-                    $date = $DB->get_field('course', 'enddate', array('id' => $courseid));
+                    $date = $DB->get_field('course', 'enddate', ['id' => $courseid]);
                     break;
 
                 case self::DATE_COURSE_GRADE:
@@ -726,7 +726,7 @@ class element extends \mod_customcert\element {
         $data = $this->get_decoded_data();
         if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $data->dateitem)) {
             $data->dateitem = $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($data), array('id' => $this->get_id()));
+            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($data), ['id' => $this->get_id()]);
         }
     }
 

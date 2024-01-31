@@ -52,7 +52,7 @@ class edit_element_form extends \moodleform {
     public function definition() {
         $mform =& $this->_form;
 
-        $mform->updateAttributes(array('id' => 'editelementform'));
+        $mform->updateAttributes(['id' => 'editelementform']);
 
         $element = $this->_customdata['element'];
 
@@ -85,7 +85,7 @@ class edit_element_form extends \moodleform {
      * @return array the errors that were found
      */
     public function validation($data, $files) {
-        $errors = array();
+        $errors = [];
 
         if (\core_text::strlen($data['name']) > 255) {
             $errors['name'] = get_string('nametoolong', 'customcert');

@@ -67,10 +67,10 @@ class page_test extends \advanced_testcase {
 
         $template->delete_page($page2id);
 
-        $records = $DB->count_records('customcert_elements', array('pageid' => $page2id));
+        $records = $DB->count_records('customcert_elements', ['pageid' => $page2id]);
         $this->assertEquals(0, $records);
 
-        $records = $DB->count_records('customcert_pages', array('id' => $page2id));
+        $records = $DB->count_records('customcert_pages', ['id' => $page2id]);
         $this->assertEquals(0, $records);
     }
 }

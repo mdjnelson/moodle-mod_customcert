@@ -125,11 +125,11 @@ class element extends \mod_customcert\element {
             // This will effectively prevent the element from rendering.
             return $gradeitem ? $gradeitem->get_name() : '';
         } else {
-            if (!$cm = $DB->get_record('course_modules', array('id' => $gradeitem))) {
+            if (!$cm = $DB->get_record('course_modules', ['id' => $gradeitem])) {
                 return '';
             }
 
-            if (!$module = $DB->get_record('modules', array('id' => $cm->module))) {
+            if (!$module = $DB->get_record('modules', ['id' => $cm->module])) {
                 return '';
             }
 

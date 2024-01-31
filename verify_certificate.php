@@ -33,7 +33,7 @@ $qrcode = optional_param('qrcode', false, PARAM_BOOL);
 $context = context::instance_by_id($contextid);
 
 // Set up the page.
-$pageurl = new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $contextid));
+$pageurl = new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $contextid]);
 
 if ($code) {
     $pageurl->param('code', $code);
@@ -42,8 +42,8 @@ if ($code) {
 // Ok, a certificate was specified.
 if ($context->contextlevel != CONTEXT_SYSTEM) {
     $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
-    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-    $customcert = $DB->get_record('customcert', array('id' => $cm->instance), '*', MUST_EXIST);
+    $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
+    $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
 
     // Check if we are allowing anyone to verify, if so, no need to check login, or permissions.
     if (!$customcert->verifyany) {
@@ -89,7 +89,7 @@ $form = new \mod_customcert\verify_certificate_form($pageurl);
 
 if ($code) {
     $result = new stdClass();
-    $result->issues = array();
+    $result->issues = [];
 
     // Ok, now check if the code is valid.
     $userfields = \mod_customcert\helper::get_all_user_name_fields('u');

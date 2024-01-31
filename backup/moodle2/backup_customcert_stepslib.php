@@ -39,30 +39,30 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
     protected function define_structure() {
 
         // The instance.
-        $customcert = new backup_nested_element('customcert', array('id'), array(
+        $customcert = new backup_nested_element('customcert', ['id'], [
             'templateid', 'name', 'intro', 'introformat', 'requiredtime', 'verifyany', 'emailstudents',
-            'emailteachers', 'emailothers', 'protection', 'timecreated', 'timemodified'));
+            'emailteachers', 'emailothers', 'protection', 'timecreated', 'timemodified']);
 
         // The template.
-        $template = new backup_nested_element('template', array('id'), array(
-            'name', 'contextid', 'timecreated', 'timemodified'));
+        $template = new backup_nested_element('template', ['id'], [
+            'name', 'contextid', 'timecreated', 'timemodified']);
 
         // The pages.
         $pages = new backup_nested_element('pages');
-        $page = new backup_nested_element('page', array('id'), array(
+        $page = new backup_nested_element('page', ['id'], [
             'templateid', 'width', 'height', 'leftmargin', 'rightmargin',
-            'sequence', 'timecreated', 'timemodified'));
+            'sequence', 'timecreated', 'timemodified']);
 
         // The elements.
-        $element = new backup_nested_element('element', array('id'), array(
+        $element = new backup_nested_element('element', ['id'], [
             'pageid', 'name', 'element', 'data', 'font', 'fontsize',
             'colour', 'posx', 'posy', 'width', 'refpoint', 'sequence',
-            'alignment', 'timecreated', 'timemodified'));
+            'alignment', 'timecreated', 'timemodified']);
 
         // The issues.
         $issues = new backup_nested_element('issues');
-        $issue = new backup_nested_element('issue', array('id'), array(
-            'customcertid', 'userid', 'timecreated', 'emailed', 'code'));
+        $issue = new backup_nested_element('issue', ['id'], [
+            'customcertid', 'userid', 'timecreated', 'emailed', 'code']);
 
         // Build the tree.
         $customcert->add_child($issues);
@@ -73,20 +73,20 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         $page->add_child($element);
 
         // Define sources.
-        $customcert->set_source_table('customcert', array('id' => backup::VAR_ACTIVITYID));
+        $customcert->set_source_table('customcert', ['id' => backup::VAR_ACTIVITYID]);
 
         // Define template source.
-        $template->set_source_table('customcert_templates', array('contextid' => backup::VAR_CONTEXTID));
+        $template->set_source_table('customcert_templates', ['contextid' => backup::VAR_CONTEXTID]);
 
         // Define page source.
-        $page->set_source_table('customcert_pages', array('templateid' => backup::VAR_PARENTID));
+        $page->set_source_table('customcert_pages', ['templateid' => backup::VAR_PARENTID]);
 
         // Define element source, each element belongs to a page.
-        $element->set_source_table('customcert_elements', array('pageid' => backup::VAR_PARENTID));
+        $element->set_source_table('customcert_elements', ['pageid' => backup::VAR_PARENTID]);
 
         // If we are including user info then save the issues.
         if ($this->get_setting_value('userinfo')) {
-            $issue->set_source_table('customcert_issues', array('customcertid' => backup::VAR_ACTIVITYID));
+            $issue->set_source_table('customcert_issues', ['customcertid' => backup::VAR_ACTIVITYID]);
         }
 
         // Annotate the user id's where required.

@@ -57,7 +57,7 @@ class verify_certificate_form extends \moodleform {
      * @return array the errors that were found
      */
     public function validation($data, $files) {
-        $errors = array();
+        $errors = [];
 
         if ($data['code'] === '') {
             $errors['code'] = get_string('invalidcode', 'customcert');
