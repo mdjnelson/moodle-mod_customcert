@@ -49,6 +49,11 @@ class template {
     protected $contextid;
 
     /**
+     * @var \mod_customcert\localfile the local file for the template.
+     */
+    protected $localfile;
+
+    /**
      * The constructor.
      *
      * @param \stdClass $template
@@ -57,6 +62,7 @@ class template {
         $this->id = $template->id;
         $this->name = $template->name;
         $this->contextid = $template->contextid;
+        $this->localfile = new localfile($this);
     }
 
     /**
@@ -314,6 +320,13 @@ class template {
                 $deliveryoption = $customcert->deliveryoption;
             }
 
+            if ($customcert->keeplocalcopy) {
+                $retval = $this->localfile->sendPDF($userid, $deliveryoption, $return);
+                if ($return && !empty($retval)) {
+                    return $retval;
+                }
+            }
+
             // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
             $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
 
@@ -360,6 +373,10 @@ class template {
                 if ($userlang != $customcert->language) {
                     mod_customcert_force_current_language($userlang);
                 }
+            }
+
+            if ($customcert->keeplocalcopy) {
+                $this->localfile->savePDF($pdf->Output('', 'S'), $userid);
             }
 
             if ($return) {

@@ -59,6 +59,8 @@ $yesnooptions = [
     1 => get_string('yes'),
 ];
 
+$settings->add(new admin_setting_configselect('customcert/keeplocalcopy',
+    get_string('keeplocalcopy', 'customcert'), get_string('keeplocalcopy_help', 'customcert'), 0, $yesnooptions));
 $settings->add(new admin_setting_configselect('customcert/emailstudents',
     get_string('emailstudents', 'customcert'), get_string('emailstudents_help', 'customcert'), 0, $yesnooptions));
 $settings->add(new admin_setting_configselect('customcert/emailteachers',
