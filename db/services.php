@@ -32,7 +32,7 @@ $functions = [
         'description' => 'Delete an issue for a certificate',
         'type'        => 'write',
         'ajax'        => true,
-        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE]
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
     'mod_customcert_save_element' => [
         'classname'   => 'mod_customcert\external',
@@ -40,7 +40,7 @@ $functions = [
         'classpath'   => '',
         'description' => 'Saves data for an element',
         'type'        => 'write',
-        'ajax'        => true
+        'ajax'        => true,
     ],
     'mod_customcert_get_element_html' => [
         'classname'   => 'mod_customcert\external',
@@ -48,6 +48,6 @@ $functions = [
         'classpath'   => '',
         'description' => 'Returns the HTML to display for an element',
         'type'        => 'read',
-        'ajax'        => true
+        'ajax'        => true,
     ],
 ];

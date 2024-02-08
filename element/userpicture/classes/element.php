@@ -84,7 +84,7 @@ class element extends \mod_customcert\element {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'width' => (int) $data->width,
-            'height' => (int) $data->height
+            'height' => (int) $data->height,
         ];
 
         return json_encode($arrtostore);

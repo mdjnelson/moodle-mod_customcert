@@ -61,7 +61,7 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $deliveryoptions = [
             certificate::DELIVERY_OPTION_INLINE => get_string('deliveryoptioninline', 'customcert'),
-            certificate::DELIVERY_OPTION_DOWNLOAD => get_string('deliveryoptiondownload', 'customcert')
+            certificate::DELIVERY_OPTION_DOWNLOAD => get_string('deliveryoptiondownload', 'customcert'),
         ];
         $mform->addElement('select', 'deliveryoption', get_string('deliveryoptions', 'customcert'), $deliveryoptions);
         $mform->setDefault('deliveryoption', certificate::DELIVERY_OPTION_INLINE);
@@ -214,7 +214,7 @@ class mod_customcert_mod_form extends moodleform_mod {
             'requiredtime' => 'mod/customcert:managerequiredtime',
             'protection_print' => 'mod/customcert:manageprotection',
             'protection_modify' => 'mod/customcert:manageprotection',
-            'protection_copy' => 'mod/customcert:manageprotection'
+            'protection_copy' => 'mod/customcert:manageprotection',
         ];
     }
 

@@ -62,7 +62,7 @@ class element_test extends advanced_testcase {
             'posx' => 0,
             'posy' => 0,
             'width' => 100,
-            'refpoint' => 1
+            'refpoint' => 1,
         ];
     }
 

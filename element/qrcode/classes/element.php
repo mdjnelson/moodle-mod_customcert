@@ -91,7 +91,7 @@ class element extends \mod_customcert\element {
     public function save_unique_data($data) {
         $arrtostore = [
             'width' => !empty($data->width) ? (int)$data->width : 0,
-            'height' => !empty($data->height) ? (int)$data->height : 0
+            'height' => !empty($data->height) ? (int)$data->height : 0,
         ];
 
         return json_encode($arrtostore);
@@ -159,7 +159,7 @@ class element extends \mod_customcert\element {
 
             $urlparams = [
                 'code' => $code,
-                'qrcode' => 1
+                'qrcode' => 1,
             ];
 
             // We only add the 'contextid' to the link if the site setting for verifying all certificates is off,

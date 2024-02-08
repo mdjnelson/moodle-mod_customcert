@@ -68,7 +68,7 @@ if ($tid) {
                 'tid' => $tid,
                 'action' => $action,
                 'confirm' => 1,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
 

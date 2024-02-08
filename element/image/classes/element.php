@@ -49,7 +49,7 @@ class element extends \mod_customcert\element {
         $this->filemanageroptions = [
             'maxbytes' => $COURSE->maxbytes,
             'subdirs' => 1,
-            'accepted_types' => 'image'
+            'accepted_types' => 'image',
         ];
 
         parent::__construct($element);
@@ -78,7 +78,7 @@ class element extends \mod_customcert\element {
             '0.7' => 0.7,
             '0.8' => 0.8,
             '0.9' => 0.9,
-            '1' => 1
+            '1' => 1,
         ];
         $mform->addElement('select', 'alphachannel', get_string('alphachannel', 'customcertelement_image'), $alphachannelvalues);
         $mform->setType('alphachannel', PARAM_FLOAT);
@@ -151,7 +151,7 @@ class element extends \mod_customcert\element {
     public function save_unique_data($data) {
         $arrtostore = [
             'width' => !empty($data->width) ? (int) $data->width : 0,
-            'height' => !empty($data->height) ? (int) $data->height : 0
+            'height' => !empty($data->height) ? (int) $data->height : 0,
         ];
 
         if (isset($data->alphachannel)) {
@@ -430,7 +430,7 @@ class element extends \mod_customcert\element {
 
                 // We want to update the context of the file if it doesn't exist in the course context.
                 $fieldupdates = [
-                    'contextid' => $coursecontext->id
+                    'contextid' => $coursecontext->id,
                 ];
                 $coursefile = $fs->create_file_from_storedfile($fieldupdates, $systemfile);
             }

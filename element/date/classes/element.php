@@ -150,7 +150,7 @@ class element extends \mod_customcert\element {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'dateitem' => $data->dateitem,
-            'dateformat' => $data->dateformat
+            'dateformat' => $data->dateformat,
         ];
 
         // Encode these variables before saving into the DB.
@@ -347,7 +347,7 @@ class element extends \mod_customcert\element {
 
         $dateformats = [
             1 => userdate($date, '%B %d, %Y'),
-            2 => userdate($date, '%B %d' . $suffix . ', %Y')
+            2 => userdate($date, '%B %d' . $suffix . ', %Y'),
         ];
 
         $strdateformats = [
@@ -365,7 +365,7 @@ class element extends \mod_customcert\element {
             'strftimemonthyear',
             'strftimerecent',
             'strftimerecentfull',
-            'strftimetime'
+            'strftimetime',
         ];
 
         foreach ($strdateformats as $strdateformat) {

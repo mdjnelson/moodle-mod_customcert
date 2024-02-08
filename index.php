@@ -42,7 +42,7 @@ $PAGE->navbar->add(get_string('modulenameplural', 'customcert'));
 
 // Add the page view to the Moodle log.
 $event = \mod_customcert\event\course_module_instance_list_viewed::create([
-    'context' => context_course::instance($course->id)
+    'context' => context_course::instance($course->id),
 ]);
 $event->add_record_snapshot('course', $course);
 $event->trigger();

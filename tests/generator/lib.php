@@ -48,7 +48,7 @@ class mod_customcert_generator extends testing_module_generator {
             'emailstudents' => 0,
             'emailteachers' => 0,
             'emailothers' => '',
-            'protection' => ''
+            'protection' => '',
         ];
 
         foreach ($defaultsettings as $name => $value) {

@@ -311,7 +311,7 @@ abstract class element {
             'posy' => $this->posy,
             'width' => $this->width,
             'refpoint' => $this->refpoint,
-            'alignment' => $this->get_alignment()
+            'alignment' => $this->get_alignment(),
         ];
         foreach ($properties as $property => $value) {
             if (!is_null($value) && $mform->elementExists($property)) {

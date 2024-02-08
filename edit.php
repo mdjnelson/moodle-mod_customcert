@@ -119,7 +119,7 @@ if ($tid) {
                             'action' => 'deletepage',
                             'aid' => $actionid,
                             'confirm' => 1,
-                            'sesskey' => sesskey()
+                            'sesskey' => sesskey(),
                         ]
                     );
                 }
@@ -140,7 +140,7 @@ if ($tid) {
                             'action' => 'deleteelement',
                             'aid' => $actionid,
                             'confirm' => 1,
-                            'sesskey' => sesskey()
+                            'sesskey' => sesskey(),
                         ]
                     );
                 }

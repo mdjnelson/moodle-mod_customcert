@@ -118,7 +118,7 @@ class mobile {
             'hasrecipients' => !empty($recipients),
             'recipients' => array_values($recipients),
             'numrecipients' => count($recipients),
-            'currenttimestamp' => time()
+            'currenttimestamp' => time(),
         ];
 
         return [
@@ -131,7 +131,7 @@ class mobile {
             'javascript' => '',
             'otherdata' => [
                 'group' => $groupid,
-            ]
+            ],
         ];
     }
 

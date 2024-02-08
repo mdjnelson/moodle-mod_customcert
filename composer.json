@@ -2,7 +2,8 @@
     "name": "mdjnelson/moodle-mod_customcert",
     "type": "moodle-mod",
     "require": {
-        "composer/installers": "~1.0"
+        "composer/installers": "~1.0",
+        "slevomat/coding-standard": "~8.0"
     },
     "extra": {
         "installer-name": "customcert"
@@ -12,7 +13,8 @@
     },
     "config": {
         "allow-plugins": {
-            "composer/installers": true
+            "composer/installers": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

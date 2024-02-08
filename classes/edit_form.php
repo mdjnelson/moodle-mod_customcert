@@ -87,7 +87,7 @@ class edit_form extends \moodleform {
                     'tid' => $this->tid,
                     'aid' => 1,
                     'action' => 'addpage',
-                    'sesskey' => sesskey()
+                    'sesskey' => sesskey(),
                 ]
             );
             $icon = $OUTPUT->pix_icon('t/switch_plus', get_string('addcertpage', 'customcert'));
