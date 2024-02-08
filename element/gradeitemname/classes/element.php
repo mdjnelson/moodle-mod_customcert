@@ -138,7 +138,7 @@ class element extends \mod_customcert\element {
                 'itemmodule' => $module->name,
                 'iteminstance' => $cm->instance,
                 'courseid' => $cm->course,
-                'itemnumber' => 0
+                'itemnumber' => 0,
             ];
 
             $gradeitem = \grade_item::fetch($params);

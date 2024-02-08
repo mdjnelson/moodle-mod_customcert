@@ -54,12 +54,12 @@ class manage_templates_table extends \table_sql {
 
         $columns = [
             'name',
-            'actions'
+            'actions',
         ];
 
         $headers = [
             get_string('name'),
-            ''
+            '',
         ];
 
         $this->define_columns($columns);
@@ -98,7 +98,7 @@ class manage_templates_table extends \table_sql {
             [
                 'tid' => $template->id,
                 'action' => 'duplicate',
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
         $duplicateicon = $OUTPUT->action_icon($duplicatelink, new \pix_icon('t/copy', get_string('duplicate')), null,
@@ -109,7 +109,7 @@ class manage_templates_table extends \table_sql {
             [
                 'tid' => $template->id,
                 'action' => 'delete',
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
         $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,

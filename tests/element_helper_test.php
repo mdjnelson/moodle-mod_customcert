@@ -199,7 +199,7 @@ class element_helper_test extends advanced_testcase {
         $go = $this->getDataGenerator()->create_grade_item(
             [
                 'courseid' => $course->id,
-                'outcomeid' => $outcome->id
+                'outcomeid' => $outcome->id,
             ]
         );
 
@@ -243,7 +243,7 @@ class element_helper_test extends advanced_testcase {
                 'itemtype' => 'mod',
                 'itemmodule' => 'assign',
                 'iteminstance' => $assign->id,
-                'courseid' => $course->id
+                'courseid' => $course->id,
             ]
         );
         $datagrade = 50;

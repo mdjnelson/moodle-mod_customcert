@@ -372,7 +372,7 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
     }
 
     $params = [
-        'userid' => $user->id
+        'userid' => $user->id,
     ];
     if ($course) {
         $params['course'] = $course->id;
@@ -427,7 +427,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
  */
 function mod_customcert_get_fontawesome_icon_map() {
     return [
-        'mod_customcert:download' => 'fa-download'
+        'mod_customcert:download' => 'fa-download',
     ];
 }
 
