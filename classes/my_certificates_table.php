@@ -57,13 +57,13 @@ class my_certificates_table extends \table_sql {
             'name',
             'coursename',
             'timecreated',
-            'code'
+            'code',
         ];
         $headers = [
             get_string('name'),
             get_string('course'),
             get_string('receiveddate', 'customcert'),
-            get_string('code', 'customcert')
+            get_string('code', 'customcert'),
         ];
 
         // Check if we were passed a filename, which means we want to download it.

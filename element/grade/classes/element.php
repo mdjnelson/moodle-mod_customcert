@@ -75,7 +75,7 @@ class element extends \mod_customcert\element {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'gradeitem' => $data->gradeitem,
-            'gradeformat' => $data->gradeformat
+            'gradeformat' => $data->gradeformat,
         ];
 
         // Encode these variables before saving into the DB.

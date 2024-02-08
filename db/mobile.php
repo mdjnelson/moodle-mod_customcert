@@ -36,9 +36,9 @@ $addons = [
                 'method' => 'mobile_view_activity', // Main function in \mod_customcert\output\mobile.
                 'styles' => [
                     'url' => '/mod/customcert/mobile/styles.css',
-                    'version' => 1
-                ]
-            ]
+                    'version' => 1,
+                ],
+            ],
         ],
         'lang' => [ // Language strings that are used in all the handlers.
             ['deleteissueconfirm', 'customcert'],
@@ -49,7 +49,7 @@ $addons = [
             ['pluginname', 'customcert'],
             ['receiveddate', 'customcert'],
             ['requiredtimenotmet', 'customcert'],
-            ['selectagroup', 'moodle']
-        ]
-    ]
+            ['selectagroup', 'moodle'],
+        ],
+    ],
 ];

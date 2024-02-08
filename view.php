@@ -71,7 +71,7 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
                 'id' => $id,
                 'deleteissue' => $deleteissue,
                 'confirm' => 1,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
 

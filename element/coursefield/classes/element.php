@@ -44,7 +44,7 @@ class element extends \mod_customcert\element {
         $coursefields = [
             'fullname' => get_string('fullnamecourse'),
             'shortname' => get_string('shortnamecourse'),
-            'idnumber' => get_string('idnumbercourse')
+            'idnumber' => get_string('idnumbercourse'),
         ];
         // Get the course custom fields.
         $arrcustomfields = [];

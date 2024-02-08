@@ -134,7 +134,7 @@ class element extends \mod_customcert\element {
     public static function get_course_name_display_options(): array {
         return [
             self::COURSE_FULL_NAME => get_string('coursefullname', 'customcertelement_coursename'),
-            self::COURSE_SHORT_NAME => get_string('courseshortname', 'customcertelement_coursename')
+            self::COURSE_SHORT_NAME => get_string('courseshortname', 'customcertelement_coursename'),
         ];
     }
 }

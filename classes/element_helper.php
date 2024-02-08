@@ -410,7 +410,7 @@ class element_helper {
             'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue',
             'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan',
             'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white',
-            'whitesmoke', 'yellow', 'yellowgreen'
+            'whitesmoke', 'yellow', 'yellowgreen',
         ];
 
         if (preg_match('/^#?([[:xdigit:]]{3}){1,2}$/', $colour)) {
@@ -626,7 +626,7 @@ class element_helper {
             'itemmodule' => $module->name,
             'iteminstance' => $cm->instance,
             'courseid' => $cm->course,
-            'itemnumber' => 0
+            'itemnumber' => 0,
         ];
         $gradeitem = \grade_item::fetch($params);
 

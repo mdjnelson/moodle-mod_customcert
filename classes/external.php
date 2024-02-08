@@ -52,7 +52,7 @@ class external extends \external_api {
                             'value' => new \external_value(PARAM_RAW, 'The value of the field'),
                         ]
                     )
-                )
+                ),
             ]
         );
     }
@@ -71,7 +71,7 @@ class external extends \external_api {
         $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
-            'values' => $values
+            'values' => $values,
         ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
@@ -142,7 +142,7 @@ class external extends \external_api {
 
         $params = [
             'templateid' => $templateid,
-            'elementid' => $elementid
+            'elementid' => $elementid,
         ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
@@ -202,7 +202,7 @@ class external extends \external_api {
 
         $params = [
             'certificateid' => $certificateid,
-            'issueid' => $issueid
+            'issueid' => $issueid,
         ];
         self::validate_parameters(self::delete_issue_parameters(), $params);
 

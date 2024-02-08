@@ -161,7 +161,7 @@ class report_table extends \table_sql {
         $link = new \moodle_url('/mod/customcert/view.php',
             [
                 'id' => $this->cm->id,
-                'downloadissue' => $user->id
+                'downloadissue' => $user->id,
             ]
         );
 
@@ -182,7 +182,7 @@ class report_table extends \table_sql {
             [
                 'id' => $this->cm->id,
                 'deleteissue' => $user->issueid,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
 

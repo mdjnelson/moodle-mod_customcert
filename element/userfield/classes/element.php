@@ -55,7 +55,7 @@ class element extends \mod_customcert\element {
             'department' => fields::get_display_name('department'),
             'phone1' => fields::get_display_name('phone1'),
             'phone2' => fields::get_display_name('phone2'),
-            'address' => fields::get_display_name('address')
+            'address' => fields::get_display_name('address'),
         ];
         // Get the user custom fields.
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();

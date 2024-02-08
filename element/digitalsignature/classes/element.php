@@ -49,7 +49,7 @@ class element extends \customcertelement_image\element {
         $this->signaturefilemanageroptions = [
             'maxbytes' => $COURSE->maxbytes,
             'subdirs' => 1,
-            'accepted_types' => ['.crt']
+            'accepted_types' => ['.crt'],
         ];
 
         parent::__construct($element);
@@ -145,7 +145,7 @@ class element extends \customcertelement_image\element {
             'signaturereason' => $data->signaturereason,
             'signaturecontactinfo' => $data->signaturecontactinfo,
             'width' => !empty($data->width) ? (int) $data->width : 0,
-            'height' => !empty($data->height) ? (int) $data->height : 0
+            'height' => !empty($data->height) ? (int) $data->height : 0,
         ];
 
         // Array of data we will be storing in the database.
@@ -170,7 +170,7 @@ class element extends \customcertelement_image\element {
                     'signaturefilearea' => $signaturefile->get_filearea(),
                     'signatureitemid' => $signaturefile->get_itemid(),
                     'signaturefilepath' => $signaturefile->get_filepath(),
-                    'signaturefilename' => $signaturefile->get_filename()
+                    'signaturefilename' => $signaturefile->get_filename(),
                 ];
             }
         }
@@ -222,7 +222,7 @@ class element extends \customcertelement_image\element {
                 'Name' => $imageinfo->signaturename,
                 'Location' => $imageinfo->signaturelocation,
                 'Reason' => $imageinfo->signaturereason,
-                'ContactInfo' => $imageinfo->signaturecontactinfo
+                'ContactInfo' => $imageinfo->signaturecontactinfo,
             ];
             $pdf->setSignature('file://' . $location, '', $imageinfo->signaturepassword, '', 2, $info);
             $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);

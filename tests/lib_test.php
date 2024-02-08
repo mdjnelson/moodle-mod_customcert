@@ -100,7 +100,7 @@ class lib_test extends advanced_testcase {
             'cz' => 'cs',
             'dk' => 'da',
             'no' => 'nb',
-            'se' => 'sv'
+            'se' => 'sv',
         ];
         get_string_manager()->reset_caches();
 
