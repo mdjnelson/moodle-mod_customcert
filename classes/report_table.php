@@ -135,7 +135,11 @@ class report_table extends \table_sql {
      * @return string
      */
     public function col_timecreated($user) {
-        return userdate($user->timecreated);
+        if ($this->is_downloading() === '') {
+            return userdate($user->timecreated);
+        }
+        $format = '%Y-%m-%d %H:%M';
+        return userdate($user->timecreated, $format);
     }
 
     /**
