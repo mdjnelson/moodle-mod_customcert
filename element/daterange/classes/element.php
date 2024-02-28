@@ -24,7 +24,7 @@
 
 namespace customcertelement_daterange;
 
-use \mod_customcert\element_helper;
+use mod_customcert\element_helper;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
