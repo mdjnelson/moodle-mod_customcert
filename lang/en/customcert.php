@@ -54,6 +54,7 @@ $string['customcert:viewallcertificates'] = 'View all certificates';
 $string['customcert:verifyallcertificates'] = 'Verify all certificates on the site';
 $string['customcert:verifycertificate'] = 'Verify a certificate';
 $string['customcertsettings'] = 'Custom certificate settings';
+$string['downloadallissuedcertificates'] = 'Download all issued certificates';
 $string['deletecertpage'] = 'Delete page';
 $string['deleteconfirm'] = 'Delete confirmation';
 $string['deleteelement'] = 'Delete element';
