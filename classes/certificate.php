@@ -67,6 +67,16 @@ class certificate {
     const CUSTOMCERT_PER_PAGE = '50';
 
     /**
+     * Date format in filename for download all zip file.
+     */
+    private const ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT = '%Y%m%d%H%M%S';
+
+    /**
+     * The ending part of the name of the zip file.
+     */
+    private const ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES = 'all_certificates.zip';
+
+    /**
      * Handles setting the protection field for the customcert
      *
      * @param \stdClass $data
@@ -240,6 +250,48 @@ class certificate {
         }
 
         return 0;
+    }
+
+    /**
+     * Download all certificate issues.
+     *
+     * @param \stdClass $customcert
+     * @param \stdClass $template
+     * @param \stdClass $cm
+     * @param bool $groupmode
+     * @return void
+     */
+    public static function download_all(\stdClass $customcert, \stdClass $template, \stdClass $cm, bool $groupmode): void {
+        $issues = self::get_issues($customcert->id, $groupmode, $cm, 0, 0);
+
+        if (empty($issues)) {
+            return;
+        }
+
+        $template = new \mod_customcert\template($template);
+
+        $zipdir = make_request_directory();
+        if (!$zipdir) {
+            return;
+        }
+
+        $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
+        $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
+        $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
+
+        $ziparchive = new \zip_archive();
+        if ($ziparchive->open($zipfullpath)) {
+            foreach ($issues as $issue) {
+                $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
+                $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
+                $filecontents = $template->generate_pdf(false, $issue->id, true);
+                $ziparchive->add_file_from_string($pdfname, $filecontents);
+            }
+            $ziparchive->close();
+        }
+
+        send_file($zipfullpath, $zipfilename);
+        exit();
     }
 
     /**
