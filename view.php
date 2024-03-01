@@ -99,7 +99,7 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
 }
 
 // Check if we are downloading all certificates.
-if ($downloadall && $canmanage) {
+if ($downloadall && $canmanage && confirm_sesskey()) {
     \mod_customcert\certificate::download_all($customcert, $template, $cm, $groupmode);
     exit();
 }
@@ -149,7 +149,13 @@ if (!$downloadown && !$downloadissue) {
     $downloadallbutton = '';
     if ($canmanage) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
-        $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'downloadall' => true]);
+        $link = new moodle_url('/mod/customcert/view.php',
+            [
+                'id' => $cm->id,
+                'downloadall' => true,
+                'sesskey' => sesskey()
+            ]
+        );
         $downloadallbutton = new single_button($link, $linkname, 'get', single_button::BUTTON_SECONDARY);
         $downloadallbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadallbutton = $OUTPUT->render($downloadallbutton);
