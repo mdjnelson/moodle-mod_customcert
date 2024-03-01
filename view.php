@@ -150,7 +150,7 @@ if (!$downloadown && !$downloadissue) {
     if ($canmanage) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'downloadall' => true]);
-        $downloadallbutton = new single_button($link, $linkname, 'get', single_button::BUTTON_SECONDARY);
+        $downloadallbutton = new single_button($link, $linkname, 'get');
         $downloadallbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadallbutton = $OUTPUT->render($downloadallbutton);
     }
