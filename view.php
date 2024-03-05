@@ -100,7 +100,15 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
 
 // Check if we are downloading all certificates.
 if ($downloadall && $canmanage && confirm_sesskey()) {
-    \mod_customcert\certificate::download_all($customcert, $template, $cm, $groupmode);
+    $template = new \mod_customcert\template($template);
+    $issues = \mod_customcert\certificate::get_issues($customcert->id, $groupmode, $cm, 0, 0);
+
+    // The button is not visible if there are no issues, so in this case just redirect back to this page.
+    if (empty($issues)) {
+        redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
+    }
+
+    \mod_customcert\certificate::download_all_issues_for_instance($template, $issues);
     exit();
 }
 
@@ -155,7 +163,7 @@ if (!$downloadown && !$downloadissue) {
             [
                 'id' => $cm->id,
                 'downloadall' => true,
-                'sesskey' => sesskey()
+                'sesskey' => sesskey(),
             ]
         );
         $downloadallbutton = new single_button($link, $linkname, 'get');

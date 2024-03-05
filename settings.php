@@ -51,6 +51,13 @@ $settings->add(new \mod_customcert\admin_setting_link('customcert/uploadimage',
     get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'),
     get_string('uploadimage', 'customcert'), new moodle_url('/mod/customcert/upload_image.php'), ''));
 
+if (has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    $settings->add(new \mod_customcert\admin_setting_link('customcert/downloadallsitecerts',
+        get_string('downloadallsitecertificates', 'customcert'), get_string('downloadallsitecertificatesdesc', 'customcert'),
+        get_string('downloadallsitecertificates', 'customcert'),
+        new moodle_url('/mod/customcert/download_all_certificates.php'), ''));
+}
+
 $settings->add(new admin_setting_heading('defaults',
     get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
 
