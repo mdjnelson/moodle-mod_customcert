@@ -723,11 +723,23 @@ class element extends \mod_customcert\element {
     public function after_restore($restore) {
         global $DB;
 
-        $data = $this->get_decoded_data();
-        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), 'course_module', $data->dateitem)) {
-            $data->dateitem = $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($data), ['id' => $this->get_id()]);
+        $dateinfo = json_decode($this->get_data());
+
+        $isgradeitem = false;
+        $oldid = $dateinfo->dateitem;
+        if (str_starts_with($dateinfo->dateitem, 'gradeitem:')) {
+            $isgradeitem = true;
+            $oldid = str_replace('gradeitem:', '', $dateinfo->dateitem);
+        }
+
+        $itemname = $isgradeitem ? 'grade_item' : 'course_module';
+        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
+            $dateinfo->dateitem = '';
+            if ($isgradeitem) {
+                $dateinfo->dateitem = 'gradeitem:';
+            }
+            $dateinfo->dateitem = $dateinfo->dateitem . $newitem->newitemid;
+            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($dateinfo), ['id' => $this->get_id()]);
         }
     }
-
 }
