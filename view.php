@@ -146,8 +146,10 @@ if (!$downloadown && !$downloadissue) {
         $downloadbutton = $OUTPUT->render($downloadbutton);
     }
 
+    $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
+
     $downloadallbutton = '';
-    if ($canmanage) {
+    if ($canmanage && $numissues > 0) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php',
             [
@@ -167,7 +169,6 @@ if (!$downloadown && !$downloadissue) {
     echo $downloadbutton;
     echo $downloadallbutton;
     if (isset($reporttable)) {
-        $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
         echo $OUTPUT->heading(get_string('listofissues', 'customcert', $numissues), 3);
         groups_print_activity_menu($cm, $pageurl);
         echo $reporttable->out($perpage, false);
