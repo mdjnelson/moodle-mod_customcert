@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.2.5] - 2024-XX-YY
+
+### Fixed 
+
+- Fixed issue when restoring `date`, `daterange`, `gradeitemname` and `grade` that have been linked to a manual grade item (#582).
+
+### Changed
+
+- The downloaded issue report can now be ordered by date sanely (#602).
+
+### Added
+
+- Added ability to download all certificates in the report as a teacher and bulk download all site certificates as an administrator (#205).
+
 ## [4.2.4] - 2024-02-08
 
 ### Fixed
