@@ -24,8 +24,6 @@
 
 namespace mod_customcert\output;
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-
 /**
  * Mobile output class for the custom certificate.
  *
