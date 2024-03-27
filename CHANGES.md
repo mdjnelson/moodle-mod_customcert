@@ -9,6 +9,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed 
 
 - Fixed issue when restoring `date`, `daterange`, `gradeitemname` and `grade` that have been linked to a manual grade item (#582).
+- Removed unnecessary set_context() call causing a PHP notice to be shown (#443).
+- Ensure we use $CFG->emailfromvia setting (#471).
 
 ### Changed
 
