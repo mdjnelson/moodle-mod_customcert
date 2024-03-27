@@ -209,7 +209,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                     $subject = get_string('emailstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
                     $messagehtml = $htmlrenderer->render($renderable);
-                    email_to_user($user, fullname($userfrom), html_entity_decode($subject, ENT_COMPAT), $message,
+                    email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
                         $messagehtml, $tempfile, $filename);
                 }
 
@@ -221,7 +221,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                     $message = $textrenderer->render($renderable);
                     $messagehtml = $htmlrenderer->render($renderable);
                     foreach ($teachers as $teacher) {
-                        email_to_user($teacher, fullname($userfrom), html_entity_decode($subject, ENT_COMPAT),
+                        email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
                             $message, $messagehtml, $tempfile, $filename);
                     }
                 }
@@ -241,7 +241,7 @@ class email_certificate_task extends \core\task\scheduled_task {
                             $emailuser = new \stdClass();
                             $emailuser->id = -1;
                             $emailuser->email = $email;
-                            email_to_user($emailuser, fullname($userfrom), html_entity_decode($subject, ENT_COMPAT), $message,
+                            email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
                                 $messagehtml, $tempfile, $filename);
                         }
                     }
