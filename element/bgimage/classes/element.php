@@ -124,5 +124,13 @@ class element extends \customcertelement_image\element {
             return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
         }
     }
-}
 
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
+    public function has_save_and_continue(): bool {
+        return true;
+    }
+}

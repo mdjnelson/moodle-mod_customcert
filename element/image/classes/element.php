@@ -442,4 +442,13 @@ class element extends \mod_customcert\element {
 
         return true;
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
+    public function has_save_and_continue(): bool {
+        return true;
+    }
 }

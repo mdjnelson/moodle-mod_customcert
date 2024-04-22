@@ -327,4 +327,13 @@ class element extends \customcertelement_image\element {
         return $fs->get_file($imageinfo->signaturecontextid, 'mod_customcert', $imageinfo->signaturefilearea,
             $imageinfo->signatureitemid, $imageinfo->signaturefilepath, $imageinfo->signaturefilename);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return bool
+     */
+    public function has_save_and_continue(): bool {
+        return true;
+    }
 }

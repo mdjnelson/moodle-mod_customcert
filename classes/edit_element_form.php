@@ -66,8 +66,18 @@ class edit_element_form extends \moodleform {
         $this->element = \mod_customcert\element_factory::get_element_instance($element);
         $this->element->set_edit_element_form($this);
         $this->element->render_form_elements($mform);
+        $buttonarray = [];
+        $buttonarray[] = $mform->createElement('submit', 'savechanges', get_string('savechanges', 'customcert'));
 
-        $this->add_action_buttons(true);
+        // Only the Background image, Image, and Digital signature require the 'Save and continue' button.
+        if ($this->element->has_save_and_continue()) {
+            $buttonarray[] = $mform->createElement(
+                    'submit',
+                    'saveandcontinue',
+                    get_string('saveandcontinue', 'customcert'));
+        }
+        $buttonarray[] = $mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
     }
 
     /**
