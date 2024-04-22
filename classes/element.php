@@ -510,4 +510,13 @@ abstract class element {
         return $this->editelementform;
     }
 
+    /**
+     * This defines if an element plugin need to add the "Save and continue" button.
+     * Can be overridden if an element plugin wants to take over the control.
+     *
+     * @return bool returns true if the element need to add the "Save and continue" button, false otherwise
+     */
+    public function has_save_and_continue(): bool {
+        return false;
+    }
 }

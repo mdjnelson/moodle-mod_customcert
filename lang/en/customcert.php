@@ -187,6 +187,7 @@ $string['requiredtimenotmet'] = 'You must spend at least a minimum of {$a->requi
 $string['rightmargin'] = 'Right margin';
 $string['rightmargin_help'] = 'This is the right margin of the certificate PDF in mm.';
 $string['save'] = 'Save';
+$string['savechanges'] = 'Save changes';
 $string['saveandclose'] = 'Save and close';
 $string['saveandcontinue'] = 'Save and continue';
 $string['savechangespreview'] = 'Save changes and preview';
