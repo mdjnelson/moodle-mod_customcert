@@ -96,14 +96,24 @@ if ($data = $mform->get_data()) {
     $data->element = $element->element;
     // Get an instance of the element class.
     if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
-        $e->save_form_elements($data);
+        $newlyid = $e->save_form_elements($data);
 
         // Trigger updated event.
         \mod_customcert\event\template_updated::create_from_template($template)->trigger();
     }
 
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
-    redirect($url);
+    $editurl = new moodle_url('/mod/customcert/edit_element.php', [
+            'id' => $newlyid,
+            'tid' => $tid,
+            'action' => 'edit',
+    ]);
+    $redirecturl = $url;
+
+    if (isset($data->saveandcontinue)) {
+        $redirecturl = ($action === 'add') ? $editurl : $PAGE->url;
+    }
+    redirect($redirecturl);
 }
 
 echo $OUTPUT->header();
