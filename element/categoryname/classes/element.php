@@ -61,7 +61,7 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_category_name() : string {
+    protected function get_category_name(): string {
         global $DB, $SITE;
 
         $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
