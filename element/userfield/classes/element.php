@@ -129,7 +129,7 @@ class element extends \mod_customcert\element {
      * @param bool $preview Is this a preview?
      * @return string
      */
-    protected function get_user_field_value(\stdClass $user, bool $preview) : string {
+    protected function get_user_field_value(\stdClass $user, bool $preview): string {
         global $CFG, $DB;
 
         // The user field to display.

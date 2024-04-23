@@ -125,7 +125,7 @@ class element extends \mod_customcert\element {
      * @param bool $preview Is this a preview?
      * @return string
      */
-    protected function get_course_field_value(\stdClass $course, bool $preview) : string {
+    protected function get_course_field_value(\stdClass $course, bool $preview): string {
 
         // The user field to display.
         $field = $this->get_data();
