@@ -4,9 +4,9 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [4.2.5] - 2024-XX-YY
+## [4.2.5] - 2024-04-23
 
-### Fixed 
+### Fixed
 
 - Fixed issue when restoring `date`, `daterange`, `gradeitemname` and `grade` that have been linked to a manual grade item (#582).
 - Removed unnecessary set_context() call causing a PHP notice to be shown (#443).
