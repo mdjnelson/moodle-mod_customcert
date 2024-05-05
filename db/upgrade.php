@@ -235,5 +235,36 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022112804, 'customcert');
     }
 
+    if ($oldversion < 2023042409) {
+
+        // Define table customcert_email_task_prgrs to be created.
+        $table = new xmldb_table('customcert_email_task_prgrs');
+
+        // Adding fields to table customcert_email_task_prgrs.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('taskname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, 'email_certificate_task');
+        $table->add_field('last_processed', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('total_certificate_to_process', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table customcert_email_task_prgrs.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for customcert_email_task_prgrs.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+
+            // Add a default row to the customcert_email_task_prgrs table.
+            $defaultdata = new stdClass();
+            $defaultdata->taskname = 'email_certificate_task';
+            $defaultdata->last_processed = 0;
+            $defaultdata->total_certificate_to_process = 0;
+
+            // Insert the default data into the table.
+            $DB->insert_record('customcert_email_task_prgrs', $defaultdata);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2023042409, 'customcert');
+    }
     return true;
 }
