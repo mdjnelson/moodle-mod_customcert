@@ -99,7 +99,7 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
 }
 
 // Check if we are downloading all certificates.
-if ($downloadall && $canmanage && confirm_sesskey()) {
+if ($downloadall && $canviewreport && confirm_sesskey()) {
     $template = new \mod_customcert\template($template);
     $issues = \mod_customcert\certificate::get_issues($customcert->id, $groupmode, $cm, 0, 0);
 
@@ -157,7 +157,7 @@ if (!$downloadown && !$downloadissue) {
     $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
 
     $downloadallbutton = '';
-    if ($canmanage && $numissues > 0) {
+    if ($canviewreport && $numissues > 0) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php',
             [
@@ -183,7 +183,7 @@ if (!$downloadown && !$downloadissue) {
     }
     echo $OUTPUT->footer($course);
     exit();
-} else if ($canreceive || $canmanage) { // Output to pdf.
+} else if ($canreceive || $canviewreport) { // Output to pdf.
     // Set the userid value of who we are downloading the certificate for.
     $userid = $USER->id;
     if ($downloadown) {
