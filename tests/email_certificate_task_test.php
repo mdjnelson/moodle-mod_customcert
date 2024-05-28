@@ -39,7 +39,7 @@ use mod_customcert\task\email_certificate_task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \mod_customcert\task\email_certificate_task
  */
-class email_certificate_task_test extends advanced_testcase {
+final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Test set up.
@@ -53,7 +53,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_no_elements() {
+    public function test_email_certificates_no_elements(): void {
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -81,7 +81,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_no_cap() {
+    public function test_email_certificates_no_cap(): void {
         global $DB;
 
         // Create a course.
@@ -132,7 +132,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students() {
+    public function test_email_certificates_students(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -219,7 +219,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_teachers() {
+    public function test_email_certificates_teachers(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -279,7 +279,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_others() {
+    public function test_email_certificates_others(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -334,7 +334,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students_not_visible() {
+    public function test_email_certificates_students_not_visible(): void {
         global $DB;
 
         // Create a course.
@@ -388,7 +388,7 @@ class email_certificate_task_test extends advanced_testcase {
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students_havent_met_required_time() {
+    public function test_email_certificates_students_havent_met_required_time(): void {
         global $DB;
 
         // Set the standard log to on.
