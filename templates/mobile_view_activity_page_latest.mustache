@@ -79,7 +79,8 @@
     }
 }}
 {{=<% %>=}}
-<core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
+<core-course-module-info [module]="module" description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"
+    [courseId]="courseId"></core-course-module-info>
 <ion-list>
 <%^canmanage%>
     <%#requiredtimemet%>
