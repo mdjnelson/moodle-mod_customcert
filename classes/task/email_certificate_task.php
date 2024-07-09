@@ -34,6 +34,8 @@ use mod_customcert\helper;
  */
 class email_certificate_task extends \core\task\scheduled_task {
 
+    private bool $VERBOSE = true;
+
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -65,11 +67,21 @@ class email_certificate_task extends \core\task\scheduled_task {
             return;
         }
 
+        if ($this->VERBOSE) {
+            $n_certs = count($customcerts);
+            mtrace("Found $n_certs customcert instances having email notifications ON");
+        }
+
         // The renderers used for sending emails.
         $page = new \moodle_page();
         $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
+
         foreach ($customcerts as $customcert) {
+            if ($this->VERBOSE) {
+                mtrace("Processing certificate ID#$customcert->id");
+            }
+
             // Do not process an empty certificate.
             $sql = "SELECT ce.*
                       FROM {customcert_elements} ce
@@ -79,6 +91,9 @@ class email_certificate_task extends \core\task\scheduled_task {
                         ON ct.id = cp.templateid
                      WHERE ct.contextid = :contextid";
             if (!$DB->record_exists_sql($sql, ['contextid' => $customcert->contextid])) {
+                if ($this->VERBOSE) {
+                    mtrace("> ... Skipping empty certificate");
+                }
                 continue;
             }
 
@@ -111,6 +126,11 @@ class email_certificate_task extends \core\task\scheduled_task {
                      WHERE ci.customcertid = :customcertid";
             $issuedusers = $DB->get_records_sql($sql, ['customcertid' => $customcert->id]);
 
+            if ($this->VERBOSE) {
+                $n_issuedusers = count($issuedusers);
+                mtrace("> Certificate has already been issued to $n_issuedusers users");
+            }
+
             // Now, get a list of users who can access the certificate but have not yet.
             $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
 
@@ -123,6 +143,12 @@ class email_certificate_task extends \core\task\scheduled_task {
             $info = new \core_availability\info_module($cm);
             $filteredusers = $info->filter_user_list($enrolledusers);
             // End changes
+
+            if ($this->VERBOSE) {
+                $n_enrolled = count($enrolledusers);
+                $n_filtered = count($filteredusers);
+                mtrace("> Found $n_enrolled enrolled users; number reduced to $n_filtered applying function 'filter_user_list'");
+            }
 
             foreach ($filteredusers as $enroluser) {
                 // Check if the user has already been issued.
