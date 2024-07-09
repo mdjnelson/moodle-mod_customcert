@@ -73,7 +73,8 @@ class element_helper {
         $y = $element->get_posy();
         $w = $element->get_width();
         $refpoint = $element->get_refpoint();
-        $actualwidth = $pdf->GetStringWidth($content);
+        $cleanedcontent = clean_param($content, PARAM_NOTAGS);
+        $actualwidth = $pdf->GetStringWidth($cleanedcontent);
         $alignment = $element->get_alignment();
 
         if ($w && $w < $actualwidth) {
