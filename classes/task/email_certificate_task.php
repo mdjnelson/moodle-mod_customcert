@@ -113,7 +113,18 @@ class email_certificate_task extends \core\task\scheduled_task {
 
             // Now, get a list of users who can access the certificate but have not yet.
             $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
-            foreach ($enrolledusers as $enroluser) {
+
+            // Start changes: Optimization to reduce the number of users checked - use filter_user_list
+            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->courseid)[1];
+            if (!$cm->visible) {
+                continue;
+            }
+
+            $info = new \core_availability\info_module($cm);
+            $filteredusers = $info->filter_user_list($enrolledusers);
+            // End changes
+
+            foreach ($filteredusers as $enroluser) {
                 // Check if the user has already been issued.
                 if (in_array($enroluser->id, array_keys((array) $issuedusers))) {
                     continue;
