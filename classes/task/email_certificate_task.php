@@ -78,8 +78,18 @@ class email_certificate_task extends \core\task\scheduled_task {
         $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
 
         foreach ($customcerts as $customcert) {
+            // Get context
+            $context = \context::instance_by_id($customcert->contextid);
+
+            // Get certificate info
+            $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
+            $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
+            $certificatename = format_string($customcert->name, true, ['context' => $context]);
+
             if ($this->VERBOSE) {
                 mtrace("Processing certificate ID#$customcert->id");
+                mtrace("> Certificate name: $certificatename");
+                mtrace("> Course: $coursefullname [$courseshortname]");
             }
 
             // Do not process an empty certificate.
@@ -107,18 +117,11 @@ class email_certificate_task extends \core\task\scheduled_task {
             }
             // End change 1
 
-            // Get the context.
-            $context = \context::instance_by_id($customcert->contextid);
-
             // Get the person we are going to send this email on behalf of.
             $userfrom = \core_user::get_noreply_user();
 
             // Store teachers for later.
             $teachers = get_enrolled_users($context, 'moodle/course:update');
-
-            $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
-            $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
-            $certificatename = format_string($customcert->name, true, ['context' => $context]);
 
             // Used to create the email subject.
             $info = new \stdClass;
@@ -151,7 +154,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             if ($this->VERBOSE) {
                 $n_enrolled = count($enrolledusers);
                 $n_filtered = count($filteredusers);
-                mtrace("> $n_enrolled enrolled users, filtered to $n_filtered");
+                mtrace("> Found $n_filtered users eligible (filtered from $n_enrolled)");
             }
             // End change 2
 
