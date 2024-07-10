@@ -92,10 +92,20 @@ class email_certificate_task extends \core\task\scheduled_task {
                      WHERE ct.contextid = :contextid";
             if (!$DB->record_exists_sql($sql, ['contextid' => $customcert->contextid])) {
                 if ($this->VERBOSE) {
-                    mtrace("> ... Skipping empty certificate");
+                    mtrace("> ... skip (empty)");
                 }
                 continue;
             }
+
+            // Change 1: get CM, skip if certificate is hidden
+            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->courseid)[1];
+            if (!$cm->visible) {
+                if ($this->VERBOSE) {
+                    mtrace("> ... skip (hidden)");
+                }
+                continue;
+            }
+            // End change 1
 
             // Get the context.
             $context = \context::instance_by_id($customcert->contextid);
@@ -128,26 +138,25 @@ class email_certificate_task extends \core\task\scheduled_task {
 
             if ($this->VERBOSE) {
                 $n_issuedusers = count($issuedusers);
-                mtrace("> Certificate has already been issued to $n_issuedusers users");
+                mtrace("> $n_issuedusers already issued");
             }
 
             // Now, get a list of users who can access the certificate but have not yet.
             $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
 
-            // Start changes: Optimization to reduce the number of users checked - use filter_user_list
-            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->courseid)[1];
-            if (!$cm->visible) {
-                continue;
-            }
-
-            $info = new \core_availability\info_module($cm);
-            $filteredusers = $info->filter_user_list($enrolledusers);
-            // End changes
+            // Change 2: use filter_user_list to reduce number of users (only takes into account availability condition implementing the same function)
+            $infomodule = new \core_availability\info_module($cm);
+            $filteredusers = $infomodule->filter_user_list($enrolledusers);
 
             if ($this->VERBOSE) {
                 $n_enrolled = count($enrolledusers);
                 $n_filtered = count($filteredusers);
-                mtrace("> Found $n_enrolled enrolled users; number reduced to $n_filtered applying function 'filter_user_list'");
+                mtrace("> $n_enrolled enrolled users, filtered to $n_filtered");
+            }
+            // End change 2
+
+            if ($this->VERBOSE) {
+                mtrace("> Processing users");
             }
 
             foreach ($filteredusers as $enroluser) {
@@ -174,15 +183,17 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 // Check that they have passed the required time.
                 if (!empty($customcert->requiredtime)) {
-                    if (\mod_customcert\certificate::get_course_time($customcert->courseid,
-                            $enroluser->id) < ($customcert->requiredtime * 60)) {
+                    if (\mod_customcert\certificate::get_course_time($customcert->courseid, $enroluser->id) < ($customcert->requiredtime * 60)) {
                         continue;
                     }
                 }
 
                 // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
-                $issueid = $DB->get_field('customcert_issues', 'id',
-                    ['userid' => $enroluser->id, 'customcertid' => $customcert->id], IGNORE_MULTIPLE);
+                $issueid = $DB->get_field('customcert_issues', 'id', [
+                    'userid' => $enroluser->id,
+                    'customcertid' => $customcert->id
+                ], IGNORE_MULTIPLE);
+
                 if (empty($issueid)) {
                     // Ok, issue them the certificate.
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id);
@@ -199,6 +210,11 @@ class email_certificate_task extends \core\task\scheduled_task {
                 if ($issueduser->emailed) {
                     unset($issuedusers[$key]);
                 }
+            }
+
+            if ($this->VERBOSE) {
+                $new_issues = count($issuedusers);
+                mtrace("> Found $new_issues new certificates to issue");
             }
 
             // If there are no users to email we can return early.
