@@ -70,6 +70,10 @@ $settings->add(new admin_setting_configcheckbox('customcert/includeinnotvisiblec
     get_string('includeinnotvisiblecourses', 'customcert'),
     get_string('includeinnotvisiblecourses_desc', 'customcert'), 0));
 
+$settings->add(new admin_setting_configcheckbox('customcert/useadhoc',
+    get_string('useadhoc', 'customcert'),
+    get_string('useadhoc_desc', 'customcert'), 0));
+
 $settings->add(new admin_setting_configduration('customcert/certificateexecutionperiod',
     get_string('certificateexecutionperiod', 'customcert'),
     get_string('certificateexecutionperiod_desc', 'customcert'), 365 * DAYSECS));
