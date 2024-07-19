@@ -238,3 +238,21 @@ $string['verifycertificateanyone_help'] = 'This setting enables anyone with the 
 $string['verifycertificatedesc'] = 'This link will take you to a new screen where you will be able to verify certificates on the site';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
+
+$string['userlanguage'] = 'Use user preferences';
+$string['languageoptions'] = 'Force Certificate Language';
+$string['userlanguage_help'] = 'You can force the language of the certificate to override the user\'s language preferences.';
+
+// Scheduled task configuration performance settings.
+$string['certificateexecutionperiod'] = 'Ignore inactive certificates older than';
+$string['certificateexecutionperiod_desc'] = 'If not 0, the task will not process certificates whose course has been inactive or the last issue is older than the configured time. This may help to improve the performance of the scheduled task.';
+$string['certificatesperrun'] = 'Certificates per run';
+$string['certificatesperrun_desc'] = 'Enter the number of certificates to process per scheduled task run where 0 means it will process all certificates.';
+$string['customcert:managelanguages'] = 'Manage language on edit form';
+$string['includeinnotvisiblecourses'] = 'Include certificates in hidden courses';
+$string['includeinnotvisiblecourses_desc'] = 'Certificates from hidden courses are not proccesed by default. If you want to include them, enable this setting.';
+$string['scheduledtaskconfigheading'] = 'Scheduled task configuration';
+$string['scheduledtaskconfigdesc'] = 'Configure the settings for the scheduled task that processes certificates.';
+$string['issuecertificate'] = 'Issue certificates task';
+$string['useadhoc'] = 'Use Email Certificate adhoc task';
+$string['useadhoc_desc'] = 'If enabled, the email will be processed on an adhoc task created per issue. If disabled, the email will be processed by the scheduled task. This may help to improve the performance of the scheduled task.';
