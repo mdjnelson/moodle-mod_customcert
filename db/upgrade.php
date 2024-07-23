@@ -235,5 +235,25 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022112804, 'customcert');
     }
 
+    if ($oldversion < 2022112809) {
+        $elements = $DB->get_records('customcert_elements', ['element' => 'date']);
+
+        foreach ($elements as $element) {
+            $data = json_decode($element->data);
+
+            // If dateitem is between CUSTOMCERT_DATE_EXPIRY_ONE and
+            // CUSTOMCERT_DATE_EXPIRY_FIVE.
+            if ((intval($data->dateitem) <= -8) && (intval($data->dateitem) >= -12)) {
+                $data->startfrom = 'award';
+                $element->data = json_encode($data);
+                $element->element = 'expiry';
+                $DB->update_record('customcert_elements', $element);
+            }
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2022112809, 'customcert');
+    }
+
     return true;
 }
