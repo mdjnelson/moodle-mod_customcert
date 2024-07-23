@@ -118,6 +118,13 @@ if ($code) {
 
     // It is possible (though unlikely) that there is the same code for issued certificates.
     if ($issues = $DB->get_records_sql($sql, $params)) {
+        foreach ($issues as $issue) {
+            if (class_exists('\customcertelement_expiry\element') &&
+                        \customcertelement_expiry\element::has_expiry($issue->certificateid)) {
+                $issue->expiry = \customcertelement_expiry\element::get_expiry_html($issue->certificateid, $issue->userid);
+            }
+        }
+
         $result->success = true;
         $result->issues = $issues;
     } else {
