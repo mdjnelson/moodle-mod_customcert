@@ -62,6 +62,11 @@ class verify_certificate_result implements templatable, renderable {
     public $certificatename;
 
     /**
+     * @var int The certificate's expiry date (optional).
+     */
+    public $expiry;
+
+    /**
      * Constructor.
      *
      * @param \stdClass $result
@@ -76,6 +81,12 @@ class verify_certificate_result implements templatable, renderable {
         $this->courseurl = new \moodle_url('/course/view.php', ['id' => $result->courseid]);
         $this->coursefullname = format_string($result->coursefullname, true, ['context' => $context]);
         $this->certificatename = format_string($result->certificatename, true, ['context' => $context]);
+
+        if (property_exists($result, 'expiry')) {
+            $this->expiry = $result->expiry;
+        } else {
+            $this->expiry = null;
+        }
     }
 
     /**
@@ -91,6 +102,10 @@ class verify_certificate_result implements templatable, renderable {
         $result->coursefullname = $this->coursefullname;
         $result->courseurl = $this->courseurl;
         $result->certificatename = $this->certificatename;
+
+        if (!empty($this->expiry)) {
+            $result->expiry = $this->expiry;
+        }
 
         return $result;
     }
