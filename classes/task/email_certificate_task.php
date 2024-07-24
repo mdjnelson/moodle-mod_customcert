@@ -60,9 +60,12 @@ class email_certificate_task extends \core\task\scheduled_task {
                     ON c.templateid = ct.id
                   JOIN {course} co
                     ON c.course = co.id
-                 WHERE (c.emailstudents = :emailstudents
+                 WHERE co.visible = 1 
+                    AND (
+                        c.emailstudents = :emailstudents
                         OR c.emailteachers = :emailteachers
-                        OR $emailotherslengthsql >= 3)";
+                        OR $emailotherslengthsql >= 3
+                    )";
         if (!$customcerts = $DB->get_records_sql($sql, ['emailstudents' => 1, 'emailteachers' => 1])) {
             return;
         }
