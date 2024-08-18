@@ -235,7 +235,7 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023042405, 'customcert');
     }
 
-    if ($oldversion < 2023042409) {
+    if ($oldversion < 2023100902) {
 
         // Define table customcert_email_task_prgrs to be created.
         $table = new xmldb_table('customcert_email_task_prgrs');
@@ -264,7 +264,8 @@ function xmldb_customcert_upgrade($oldversion) {
         }
 
         // Customcert savepoint reached.
-        upgrade_mod_savepoint(true, 2023042409, 'customcert');
+        upgrade_mod_savepoint(true, 2023100902, 'customcert');
     }
+
     return true;
 }
