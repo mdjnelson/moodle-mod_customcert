@@ -61,17 +61,17 @@ class email_certificate_task extends \core\task\scheduled_task {
         // Get all the certificates that have requested someone get emailed.
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                    co.fullname as coursefullname, co.shortname as courseshortname
-                FROM {customcert} c
-                JOIN {customcert_templates} ct
+                       co.fullname as coursefullname, co.shortname as courseshortname
+                  FROM {customcert} c
+                  JOIN {customcert_templates} ct
                     ON c.templateid = ct.id
-                JOIN {course} co
+                  JOIN {course} co
                     ON c.course = co.id";
 
         // Add JOIN with mdl_course_categories to exclude certificates from hidden courses.
         $sql .= " JOIN {course_categories} cat ON co.category = cat.id";
 
-        // Add conditions to exclude certificates from hidden courses.
+        // Only get certificates where we have to email someone.
         $sql .= " WHERE (c.emailstudents = :emailstudents
                  OR c.emailteachers = :emailteachers
                  OR $emailotherslengthsql >= 3)";
