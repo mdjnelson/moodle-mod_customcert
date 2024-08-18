@@ -64,19 +64,15 @@ $settings->add(new admin_setting_heading('scheduledtaskconfig',
 
 $settings->add(new admin_setting_configtext('customcert/certificatesperrun',
     get_string('certificatesperrun', 'customcert'),
-    get_string('certificatesperrun_desc', 'customcert'),
-    0, PARAM_INT));
+    get_string('certificatesperrun_desc', 'customcert'), 0, PARAM_INT));
+
 $settings->add(new admin_setting_configcheckbox('customcert/includeinnotvisiblecourses',
     get_string('includeinnotvisiblecourses', 'customcert'),
     get_string('includeinnotvisiblecourses_desc', 'customcert'), 0));
-$settings->add(
-        new admin_setting_configduration(
-            'customcert/certificateexecutionperiod',
-            new \lang_string('certificateexecutionperiod', 'customcert'),
-            new \lang_string('certificateexecutionperiod_desc', 'customcert'),
-            365 * DAYSECS
-        )
-    );
+
+$settings->add(new admin_setting_configduration('customcert/certificateexecutionperiod',
+    get_string('certificateexecutionperiod', 'customcert'),
+    get_string('certificateexecutionperiod_desc', 'customcert'), 365 * DAYSECS));
 
 $settings->add(new admin_setting_heading('defaults',
     get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
