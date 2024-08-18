@@ -18,7 +18,7 @@
  * Customcert module upgrade code.
  *
  * @package    mod_customcert
- * @copyright  2024 Mohamed Atia <matia12[@gmail.com>
+ * @copyright  2024 Mohamed Atia <matia12@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
