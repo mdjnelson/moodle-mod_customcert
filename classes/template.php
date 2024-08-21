@@ -303,9 +303,9 @@ class template {
             $sql = "SELECT course,fullname
                     FROM   {customcert} c, {course} cr
                     WHERE  c.id = :templateid
-		    	   AND c.course = cr.id";
-	    $course = $DB->get_record_sql($sql, array('templateid' => $this->id));
-	    $filename = clean_filename($filename .'_'. fullname($USER) .'_'. $course->fullname . '.pdf');
+		    	    AND c.course = cr.id";
+	        $course = $DB->get_record_sql($sql, array('templateid' => $this->id));
+	        $filename = clean_filename($filename .'_'. fullname($USER) .'_'. $course->fullname . '.pdf');
             
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
