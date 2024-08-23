@@ -25,6 +25,7 @@
 
 namespace mod_customcert;
 
+use completion_info;
 use stdClass;
 use context_course;
 use advanced_testcase;
@@ -430,6 +431,87 @@ class email_certificate_task_test extends advanced_testcase {
         $emails = $sink->get_messages();
 
         // Confirm there are no issues as the user did not meet the required time.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(0, $issues);
+
+        // Confirm no emails were sent.
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Tests the email certificate task when the student has not met the completion criteria.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_students_havent_met_required_criteria(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Enrol them in the course.
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a quiz.
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+
+        $quizmodule = $DB->get_record('course_modules', ['id' => $quiz->cmid]);
+
+        // Set completion criteria for the quiz.
+        $quizmodule->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $quizmodule->completionview = 1; // Require view to complete.
+        $quizmodule->completionexpected = 0;
+        $DB->update_record('course_modules', $quizmodule);
+
+        // Set restrict access to the customcert activity based on the completion of the quiz.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'availability' => json_encode(
+                [
+                    'op' => '&',
+                    'c' => [
+                        [
+                            'type' => 'completion',
+                            'cm' => $quiz->cmid,
+                            'e' => COMPLETION_COMPLETE, // Ensure the quiz is marked as complete.
+                        ],
+                    ],
+                    'showc' => [
+                        false
+                    ],
+                ]
+            )
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new email_certificate_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Confirm there are no issues as the user can not view the certificate.
         $issues = $DB->get_records('customcert_issues');
         $this->assertCount(0, $issues);
 
