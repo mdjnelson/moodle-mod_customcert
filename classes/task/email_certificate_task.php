@@ -124,6 +124,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             if (!$fastmoduleinfo->visible) {
                 continue;
             }
+
             // Do not process an empty certificate.
             $sql = "SELECT ce.*
                       FROM {customcert_elements} ce
@@ -150,7 +151,7 @@ class email_certificate_task extends \core\task\scheduled_task {
             $certificatename = format_string($customcert->name, true, ['context' => $context]);
 
             // Used to create the email subject.
-            $info = new \stdClass;
+            $info = new \stdClass();
             $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
             $info->courseshortname = $courseshortname;
             $info->coursefullname = $coursefullname;
@@ -177,14 +178,10 @@ class email_certificate_task extends \core\task\scheduled_task {
             $userswithissue = get_users_by_capability($context, 'mod/customcert:receiveissue');
             // Get users with mod/customcert:view capability.
             $userswithview = get_users_by_capability($context, 'mod/customcert:view');
-            // Users with both mod/customcert:view and mod/customcert:receiveissue cabapilities.
+            // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
             $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
-            $infomodule = new \core_availability\info_module($fastmoduleinfo);
-            // Filter who can't access due to availability restriction, from the full list.
-            $userscanissue = $infomodule->filter_user_list($userswithissueview);
-
-            foreach ($userscanissue as $enroluser) {
+            foreach ($userswithissueview as $enroluser) {
                 // Check if the user has already been issued.
                 if (in_array($enroluser->id, array_keys((array)$issuedusers))) {
                     continue;
@@ -192,6 +189,12 @@ class email_certificate_task extends \core\task\scheduled_task {
 
                 // Don't want to email those with the capability to manage the certificate.
                 if (in_array($enroluser->id, array_keys((array)$userswithmanage))) {
+                    continue;
+                }
+
+                // Now check if the certificate is not visible to the current user.
+                $cm = get_fast_modinfo($customcert->courseid, $enroluser->id)->instances['customcert'][$customcert->id];
+                if (!$cm->uservisible) {
                     continue;
                 }
 
