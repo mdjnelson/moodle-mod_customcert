@@ -38,30 +38,30 @@ class element extends \mod_customcert\element {
     /**
      * Date - Relative expiry date of 1 year
      */
-    const EXPIRY_ONE = '-8';
+    private const EXPIRY_ONE = '-8';
 
     /**
      * Date - Relative expiry date of 2 year
      */
-    const EXPIRY_TWO = '-9';
+    private const EXPIRY_TWO = '-9';
 
     /**
      * Date - Relative expiry date of 3 year
      */
-    const EXPIRY_THREE = '-10';
+    private const EXPIRY_THREE = '-10';
 
     /**
      * Date - Relative expiry date of 4 year
      */
-    const EXPIRY_FOUR = '-11';
+    private const EXPIRY_FOUR = '-11';
 
     /**
      * Date - Relative expiry date of 5 year
      */
-    const EXPIRY_FIVE = '-12';
+    private const EXPIRY_FIVE = '-12';
 
     /** @var array Map EXPIRY_ consts to strtotime()'s $datetime param. */
-    private $relative = [
+    private array $relative = [
         self::EXPIRY_ONE => '+1 year',
         self::EXPIRY_TWO => '+2 years',
         self::EXPIRY_THREE => '+3 years',
