@@ -687,6 +687,11 @@ class element_helper {
         );
     }
 
+    /**
+     * Helper function to return all the date formats.
+     *
+     * @return array the list of date formats
+     */
     public static function get_date_formats(): array {
         // Hard-code date so users can see the difference between short dates with and without the leading zero.
         // Eg. 06/07/18 vs 6/07/18.
