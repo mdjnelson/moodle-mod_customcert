@@ -24,7 +24,7 @@
 
 namespace mod_customcert;
 
-use \customcertelement_expiry\element as expiry_element;
+use customcertelement_expiry\element as expiry_element;
 
 defined('MOODLE_INTERNAL') || die;
 

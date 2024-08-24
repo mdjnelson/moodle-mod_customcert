@@ -483,10 +483,10 @@ class email_certificate_task_test extends advanced_testcase {
                         ],
                     ],
                     'showc' => [
-                        false
+                        false,
                     ],
-                ]
-            )
+                ],
+            ),
         ]);
 
         // Create template object.
