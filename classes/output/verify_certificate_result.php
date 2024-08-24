@@ -39,32 +39,32 @@ class verify_certificate_result implements templatable, renderable {
     /**
      * @var string The URL to the user's profile.
      */
-    public $userprofileurl;
+    public string $userprofileurl;
 
     /**
      * @var string The user's fullname.
      */
-    public $userfullname;
+    public string $userfullname;
 
     /**
      * @var string The URL to the course page.
      */
-    public $courseurl;
+    public string $courseurl;
 
     /**
      * @var string The course's fullname.
      */
-    public $coursefullname;
+    public string $coursefullname;
 
     /**
      * @var string The certificate's name.
      */
-    public $certificatename;
+    public string $certificatename;
 
     /**
-     * @var int The certificate's expiry date (optional).
+     * @var int|null The certificate's expiry date (optional).
      */
-    public $expiry;
+    public ?int $expiry;
 
     /**
      * Constructor.
