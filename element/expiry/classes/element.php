@@ -24,7 +24,7 @@
 
 namespace customcertelement_expiry;
 
-use \mod_customcert\element_helper;
+use mod_customcert\element_helper;
 
 /**
  * The customcert element expiry's core interaction API.
