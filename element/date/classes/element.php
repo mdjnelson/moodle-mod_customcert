@@ -24,6 +24,8 @@
 
 namespace customcertelement_date;
 
+use mod_customcert\element_helper;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -103,7 +105,8 @@ class element extends \mod_customcert\element {
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
 
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'), self::get_date_formats());
+        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'),
+            element_helper::get_date_formats());
         $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
@@ -230,7 +233,7 @@ class element extends \mod_customcert\element {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            \mod_customcert\element_helper::render_content($pdf, $this, $this->get_date_format_string($date, $dateformat));
+            \mod_customcert\element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
         }
     }
 
@@ -252,7 +255,8 @@ class element extends \mod_customcert\element {
         $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_date_format_string(time(), $dateformat));
+        return \mod_customcert\element_helper::render_html_content($this,
+            element_helper::get_date_format_string(time(), $dateformat));
     }
 
     /**
@@ -312,110 +316,8 @@ class element extends \mod_customcert\element {
      * @return array the list of date formats
      */
     public static function get_date_formats() {
-        // Hard-code date so users can see the difference between short dates with and without the leading zero.
-        // Eg. 06/07/18 vs 6/07/18.
-        $date = 1530849658;
-
-        $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-
-        $dateformats = [
-            1 => userdate($date, '%B %d, %Y'),
-            2 => userdate($date, '%B %d' . $suffix . ', %Y'),
-        ];
-
-        $strdateformats = [
-            'strftimedate',
-            'strftimedatefullshort',
-            'strftimedatefullshortwleadingzero',
-            'strftimedateshort',
-            'strftimedatetime',
-            'strftimedatetimeshort',
-            'strftimedatetimeshortwleadingzero',
-            'strftimedaydate',
-            'strftimedaydatetime',
-            'strftimedayshort',
-            'strftimedaytime',
-            'strftimemonthyear',
-            'strftimerecent',
-            'strftimerecentfull',
-            'strftimetime',
-        ];
-
-        foreach ($strdateformats as $strdateformat) {
-            if ($strdateformat == 'strftimedatefullshortwleadingzero') {
-                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
-            } else if ($strdateformat == 'strftimedatetimeshortwleadingzero') {
-                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
-            } else {
-                $dateformats[$strdateformat] = userdate($date, get_string($strdateformat, 'langconfig'));
-            }
-        }
-
-        return $dateformats;
-    }
-
-    /**
-     * Returns the date in a readable format.
-     *
-     * @param int $date
-     * @param string $dateformat
-     * @return string
-     */
-    protected function get_date_format_string($date, $dateformat) {
-        // Keeping for backwards compatibility.
-        if (is_number($dateformat)) {
-            switch ($dateformat) {
-                case 1:
-                    $certificatedate = userdate($date, '%B %d, %Y');
-                    break;
-                case 2:
-                    $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-                    $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                    break;
-                case 3:
-                    $certificatedate = userdate($date, '%d %B %Y');
-                    break;
-                case 4:
-                    $certificatedate = userdate($date, '%B %Y');
-                    break;
-                default:
-                    $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
-            }
-        }
-
-        // Ok, so we must have been passed the actual format in the lang file.
-        if (!isset($certificatedate)) {
-            if ($dateformat == 'strftimedatefullshortwleadingzero') {
-                $certificatedate = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
-            } else if ($dateformat == 'strftimedatetimeshortwleadingzero') {
-                $certificatedate = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
-            } else {
-                $certificatedate = userdate($date, get_string($dateformat, 'langconfig'));
-            }
-        }
-
-        return $certificatedate;
-    }
-
-    /**
-     * Helper function to return the suffix of the day of
-     * the month, eg 'st' if it is the 1st of the month.
-     *
-     * @param int $day the day of the month
-     * @return string the suffix.
-     */
-    protected static function get_ordinal_number_suffix($day) {
-        if (!in_array(($day % 100), [11, 12, 13])) {
-            switch ($day % 10) {
-                // Handle 1st, 2nd, 3rd.
-                case 1:
-                    return get_string('numbersuffix_st_as_in_first', 'customcertelement_date');
-                case 2:
-                    return get_string('numbersuffix_nd_as_in_second', 'customcertelement_date');
-                case 3:
-                    return get_string('numbersuffix_rd_as_in_third', 'customcertelement_date');
-            }
-        }
-        return 'th';
+        debugging("The method customcertelement_date::get_date_formats is deprecated, " .
+            "please use element_helper::get_date_formats() instead", DEBUG_DEVELOPER);
+        return element_helper::get_date_formats();
     }
 }
