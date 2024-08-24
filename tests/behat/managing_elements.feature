@@ -139,6 +139,30 @@ Feature: Being able to manage elements in a certificate template
       | Width                    | 20                |
       | Reference point location | Top left          |
     And I press "Save changes"
+    # Expiry.
+    And I add the element "Expiry" to page "1" of the "Custom certificate 1" certificate template
+    And I set the following fields to these values:
+      | Date item                | Expiry date (1 year) |
+      | Date format              | 2                    |
+      | Start date               | award                |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+    And I press "Save changes"
+    And I should see "Expiry" in the "elementstable" "table"
+    And I click on ".edit-icon" "css_element" in the "Expiry" "table_row"
+    And the following fields match these values:
+      | Date item                | Expiry date (1 year) |
+      | Date format              | 2                    |
+      | Start date               | award                |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+    And I press "Save changes"
     # Date range.
     And I add the element "Date range" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
