@@ -255,16 +255,16 @@ class template {
      */
     public function generate_pdf(bool $preview = false, int $userid = null, bool $return = false) {
         global $CFG, $DB, $USER;
-	
-	if (empty($userid)) {
+
+    if (empty($userid)) {
             $user = $USER;
         } else {
             $user = \core_user::get_user($userid);
         }
 
         require_once($CFG->libdir . '/pdflib.php');
-	
-	// Get the pages for the template, there should always be at least one page for each template.
+
+    // Get the pages for the template, there should always be at least one page for each template.
         if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'sequence ASC')) {
             // Create the pdf object.
             $pdf = new \pdf();
@@ -303,9 +303,9 @@ class template {
             $sql = "SELECT course,fullname
                     FROM   {customcert} c, {course} cr
                     WHERE  c.id = :templateid
-		    	    AND c.course = cr.id";
-	        $course = $DB->get_record_sql($sql, array('templateid' => $this->id));
-	        $filename = clean_filename($filename .'_'. fullname($USER) .'_'. $course->fullname . '.pdf');
+                    AND c.course = cr.id";
+            $course = $DB->get_record_sql($sql, array('templateid' => $this->id));
+            $filename = clean_filename($filename .'_'. fullname($USER) .'_'. $course->fullname . '.pdf');
             
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
