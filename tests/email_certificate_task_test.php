@@ -520,7 +520,7 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * Tests the email certificate task when the student has not met the completion criteria.
+     * Tests the email certificate task when the student has met the completion criteria.
      *
      * @covers \mod_customcert\task\email_certificate_task
      */
