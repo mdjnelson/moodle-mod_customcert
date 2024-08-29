@@ -24,8 +24,6 @@
 
 namespace mod_customcert;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Class represents a customcert template.
  *
@@ -75,14 +73,20 @@ class template {
         $savedata->timemodified = time();
 
         $DB->update_record('customcert_templates', $savedata);
+
+        // Only trigger event if the name has changed.
+        if ($this->get_name() != $data->name) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
     }
 
     /**
      * Handles adding another page to the template.
      *
+     * @param bool $triggertemplateupdatedevent
      * @return int the id of the page
      */
-    public function add_page() {
+    public function add_page(bool $triggertemplateupdatedevent = true) {
         global $DB;
 
         // Set the page number to 1 to begin with.
@@ -91,7 +95,7 @@ class template {
         $sql = "SELECT MAX(sequence) as maxpage
                   FROM {customcert_pages} cp
                  WHERE cp.templateid = :templateid";
-        if ($maxpage = $DB->get_record_sql($sql, array('templateid' => $this->id))) {
+        if ($maxpage = $DB->get_record_sql($sql, ['templateid' => $this->id])) {
             $sequence = $maxpage->maxpage + 1;
         }
 
@@ -105,7 +109,17 @@ class template {
         $page->timemodified = $page->timecreated;
 
         // Insert the page.
-        return $DB->insert_record('customcert_pages', $page);
+        $pageid = $DB->insert_record('customcert_pages', $page);
+
+        $page->id = $pageid;
+
+        \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
+
+        if ($triggertemplateupdatedevent) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
+
+        return $page->id;
     }
 
     /**
@@ -120,24 +134,31 @@ class template {
         $time = time();
 
         // Get the existing pages and save the page data.
-        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $data->tid))) {
+        if ($pages = $DB->get_records('customcert_pages', ['templateid' => $data->tid])) {
             // Loop through existing pages.
             foreach ($pages as $page) {
-                // Get the name of the fields we want from the form.
-                $width = 'pagewidth_' . $page->id;
-                $height = 'pageheight_' . $page->id;
-                $leftmargin = 'pageleftmargin_' . $page->id;
-                $rightmargin = 'pagerightmargin_' . $page->id;
-                // Create the page data to update the DB with.
-                $p = new \stdClass();
-                $p->id = $page->id;
-                $p->width = $data->$width;
-                $p->height = $data->$height;
-                $p->leftmargin = $data->$leftmargin;
-                $p->rightmargin = $data->$rightmargin;
-                $p->timemodified = $time;
-                // Update the page.
-                $DB->update_record('customcert_pages', $p);
+                // Only update if there is a difference.
+                if ($this->has_page_been_updated($page, $data)) {
+                    $width = 'pagewidth_' . $page->id;
+                    $height = 'pageheight_' . $page->id;
+                    $leftmargin = 'pageleftmargin_' . $page->id;
+                    $rightmargin = 'pagerightmargin_' . $page->id;
+
+                    $p = new \stdClass();
+                    $p->id = $page->id;
+                    $p->width = $data->$width;
+                    $p->height = $data->$height;
+                    $p->leftmargin = $data->$leftmargin;
+                    $p->rightmargin = $data->$rightmargin;
+                    $p->timemodified = $time;
+
+                    // Update the page.
+                    $DB->update_record('customcert_pages', $p);
+
+                    // Calling code is expected to trigger template_updated
+                    // after this method.
+                    \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
+                }
             }
         }
     }
@@ -150,33 +171,19 @@ class template {
     public function delete() {
         global $DB;
 
-        // Delete the elements.
-        $sql = "SELECT e.*
-                  FROM {customcert_elements} e
-            INNER JOIN {customcert_pages} p
-                    ON e.pageid = p.id
-                 WHERE p.templateid = :templateid";
-        if ($elements = $DB->get_records_sql($sql, array('templateid' => $this->id))) {
-            foreach ($elements as $element) {
-                // Get an instance of the element class.
-                if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                    $e->delete();
-                } else {
-                    // The plugin files are missing, so just remove the entry from the DB.
-                    $DB->delete_records('customcert_elements', array('id' => $element->id));
-                }
+        // Delete the pages.
+        if ($pages = $DB->get_records('customcert_pages', ['templateid' => $this->id])) {
+            foreach ($pages as $page) {
+                $this->delete_page($page->id, false);
             }
         }
 
-        // Delete the pages.
-        if (!$DB->delete_records('customcert_pages', array('templateid' => $this->id))) {
+        // Now, finally delete the actual template.
+        if (!$DB->delete_records('customcert_templates', ['id' => $this->id])) {
             return false;
         }
 
-        // Now, finally delete the actual template.
-        if (!$DB->delete_records('customcert_templates', array('id' => $this->id))) {
-            return false;
-        }
+        \mod_customcert\event\template_deleted::create_from_template($this)->trigger();
 
         return true;
     }
@@ -185,28 +192,32 @@ class template {
      * Handles deleting a page from the template.
      *
      * @param int $pageid the template page
+     * @param bool $triggertemplateupdatedevent False if page is being deleted
+     * during deletion of template.
      */
-    public function delete_page($pageid) {
+    public function delete_page(int $pageid, bool $triggertemplateupdatedevent = true): void {
         global $DB;
 
         // Get the page.
-        $page = $DB->get_record('customcert_pages', array('id' => $pageid), '*', MUST_EXIST);
-
-        // Delete this page.
-        $DB->delete_records('customcert_pages', array('id' => $page->id));
+        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
 
         // The element may have some extra tasks it needs to complete to completely delete itself.
-        if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id))) {
+        if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
             foreach ($elements as $element) {
                 // Get an instance of the element class.
                 if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
                     $e->delete();
                 } else {
                     // The plugin files are missing, so just remove the entry from the DB.
-                    $DB->delete_records('customcert_elements', array('id' => $element->id));
+                    $DB->delete_records('customcert_elements', ['id' => $element->id]);
                 }
             }
         }
+
+        // Delete this page.
+        $DB->delete_records('customcert_pages', ['id' => $page->id]);
+
+        \mod_customcert\event\page_deleted::create_from_page($page, $this)->trigger();
 
         // Now we want to decrease the page number values of
         // the pages that are greater than the page we deleted.
@@ -214,7 +225,11 @@ class template {
                    SET sequence = sequence - 1
                  WHERE templateid = :templateid
                    AND sequence > :sequence";
-        $DB->execute($sql, array('templateid' => $this->id, 'sequence' => $page->sequence));
+        $DB->execute($sql, ['templateid' => $this->id, 'sequence' => $page->sequence]);
+
+        if ($triggertemplateupdatedevent) {
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        }
     }
 
     /**
@@ -226,14 +241,14 @@ class template {
         global $DB;
 
         // Ensure element exists and delete it.
-        $element = $DB->get_record('customcert_elements', array('id' => $elementid), '*', MUST_EXIST);
+        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Get an instance of the element class.
         if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
             $e->delete();
         } else {
             // The plugin files are missing, so just remove the entry from the DB.
-            $DB->delete_records('customcert_elements', array('id' => $elementid));
+            $DB->delete_records('customcert_elements', ['id' => $elementid]);
         }
 
         // Now we want to decrease the sequence numbers of the elements
@@ -242,18 +257,20 @@ class template {
                    SET sequence = sequence - 1
                  WHERE pageid = :pageid
                    AND sequence > :sequence";
-        $DB->execute($sql, array('pageid' => $element->pageid, 'sequence' => $element->sequence));
+        $DB->execute($sql, ['pageid' => $element->pageid, 'sequence' => $element->sequence]);
+
+        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
     }
 
     /**
      * Generate the PDF for the template.
      *
      * @param bool $preview true if it is a preview, false otherwise
-     * @param int $userid the id of the user whose certificate we want to view
+     * @param int|null $userid the id of the user whose certificate we want to view
      * @param bool $return Do we want to return the contents of the PDF?
      * @return string|void Can return the PDF in string format if specified.
      */
-    public function generate_pdf(bool $preview = false, int $userid = null, bool $return = false) {
+    public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
         global $CFG, $DB, $USER;
 
     if (empty($userid)) {
@@ -263,13 +280,27 @@ class template {
         }
 
         require_once($CFG->libdir . '/pdflib.php');
+        require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
-    // Get the pages for the template, there should always be at least one page for each template.
-        if ($pages = $DB->get_records('customcert_pages', array('templateid' => $this->id), 'sequence ASC')) {
+        // Get the pages for the template, there should always be at least one page for each template.
+        if ($pages = $DB->get_records('customcert_pages', ['templateid' => $this->id], 'sequence ASC')) {
             // Create the pdf object.
             $pdf = new \pdf();
 
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
+
+            // I want to have my digital diplomas without having to change my preferred language.
+            $userlang = $USER->lang ?? current_language();
+
+            // Check the $customcert exists as it is false when previewing from mod/customcert/manage_templates.php.
+            if ($customcert) {
+                $forcelang = mod_customcert_force_current_language($customcert->language);
+                if (!empty($forcelang)) {
+                    // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                    // Preventing a user from getting trapped with the wrong language.
+                    \core_shutdown_manager::register_function('force_current_language', [$userlang]);
+                }
+            }
 
             // If the template belongs to a certificate then we need to check what permissions we set for it.
             if (!empty($customcert->protection)) {
@@ -315,10 +346,10 @@ class template {
                 } else {
                     $orientation = 'P';
                 }
-                $pdf->AddPage($orientation, array($page->width, $page->height));
+                $pdf->AddPage($orientation, [$page->width, $page->height]);
                 $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
                 // Get the elements for the page.
-                if ($elements = $DB->get_records('customcert_elements', array('pageid' => $page->id), 'sequence ASC')) {
+                if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id], 'sequence ASC')) {
                     // Loop through and display.
                     foreach ($elements as $element) {
                         // Get an instance of the element class.
@@ -326,6 +357,14 @@ class template {
                             $e->render($pdf, $preview, $user);
                         }
                     }
+                }
+            }
+
+            // Check the $customcert exists as it is false when previewing from mod/customcert/manage_templates.php.
+            if ($customcert) {
+                // We restore original language.
+                if ($userlang != $customcert->language) {
+                    mod_customcert_force_current_language($userlang);
                 }
             }
 
@@ -340,13 +379,15 @@ class template {
     /**
      * Handles copying this template into another.
      *
-     * @param int $copytotemplateid The template id to copy to
+     * @param object $copytotemplate The template instance to copy to
      */
-    public function copy_to_template($copytotemplateid) {
+    public function copy_to_template($copytotemplate) {
         global $DB;
 
+        $copytotemplateid = $copytotemplate->get_id();
+
         // Get the pages for the template, there should always be at least one page for each template.
-        if ($templatepages = $DB->get_records('customcert_pages', array('templateid' => $this->id))) {
+        if ($templatepages = $DB->get_records('customcert_pages', ['templateid' => $this->id])) {
             // Loop through the pages.
             foreach ($templatepages as $templatepage) {
                 $page = clone($templatepage);
@@ -355,8 +396,9 @@ class template {
                 $page->timemodified = $page->timecreated;
                 // Insert into the database.
                 $page->id = $DB->insert_record('customcert_pages', $page);
+                \mod_customcert\event\page_created::create_from_page($page, $copytotemplate)->trigger();
                 // Now go through the elements we want to load.
-                if ($templateelements = $DB->get_records('customcert_elements', array('pageid' => $templatepage->id))) {
+                if ($templateelements = $DB->get_records('customcert_elements', ['pageid' => $templatepage->id])) {
                     foreach ($templateelements as $templateelement) {
                         $element = clone($templateelement);
                         $element->pageid = $page->id;
@@ -369,10 +411,19 @@ class template {
                             if (!$e->copy_element($templateelement)) {
                                 // Failed to copy - delete the element.
                                 $e->delete();
+                            } else {
+                                \mod_customcert\event\element_created::create_from_element($e)->trigger();
                             }
                         }
                     }
                 }
+            }
+
+            // Trigger event if loading a template in a course module instance.
+            // (No event triggered if copying a system-wide template as
+            // create() triggers this).
+            if ($copytotemplate->get_context() != \context_system::instance()) {
+                \mod_customcert\event\template_updated::create_from_template($copytotemplate)->trigger();
             }
         }
     }
@@ -394,7 +445,7 @@ class template {
             $table .= 'elements';
         }
 
-        if ($moveitem = $DB->get_record($table, array('id' => $itemid))) {
+        if ($moveitem = $DB->get_record($table, ['id' => $itemid])) {
             // Check which direction we are going.
             if ($direction == 'up') {
                 $sequence = $moveitem->sequence - 1;
@@ -405,17 +456,19 @@ class template {
             // Get the item we will be swapping with. Make sure it is related to the same template (if it's
             // a page) or the same page (if it's an element).
             if ($itemname == 'page') {
-                $params = array('templateid' => $moveitem->templateid);
+                $params = ['templateid' => $moveitem->templateid];
             } else { // Must be an element.
-                $params = array('pageid' => $moveitem->pageid);
+                $params = ['pageid' => $moveitem->pageid];
             }
-            $swapitem = $DB->get_record($table, $params + array('sequence' => $sequence));
+            $swapitem = $DB->get_record($table, $params + ['sequence' => $sequence]);
         }
 
         // Check that there is an item to move, and an item to swap it with.
         if ($moveitem && !empty($swapitem)) {
-            $DB->set_field($table, 'sequence', $swapitem->sequence, array('id' => $moveitem->id));
-            $DB->set_field($table, 'sequence', $moveitem->sequence, array('id' => $swapitem->id));
+            $DB->set_field($table, 'sequence', $swapitem->sequence, ['id' => $moveitem->id]);
+            $DB->set_field($table, 'sequence', $moveitem->sequence, ['id' => $swapitem->id]);
+
+            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
         }
     }
 
@@ -495,6 +548,42 @@ class template {
         $template->timemodified = $template->timecreated;
         $template->id = $DB->insert_record('customcert_templates', $template);
 
-        return new \mod_customcert\template($template);
+        $template = new \mod_customcert\template($template);
+
+        \mod_customcert\event\template_created::create_from_template($template)->trigger();
+
+        return $template;
+    }
+
+    /**
+     * Checks if a page has been updated given form information
+     *
+     * @param \stdClass $page
+     * @param \stdClass $formdata
+     * @return bool
+     */
+    private function has_page_been_updated($page, $formdata): bool {
+        $width = 'pagewidth_' . $page->id;
+        $height = 'pageheight_' . $page->id;
+        $leftmargin = 'pageleftmargin_' . $page->id;
+        $rightmargin = 'pagerightmargin_' . $page->id;
+
+        if ($page->width != $formdata->$width) {
+            return true;
+        }
+
+        if ($page->height != $formdata->$height) {
+            return true;
+        }
+
+        if ($page->leftmargin != $formdata->$leftmargin) {
+            return true;
+        }
+
+        if ($page->rightmargin != $formdata->$rightmargin) {
+            return true;
+        }
+
+        return false;
     }
 }

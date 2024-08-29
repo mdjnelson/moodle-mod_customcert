@@ -50,6 +50,5 @@ if ($uploadform->is_cancelled()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($SITE->fullname);
 $uploadform->display();
 echo $OUTPUT->footer();

@@ -54,12 +54,12 @@ class manage_templates_table extends \table_sql {
 
         $columns = [
             'name',
-            'actions'
+            'actions',
         ];
 
         $headers = [
             get_string('name'),
-            ''
+            '',
         ];
 
         $this->define_columns($columns);
@@ -90,30 +90,30 @@ class manage_templates_table extends \table_sql {
         global $OUTPUT;
 
         // Link to edit the template.
-        $editlink = new \moodle_url('/mod/customcert/edit.php', array('tid' => $template->id));
+        $editlink = new \moodle_url('/mod/customcert/edit.php', ['tid' => $template->id]);
         $editicon = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit')));
 
         // Link to duplicate the template.
         $duplicatelink = new \moodle_url('/mod/customcert/manage_templates.php',
-            array(
+            [
                 'tid' => $template->id,
                 'action' => 'duplicate',
-                'sesskey' => sesskey()
-            )
+                'sesskey' => sesskey(),
+            ]
         );
         $duplicateicon = $OUTPUT->action_icon($duplicatelink, new \pix_icon('t/copy', get_string('duplicate')), null,
-            array('class' => 'action-icon duplicate-icon'));
+            ['class' => 'action-icon duplicate-icon']);
 
         // Link to delete the template.
         $deletelink = new \moodle_url('/mod/customcert/manage_templates.php',
-            array(
+            [
                 'tid' => $template->id,
                 'action' => 'delete',
-                'sesskey' => sesskey()
-            )
+                'sesskey' => sesskey(),
+            ]
         );
         $deleteicon = $OUTPUT->action_icon($deletelink, new \pix_icon('t/delete', get_string('delete')), null,
-            array('class' => 'action-icon delete-icon'));
+            ['class' => 'action-icon delete-icon']);
 
         return $editicon . $duplicateicon . $deleteicon;
     }
@@ -127,11 +127,11 @@ class manage_templates_table extends \table_sql {
     public function query_db($pagesize, $useinitialsbar = true) {
         global $DB;
 
-        $total = $DB->count_records('customcert_templates', array('contextid' => $this->context->id));
+        $total = $DB->count_records('customcert_templates', ['contextid' => $this->context->id]);
 
         $this->pagesize($pagesize, $total);
 
-        $this->rawdata = $DB->get_records('customcert_templates', array('contextid' => $this->context->id),
+        $this->rawdata = $DB->get_records('customcert_templates', ['contextid' => $this->context->id],
             $this->get_sql_sort(), '*', $this->get_page_start(), $this->get_page_size());
 
         // Set initial bars.

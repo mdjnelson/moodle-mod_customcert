@@ -1,18 +1,138 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. 
+All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [3.11.2] - 2021-??-??
+## [4.4.1] - 2024-05-28
+
+### Fixed
+
+- Major issue with the pop-up window not working in the reposition element page (#483).
+- Non-editing teachers being able to see the download certificate link for a user which took them to a blank page (#620).
+
+## [4.4.0] - 2024-05-28
+
+### Added
+
+- Added 'Save and Continue' option when editing image elements (#613).
+  This means you can add an image to the filemanager, click 'Save and Continue'
+  and then select it in the drop-down avoiding renavigating to the edit element page.
+- Added monologo image (#568).
+
+## [4.2.5] - 2024-04-23
+
+### Fixed
+
+- Fixed issue when restoring `date`, `daterange`, `gradeitemname` and `grade` that have been linked to a manual grade item (#582).
+- Removed unnecessary set_context() call causing a PHP notice to be shown (#443).
+- Ensure we use $CFG->emailfromvia setting (#471).
+
+### Changed
+
+- The downloaded issue report can now be ordered by date sanely (#602).
+
+### Added
+
+- Added ability to download all certificates in the report as a teacher and bulk download all site certificates as an administrator (#205).
+
+## [4.2.4] - 2024-02-08
+
+### Fixed
+
+- Do not make index unique (#601).
+
+## [4.2.3] - 2024-01-31
+
+### Fixed
+
+- Stopped PHP notice caused by the email certificate task (#443).
+- Fixed undefined external_format_error in the mobile app (#565).
+- Fixed being unable to reposition the course field element if it is empty (#579).
+- Fixed incorrect name of mustache variable in email_certificate_html.mustache (#574).
+- Fixed passing incorrect course module id value to \mod_customcert\output\email_certificate (#574).
+- Delete the pages after deleting the elements otherwise it was breaking in element_deleted::create_from_element() (#571).
+- Do not also show the 'My certificates' profile link when the user can not view the content of that page (#585).
+- Added missing foreign key relationship for 'userid' in the 'customcert_issues' table (#537).
+- Handle missing gradeitems as gracefully as possible, so we don't break the email task (#592).
+- Fixed logic breaking the generation of the QR code URL (#545).
+- Do not allow non-editing teachers to manage the certificate (#515).
+- Ensure the 'verifyany' column length is valid on all sites (#597).
+- Fixed events being triggered incorrectly (#570).
+
+### Added
+
+- Added the unique index 'userid-customcertid' to the 'customcert_issues' table (#537).
+- Added events on the reposition element page (#599).
+
+## [4.2.2] - 2023-06-08
+
+### Fixed
+
+- Fix TCPDF error when viewing an example PDF from the manage templates page (#558).
+- Fix images not displaying on the reposition element page (#562).
+
+### Added
+
+- Added new events (#518).
+  - An event for when an element is created.
+  - An event for when an element is updated.
+  - An event for when an element is deleted.
+  - An event for when a page is created.
+  - An event for when a page is updated.
+  - An event for when a page is deleted.
+  - An event for when a template is created. 
+  - An event for when a template is updated.
+  - An event for when a template is deleted.
+
+## [4.2.1] - 2023-05-30
+
+### Fixed
+
+- Fix course settings error on single activity format (#544).
+- Remove debugging message caused by the user field element listing the Skype field (#478).
+- Fix deprecated usage of rendering primary buttons (#555).
+- Fix usage of deprecated `cron_setup_user` function (#547).
+- Fix broken webservice functions used by the mobile app.
+
+## [4.0.3] - 2023-02-07
+
+### Added
+
+- You can now optionally force the language of a certificate (#532).
+
+## [4.0.2] - 2023-01-26
+
+### Fixed
+
+- Fix problem repositioning elements (#500).
+
+## [4.0.1] - 2022-11-07
+
+### Fixed
+
+- Fix problem repositioning elements (#513).
+- Fixed title and description shown twice (#521).
+
+## [3.11.2] - 2022-11-07
 
 ### Fixed
 - Fix places not using the multi-language filter (#433).
 - Fix user IDs in the issue table not being mapped during restore (#449).
+- Fix emails displaying HTML entities encoded (#457).
+- Fix error message when we have custom profile fields (#465).
+- Respect multiple languages in manage template page title (#467).
+- Add field exist check for alignment field in upgrade script to prevent upgrades from dying.
+- Stop using deprecated pipe coreToLocaleString.
+
+### Changed
+- User breadcrumbs on the my_certificates.php page changes when a course is specified (#469).
 
 ### Added
 - You can now choose the course short or full name to display (#415).
- 
+- You can now select the alignment for all text elements (#121).
+- Ability to add a relative date (#389).
+
 ## [3.11.1] - 2021-06-13
 
 ### Fixed
@@ -207,15 +327,15 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
     their certificate. It also allows teachers to view the
     list of issued certificates, with the ability to revoke
     any.
-    
-    This is for the soon-to-be released Moodle Mobile v3.5.0 
+
+    This is for the soon-to-be released Moodle Mobile v3.5.0
     (not to be confused with your Moodle site version) and
     will not work on Mobile versions earlier than this.
-    
+
     If you are running a Moodle site on version 3.4 or below
     you will need to install the local_mobile plugin in order
     for this to work.
-    
+
     If you are running a Moodle site on version 3.0 or below
     then you will need to upgrade.
 ```

@@ -24,8 +24,6 @@
 
 namespace customcertelement_gradeitemname;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element gradeitemname's core interaction API.
  *
@@ -110,11 +108,43 @@ class element extends \mod_customcert\element {
     }
 
     /**
+     * This function is responsible for handling the restoration process of the element.
+     *
+     * We will want to update the course module the grade element is pointing to as it will
+     * have changed in the course restore.
+     *
+     * @param \restore_customcert_activity_task $restore
+     */
+    public function after_restore($restore) {
+        global $DB;
+
+        $gradeinfo = $this->get_data();
+
+        $isgradeitem = false;
+        $oldid = $gradeinfo;
+        if (str_starts_with($gradeinfo, 'gradeitem:')) {
+            $isgradeitem = true;
+            $oldid = str_replace('gradeitem:', '', $gradeinfo);
+        }
+
+        $itemname = $isgradeitem ? 'grade_item' : 'course_module';
+        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
+            $gradeinfo = new \stdClass();
+            $gradeinfo->gradeitem = '';
+            if ($isgradeitem) {
+                $gradeinfo->gradeitem = 'gradeitem:';
+            }
+            $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newitem->newitemid;
+            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($gradeinfo), ['id' => $this->get_id()]);
+        }
+    }
+
+    /**
      * Helper function that returns the grade item name.
      *
      * @return string
      */
-    protected function get_grade_item_name() : string {
+    protected function get_grade_item_name(): string {
         global $DB;
 
         $gradeitem = $this->get_data();
@@ -123,13 +153,15 @@ class element extends \mod_customcert\element {
             $gradeitemid = substr($gradeitem, 10);
             $gradeitem = \grade_item::fetch(['id' => $gradeitemid]);
 
-            return $gradeitem->get_name();
+            // If the gradeitem was not found, return an empty string.
+            // This will effectively prevent the element from rendering.
+            return $gradeitem ? $gradeitem->get_name() : '';
         } else {
-            if (!$cm = $DB->get_record('course_modules', array('id' => $gradeitem))) {
+            if (!$cm = $DB->get_record('course_modules', ['id' => $gradeitem])) {
                 return '';
             }
 
-            if (!$module = $DB->get_record('modules', array('id' => $cm->module))) {
+            if (!$module = $DB->get_record('modules', ['id' => $cm->module])) {
                 return '';
             }
 
@@ -138,12 +170,14 @@ class element extends \mod_customcert\element {
                 'itemmodule' => $module->name,
                 'iteminstance' => $cm->instance,
                 'courseid' => $cm->course,
-                'itemnumber' => 0
+                'itemnumber' => 0,
             ];
 
             $gradeitem = \grade_item::fetch($params);
 
-            return $gradeitem->get_name();
+            // If the gradeitem was not found, return an empty string.
+            // This will effectively prevent the element from rendering.
+            return $gradeitem ? $gradeitem->get_name() : '';
         }
     }
 }

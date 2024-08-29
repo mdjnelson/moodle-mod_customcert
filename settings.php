@@ -51,6 +51,29 @@ $settings->add(new \mod_customcert\admin_setting_link('customcert/uploadimage',
     get_string('uploadimage', 'customcert'), get_string('uploadimagedesc', 'customcert'),
     get_string('uploadimage', 'customcert'), new moodle_url('/mod/customcert/upload_image.php'), ''));
 
+if (has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    $settings->add(new \mod_customcert\admin_setting_link('customcert/downloadallsitecerts',
+        get_string('downloadallsitecertificates', 'customcert'), get_string('downloadallsitecertificatesdesc', 'customcert'),
+        get_string('downloadallsitecertificates', 'customcert'),
+        new moodle_url('/mod/customcert/download_all_certificates.php'), ''));
+}
+
+$settings->add(new admin_setting_heading('scheduledtaskconfig',
+    get_string('scheduledtaskconfigheading', 'customcert'),
+    get_string('scheduledtaskconfigdesc', 'customcert')));
+
+$settings->add(new admin_setting_configtext('customcert/certificatesperrun',
+    get_string('certificatesperrun', 'customcert'),
+    get_string('certificatesperrun_desc', 'customcert'), 0, PARAM_INT));
+
+$settings->add(new admin_setting_configcheckbox('customcert/includeinnotvisiblecourses',
+    get_string('includeinnotvisiblecourses', 'customcert'),
+    get_string('includeinnotvisiblecourses_desc', 'customcert'), 0));
+
+$settings->add(new admin_setting_configduration('customcert/certificateexecutionperiod',
+    get_string('certificateexecutionperiod', 'customcert'),
+    get_string('certificateexecutionperiod_desc', 'customcert'), 365 * DAYSECS));
+
 $settings->add(new admin_setting_heading('defaults',
     get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
 
@@ -58,7 +81,6 @@ $yesnooptions = [
     0 => get_string('no'),
     1 => get_string('yes'),
 ];
-
 $settings->add(new admin_setting_configselect('customcert/emailstudents',
     get_string('emailstudents', 'customcert'), get_string('emailstudents_help', 'customcert'), 0, $yesnooptions));
 $settings->add(new admin_setting_configselect('customcert/emailteachers',

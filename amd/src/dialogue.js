@@ -18,7 +18,6 @@
  * use the YUI version in AMD code until it is replaced.
  *
  * @module     mod_customcert/dialogue
- * @package    mod_customcert
  * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

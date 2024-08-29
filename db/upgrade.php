@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-
 /**
  * Customcert module upgrade code.
  *
@@ -176,6 +174,116 @@ function xmldb_customcert_upgrade($oldversion) {
         }
 
         upgrade_mod_savepoint(true, 2020110901, 'customcert');
+    }
+
+    if ($oldversion < 2021051702) {
+        $table = new xmldb_table('customcert_elements');
+        $field = new xmldb_field('alignment', XMLDB_TYPE_CHAR, '1', null, XMLDB_NOTNULL, null, 'L', 'refpoint');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2021051702, 'customcert'); // Replace with the actual version number.
+    }
+
+    if ($oldversion < 2022041903) {
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('language', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'protection');
+
+        // Conditionally launch add field.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2022041903, 'customcert'); // Replace with the actual version number.
+    }
+
+    if ($oldversion < 2023042403) {
+        // Define index to be added to customcert_issues.
+        $table = new xmldb_table('customcert_issues');
+        $index = new xmldb_index('userid-customcertid', XMLDB_INDEX_NOTUNIQUE, ['userid', 'customcertid']);
+
+        // Conditionally launch add index.
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_mod_savepoint(true, 2023042403, 'customcert'); // Replace with the actual version number.
+    }
+
+    if ($oldversion < 2023042404) {
+        $table = new xmldb_table('customcert_issues');
+        $key = new xmldb_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        $dbman->add_key($table, $key);
+
+        upgrade_mod_savepoint(true, 2023042404, 'customcert');
+    }
+
+    if ($oldversion < 2023042405) {
+        // Changing precision of field verifyany on table customcert to (1).
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
+            'requiredtime');
+
+        // Launch change of precision for field verifyany.
+        $dbman->change_field_precision($table, $field);
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2023042405, 'customcert');
+    }
+
+    if ($oldversion < 2024042202) {
+
+        // Define table customcert_email_task_prgrs to be created.
+        $table = new xmldb_table('customcert_email_task_prgrs');
+
+        // Adding fields to table customcert_email_task_prgrs.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('taskname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, 'email_certificate_task');
+        $table->add_field('last_processed', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('total_certificate_to_process', XMLDB_TYPE_INTEGER, '20', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table customcert_email_task_prgrs.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for customcert_email_task_prgrs.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+
+            // Add a default row to the customcert_email_task_prgrs table.
+            $defaultdata = new stdClass();
+            $defaultdata->taskname = 'email_certificate_task';
+            $defaultdata->last_processed = 0;
+            $defaultdata->total_certificate_to_process = 0;
+
+            // Insert the default data into the table.
+            $DB->insert_record('customcert_email_task_prgrs', $defaultdata);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2024042202, 'customcert');
+    }
+
+    if ($oldversion < 2024042203) {
+        $elements = $DB->get_records('customcert_elements', ['element' => 'date']);
+
+        foreach ($elements as $element) {
+            $data = json_decode($element->data);
+
+            // If dateitem is between CUSTOMCERT_DATE_EXPIRY_ONE and CUSTOMCERT_DATE_EXPIRY_FIVE.
+            if ((intval($data->dateitem) <= -8) && (intval($data->dateitem) >= -12)) {
+                $data->startfrom = 'award';
+                $element->data = json_encode($data);
+                $element->element = 'expiry';
+                $DB->update_record('customcert_elements', $element);
+            }
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2024042203, 'customcert');
     }
 
     return true;

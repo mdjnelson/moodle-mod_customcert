@@ -24,8 +24,6 @@
 
 namespace mod_customcert\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Mobile output class for the custom certificate.
  *
@@ -44,7 +42,7 @@ class mobile {
         global $OUTPUT, $DB, $USER;
 
         $args = (object) $args;
-        $versionname = $args->appversioncode >= 3950 ? 'latest' : 'ionic3';
+        $versionname = $args->appversioncode >= 44000 ? 'latest' : 'ionic5';
 
         $cmid = $args->cmid;
         $groupid = empty($args->group) ? 0 : (int) $args->group; // By default, group 0.
@@ -57,8 +55,8 @@ class mobile {
         // Set some variables we are going to be using.
         $certificate = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
         $certificate->name = format_string($certificate->name);
-        list($certificate->intro, $certificate->introformat) = external_format_text($certificate->intro,
-            $certificate->introformat, $context->id, 'mod_customcert', 'intro');
+        list($certificate->intro, $certificate->introformat) = \core_external\util::format_text($certificate->intro,
+            $certificate->introformat, $context, 'mod_customcert', 'intro');
 
         // Get any issues this person may have.
         $issue = false;
@@ -116,7 +114,7 @@ class mobile {
             'hasrecipients' => !empty($recipients),
             'recipients' => array_values($recipients),
             'numrecipients' => count($recipients),
-            'currenttimestamp' => time()
+            'currenttimestamp' => time(),
         ];
 
         return [
@@ -129,7 +127,7 @@ class mobile {
             'javascript' => '',
             'otherdata' => [
                 'group' => $groupid,
-            ]
+            ],
         ];
     }
 

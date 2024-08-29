@@ -24,8 +24,6 @@
 
 namespace mod_customcert;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The class that provides a grade object to be used by elements for display purposes.
  *

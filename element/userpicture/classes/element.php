@@ -24,8 +24,6 @@
 
 namespace customcertelement_userpicture;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element userpicture's core interaction API.
  *
@@ -41,15 +39,9 @@ class element extends \mod_customcert\element {
      * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        $mform->addElement('text', 'width', get_string('width', 'customcertelement_userpicture'), array('size' => 10));
-        $mform->setType('width', PARAM_INT);
-        $mform->setDefault('width', 0);
-        $mform->addHelpButton('width', 'width', 'customcertelement_userpicture');
+        \mod_customcert\element_helper::render_form_element_width($mform);
 
-        $mform->addElement('text', 'height', get_string('height', 'customcertelement_userpicture'), array('size' => 10));
-        $mform->setType('height', PARAM_INT);
-        $mform->setDefault('height', 0);
-        $mform->addHelpButton('height', 'height', 'customcertelement_userpicture');
+        \mod_customcert\element_helper::render_form_element_height($mform);
 
         if (get_config('customcert', 'showposxy')) {
             \mod_customcert\element_helper::render_form_element_position($mform);
@@ -65,17 +57,13 @@ class element extends \mod_customcert\element {
      */
     public function validate_form_elements($data, $files) {
         // Array to return the errors.
-        $errors = array();
+        $errors = [];
 
-        // Check if width is not set, or not numeric or less than 0.
-        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] < 0)) {
-            $errors['width'] = get_string('invalidwidth', 'customcertelement_userpicture');
-        }
+        // Validate the width.
+        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
-        // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] < 0)) {
-            $errors['height'] = get_string('invalidheight', 'customcertelement_userpicture');
-        }
+        // Validate the height.
+        $errors += \mod_customcert\element_helper::validate_form_element_height($data);
 
         // Validate the position.
         if (get_config('customcert', 'showposxy')) {
@@ -94,10 +82,10 @@ class element extends \mod_customcert\element {
      */
     public function save_unique_data($data) {
         // Array of data we will be storing in the database.
-        $arrtostore = array(
+        $arrtostore = [
             'width' => (int) $data->width,
-            'height' => (int) $data->height
-        );
+            'height' => (int) $data->height,
+        ];
 
         return json_encode($arrtostore);
     }
@@ -184,7 +172,7 @@ class element extends \mod_customcert\element {
             $style .= 'height: ' . $imageinfo->height . 'mm';
         }
 
-        return \html_writer::tag('img', '', array('src' => $url, 'style' => $style));
+        return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
     }
 
     /**

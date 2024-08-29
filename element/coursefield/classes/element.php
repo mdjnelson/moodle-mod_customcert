@@ -25,8 +25,6 @@
 
 namespace customcertelement_coursefield;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element coursefield's core interaction API.
  *
@@ -43,13 +41,13 @@ class element extends \mod_customcert\element {
      */
     public function render_form_elements($mform) {
         // Get the user profile fields.
-        $coursefields = array(
+        $coursefields = [
             'fullname' => get_string('fullnamecourse'),
             'shortname' => get_string('shortnamecourse'),
-            'idnumber' => get_string('idnumbercourse')
-        );
+            'idnumber' => get_string('idnumbercourse'),
+        ];
         // Get the course custom fields.
-        $arrcustomfields = array();
+        $arrcustomfields = [];
         $handler = \core_course\customfield\course_handler::create();
         $customfields = $handler->get_fields();
 
@@ -127,7 +125,7 @@ class element extends \mod_customcert\element {
      * @param bool $preview Is this a preview?
      * @return string
      */
-    protected function get_course_field_value(\stdClass $course, bool $preview) : string {
+    protected function get_course_field_value(\stdClass $course, bool $preview): string {
 
         // The user field to display.
         $field = $this->get_data();
@@ -140,7 +138,10 @@ class element extends \mod_customcert\element {
         if (is_number($field)) { // Must be a custom course profile field.
             $handler = \core_course\customfield\course_handler::create();
             $data = $handler->get_instance_data($course->id, true);
-            if (!empty($data[$field])) {
+            if ($preview && empty($data[$field]->export_value())) {
+                $fields = $handler->get_fields();
+                $value = $fields[$field]->get('shortname');
+            } else if (!empty($data[$field])) {
                 $value = $data[$field]->export_value();
             }
 

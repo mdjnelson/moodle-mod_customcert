@@ -24,8 +24,6 @@
 
 namespace mod_customcert;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The factory class responsible for creating custom certificate instances.
  *
@@ -59,6 +57,7 @@ class element_factory {
         $data->posy = $element->posy ?? null;
         $data->width = $element->width ?? null;
         $data->refpoint = $element->refpoint ?? null;
+        $data->alignment = $element->alignment ?? null;
 
         // Ensure the necessary class exists.
         if (class_exists($classname)) {

@@ -24,8 +24,6 @@
 
 namespace mod_customcert\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Email certificate renderable.
  *
@@ -103,14 +101,14 @@ class email_certificate implements \renderable, \templatable {
             $data->emailgreeting = get_string('emailstudentgreeting', 'customcert', $this->userfullname);
             $data->emailbody = get_string('emailstudentbody', 'customcert', $info);
             $data->emailbodyplaintext = get_string('emailstudentbodyplaintext', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
-            $data->emailcertificatetext = get_string('emailstudentcertificatelinktext', 'customcert');
+            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
+            $data->emailcertificatelinktext = get_string('emailstudentcertificatelinktext', 'customcert');
         } else {
             $data->emailgreeting = get_string('emailnonstudentgreeting', 'customcert');
             $data->emailbody = get_string('emailnonstudentbody', 'customcert', $info);
             $data->emailbodyplaintext = get_string('emailnonstudentbodyplaintext', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', array('id' => $this->cmid));
-            $data->emailcertificatetext = get_string('emailnonstudentcertificatelinktext', 'customcert');
+            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
+            $data->emailcertificatelinktext = get_string('emailnonstudentcertificatelinktext', 'customcert');
         }
 
         return $data;

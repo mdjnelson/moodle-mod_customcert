@@ -24,30 +24,30 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$functions = array(
-    'mod_customcert_delete_issue' => array(
+$functions = [
+    'mod_customcert_delete_issue' => [
         'classname'   => 'mod_customcert\external',
         'methodname'  => 'delete_issue',
         'classpath'   => '',
         'description' => 'Delete an issue for a certificate',
         'type'        => 'write',
         'ajax'        => true,
-        'services'    => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'mod_customcert_save_element' => array(
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+    'mod_customcert_save_element' => [
         'classname'   => 'mod_customcert\external',
         'methodname'  => 'save_element',
         'classpath'   => '',
         'description' => 'Saves data for an element',
         'type'        => 'write',
-        'ajax'        => true
-    ),
-    'mod_customcert_get_element_html' => array(
+        'ajax'        => true,
+    ],
+    'mod_customcert_get_element_html' => [
         'classname'   => 'mod_customcert\external',
         'methodname'  => 'get_element_html',
         'classpath'   => '',
         'description' => 'Returns the HTML to display for an element',
         'type'        => 'read',
-        'ajax'        => true
-    ),
-);
+        'ajax'        => true,
+    ],
+];

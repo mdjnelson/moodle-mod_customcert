@@ -23,7 +23,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace mod_customcert;
+
+use completion_info;
+use stdClass;
+use context_course;
+use advanced_testcase;
+use mod_customcert\task\email_certificate_task;
 
 /**
  * Unit tests for the email certificate task.
@@ -32,8 +38,9 @@ defined('MOODLE_INTERNAL') || die();
  * @category   test
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \mod_customcert\task\email_certificate_task
  */
-class mod_customcert_task_email_certificate_task_testcase extends advanced_testcase {
+final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Test set up.
@@ -44,8 +51,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task when there are no elements.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_no_elements() {
+    public function test_email_certificates_no_elements(): void {
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
 
@@ -60,7 +69,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -70,8 +79,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task for users without a capability to receive a certificate.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_no_cap() {
+    public function test_email_certificates_no_cap(): void {
         global $DB;
 
         // Create a course.
@@ -96,7 +107,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -109,7 +120,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -119,8 +130,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task for students.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students() {
+    public function test_email_certificates_students(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -129,7 +142,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Create some users.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user(array('firstname' => 'Teacher', 'lastname' => 'One'));
+        $user3 = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
 
         // Enrol two of them in the course as students.
         $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
@@ -140,15 +153,15 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $this->getDataGenerator()->enrol_user($user3->id, $course->id, $roleids['editingteacher']);
 
         // Create a custom certificate.
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
-            'emailstudents' => 1));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
+            'emailstudents' => 1]);
 
         // Create template object.
         $template = new stdClass();
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -167,7 +180,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -192,7 +205,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Now, run the task again and ensure we did not issue any more certificates.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -204,8 +217,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task for teachers.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_teachers() {
+    public function test_email_certificates_teachers(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -214,7 +229,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         // Create some users.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user(array('firstname' => 'Teacher', 'lastname' => 'One'));
+        $user3 = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
 
         // Enrol two of them in the course as students.
         $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
@@ -225,15 +240,15 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $this->getDataGenerator()->enrol_user($user3->id, $course->id, $roleids['editingteacher']);
 
         // Create a custom certificate.
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
-            'emailteachers' => 1));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
+            'emailteachers' => 1]);
 
         // Create template object.
         $template = new stdClass();
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -246,7 +261,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -262,8 +277,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task for others.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_others() {
+    public function test_email_certificates_others(): void {
         global $CFG, $DB;
 
         // Create a course.
@@ -278,15 +295,15 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $this->getDataGenerator()->enrol_user($user2->id, $course->id);
 
         // Create a custom certificate.
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id,
-            'emailothers' => 'testcustomcert@example.com, doo@dah'));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
+            'emailothers' => 'testcustomcert@example.com, doo@dah']);
 
         // Create template object.
         $template = new stdClass();
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -299,7 +316,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -315,8 +332,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task when the certificate is not visible.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students_not_visible() {
+    public function test_email_certificates_students_not_visible(): void {
         global $DB;
 
         // Create a course.
@@ -337,7 +356,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -353,7 +372,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -367,8 +386,10 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
     /**
      * Tests the email certificate task when the student has not met the required time for the course.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_students_havent_met_required_time() {
+    public function test_email_certificates_students_havent_met_required_time(): void {
         global $DB;
 
         // Set the standard log to on.
@@ -384,15 +405,15 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
 
         // Create a custom certificate.
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id, 'emailstudents' => 1,
-            'requiredtime' => '60'));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1,
+            'requiredtime' => '60']);
 
         // Create template object.
         $template = new stdClass();
         $template->id = $customcert->templateid;
         $template->name = 'A template';
         $template->contextid = context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Add a page to this template.
         $pageid = $template->add_page();
@@ -405,7 +426,7 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Run the task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         $task->execute();
         $emails = $sink->get_messages();
 
@@ -415,5 +436,171 @@ class mod_customcert_task_email_certificate_task_testcase extends advanced_testc
 
         // Confirm no emails were sent.
         $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Tests the email certificate task when the student has not met the completion criteria.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_students_havent_met_required_criteria(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create a user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Enrol them in the course.
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a quiz.
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+
+        $quizmodule = $DB->get_record('course_modules', ['id' => $quiz->cmid]);
+
+        // Set completion criteria for the quiz.
+        $quizmodule->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $quizmodule->completionview = 1; // Require view to complete.
+        $quizmodule->completionexpected = 0;
+        $DB->update_record('course_modules', $quizmodule);
+
+        // Set restrict access to the customcert activity based on the completion of the quiz.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'availability' => json_encode(
+                [
+                    'op' => '&',
+                    'c' => [
+                        [
+                            'type' => 'completion',
+                            'cm' => $quiz->cmid,
+                            'e' => COMPLETION_COMPLETE, // Ensure the quiz is marked as complete.
+                        ],
+                    ],
+                    'showc' => [
+                        false,
+                    ],
+                ],
+            ),
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new email_certificate_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Confirm there are no issues as the user can not view the certificate.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(0, $issues);
+
+        // Confirm no emails were sent.
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Tests the email certificate task when the student has met the completion criteria.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_students_have_met_required_criteria(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create a user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Enrol them in the course.
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a quiz.
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+
+        $quizmodule = $DB->get_record('course_modules', ['id' => $quiz->cmid]);
+
+        // Set completion criteria for the quiz.
+        $quizmodule->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $quizmodule->completionview = 1; // Require view to complete.
+        $quizmodule->completionexpected = 0;
+        $DB->update_record('course_modules', $quizmodule);
+
+        // Mark the quiz as complete for the user.
+        $completion = new completion_info($course);
+        $completion->update_state($quizmodule, COMPLETION_COMPLETE, $user1->id);
+
+        // Set restrict access to the customcert activity based on the completion of the quiz.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'availability' => json_encode(
+                [
+                    'op' => '&',
+                    'c' => [
+                        [
+                            'type' => 'completion',
+                            'cm' => $quiz->cmid,
+                            'e' => COMPLETION_COMPLETE, // Ensure the quiz is marked as complete.
+                        ],
+                    ],
+                    'showc' => [
+                        false,
+                    ],
+                ],
+            ),
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new email_certificate_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Confirm there is an issue as the user can view the certificate.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues);
+
+        // Confirm an email was sent.
+        $this->assertCount(1, $emails);
     }
 }

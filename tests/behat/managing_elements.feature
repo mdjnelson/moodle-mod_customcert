@@ -139,6 +139,30 @@ Feature: Being able to manage elements in a certificate template
       | Width                    | 20                |
       | Reference point location | Top left          |
     And I press "Save changes"
+    # Expiry.
+    And I add the element "Expiry" to page "1" of the "Custom certificate 1" certificate template
+    And I set the following fields to these values:
+      | Date item                | Expiry date (1 year) |
+      | Date format              | 2                    |
+      | Start date               | award                |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+    And I press "Save changes"
+    And I should see "Expiry" in the "elementstable" "table"
+    And I click on ".edit-icon" "css_element" in the "Expiry" "table_row"
+    And the following fields match these values:
+      | Date item                | Expiry date (1 year) |
+      | Date format              | 2                    |
+      | Start date               | award                |
+      | Font                     | Helvetica            |
+      | Size                     | 20                   |
+      | Colour                   | #045ECD              |
+      | Width                    | 20                   |
+      | Reference point location | Top left             |
+    And I press "Save changes"
     # Date range.
     And I add the element "Date range" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
@@ -375,3 +399,33 @@ Feature: Being able to manage elements in a certificate template
     And I press "Continue"
     And I should see "Background image" in the "elementstable" "table"
     And I should not see "Student name" in the "elementstable" "table"
+
+  @javascript @_file_upload
+  Scenario: Test save and continue button when upload images.
+    Given I add the element "Background image" to page "1" of the "Custom certificate 1" certificate template
+    And "Save and continue" "button" should be visible
+    And I upload "mod/customcert/tests/fixtures/test1.jpg" file to "Upload image" filemanager
+    When I press "Save and continue"
+    Then I should see "Course image: test1.jpg" in the "#id_fileid" "css_element"
+    And I select "Course image: test1.jpg" from the "Image" singleselect
+    And I press "Save changes"
+    And I add the element "Image" to page "1" of the "Custom certificate 1" certificate template
+    And "Save and continue" "button" should be visible
+    And I upload "mod/customcert/tests/fixtures/test2.png" file to "Upload image" filemanager
+    And I press "Save and continue"
+    And I should see "Course image: test2.png" in the "#id_fileid" "css_element"
+    And I select "Course image: test2.png" from the "Image" singleselect
+    And I press "Save changes"
+    And I add the element "Digital signature" to page "1" of the "Custom certificate 1" certificate template
+    And "Save and continue" "button" should be visible
+    And I upload "mod/customcert/tests/fixtures/test.crt" file to "Upload digital signature" filemanager
+    And I press "Save and continue"
+    And I should see "test.crt" in the "#id_signaturefileid" "css_element"
+    And I select "Course image: test1.jpg" from the "Image" singleselect
+    And I select "test.crt" from the "Digital signature" singleselect
+    And I press "Save changes"
+    And I add the element "QR code" to page "1" of the "Custom certificate 1" certificate template
+    And "Save and continue" "button" should not be visible
+    And I press "Cancel"
+    And I add the element "User picture" to page "1" of the "Custom certificate 1" certificate template
+    And "Save and continue" "button" should not be visible

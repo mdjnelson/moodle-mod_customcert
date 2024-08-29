@@ -24,8 +24,6 @@
 
 namespace customcertelement_text;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The customcert element text's core interaction API.
  *
@@ -100,7 +98,7 @@ class element extends \mod_customcert\element {
      *
      * @return string
      */
-    protected function get_text() : string {
+    protected function get_text(): string {
         $context = \mod_customcert\element_helper::get_context($this->get_id());
         return format_text($this->get_data(), FORMAT_HTML, ['context' => $context]);
     }

@@ -33,7 +33,7 @@ $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
 // Make sure the template exists.
-$template = $DB->get_record('customcert_templates', array('id' => $tid), '*', MUST_EXIST);
+$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
 
 // Set the template.
 $template = new \mod_customcert\template($template);
@@ -54,4 +54,7 @@ foreach ($values as $value) {
     $element->posx = $value->posx;
     $element->posy = $value->posy;
     $DB->update_record('customcert_elements', $element);
+    \mod_customcert\event\element_updated::create_from_id($element->id, $template)->trigger();
 }
+
+\mod_customcert\event\template_updated::create_from_template($template)->trigger();

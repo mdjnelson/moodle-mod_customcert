@@ -32,8 +32,6 @@ use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem implementation for mod_customcert.
  *
@@ -51,7 +49,7 @@ class provider implements
      * @param collection $items a reference to the collection to use to store the metadata.
      * @return collection the updated collection of metadata items.
      */
-    public static function get_metadata(collection $items) : collection {
+    public static function get_metadata(collection $items): collection {
         $items->add_database_table(
             'customcert_issues',
             [
@@ -73,7 +71,7 @@ class provider implements
      * @param int $userid the userid.
      * @return contextlist the list of contexts containing user info for the user.
      */
-    public static function get_contexts_for_userid(int $userid) : contextlist {
+    public static function get_contexts_for_userid(int $userid): contextlist {
         $sql = "SELECT c.id
                   FROM {context} c
             INNER JOIN {course_modules} cm
@@ -163,7 +161,7 @@ class provider implements
             $carry[] = [
                 'code' => $record->code,
                 'emailed' => transform::yesno($record->emailed),
-                'timecreated' => transform::datetime($record->timecreated)
+                'timecreated' => transform::datetime($record->timecreated),
             ];
             return $carry;
         }, function($customcertid, $data) use ($user, $customcertidstocmids) {

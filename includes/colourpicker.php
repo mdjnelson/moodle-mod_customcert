@@ -41,7 +41,7 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
      * @param string $value
      */
     public function setvalue($value) {
-        $this->updateAttributes(array('value' => $value));
+        $this->updateAttributes(['value' => $value]);
     }
 
     /**
@@ -59,13 +59,13 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
     public function tohtml() {
         global $PAGE, $OUTPUT;
 
-        $PAGE->requires->js_init_call('M.util.init_colour_picker', array($this->getAttribute('id'), null));
+        $PAGE->requires->js_init_call('M.util.init_colour_picker', [$this->getAttribute('id'), null]);
         $content = '<label class="accesshide" for="' . $this->getAttribute('id') . '" >' . $this->getLabel() . '</label>';
-        $content .= html_writer::start_tag('div', array('class' => 'form-colourpicker defaultsnext'));
+        $content .= html_writer::start_tag('div', ['class' => 'form-colourpicker defaultsnext']);
         $content .= html_writer::tag('div', $OUTPUT->pix_icon('i/loading', get_string('loading', 'admin'), 'moodle',
-            array('class' => 'loadingicon')), array('class' => 'admin_colourpicker clearfix'));
-        $content .= html_writer::empty_tag('input', array('type' => 'text', 'id' => $this->getAttribute('id'),
-            'name' => $this->getName(), 'value' => $this->getValue(), 'size' => '12'));
+            ['class' => 'loadingicon']), ['class' => 'admin_colourpicker clearfix']);
+        $content .= html_writer::empty_tag('input', ['type' => 'text', 'id' => $this->getAttribute('id'),
+            'name' => $this->getName(), 'value' => $this->getValue(), 'size' => '12']);
         $content .= html_writer::end_tag('div');
 
         return $content;

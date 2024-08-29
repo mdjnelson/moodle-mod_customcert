@@ -50,10 +50,7 @@ class element extends \mod_customcert\element {
     public function render_form_elements($mform) {
         \mod_customcert\element_helper::render_form_element_width($mform);
 
-        $mform->addElement('text', 'height', get_string('height', 'customcertelement_qrcode'), array('size' => 10));
-        $mform->setType('height', PARAM_INT);
-        $mform->setDefault('height', 0);
-        $mform->addHelpButton('height', 'height', 'customcertelement_qrcode');
+        \mod_customcert\element_helper::render_form_element_height($mform);
 
         if ($this->showposxy) {
             \mod_customcert\element_helper::render_form_element_position($mform);
@@ -71,20 +68,15 @@ class element extends \mod_customcert\element {
         // Array to return the errors.
         $errors = [];
 
-        // Check if height is not set, or not numeric or less than 0.
-        if ((!isset($data['height'])) || (!is_numeric($data['height'])) || ($data['height'] <= 0)) {
-            $errors['height'] = get_string('invalidheight', 'mod_customcert');
-        }
+        // Validate the width.
+        $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);
 
-        if ((!isset($data['width'])) || (!is_numeric($data['width'])) || ($data['width'] <= 0)) {
-            $errors['width'] = get_string('invalidwidth', 'mod_customcert');
-        }
+        // Validate the height.
+        $errors += \mod_customcert\element_helper::validate_form_element_height($data, false);
 
         if ($this->showposxy) {
             $errors += \mod_customcert\element_helper::validate_form_element_position($data);
         }
-
-        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
 
         return $errors;
     }
@@ -99,7 +91,7 @@ class element extends \mod_customcert\element {
     public function save_unique_data($data) {
         $arrtostore = [
             'width' => !empty($data->width) ? (int)$data->width : 0,
-            'height' => !empty($data->height) ? (int)$data->height : 0
+            'height' => !empty($data->height) ? (int)$data->height : 0,
         ];
 
         return json_encode($arrtostore);
@@ -147,7 +139,7 @@ class element extends \mod_customcert\element {
             $qrcodeurl = $qrcodeurl->out(false);
         } else {
             // Get the information we need.
-            $sql = "SELECT c.id, ct.contextid, ci.code
+            $sql = "SELECT c.id, c.verifyany, ct.contextid, ci.code
                       FROM {customcert_issues} ci
                       JOIN {customcert} c
                         ON ci.customcertid = c.id
@@ -159,18 +151,29 @@ class element extends \mod_customcert\element {
                        AND cp.id = :pageid";
 
             // Now we can get the issue for this user.
-            $issue = $DB->get_record_sql($sql, array('userid' => $user->id, 'pageid' => $this->get_pageid()),
+            $issue = $DB->get_record_sql($sql, ['userid' => $user->id, 'pageid' => $this->get_pageid()],
                 '*', MUST_EXIST);
             $code = $issue->code;
 
-            // Generate the URL to verify this.
-            $qrcodeurl = new \moodle_url('/mod/customcert/verify_certificate.php',
-                [
-                    'contextid' => $issue->contextid,
-                    'code' => $code,
-                    'qrcode' => 1
-                ]
-            );
+            $context = \context::instance_by_id($issue->contextid);
+
+            $urlparams = [
+                'code' => $code,
+                'qrcode' => 1,
+            ];
+
+            // We only add the 'contextid' to the link if the site setting for verifying all certificates is off,
+            // or if the individual certificate doesn't allow verification. However, if the user has the
+            // mod/customcert:verifyallcertificates then they can verify anything regardless.
+            $verifyallcertificatessitesetting = get_config('customcert', 'verifyallcertificates');
+            $verifycertificateactivitysettings = $issue->verifyany;
+            $canverifyallcertificates = has_capability('mod/customcert:verifyallcertificates', $context);
+            if ((!$verifyallcertificatessitesetting || !$verifycertificateactivitysettings)
+                    && !$canverifyallcertificates) {
+                $urlparams['contextid'] = $issue->contextid;
+            }
+
+            $qrcodeurl = new \moodle_url('/mod/customcert/verify_certificate.php', $urlparams);
             $qrcodeurl = $qrcodeurl->out(false);
         }
 

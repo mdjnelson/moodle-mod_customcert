@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-
 /**
  * Add customcert instance.
  *
@@ -46,7 +44,7 @@ function customcert_add_instance($data, $mform) {
     $data->id = $DB->insert_record('customcert', $data);
 
     // Add a page to this customcert.
-    $template->add_page();
+    $template->add_page(false);
 
     return $data->id;
 }
@@ -80,7 +78,7 @@ function customcert_delete_instance($id) {
     global $CFG, $DB;
 
     // Ensure the customcert exists.
-    if (!$customcert = $DB->get_record('customcert', array('id' => $id))) {
+    if (!$customcert = $DB->get_record('customcert', ['id' => $id])) {
         return false;
     }
 
@@ -90,18 +88,18 @@ function customcert_delete_instance($id) {
     }
 
     // Delete the customcert instance.
-    if (!$DB->delete_records('customcert', array('id' => $id))) {
+    if (!$DB->delete_records('customcert', ['id' => $id])) {
         return false;
     }
 
     // Now, delete the template associated with this certificate.
-    if ($template = $DB->get_record('customcert_templates', array('id' => $customcert->templateid))) {
+    if ($template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid])) {
         $template = new \mod_customcert\template($template);
         $template->delete();
     }
 
     // Delete the customcert issues.
-    if (!$DB->delete_records('customcert_issues', array('customcertid' => $id))) {
+    if (!$DB->delete_records('customcert_issues', ['customcertid' => $id])) {
         return false;
     }
 
@@ -125,15 +123,15 @@ function customcert_reset_userdata($data) {
     global $DB;
 
     $componentstr = get_string('modulenameplural', 'customcert');
-    $status = array();
+    $status = [];
 
     if (!empty($data->reset_customcert)) {
         $sql = "SELECT cert.id
                   FROM {customcert} cert
                  WHERE cert.course = :courseid";
-        $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", array('courseid' => $data->courseid));
-        $status[] = array('component' => $componentstr, 'item' => get_string('deleteissuedcertificates', 'customcert'),
-            'error' => false);
+        $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $data->courseid]);
+        $status[] = ['component' => $componentstr, 'item' => get_string('deleteissuedcertificates', 'customcert'),
+            'error' => false];
     }
 
     return $status;
@@ -157,7 +155,7 @@ function customcert_reset_course_form_definition(&$mform) {
  * @return array
  */
 function customcert_reset_course_form_defaults($course) {
-    return array('reset_customcert' => 1);
+    return ['reset_customcert' => 1];
 }
 
 /**
@@ -174,7 +172,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
     global $DB;
 
     $result = new stdClass();
-    if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
+    if ($issue = $DB->get_record('customcert_issues', ['customcertid' => $customcert->id, 'userid' => $user->id])) {
         $result->info = get_string('receiveddate', 'customcert');
         $result->time = $issue->timecreated;
     } else {
@@ -197,7 +195,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
 function customcert_user_complete($course, $user, $mod, $customcert) {
     global $DB, $OUTPUT;
 
-    if ($issue = $DB->get_record('customcert_issues', array('customcertid' => $customcert->id, 'userid' => $user->id))) {
+    if ($issue = $DB->get_record('customcert_issues', ['customcertid' => $customcert->id, 'userid' => $user->id])) {
         echo $OUTPUT->box_start();
         echo get_string('receiveddate', 'customcert') . ": ";
         echo userdate($issue->timecreated);
@@ -235,7 +233,8 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
         $fullpath = '/' . $context->id . '/mod_customcert/image/' . $relativepath;
 
         $fs = get_file_storage();
-        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+        $file = $fs->get_file_by_hash(sha1($fullpath));
+        if (!$file || $file->is_directory()) {
             return false;
         }
 
@@ -258,18 +257,15 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  */
 function customcert_supports($feature) {
     switch ($feature) {
+        case FEATURE_GROUPINGS:
+        case FEATURE_MOD_INTRO:
+        case FEATURE_SHOW_DESCRIPTION:
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
+        case FEATURE_BACKUP_MOODLE2:
         case FEATURE_GROUPS:
             return true;
-        case FEATURE_GROUPINGS:
-            return true;
-        case FEATURE_MOD_INTRO:
-            return true;
-        case FEATURE_SHOW_DESCRIPTION:
-            return true;
-        case FEATURE_COMPLETION_TRACKS_VIEWS:
-            return true;
-        case FEATURE_BACKUP_MOODLE2:
-            return true;
+        case FEATURE_MOD_PURPOSE:
+            return MOD_PURPOSE_OTHER;
         default:
             return null;
     }
@@ -281,7 +277,7 @@ function customcert_supports($feature) {
  * @return array
  */
 function customcert_get_view_actions() {
-    return array('view', 'view all', 'view report');
+    return ['view', 'view all', 'view report'];
 }
 
 /**
@@ -290,7 +286,7 @@ function customcert_get_view_actions() {
  * @return array
  */
 function customcert_get_post_actions() {
-    return array('received');
+    return ['received'];
 }
 
 /**
@@ -310,10 +306,10 @@ function mod_customcert_output_fragment_editelement($args) {
     global $DB;
 
     // Get the element.
-    $element = $DB->get_record('customcert_elements', array('id' => $args['elementid']), '*', MUST_EXIST);
+    $element = $DB->get_record('customcert_elements', ['id' => $args['elementid']], '*', MUST_EXIST);
 
-    $pageurl = new moodle_url('/mod/customcert/rearrange.php', array('pid' => $element->pageid));
-    $form = new \mod_customcert\edit_element_form($pageurl, array('element' => $element));
+    $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
+    $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
 
     return $form->render();
 }
@@ -333,25 +329,25 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     $keys = $customcertnode->get_children_key_list();
     $beforekey = null;
     $i = array_search('modedit', $keys);
-    if ($i === false and array_key_exists(0, $keys)) {
+    if ($i === false && array_key_exists(0, $keys)) {
         $beforekey = $keys[0];
     } else if (array_key_exists($i + 1, $keys)) {
         $beforekey = $keys[$i + 1];
     }
 
-    if (has_capability('mod/customcert:manage', $PAGE->cm->context)) {
+    if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
         // Get the template id.
-        $templateid = $DB->get_field('customcert', 'templateid', array('id' => $PAGE->cm->instance));
+        $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
         $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', array('tid' => $templateid)),
+                new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
                 navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
                 new pix_icon('t/edit', ''));
         $customcertnode->add_node($node, $beforekey);
     }
 
-    if (has_capability('mod/customcert:verifycertificate', $PAGE->cm->context)) {
+    if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
         $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
-            new moodle_url('/mod/customcert/verify_certificate.php', array('contextid' => $PAGE->cm->context->id)),
+            new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
             navigation_node::TYPE_SETTING, null, 'mod_customcert_verify_certificate',
             new pix_icon('t/check', ''));
         $customcertnode->add_node($node, $beforekey);
@@ -367,10 +363,23 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @param stdClass $user user object
  * @param bool $iscurrentuser
  * @param stdClass $course Course object
- * @return bool
+ * @return void
  */
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    $url = new moodle_url('/mod/customcert/my_certificates.php', array('userid' => $user->id));
+    global $USER;
+
+    if (($user->id != $USER->id)
+            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+        return;
+    }
+
+    $params = [
+        'userid' => $user->id,
+    ];
+    if ($course) {
+        $params['course'] = $course->id;
+    }
+    $url = new moodle_url('/mod/customcert/my_certificates.php', $params);
     $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
         get_string('mycertificates', 'customcert'), null, $url);
     $tree->add_node($node);
@@ -388,9 +397,9 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
     global $DB, $PAGE;
 
     if ($itemtype === 'elementname') {
-        $element = $DB->get_record('customcert_elements', array('id' => $itemid), '*', MUST_EXIST);
-        $page = $DB->get_record('customcert_pages', array('id' => $element->pageid), '*', MUST_EXIST);
-        $template = $DB->get_record('customcert_templates', array('id' => $page->templateid), '*', MUST_EXIST);
+        $element = $DB->get_record('customcert_elements', ['id' => $itemid], '*', MUST_EXIST);
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
 
         // Set the template object.
         $template = new \mod_customcert\template($template);
@@ -420,6 +429,31 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
  */
 function mod_customcert_get_fontawesome_icon_map() {
     return [
-        'mod_customcert:download' => 'fa-download'
+        'mod_customcert:download' => 'fa-download',
     ];
+}
+
+/**
+ * Force custom language for current session.
+ *
+ * @param string $language
+ * @return bool
+ */
+function mod_customcert_force_current_language($language): bool {
+    global $USER;
+
+    $forced = false;
+    if (empty($language)) {
+        return $forced;
+    }
+
+    $activelangs = get_string_manager()->get_list_of_translations();
+    $userlang = $USER->lang ?? current_language();
+
+    if (array_key_exists($language, $activelangs) && $language != $userlang) {
+        force_current_language($language);
+        $forced = true;
+    }
+
+    return $forced;
 }

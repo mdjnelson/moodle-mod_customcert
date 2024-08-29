@@ -22,9 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_customcert\privacy\provider;
+namespace mod_customcert;
 
-defined('MOODLE_INTERNAL') || die();
+use stdClass;
+use context_module;
+use context_system;
+use mod_customcert\privacy\provider;
 
 /**
  * Privacy provider tests class.
@@ -33,12 +36,14 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2018 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provider_testcase {
+final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test for provider::get_contexts_for_userid().
+     *
+     * @covers \provider::get_contexts_for_userid
      */
-    public function test_get_contexts_for_userid() {
+    public function test_get_contexts_for_userid(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -66,8 +71,10 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::get_users_in_context().
+     *
+     * @covers \provider::get_users_in_context()
      */
-    public function test_get_users_in_context() {
+    public function test_get_users_in_context(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -105,8 +112,10 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::get_users_in_context() with invalid context type.
+     *
+     * @covers \provider::get_users_in_context()
      */
-    public function test_get_users_in_context_invalid_context_type() {
+    public function test_get_users_in_context_invalid_context_type(): void {
         $systemcontext = context_system::instance();
 
         $userlist = new \core_privacy\local\request\userlist($systemcontext, 'mod_customcert');
@@ -117,19 +126,20 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::export_user_data().
+     *
+     * @covers \provider::export_user_data()
      */
-    public function test_export_for_context() {
+    public function test_export_for_context(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
 
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         // Create users who will be issued a certificate.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        $this->create_certificate_issue($customcert->id, $user1->id);
         $this->create_certificate_issue($customcert->id, $user1->id);
         $this->create_certificate_issue($customcert->id, $user2->id);
 
@@ -141,7 +151,7 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
         $this->assertTrue($writer->has_any_data());
 
         $data = $writer->get_data();
-        $this->assertCount(2, $data->issues);
+        $this->assertCount(1, $data->issues);
 
         $issues = $data->issues;
         foreach ($issues as $issue) {
@@ -153,16 +163,18 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::delete_data_for_all_users_in_context().
+     *
+     * @covers \provider::delete_data_for_all_users_in_context()
      */
-    public function test_delete_data_for_all_users_in_context() {
+    public function test_delete_data_for_all_users_in_context(): void {
         global $DB;
 
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
 
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
-        $customcert2 = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $customcert2 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         // Create users who will be issued a certificate.
         $user1 = $this->getDataGenerator()->create_user();
@@ -193,15 +205,17 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::delete_data_for_user().
+     *
+     * @covers \provider::delete_data_for_user()
      */
-    public function test_delete_data_for_user() {
+    public function test_delete_data_for_user(): void {
         global $DB;
 
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
 
-        $customcert = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         // Create users who will be issued a certificate.
         $user1 = $this->getDataGenerator()->create_user();
@@ -232,16 +246,18 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
 
     /**
      * Test for provider::delete_data_for_users().
+     *
+     * @covers \provider::delete_data_for_users()
      */
-    public function test_delete_data_for_users() {
+    public function test_delete_data_for_users(): void {
         global $DB;
 
         $this->resetAfterTest();
 
         // Create course, customcert and users who will be issued a certificate.
         $course = $this->getDataGenerator()->create_course();
-        $customcert1 = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
-        $customcert2 = $this->getDataGenerator()->create_module('customcert', array('course' => $course->id));
+        $customcert1 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $customcert2 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $cm1 = get_coursemodule_from_instance('customcert', $customcert1->id);
         $cm2 = get_coursemodule_from_instance('customcert', $customcert2->id);
         $user1 = $this->getDataGenerator()->create_user();
@@ -285,7 +301,7 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
      * @param int $customcertid
      * @param int $userid
      */
-    protected function create_certificate_issue(int $customcertid, int $userid) {
+    protected function create_certificate_issue(int $customcertid, int $userid): void {
         global $DB;
 
         static $i = 1;
@@ -293,7 +309,7 @@ class mod_customcert_privacy_provider_testcase extends \core_privacy\tests\provi
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcertid;
         $customcertissue->userid = $userid;
-        $customcertissue->code = \mod_customcert\certificate::generate_code();
+        $customcertissue->code = certificate::generate_code();
         $customcertissue->timecreated = time() + $i;
 
         // Insert the record into the database.

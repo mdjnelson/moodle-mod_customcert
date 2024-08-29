@@ -53,18 +53,18 @@ class my_certificates_table extends \table_sql {
     public function __construct($userid, $download = null) {
         parent::__construct('mod_customcert_report_table');
 
-        $columns = array(
+        $columns = [
             'name',
             'coursename',
             'timecreated',
-            'code'
-        );
-        $headers = array(
+            'code',
+        ];
+        $headers = [
             get_string('name'),
             get_string('course'),
             get_string('receiveddate', 'customcert'),
-            get_string('code', 'customcert')
-        );
+            get_string('code', 'customcert'),
+        ];
 
         // Check if we were passed a filename, which means we want to download it.
         if ($download) {
@@ -144,9 +144,9 @@ class my_certificates_table extends \table_sql {
 
         $icon = new \pix_icon('download', get_string('download'), 'customcert');
         $link = new \moodle_url('/mod/customcert/my_certificates.php',
-            array('userid' => $this->userid,
+            ['userid' => $this->userid,
                   'certificateid' => $certificate->id,
-                  'downloadcert' => '1'));
+                  'downloadcert' => '1']);
 
         return $OUTPUT->action_link($link, '', null, null, $icon);
     }

@@ -206,6 +206,9 @@ Y.extend(Rearrange, Y.Base, {
         var top = node.getY();
         var bottom = top + nodeheight;
 
+        this.pdfx = Y.one('#pdf').getX();
+        this.pdfy = Y.one('#pdf').getY();
+
         // Check if it is out of bounds horizontally.
         if ((left < this.pdfleftboundary) || (right > this.pdfrightboundary)) {
             return true;
@@ -230,6 +233,9 @@ Y.extend(Rearrange, Y.Base, {
             tid: this.templateid,
             values: []
         };
+
+        this.pdfx = Y.one("#pdf").getX();
+        this.pdfy = Y.one("#pdf").getY();
 
         // Go through the elements and save their positions.
         for (var key in this.elements) {
