@@ -23,8 +23,6 @@
  */
 namespace mod_customcert\task;
 
-use mod_customcert\helper;
-
 /**
  * A scheduled task for issuing certificates that have requested someone get emailed.
  *
