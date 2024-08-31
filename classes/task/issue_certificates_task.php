@@ -39,8 +39,8 @@ class issue_certificates_task extends \core\task\scheduled_task {
      *
      * @return string
      */
-    public function get_name() {
-        return get_string('issuecertificate', 'customcert');
+    public function get_name(): string {
+        return get_string('taskissuecertificate', 'customcert');
     }
 
     /**
