@@ -48,6 +48,7 @@ class email_certificate_task extends \core\task\adhoc_task {
      */
     public function execute() {
         global $DB;
+
         $customdata = $this->get_custom_data();
 
         $issueid = $customdata->issueid;
@@ -57,7 +58,7 @@ class email_certificate_task extends \core\task\adhoc_task {
                   FROM {customcert} c
                   JOIN {customcert_templates} ct ON c.templateid = ct.id
                   JOIN {course} co ON c.course = co.id
-                       WHERE c.id = :id";
+                 WHERE c.id = :id";
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
 
@@ -79,12 +80,12 @@ class email_certificate_task extends \core\task\adhoc_task {
         $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
         $certificatename = format_string($customcert->name, true, ['context' => $context]);
 
-            // Used to create the email subject.
-            $info = new \stdClass();
-            $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
-            $info->courseshortname = $courseshortname;
-            $info->coursefullname = $coursefullname;
-            $info->certificatename = $certificatename;
+        // Used to create the email subject.
+        $info = new \stdClass();
+        $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
+        $info->courseshortname = $courseshortname;
+        $info->coursefullname = $coursefullname;
+        $info->certificatename = $certificatename;
 
         // Get the information about the user and the certificate issue.
         $userfields = helper::get_all_user_name_fields('u');
@@ -93,7 +94,7 @@ class email_certificate_task extends \core\task\adhoc_task {
                   JOIN {user} u
                     ON ci.userid = u.id
                  WHERE ci.customcertid = :customcertid
-                       AND ci.id = :issueid";
+                   AND ci.id = :issueid";
         $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
 
         // Create a directory to store the PDF we will be sending.

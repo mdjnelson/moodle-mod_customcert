@@ -60,10 +60,14 @@ class issue_certificates_task extends \core\task\scheduled_task {
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
                        co.fullname as coursefullname, co.shortname as courseshortname
                   FROM {customcert} c
-                  JOIN {customcert_templates} ct ON c.templateid = ct.id
-                  JOIN {course} co ON c.course = co.id
-                  JOIN {course_categories} cat ON co.category = cat.id
-             LEFT JOIN {customcert_issues} ci ON c.id = ci.customcertid";
+                  JOIN {customcert_templates} ct
+                    ON c.templateid = ct.id
+                  JOIN {course} co
+                    ON c.course = co.id
+                  JOIN {course_categories} cat
+                    ON co.category = cat.id
+             LEFT JOIN {customcert_issues} ci
+                    ON c.id = ci.customcertid";
 
         // Add conditions to exclude certificates from hidden courses.
         $sql .= " WHERE (c.emailstudents = :emailstudents
@@ -77,6 +81,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Exclude certificates from hidden courses.
             $sql .= " AND co.visible = 1 AND cat.visible = 1";
         }
+
         // Add condition based on certificate execution period.
         if ($certificateexecutionperiod > 0) {
             // Include courses with no end date or end date greater than the specified period.
@@ -92,12 +97,12 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
         // When we get to the end of the list, reset the offset.
         set_config('certificate_offset', !empty($customcerts) ? $offset + $certificatesperrun : 0, 'customcert');
+
         if (empty($customcerts)) {
             return;
         }
 
         foreach ($customcerts as $customcert) {
-
             // Check if the certificate is hidden, quit early.
             $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
             if (!$cm->visible) {
@@ -107,9 +112,11 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Do not process an empty certificate.
             $sql = "SELECT ce.*
                       FROM {customcert_elements} ce
-                      JOIN {customcert_pages} cp ON cp.id = ce.pageid
-                      JOIN {customcert_templates} ct ON ct.id = cp.templateid
-                           WHERE ct.contextid = :contextid";
+                      JOIN {customcert_pages} cp
+                        ON cp.id = ce.pageid
+                      JOIN {customcert_templates} ct
+                        ON ct.id = cp.templateid
+                     WHERE ct.contextid = :contextid";
             if (!$DB->record_exists_sql($sql, ['contextid' => $customcert->contextid])) {
                 continue;
             }
