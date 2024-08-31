@@ -100,16 +100,5 @@
         <KEY NAME="page" TYPE="foreign" FIELDS="pageid" REFTABLE="customcert_pages" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="customcert_email_task_prgrs" COMMENT="to track email task progress">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="taskname" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="email_certificate_task" SEQUENCE="false"/>
-        <FIELD NAME="last_processed" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="total_certificate_to_process" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="to store the total count of certificates that should be processed"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-    </TABLE>
   </TABLES>
 </XMLDB>
