@@ -286,5 +286,17 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2022112810, 'customcert');
     }
 
+    if ($oldversion < 2022112812) {
+        // Drop unused table customcert_email_task_prgrs.
+        $table = new xmldb_table('customcert_email_task_prgrs');
+
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Customcert savepoint reached.
+        upgrade_mod_savepoint(true, 2022112812, 'customcert');
+    }
+
     return true;
 }
