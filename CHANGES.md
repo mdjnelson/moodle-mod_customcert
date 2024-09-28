@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.1.6] - 2024-09-28
+
+### Fixed
+
+- Mobile app: Stop using deprecated module-description.
+- Fixed auto-linking filters moving text element positions if reference point is center (#629).
+
+### Changed
+
+- Mobile app: Update Mobile template to Ionic 7.
+- Mobile app: Remove Ionic 3 template.
+
+### Added
+
+- Optimise email certificate task by reducing database reads/writes and introducing
+  configurable settings for task efficiency (#531).
+- New element `expiry` which when used will display the expiry date on the list of issued certificates
+  and the verification pages.<br />
+  Any Custom Certificates that are using the `date` element and selected the expiry dates will
+  automatically be upgraded to use this new element (#499).
+
 ## [4.1.5] - 2024-05-28
 
 ### Fixed
