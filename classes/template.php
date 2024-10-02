@@ -273,7 +273,7 @@ class template {
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
         global $CFG, $DB, $USER;
 
-        if (empty($userid)) {
+    if (empty($userid)) {
             $user = $USER;
         } else {
             $user = \core_user::get_user($userid);
@@ -330,8 +330,14 @@ class template {
             if (empty($filename)) {
                 $filename = get_string('certificate', 'customcert');
             }
-
-            $filename = clean_filename($filename . '.pdf');
+            
+            $sql = "SELECT course,fullname
+                    FROM   {customcert} c, {course} cr
+                    WHERE  c.id = :templateid
+                    AND c.course = cr.id";
+            $course = $DB->get_record_sql($sql, array('templateid' => $this->id));
+            $filename = clean_filename($filename .'_'. fullname($USER) .'_'. $course->fullname . '.pdf');
+            
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
                 // Add the page to the PDF.
