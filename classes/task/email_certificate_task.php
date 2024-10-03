@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * A scheduled task for emailing certificates.
+ * An adhoc task for emailing certificates.
  *
  * @package    mod_customcert
  * @copyright  2017 Mark Nelson <markn@moodle.com>
@@ -26,15 +26,13 @@ namespace mod_customcert\task;
 use mod_customcert\helper;
 
 /**
- * A scheduled task for emailing certificates.
+ * An adhoc task for emailing certificates per issue.
  *
  * @package    mod_customcert
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class email_certificate_task extends \core\task\scheduled_task {
-
-    private bool $VERBOSE = true;
+class email_certificate_task extends \core\task\adhoc_task {
 
     /**
      * Get a descriptive name for this task (shown to admins).
@@ -51,264 +49,131 @@ class email_certificate_task extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        // Get all the certificates that have requested someone get emailed.
-        $emailotherslengthsql = $DB->sql_length('c.emailothers');
+        $customdata = $this->get_custom_data();
+
+        $issueid = $customdata->issueid;
+        $customcertid = $customdata->customcertid;
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
                        co.fullname as coursefullname, co.shortname as courseshortname
                   FROM {customcert} c
-                  JOIN {customcert_templates} ct
-                    ON c.templateid = ct.id
-                  JOIN {course} co
-                    ON c.course = co.id
-                 WHERE co.visible = 1 
-                    AND (
-                        c.emailstudents = :emailstudents
-                        OR c.emailteachers = :emailteachers
-                        OR $emailotherslengthsql >= 3
-                    )";
-        if (!$customcerts = $DB->get_records_sql($sql, ['emailstudents' => 1, 'emailteachers' => 1])) {
-            return;
-        }
+                  JOIN {customcert_templates} ct ON c.templateid = ct.id
+                  JOIN {course} co ON c.course = co.id
+                 WHERE c.id = :id";
 
-        if ($this->VERBOSE) {
-            $n_certs = count($customcerts);
-            mtrace("Found $n_certs customcert instances having email notifications ON");
-        }
+        $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
 
         // The renderers used for sending emails.
         $page = new \moodle_page();
         $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
 
-        foreach ($customcerts as $customcert) {
-            // Get context
-            $context = \context::instance_by_id($customcert->contextid);
+        // Get the context.
+        $context = \context::instance_by_id($customcert->contextid);
 
-            // Get certificate info
-            $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
-            $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
-            $certificatename = format_string($customcert->name, true, ['context' => $context]);
+        // Get the person we are going to send this email on behalf of.
+        $userfrom = \core_user::get_noreply_user();
 
-            if ($this->VERBOSE) {
-                mtrace("Processing certificate ID#$customcert->id");
-                mtrace("> Certificate name: $certificatename");
-                mtrace("> Course: $coursefullname [$courseshortname]");
+        // Store teachers for later.
+        $teachers = get_enrolled_users($context, 'moodle/course:update');
+
+        $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
+        $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
+        $certificatename = format_string($customcert->name, true, ['context' => $context]);
+
+        // Used to create the email subject.
+        $info = new \stdClass();
+        $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
+        $info->courseshortname = $courseshortname;
+        $info->coursefullname = $coursefullname;
+        $info->certificatename = $certificatename;
+
+        // Get the information about the user and the certificate issue.
+        $userfields = helper::get_all_user_name_fields('u');
+        $sql = "SELECT u.id, u.username, $userfields, u.email, ci.id as issueid, ci.emailed
+                  FROM {customcert_issues} ci
+                  JOIN {user} u
+                    ON ci.userid = u.id
+                 WHERE ci.customcertid = :customcertid
+                   AND ci.id = :issueid";
+        $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
+
+        // Create a directory to store the PDF we will be sending.
+        $tempdir = make_temp_directory('certificate/attachment');
+        if (!$tempdir) {
+            return;
+        }
+
+        // Setup the user for the cron.
+        cron_setup_user($user);
+
+        $userfullname = fullname($user);
+        $info->userfullname = $userfullname;
+
+        // Now, get the PDF.
+        $template = new \stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = $customcert->templatename;
+        $template->contextid = $customcert->contextid;
+        $template = new \mod_customcert\template($template);
+        $filecontents = $template->generate_pdf(false, $user->id, true);
+
+        // Set the name of the file we are going to send.
+        $filename = $courseshortname . '_' . $certificatename;
+        $filename = \core_text::entities_to_utf8($filename);
+        $filename = strip_tags($filename);
+        $filename = rtrim($filename, '.');
+        $filename = str_replace('&', '_', $filename) . '.pdf';
+
+        // Create the file we will be sending.
+        $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
+        file_put_contents($tempfile, $filecontents);
+
+        if ($customcert->emailstudents) {
+            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
+                $coursefullname, $certificatename, $context->instanceid);
+
+            $subject = get_string('emailstudentsubject', 'customcert', $info);
+            $message = $textrenderer->render($renderable);
+            $messagehtml = $htmlrenderer->render($renderable);
+            email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
+                $messagehtml, $tempfile, $filename);
+        }
+
+        if ($customcert->emailteachers) {
+            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
+                $coursefullname, $certificatename, $context->instanceid);
+
+            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+            $message = $textrenderer->render($renderable);
+            $messagehtml = $htmlrenderer->render($renderable);
+            foreach ($teachers as $teacher) {
+                email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
+                    $message, $messagehtml, $tempfile, $filename);
             }
+        }
 
-            // Do not process an empty certificate.
-            $sql = "SELECT ce.*
-                      FROM {customcert_elements} ce
-                      JOIN {customcert_pages} cp
-                        ON cp.id = ce.pageid
-                      JOIN {customcert_templates} ct
-                        ON ct.id = cp.templateid
-                     WHERE ct.contextid = :contextid";
-            if (!$DB->record_exists_sql($sql, ['contextid' => $customcert->contextid])) {
-                if ($this->VERBOSE) {
-                    mtrace("> ... skip (empty)");
-                }
-                continue;
-            }
-
-            // Change 1: get CM, skip if certificate is hidden
-            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->courseid)[1];
-            if (!$cm->visible) {
-                if ($this->VERBOSE) {
-                    mtrace("> ... skip (hidden)");
-                }
-                continue;
-            }
-            // End change 1
-
-            // Get the person we are going to send this email on behalf of.
-            $userfrom = \core_user::get_noreply_user();
-
-            // Store teachers for later.
-            $teachers = get_enrolled_users($context, 'moodle/course:update');
-
-            // Used to create the email subject.
-            $info = new \stdClass;
-            $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
-            $info->courseshortname = $courseshortname;
-            $info->coursefullname = $coursefullname;
-            $info->certificatename = $certificatename;
-
-            // Get a list of all the issues.
-            $userfields = helper::get_all_user_name_fields('u');
-            $sql = "SELECT u.id, u.username, $userfields, u.email, ci.id as issueid, ci.emailed
-                      FROM {customcert_issues} ci
-                      JOIN {user} u
-                        ON ci.userid = u.id
-                     WHERE ci.customcertid = :customcertid";
-            $issuedusers = $DB->get_records_sql($sql, ['customcertid' => $customcert->id]);
-
-            if ($this->VERBOSE) {
-                $n_issuedusers = count($issuedusers);
-                mtrace("> $n_issuedusers already issued");
-            }
-
-            // Now, get a list of users who can access the certificate but have not yet.
-            $enrolledusers = get_enrolled_users(\context_course::instance($customcert->courseid), 'mod/customcert:view');
-
-            // Change 2: use filter_user_list to reduce number of users (only takes into account availability condition implementing the same function)
-            $infomodule = new \core_availability\info_module($cm);
-            $filteredusers = $infomodule->filter_user_list($enrolledusers);
-
-            if ($this->VERBOSE) {
-                $n_enrolled = count($enrolledusers);
-                $n_filtered = count($filteredusers);
-                mtrace("> Found $n_filtered users eligible (filtered from $n_enrolled)");
-            }
-            // End change 2
-
-            if ($this->VERBOSE) {
-                mtrace("> Processing users");
-            }
-
-            foreach ($filteredusers as $enroluser) {
-                // Check if the user has already been issued.
-                if (in_array($enroluser->id, array_keys((array) $issuedusers))) {
-                    continue;
-                }
-
-                // Now check if the certificate is not visible to the current user.
-                $cm = get_fast_modinfo($customcert->courseid, $enroluser->id)->instances['customcert'][$customcert->id];
-                if (!$cm->uservisible) {
-                    continue;
-                }
-
-                // Don't want to email those with the capability to manage the certificate.
-                if (has_capability('mod/customcert:manage', $context, $enroluser->id)) {
-                    continue;
-                }
-
-                // Only email those with the capability to receive the certificate.
-                if (!has_capability('mod/customcert:receiveissue', $context, $enroluser->id)) {
-                    continue;
-                }
-
-                // Check that they have passed the required time.
-                if (!empty($customcert->requiredtime)) {
-                    if (\mod_customcert\certificate::get_course_time($customcert->courseid, $enroluser->id) < ($customcert->requiredtime * 60)) {
-                        continue;
-                    }
-                }
-
-                // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
-                $issueid = $DB->get_field('customcert_issues', 'id', [
-                    'userid' => $enroluser->id,
-                    'customcertid' => $customcert->id
-                ], IGNORE_MULTIPLE);
-
-                if (empty($issueid)) {
-                    // Ok, issue them the certificate.
-                    $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id);
-                }
-
-                // Add them to the array so we email them.
-                $enroluser->issueid = $issueid;
-                $enroluser->emailed = 0;
-                $issuedusers[] = $enroluser;
-            }
-
-            // Remove all the users who have already been emailed.
-            foreach ($issuedusers as $key => $issueduser) {
-                if ($issueduser->emailed) {
-                    unset($issuedusers[$key]);
-                }
-            }
-
-            if ($this->VERBOSE) {
-                $new_issues = count($issuedusers);
-                mtrace("> Found $new_issues new certificates to issue");
-            }
-
-            // If there are no users to email we can return early.
-            if (!$issuedusers) {
-                continue;
-            }
-
-            // Create a directory to store the PDF we will be sending.
-            $tempdir = make_temp_directory('certificate/attachment');
-            if (!$tempdir) {
-                return;
-            }
-
-            // Now, email the people we need to.
-            foreach ($issuedusers as $user) {
-                // Set up the user.
-                cron_setup_user($user);
-
-                $userfullname = fullname($user);
-                $info->userfullname = $userfullname;
-
-                // Now, get the PDF.
-                $template = new \stdClass();
-                $template->id = $customcert->templateid;
-                $template->name = $customcert->templatename;
-                $template->contextid = $customcert->contextid;
-                $template = new \mod_customcert\template($template);
-                $filecontents = $template->generate_pdf(false, $user->id, true);
-
-                // Set the name of the file we are going to send.
-                $filename = $courseshortname . '_' . $certificatename;
-                $filename = \core_text::entities_to_utf8($filename);
-                $filename = strip_tags($filename);
-                $filename = rtrim($filename, '.');
-                $filename = str_replace('&', '_', $filename) . '.pdf';
-
-                // Create the file we will be sending.
-                $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
-                file_put_contents($tempfile, $filecontents);
-
-                if ($customcert->emailstudents) {
-                    $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                        $coursefullname, $certificatename, $context->instanceid);
-
-                    $subject = get_string('emailstudentsubject', 'customcert', $info);
-                    $message = $textrenderer->render($renderable);
-                    $messagehtml = $htmlrenderer->render($renderable);
-                    email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                        $messagehtml, $tempfile, $filename);
-                }
-
-                if ($customcert->emailteachers) {
-                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                        $coursefullname, $certificatename, $context->instanceid);
+        if (!empty($customcert->emailothers)) {
+            $others = explode(',', $customcert->emailothers);
+            foreach ($others as $email) {
+                $email = trim($email);
+                if (validate_email($email)) {
+                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
+                        $courseshortname, $coursefullname, $certificatename, $context->instanceid);
 
                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
                     $messagehtml = $htmlrenderer->render($renderable);
-                    foreach ($teachers as $teacher) {
-                        email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
-                            $message, $messagehtml, $tempfile, $filename);
-                    }
+
+                    $emailuser = new \stdClass();
+                    $emailuser->id = -1;
+                    $emailuser->email = $email;
+                    email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
+                        $messagehtml, $tempfile, $filename);
                 }
-
-                if (!empty($customcert->emailothers)) {
-                    $others = explode(',', $customcert->emailothers);
-                    foreach ($others as $email) {
-                        $email = trim($email);
-                        if (validate_email($email)) {
-                            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                                $courseshortname, $coursefullname, $certificatename, $context->instanceid);
-
-                            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-                            $message = $textrenderer->render($renderable);
-                            $messagehtml = $htmlrenderer->render($renderable);
-
-                            $emailuser = new \stdClass();
-                            $emailuser->id = -1;
-                            $emailuser->email = $email;
-                            email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                                $messagehtml, $tempfile, $filename);
-                        }
-                    }
-                }
-
-                // Set the field so that it is emailed.
-                $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $user->issueid]);
             }
         }
+
+        // Set the field so that it is emailed.
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
     }
 }

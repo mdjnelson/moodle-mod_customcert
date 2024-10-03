@@ -24,6 +24,8 @@
 
 namespace customcertelement_date;
 
+use mod_customcert\element_helper;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -66,31 +68,6 @@ define('CUSTOMCERT_DATE_ENROLMENT_START', '-6');
  */
 define('CUSTOMCERT_DATE_ENROLMENT_END', '-7');
 
-/**
- * Date - Relative expiry date of 1 year
- */
-define('CUSTOMCERT_DATE_EXPIRY_ONE', '-8');
-
-/**
- * Date - Relative expiry date of 2 year
- */
-define('CUSTOMCERT_DATE_EXPIRY_TWO', '-9');
-
-/**
- * Date - Relative expiry date of 3 year
- */
-define('CUSTOMCERT_DATE_EXPIRY_THREE', '-10');
-
-/**
- * Date - Relative expiry date of 4 year
- */
-define('CUSTOMCERT_DATE_EXPIRY_FOUR', '-11');
-
-/**
- * Date - Relative expiry date of 5 year
- */
-define('CUSTOMCERT_DATE_EXPIRY_FIVE', '-12');
-
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
 /**
@@ -120,11 +97,6 @@ class element extends \mod_customcert\element {
         }
         $dateoptions[CUSTOMCERT_DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_EXPIRY_ONE] = get_string('expirydateone', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_EXPIRY_TWO] = get_string('expirydatetwo', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_EXPIRY_THREE] = get_string('expirydatethree', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_EXPIRY_FOUR] = get_string('expirydatefour', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_EXPIRY_FIVE] = get_string('expirydatefive', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
@@ -133,7 +105,8 @@ class element extends \mod_customcert\element {
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
 
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'), self::get_date_formats());
+        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'),
+            element_helper::get_date_formats());
         $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
@@ -193,16 +166,6 @@ class element extends \mod_customcert\element {
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
-            } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_ONE) {
-                $date = strtotime('+1 years', $issue->timecreated);
-            } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_TWO) {
-                $date = strtotime('+2 years', $issue->timecreated);
-            } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_THREE) {
-                $date = strtotime('+3 years', $issue->timecreated);
-            } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_FOUR) {
-                $date = strtotime('+4 years', $issue->timecreated);
-            } else if ($dateitem == CUSTOMCERT_DATE_EXPIRY_FIVE) {
-                $date = strtotime('+5 years', $issue->timecreated);
             } else if ($dateitem == CUSTOMCERT_DATE_CURRENT_DATE) {
                 $date = time();
             } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
@@ -270,7 +233,7 @@ class element extends \mod_customcert\element {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            \mod_customcert\element_helper::render_content($pdf, $this, $this->get_date_format_string($date, $dateformat));
+            \mod_customcert\element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
         }
     }
 
@@ -292,7 +255,8 @@ class element extends \mod_customcert\element {
         $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_date_format_string(time(), $dateformat));
+        return \mod_customcert\element_helper::render_html_content($this,
+            element_helper::get_date_format_string(time(), $dateformat));
     }
 
     /**
@@ -352,110 +316,8 @@ class element extends \mod_customcert\element {
      * @return array the list of date formats
      */
     public static function get_date_formats() {
-        // Hard-code date so users can see the difference between short dates with and without the leading zero.
-        // Eg. 06/07/18 vs 6/07/18.
-        $date = 1530849658;
-
-        $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-
-        $dateformats = [
-            1 => userdate($date, '%B %d, %Y'),
-            2 => userdate($date, '%B %d' . $suffix . ', %Y'),
-        ];
-
-        $strdateformats = [
-            'strftimedate',
-            'strftimedatefullshort',
-            'strftimedatefullshortwleadingzero',
-            'strftimedateshort',
-            'strftimedatetime',
-            'strftimedatetimeshort',
-            'strftimedatetimeshortwleadingzero',
-            'strftimedaydate',
-            'strftimedaydatetime',
-            'strftimedayshort',
-            'strftimedaytime',
-            'strftimemonthyear',
-            'strftimerecent',
-            'strftimerecentfull',
-            'strftimetime',
-        ];
-
-        foreach ($strdateformats as $strdateformat) {
-            if ($strdateformat == 'strftimedatefullshortwleadingzero') {
-                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
-            } else if ($strdateformat == 'strftimedatetimeshortwleadingzero') {
-                $dateformats[$strdateformat] = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
-            } else {
-                $dateformats[$strdateformat] = userdate($date, get_string($strdateformat, 'langconfig'));
-            }
-        }
-
-        return $dateformats;
-    }
-
-    /**
-     * Returns the date in a readable format.
-     *
-     * @param int $date
-     * @param string $dateformat
-     * @return string
-     */
-    protected function get_date_format_string($date, $dateformat) {
-        // Keeping for backwards compatibility.
-        if (is_number($dateformat)) {
-            switch ($dateformat) {
-                case 1:
-                    $certificatedate = userdate($date, '%B %d, %Y');
-                    break;
-                case 2:
-                    $suffix = self::get_ordinal_number_suffix(userdate($date, '%d'));
-                    $certificatedate = userdate($date, '%B %d' . $suffix . ', %Y');
-                    break;
-                case 3:
-                    $certificatedate = userdate($date, '%d %B %Y');
-                    break;
-                case 4:
-                    $certificatedate = userdate($date, '%B %Y');
-                    break;
-                default:
-                    $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
-            }
-        }
-
-        // Ok, so we must have been passed the actual format in the lang file.
-        if (!isset($certificatedate)) {
-            if ($dateformat == 'strftimedatefullshortwleadingzero') {
-                $certificatedate = userdate($date, get_string('strftimedatefullshort', 'langconfig'), 99, false);
-            } else if ($dateformat == 'strftimedatetimeshortwleadingzero') {
-                $certificatedate = userdate($date, get_string('strftimedatetimeshort', 'langconfig'), 99, false);
-            } else {
-                $certificatedate = userdate($date, get_string($dateformat, 'langconfig'));
-            }
-        }
-
-        return $certificatedate;
-    }
-
-    /**
-     * Helper function to return the suffix of the day of
-     * the month, eg 'st' if it is the 1st of the month.
-     *
-     * @param int $day the day of the month
-     * @return string the suffix.
-     */
-    protected static function get_ordinal_number_suffix($day) {
-        if (!in_array(($day % 100), [11, 12, 13])) {
-            switch ($day % 10) {
-                // Handle 1st, 2nd, 3rd.
-                case 1:
-                    return get_string('numbersuffix_st_as_in_first', 'customcertelement_date');
-                case 2:
-                    return get_string('numbersuffix_nd_as_in_second', 'customcertelement_date');
-                case 3:
-                    return get_string('numbersuffix_rd_as_in_third', 'customcertelement_date');
-            }
-        }
-        return 'th';
+        debugging("The method customcertelement_date::get_date_formats is deprecated, " .
+            "please use element_helper::get_date_formats() instead", DEBUG_DEVELOPER);
+        return element_helper::get_date_formats();
     }
 }

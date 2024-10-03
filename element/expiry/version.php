@@ -15,19 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code fragment to define the version of the customcert module
+ * This file contains the version information for the date plugin.
  *
- * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @package    customcertelement_expiry
+ * @copyright  2024 Leon Stringer <leon.stringer@ntlworld.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$plugin->version   = 2022112813; // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2024072200; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires  = 2022112800; // Requires this Moodle version (4.1).
-$plugin->cron      = 0; // Period for cron to check this module (secs).
-$plugin->component = 'mod_customcert';
-
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "4.1.6"; // User-friendly version number.
+$plugin->component = 'customcertelement_expiry';

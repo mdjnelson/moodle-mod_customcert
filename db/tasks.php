@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => 'mod_customcert\task\email_certificate_task',
+        'classname' => 'mod_customcert\task\issue_certificates_task',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',

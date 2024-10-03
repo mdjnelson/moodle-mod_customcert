@@ -79,8 +79,7 @@
     }
 }}
 {{=<% %>=}}
-<core-course-module-info [module]="module" description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"
-    [courseId]="courseId"></core-course-module-info>
+<core-course-module-description description="<% certificate.intro %>" component="mod_customcert" componentId="<% cmid %>"></core-course-module-description>
 <ion-list>
 <%^canmanage%>
     <%#requiredtimemet%>
@@ -126,8 +125,8 @@
     </ion-item>
     <%#showgroups%>
         <ion-item>
+            <ion-label>{{ 'plugin.mod_customcert.selectagroup' | translate }}</ion-label>
             <ion-select [(ngModel)]="CONTENT_OTHERDATA.group" name="group" (ionChange)="updateContent({cmid: <% cmid %>, courseid: <% certificate.course %>, group: CONTENT_OTHERDATA.group})" interface="popover">
-                <p slot="label">{{ 'plugin.mod_customcert.selectagroup' | translate }}</p>
                 <%#groups%>
                     <ion-select-option [value]="<% id %>"><% name %></ion-select-option>
                 <%/groups%>

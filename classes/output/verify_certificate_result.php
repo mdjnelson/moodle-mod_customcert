@@ -39,27 +39,32 @@ class verify_certificate_result implements templatable, renderable {
     /**
      * @var string The URL to the user's profile.
      */
-    public $userprofileurl;
+    public string $userprofileurl;
 
     /**
      * @var string The user's fullname.
      */
-    public $userfullname;
+    public string $userfullname;
 
     /**
      * @var string The URL to the course page.
      */
-    public $courseurl;
+    public string $courseurl;
 
     /**
      * @var string The course's fullname.
      */
-    public $coursefullname;
+    public string $coursefullname;
 
     /**
      * @var string The certificate's name.
      */
-    public $certificatename;
+    public string $certificatename;
+
+    /**
+     * @var int|null The certificate's expiry date (optional).
+     */
+    public ?int $expiry;
 
     /**
      * Constructor.
@@ -76,6 +81,12 @@ class verify_certificate_result implements templatable, renderable {
         $this->courseurl = new \moodle_url('/course/view.php', ['id' => $result->courseid]);
         $this->coursefullname = format_string($result->coursefullname, true, ['context' => $context]);
         $this->certificatename = format_string($result->certificatename, true, ['context' => $context]);
+
+        if (property_exists($result, 'expiry')) {
+            $this->expiry = $result->expiry;
+        } else {
+            $this->expiry = null;
+        }
     }
 
     /**
@@ -91,6 +102,10 @@ class verify_certificate_result implements templatable, renderable {
         $result->coursefullname = $this->coursefullname;
         $result->courseurl = $this->courseurl;
         $result->certificatename = $this->certificatename;
+
+        if (!empty($this->expiry)) {
+            $result->expiry = $this->expiry;
+        }
 
         return $result;
     }
