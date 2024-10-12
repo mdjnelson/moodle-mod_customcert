@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.1.7] - 2024-10-12
+
+### Fixed
+
+- A SQL error in the issue certificate task on Oracle (#646).
+- Verification error when expiry date element is presnet (#647).
+
+### Added
+
+- Only fetch teachers during the email process when necessary, reducing the number of SQL queries if they are not included (#531).
+- Filter users before process to speed up certificate task (#634).
+
 ## [4.1.6] - 2024-09-28
 
 ### Fixed
