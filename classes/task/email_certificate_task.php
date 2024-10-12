@@ -73,9 +73,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         // Get the person we are going to send this email on behalf of.
         $userfrom = \core_user::get_noreply_user();
 
-        // Store teachers for later.
-        $teachers = get_enrolled_users($context, 'moodle/course:update');
-
         $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
         $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
         $certificatename = format_string($customcert->name, true, ['context' => $context]);
@@ -140,6 +137,8 @@ class email_certificate_task extends \core\task\adhoc_task {
         }
 
         if ($customcert->emailteachers) {
+            $teachers = get_enrolled_users($context, 'moodle/course:update');
+
             $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
                 $coursefullname, $certificatename, $context->instanceid);
 
