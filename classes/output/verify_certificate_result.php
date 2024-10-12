@@ -62,9 +62,9 @@ class verify_certificate_result implements templatable, renderable {
     public string $certificatename;
 
     /**
-     * @var int|null The certificate's expiry date (optional).
+     * @var string|null The certificate's expiry date (optional).
      */
-    public ?int $expiry;
+    public ?string $expiry;
 
     /**
      * Constructor.
