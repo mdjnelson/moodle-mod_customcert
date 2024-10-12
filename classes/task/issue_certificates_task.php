@@ -145,19 +145,26 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Users with both mod/customcert:view and mod/customcert:receiveissue cabapilities.
             $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
-            foreach ($userswithissueview as $enroluser) {
+            // Filter the remaining users by determining whether they can actually see the CM or not
+            // (Note: filter_user_list only takes into account those availability condition which actually implement
+            // this function, so the second check with get_fast_modinfo must be still performed - but we can reduce the
+            // size of the users list here already).
+            $infomodule = new \core_availability\info_module($cm);
+            $filteredusers = $infomodule->filter_user_list($userswithissueview);
+
+            foreach ($filteredusers as $filtereduser) {
                 // Check if the user has already been issued and emailed.
-                if (in_array($enroluser->id, array_keys((array)$issuedusers))) {
+                if (in_array($filtereduser->id, array_keys((array)$issuedusers))) {
                     continue;
                 }
 
                 // Don't want to issue to teachers.
-                if (in_array($enroluser->id, array_keys((array)$userswithmanage))) {
+                if (in_array($filtereduser->id, array_keys((array)$userswithmanage))) {
                     continue;
                 }
 
                 // Now check if the certificate is not visible to the current user.
-                $cm = get_fast_modinfo($customcert->courseid, $enroluser->id)->instances['customcert'][$customcert->id];
+                $cm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
                 if (!$cm->uservisible) {
                     continue;
                 }
@@ -165,18 +172,18 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 // Check that they have passed the required time.
                 if (!empty($customcert->requiredtime)) {
                     if (\mod_customcert\certificate::get_course_time($customcert->courseid,
-                            $enroluser->id) < ($customcert->requiredtime * 60)) {
+                            $filtereduser->id) < ($customcert->requiredtime * 60)) {
                         continue;
                     }
                 }
 
                 // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
                 $issue = $DB->get_record('customcert_issues',
-                    ['userid' => $enroluser->id, 'customcertid' => $customcert->id], 'id, emailed');
+                    ['userid' => $filtereduser->id, 'customcertid' => $customcert->id], 'id, emailed');
 
                 // Ok, issue them the certificate.
                 $issueid = empty($issue) ?
-                    \mod_customcert\certificate::issue_certificate($customcert->id, $enroluser->id) : $issue->id;
+                    \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id) : $issue->id;
 
                 // Validate issueid and one last check for emailed.
                 if (!empty($issueid) && empty($issue->emailed)) {
