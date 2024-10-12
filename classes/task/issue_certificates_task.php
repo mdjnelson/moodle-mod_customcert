@@ -55,8 +55,9 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
         // We are going to issue certificates that have requested someone get emailed.
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
-        $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname
+        $sql = "SELECT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, c.emailothers,
+                       ct.id AS templateid, ct.name AS templatename, ct.contextid, co.id AS courseid,
+                       co.fullname AS coursefullname, co.shortname AS courseshortname
                   FROM {customcert} c
                   JOIN {customcert_templates} ct
                     ON c.templateid = ct.id
@@ -67,7 +68,6 @@ class issue_certificates_task extends \core\task\scheduled_task {
              LEFT JOIN {customcert_issues} ci
                     ON c.id = ci.customcertid";
 
-        // Add conditions to exclude certificates from hidden courses.
         $sql .= " WHERE (c.emailstudents = :emailstudents
                      OR c.emailteachers = :emailteachers
                      OR $emailotherslengthsql >= 3)";
