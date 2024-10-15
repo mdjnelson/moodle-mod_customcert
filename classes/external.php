@@ -230,4 +230,163 @@ class external extends external_api {
     public static function delete_issue_returns() {
         return new external_value(PARAM_BOOL, 'True if successful, false otherwise');
     }
+
+    /**
+     * Returns list_issues parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function list_issues_parameters() {
+        return new external_function_parameters(
+            [
+                'timecreatedfrom' => new external_value(
+                    PARAM_INT,
+                    'Timestamp. Returns items created after this date (included).',
+                    VALUE_OPTIONAL
+                ),
+                'userid' => new external_value(
+                    PARAM_INT,
+                    'User id. Returns items for this user.',
+                    VALUE_OPTIONAL
+                ),
+                'customcertid' => new external_value(
+                    PARAM_INT,
+                    'Customcert id. Returns items for this customcert.',
+                    VALUE_OPTIONAL
+                ),
+            ]
+        );
+    }
+
+    /**
+     * Returns array of issued certificates.
+     *
+     * @param ?int $timecreatedfrom Timestamp. Returns items created after this date (included).
+     * @param ?int $userid User id. Returns items for this user.
+     * @param ?int $customcertid Customcert id. Returns items for this customcert.
+     * @return array
+     */
+    public static function list_issues($timecreatedfrom = null, $userid = null, $customcertid = null) {
+        global $DB;
+
+        $params = [
+            'timecreatedfrom' => $timecreatedfrom,
+            'userid' => $userid,
+            'customcertid' => $customcertid,
+        ];
+        self::validate_parameters(self::list_issues_parameters(), $params);
+
+        $context = \context_system::instance();
+        require_capability('mod/customcert:viewallcertificates', $context);
+
+        $output = [];
+
+        list($namefields, $nameparams) = \core_user\fields::get_sql_fullname();
+        $sql = "SELECT ci.*,
+                       $namefields as fullname, u.username, u.email,
+                       ct.id as templateid, ct.name as templatename, ct.contextid
+                  FROM {customcert_issues} ci
+                  JOIN {user} u
+                    ON ci.userid = u.id
+                  JOIN {customcert} c
+                    ON ci.customcertid = c.id
+                  JOIN {customcert_templates} ct
+                    ON c.templateid = ct.id";
+        $conditions = [];
+        if ($timecreatedfrom) {
+            $conditions[] = "ci.timecreated >= :timecreatedfrom";
+            $nameparams['timecreatedfrom'] = $timecreatedfrom;
+        }
+        if ($userid) {
+            $conditions[] = "ci.userid = :userid";
+            $nameparams['userid'] = $userid;
+        }
+        if ($customcertid) {
+            $conditions[] = "ci.customcertid = :customcertid";
+            $nameparams['customcertid'] = $customcertid;
+        }
+        if ($conditions) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        if ($issues = $DB->get_records_sql($sql, $nameparams)) {
+
+            foreach ($issues as $issue) {
+
+                // Generate PDF.
+
+                $template = new \stdClass();
+                $template->id = $issue->templateid;
+                $template->name = $issue->templatename;
+                $template->contextid = $issue->contextid;
+                $template = new \mod_customcert\template($template);
+
+                $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
+                $pdfname = $ctname . '_' . 'certificate.pdf';
+                $filecontents = $template->generate_pdf(false, $issue->userid, true);
+
+                $output[] = [
+                    'issue' => [
+                        'id' => $issue->id,
+                        'customcertid' => $issue->customcertid,
+                        'code' => $issue->code,
+                        'emailed' => $issue->emailed,
+                        'timecreated' => $issue->timecreated,
+                    ],
+                    'user' => [
+                        'id' => $issue->userid,
+                        'fullname' => $issue->fullname,
+                        'username' => $issue->username,
+                        'email' => $issue->email,
+                    ],
+                    'template' => [
+                        'id' => $issue->templateid,
+                        'name' => $issue->templatename,
+                        'contextid' => $issue->contextid,
+                    ],
+                    'pdf' => [
+                        'name' => $pdfname,
+                        'content' => base64_encode($filecontents),
+                    ],
+                ];
+            }
+
+        }
+
+        return $output;
+    }
+
+    /**
+     * Returns the list_issues result value.
+     *
+     * @return external_multiple_structure
+     */
+    public static function list_issues_returns() {
+        return new external_multiple_structure(
+            new external_single_structure([
+                'issue' => new external_single_structure([
+                    'id' => new external_value(PARAM_INT, 'issue id'),
+                    'customcertid' => new external_value(PARAM_INT, 'customcert id'),
+                    'code' => new external_value(PARAM_TEXT, 'code'),
+                    'emailed' => new external_value(PARAM_BOOL, 'emailed'),
+                    'timecreated' => new external_value(PARAM_INT, 'time created'),
+                ]),
+                'user' => new external_single_structure([
+                    'id' => new external_value(PARAM_INT, 'id of user'),
+                    'fullname' => new external_value(PARAM_TEXT, 'fullname'),
+                    'username' => new external_value(PARAM_TEXT, 'username'),
+                    'email' => new external_value(PARAM_TEXT, 'email'),
+                ]),
+                'template' => new external_single_structure([
+                    'id' => new external_value(PARAM_INT, 'template id'),
+                    'name' => new external_value(PARAM_TEXT, 'template name'),
+                    'contextid' => new external_value(PARAM_INT, 'context id'),
+                ]),
+                'pdf' => new external_single_structure([
+                    'name' => new external_value(PARAM_TEXT, 'name'),
+                    'content' => new external_value(PARAM_TEXT, 'base64 content'),
+                ]),
+            ])
+        );
+    }
 }
