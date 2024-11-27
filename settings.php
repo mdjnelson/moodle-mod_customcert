@@ -78,6 +78,11 @@ $settings->add(new admin_setting_configduration('customcert/certificateexecution
     get_string('certificateexecutionperiod', 'customcert'),
     get_string('certificateexecutionperiod_desc', 'customcert'), 365 * DAYSECS));
 
+$settings->add(new admin_setting_configcheckbox('customcert/returncourse',
+    get_string('returncourse', 'customcert'),
+    get_string('returncourse_desc', 'customcert'),
+    0));
+
 $settings->add(new admin_setting_heading('defaults',
     get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
 
