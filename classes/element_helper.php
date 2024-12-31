@@ -762,7 +762,7 @@ class element_helper {
                     break;
                 case 5:
                     // ISO 8601 date format (YYYY-MM-DD).
-                    $certificatedate = userdate($date, '%Y-%m-%d');
+                    $certificatedate = userdate($date, '%Y-%m-%d', 99, false, false);
                     break;
                 default:
                     $certificatedate = userdate($date, get_string('strftimedate', 'langconfig'));
