@@ -83,7 +83,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
         // Add condition based on certificate execution period.
         if ($certificateexecutionperiod > 0) {
             // Include courses with no end date or end date greater than the specified period.
-            $sql .= " AND (co.enddate > :enddate OR (co.enddate = 0 AND ci.timecreated > :enddate2))";
+            $sql .= " AND (co.enddate > :enddate OR (co.enddate = 0 AND (ci.timecreated > :enddate2 OR ci.timecreated IS NULL)))";
             $params['enddate'] = time() - $certificateexecutionperiod;
             $params['enddate2'] = $params['enddate'];
         }
