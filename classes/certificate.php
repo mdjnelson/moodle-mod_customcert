@@ -530,7 +530,7 @@ class certificate {
         $issue = new \stdClass();
         $issue->userid = $userid;
         $issue->customcertid = $certificateid;
-        $issue->code = self::generate_code();
+        $issue->code = self::generate_code($certificateid);
         $issue->emailed = 0;
         $issue->timecreated = time();
 
@@ -543,8 +543,13 @@ class certificate {
      *
      * @return string
      */
-    public static function generate_code() {
+    public static function generate_code($certificateid) {
         global $DB;
+
+        // Check if custom series codes is enabled.
+        if (get_config('customcertelement_seriescode', 'enable_seriescodes')) {
+            return \customcertelement_seriescode\element::generate_code($certificateid);
+        }
 
         $uniquecodefound = false;
         $code = random_string(10);
