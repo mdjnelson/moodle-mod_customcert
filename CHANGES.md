@@ -9,7 +9,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - A SQL error in the issue certificate task on Oracle (#646).
-- Verification error when expiry date element is presnet (#647).
+- Verification error when expiry date element is present (#647).
 
 ### Added
 
