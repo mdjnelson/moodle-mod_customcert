@@ -722,4 +722,68 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertCount(2, $issues);
         $this->assertCount(0, $emails);
     }
+
+    /**
+     * Tests that we still issue a certificate if there are none when 'certificateexecutionperiod' is set.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     */
+    public function test_issue_certificates_task_creates_issue_when_none_exist(): void {
+        global $CFG, $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a student user.
+        $student = $this->getDataGenerator()->create_user();
+
+        // Enrol the student in the course.
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a custom certificate module with emailing enabled for students.
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
+            'emailstudents' => 1]);
+
+        // Set up a basic certificate template.
+        $template = new \stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'Test Template';
+        $template->contextid = \context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page and an element to put the certificate in a valid state.
+        $pageid = $template->add_page();
+        $element = new \stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Test Element';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Verify that no certificate issues exist before task execution.
+        $this->assertEmpty($DB->get_records('customcert_issues'),
+            'No certificate issues should exist before executing the task.');
+
+        // Redirect emails to a sink so we can capture any outgoing messages.
+        $sink = $this->redirectEmails();
+
+        set_config('certificateexecutionperiod', 1, 'customcert');
+
+        // Execute the issue certificates task.
+        $task = new \mod_customcert\task\issue_certificates_task();
+        $task->execute();
+
+        // After executing the task, verify that a certificate issue record was created.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues,
+            'A certificate issue record should have been created by the task.');
+        $issue = reset($issues);
+        $this->assertEquals(1, $issue->emailed,
+            'The certificate issue should be marked as emailed.');
+
+        // Verify that an email was sent to the student.
+        $emails = $sink->get_messages();
+        $this->assertCount(1, $emails, 'An email should have been sent to the student.');
+        $this->assertEquals($CFG->noreplyaddress, $emails[0]->from, 'Email sender is incorrect.');
+        $this->assertEquals($student->email, $emails[0]->to, 'Email recipient is incorrect.');
+    }
+
 }
