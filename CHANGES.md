@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.3.4] - 2025-02-23
+
+### Fixed
+
+- A SQL error in the issue certificate task on MSSQL and Oracle (#646).
+- Issuing a certificate when there are no issues yet (#659).
+- Issue in rearrange JS with Modal not closing (#648).
+
+### Added
+
+- ISO 8601 date format (#638).
+
 ## [4.3.3] - 2024-10-12
 
 ### Fixed
