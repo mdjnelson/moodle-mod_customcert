@@ -158,8 +158,7 @@ class element extends \mod_customcert\element {
             $context = \context::instance_by_id($issue->contextid);
 
             $urlparams = [
-                'code' => $code,
-                'qrcode' => 1,
+                'certId' => $code,
             ];
 
             // We only add the 'contextid' to the link if the site setting for verifying all certificates is off,
@@ -173,7 +172,7 @@ class element extends \mod_customcert\element {
                 $urlparams['contextid'] = $issue->contextid;
             }
 
-            $qrcodeurl = new \moodle_url('/mod/customcert/verify_certificate.php', $urlparams);
+            $qrcodeurl = new \moodle_url('https://app.pacificmedicaltraining.com/verify', $urlparams);
             $qrcodeurl = $qrcodeurl->out(false);
         }
 
