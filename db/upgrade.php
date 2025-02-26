@@ -298,21 +298,23 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2024042205, 'customcert');
     }
 
+    // Drop the unique index on 'code' and add a non-unique one.
     if ($oldversion < 2024042210) {
         $table = new xmldb_table('customcert_issues');
-        $index = new xmldb_index('code', XMLDB_INDEX_UNIQUE, ['code']);
 
+        // Drop existing unique index if it exists.
+        $index = new xmldb_index('code', XMLDB_INDEX_UNIQUE, ['code']);
         if ($dbman->index_exists($table, $index)) {
             $dbman->drop_index($table, $index);
         }
 
+        // Add non-unique index.
         $index = new xmldb_index('code', XMLDB_INDEX_NOTUNIQUE, ['code']);
-
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        // Update the plugin version in the database.
+        // Save the upgrade step.
         upgrade_plugin_savepoint(true, 2024042210, 'mod', 'customcert');
     }
 
