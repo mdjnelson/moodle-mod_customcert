@@ -424,6 +424,63 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
     }
 }
 
+// Prevent direct access to this file.
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Generates a public URL for viewing a user's certificate (eCard).
+ *
+ * This function constructs a URL that allows public access to a certificate
+ * without requiring authentication. It does so by generating a secure token
+ * based on the certificate code.
+ *
+ * @param string $cert_code The unique code of the certificate.
+ * @return string The generated public URL for the certificate.
+ */
+function generate_public_url_for_certificate(string $cert_code): string {
+    global $CFG;
+
+    // Generate a security token for the certificate using a private function.
+    $token = calculate_signature($cert_code);
+
+    // Construct and return the public URL to view the certificate.
+    return $CFG->wwwroot . '/mod/customcert/view_user_cert.php?cert_code=' . urlencode($cert_code) . '&token=' . urlencode($token);
+}
+
+/**
+ * Generates a secure HMAC signature for a certificate.
+ *
+ * This function creates a unique signature for a certificate based on its code.
+ * The signature is used as a security token to verify access to the certificate.
+ * It prevents unauthorized access by ensuring that only valid certificates can
+ * be accessed through a generated URL.
+ *
+ * The signature is generated using the HMAC (Hash-based Message Authentication Code) 
+ * method with SHA-256, ensuring strong security. It uses Moodle's `siteidentifier`
+ * as the secret key, making it unique to each Moodle installation.
+ *
+ * @param string $cert_code The unique certificate code.
+ * @return string The generated HMAC signature.
+ */
+function calculate_signature(string $cert_code): string {
+    global $CFG;
+
+    // Define a namespaced message prefix to avoid signature collisions.
+    $messagePrefix = 'mod_customcert:view_user_cert';
+
+    // Construct the message that will be signed.
+    // This includes the prefix and the certificate code to create a unique hash.
+    $message = $messagePrefix . '|' . $cert_code;
+
+    // Use Moodle's unique site identifier as the secret key for HMAC.
+    // This ensures that signatures are installation-specific.
+    $secret = $CFG->siteidentifier;
+
+    // Generate the HMAC hash using SHA-256.
+    // This provides a cryptographic signature that is difficult to forge.
+    return hash_hmac('sha256', $message, $secret);
+}
+
 /**
  * Get icon mapping for font-awesome.
  */
