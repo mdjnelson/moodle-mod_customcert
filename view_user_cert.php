@@ -53,14 +53,9 @@ if (!$issue) {
 }
 
 // Fetch the certificate associated with the retrieved issue.
-// The certificate must be one of the recognized eCard types: 'Cognitive eCard' or 'Completion eCard'.
-$certificate = $DB->get_record_sql("
-    SELECT * FROM {customcert}
-    WHERE id = ? AND name IN ('Cognitive eCard', 'Completion eCard')
-", [$issue->customcertid]);
-
+$certificate = $DB->get_record('customcert', ['id' => $issue->customcertid]);
 if (!$certificate) {
-    display_error_page('The certificate type is not valid or does not exist. Please contact the site administrator for assistance.');
+    display_error_page('The certificate does not exist. Please contact the site administrator for assistance.');
 }
 
 // Retrieve the corresponding template for the fetched certificate.
