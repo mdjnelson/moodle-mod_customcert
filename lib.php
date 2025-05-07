@@ -467,7 +467,7 @@ function generate_public_url_for_certificate(string $cert_code): string {
  * It prevents unauthorized access by ensuring that only valid certificates can
  * be accessed through a generated URL.
  *
- * The signature is generated using the HMAC (Hash-based Message Authentication Code) 
+ * The signature is generated using the HMAC (Hash-based Message Authentication Code)
  * method with SHA-256, ensuring strong security. It uses Moodle's `siteidentifier`
  * as the secret key, making it unique to each Moodle installation.
  *
