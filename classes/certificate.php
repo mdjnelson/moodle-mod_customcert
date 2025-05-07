@@ -535,7 +535,21 @@ class certificate {
         $issue->timecreated = time();
 
         // Insert the record into the database.
-        return $DB->insert_record('customcert_issues', $issue);
+        $issueid = $DB->insert_record('customcert_issues', $issue);
+
+        // Get course module context for event.
+        $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
+        $context = \context_module::instance($cm->id);
+
+        // Trigger event.
+        $event = \mod_customcert\event\certificate_issued::create([
+            'objectid' => $issueid,
+            'context' => $context,
+            'relateduserid' => $userid
+        ]);
+        $event->trigger();
+
+        return $issueid;
     }
 
     /**
