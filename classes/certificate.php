@@ -539,23 +539,48 @@ class certificate {
     }
 
     /**
-     * Generates a 10-digit code of random letters and numbers.
+     * Generates an unused code of random letters and numbers.
      *
      * @return string
      */
-    public static function generate_code() {
+    public static function generate_code(): string {
         global $DB;
 
-        $uniquecodefound = false;
-        $code = random_string(10);
-        while (!$uniquecodefound) {
-            if (!$DB->record_exists('customcert_issues', ['code' => $code])) {
-                $uniquecodefound = true;
-            } else {
-                $code = random_string(10);
-            }
-        }
+        // Get the user's selected method from settings.
+        $method = get_config('customcert', 'codegenerationmethod');
 
+        do {
+            $code = match ($method) {
+                '0' => self::generate_code_upper_lower_digits(),
+                '1' => self::generate_code_digits_with_hyphens(),
+                default => self::generate_code_upper_lower_digits(),
+            };
+        } while ($DB->record_exists('customcert_issues', ['code' => $code]));
         return $code;
+    }
+
+    /**
+     * Generate a random code of the format XXXXXXXXXX, where each X is a character from the set [A-Za-z0-9].
+     * Does not check that it is unused.
+     *
+     * @return string
+     */
+    private static function generate_code_upper_lower_digits(): string {
+        return random_string(10);
+    }
+
+    /**
+     * Generate an random code of the format XXXX-XXXX-XXXX, where each X is a random digit.
+     * Does not check that it is unused.
+     *
+     * @return string
+     */
+    private static function generate_code_digits_with_hyphens(): string {
+        return sprintf(
+            '%04d-%04d-%04d',
+            random_int(0, 9999),
+            random_int(0, 9999),
+            random_int(0, 9999)
+        );
     }
 }
