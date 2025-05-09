@@ -24,8 +24,6 @@
 
 namespace mod_customcert\event;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event class for when a custom certificate is issued to a user.
  *
@@ -43,9 +41,9 @@ class certificate_issued extends \core\event\base {
      * - 'objecttable' is the table this event relates to.
      */
     protected function init() {
-        $this->data['crud'] = 'c'; // Indicates a 'create' operation
-        $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
-        $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to
+        $this->data['crud'] = 'c';
+        $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = 'customcert_issues';
     }
 
     /**

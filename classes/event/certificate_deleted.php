@@ -24,9 +24,6 @@
 
 namespace mod_customcert\event;
 
-// Prevent direct access to this file.
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event triggered when a certificate issue is deleted.
  *
@@ -43,7 +40,7 @@ class certificate_deleted extends \core\event\base {
      * and the object table this event is related to.
      */
     protected function init() {
-        $this->data['crud'] = 'd'; // d = delete
+        $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'customcert_issues';
     }
@@ -63,7 +60,8 @@ class certificate_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The certificate issue with id '{$this->objectid}' was deleted. It belonged to user with id '{$this->relateduserid}'.";
+        return "The certificate issue with id '{$this->objectid}' was deleted. 
+        It belonged to user with id '{$this->relateduserid}'.";
     }
 
     /**
