@@ -60,7 +60,7 @@ class certificate_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The certificate issue with id '{$this->objectid}' was deleted. 
+        return "The certificate issue with id '{$this->objectid}' was deleted.
         It belonged to user with id '{$this->relateduserid}'.";
     }
 
