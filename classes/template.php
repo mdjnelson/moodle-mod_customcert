@@ -271,7 +271,7 @@ class template {
      * @return string|void Can return the PDF in string format if specified.
      */
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
-        global $CFG, $DB, $USER;
+        global $CFG, $DB, $USER, $COURSE;
 
         if (empty($userid)) {
             $user = $USER;
@@ -308,30 +308,50 @@ class template {
                 $pdf->SetProtection($protection);
             }
 
-            if (empty($customcert->deliveryoption)) {
-                $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
-            } else {
-                $deliveryoption = $customcert->deliveryoption;
+            // Always set to download regardless of delivery option setting
+            $deliveryoption = 'D'; // Force download instead of inline display
+
+            // Get the course shortname
+            $courseshortname = '';
+            if (!empty($customcert) && !$preview) {
+                $course = $DB->get_record('course', ['id' => $customcert->course]);
+                if ($course) {
+                    $courseshortname = $course->shortname;
+                }
             }
 
-            // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
-            $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
+            // Format the filename as requested: <FIRST NAME> <LAST NAME> <COURSE SHORT NAME> <DATE>
+            // Get the certificate issue date for this user
+            $issuedate = time(); // Default to current time if no issue record exists
+            if (!empty($customcert) && !$preview) {
+                $issuerecord = $DB->get_record('customcert_issues',
+                    ['customcertid' => $customcert->id, 'userid' => $user->id],
+                    'timecreated',
+                    IGNORE_MULTIPLE);
+                if ($issuerecord) {
+                    $issuedate = $issuerecord->timecreated;
+                }
+            }
+
+            $dateformat = date('Y-m-d', $issuedate);
+            $customfilename = trim($user->firstname . ' ' . $user->lastname . ' ' . $courseshortname . ' ' . $dateformat);
+
+            // This is the logic the TCPDF library uses when processing the name. This makes names
+            // such as 'الشهادة' become empty, so set a default name in these cases.
+            $customfilename = preg_replace('/[\s]+/', '_', $customfilename);
+            $customfilename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $customfilename);
+
+            if (empty($customfilename)) {
+                $customfilename = get_string('certificate', 'customcert');
+            }
+
+            $filename = clean_filename($customfilename . '.pdf');
 
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
             $pdf->SetTitle($filename);
             $pdf->SetAutoPageBreak(true, 0);
 
-            // This is the logic the TCPDF library uses when processing the name. This makes names
-            // such as 'الشهادة' become empty, so set a default name in these cases.
-            $filename = preg_replace('/[\s]+/', '_', $filename);
-            $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
-
-            if (empty($filename)) {
-                $filename = get_string('certificate', 'customcert');
-            }
-
-            $filename = clean_filename($filename . '.pdf');
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
                 // Add the page to the PDF.
