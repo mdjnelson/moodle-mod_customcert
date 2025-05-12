@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\event;
-
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event class for when a custom certificate is issued to a user.
  *
@@ -25,6 +21,9 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2025 William Entriken <@fulldecent>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace mod_customcert\event;
+
 class certificate_issued extends \core\event\base {
 
     /**

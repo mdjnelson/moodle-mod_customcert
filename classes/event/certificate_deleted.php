@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\event;
-
-// Prevent direct access to this file.
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event triggered when a certificate issue is deleted.
  *
@@ -26,6 +21,9 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2025 William Entriken <@fulldecent>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace mod_customcert\event;
+
 class certificate_deleted extends \core\event\base {
 
     /**
@@ -53,7 +51,7 @@ class certificate_deleted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "The certificate issue with id '{$this->objectid}' was deleted. It belonged to user with id '{$this->relateduserid}'.";
+        return "The certificate issue with id '{$this->objectid}' was deleted, from user with id '{$this->relateduserid}'.";
     }
 
     /**
