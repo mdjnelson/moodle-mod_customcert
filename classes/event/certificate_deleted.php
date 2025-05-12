@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 namespace mod_customcert\event;
 
 // Prevent direct access to this file.
@@ -7,20 +22,20 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Event triggered when a certificate issue is deleted.
  *
- * This class defines the event for when a record is deleted from the `customcert_issues` table.
+ * @package   mod_customcert
+ * @copyright 2025 William Entriken <@fulldecent>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class certificate_deleted extends \core\event\base {
 
     /**
-     * Initialize event properties.
+     * Initialises the event.
      *
-     * Sets the CRUD type to 'd' (delete), the educational level to LEVEL_OTHER,
-     * and the object table this event is related to.
      */
     protected function init() {
-        $this->data['crud'] = 'd'; // d = delete
-        $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'customcert_issues';
+        $this->data['crud'] = 'd'; // A 'delete' operation.
+        $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
+        $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to.
     }
 
     /**

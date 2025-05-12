@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 namespace mod_customcert\event;
 
 defined('MOODLE_INTERNAL') || die();
@@ -6,21 +21,19 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Event class for when a custom certificate is issued to a user.
  *
- * This event is triggered when a new row is inserted into the customcert_issues table.
+ * @package   mod_customcert
+ * @copyright 2025 William Entriken <@fulldecent>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class certificate_issued extends \core\event\base {
 
     /**
-     * Initialize the event properties.
-     *
-     * - 'crud' indicates the type of action: 'c' = create
-     * - 'edulevel' classifies the nature of the event. LEVEL_OTHER means it's not directly teaching-related.
-     * - 'objecttable' is the table this event relates to.
+     * Initialises the event.
      */
     protected function init() {
-        $this->data['crud'] = 'c'; // Indicates a 'create' operation
+        $this->data['crud'] = 'c'; // A 'create' operation.
         $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
-        $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to
+        $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to.
     }
 
     /**
