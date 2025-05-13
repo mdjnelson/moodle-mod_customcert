@@ -24,6 +24,13 @@
 
 namespace mod_customcert\event;
 
+/**
+ * Event class for when a custom certificate is issued to a user.
+ *
+ * @package   mod_customcert
+ * @copyright 2025 William Entriken <@fulldecent>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class certificate_issued extends \core\event\base {
 
     /**
