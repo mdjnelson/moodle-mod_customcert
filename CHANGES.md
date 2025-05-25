@@ -43,7 +43,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Added
 
-- Only fetch teachers during the email process when necessary, reducing the number of SQL queries if they are not included (#531). 
+- Only fetch teachers during the email process when necessary, reducing the number of SQL queries if they are not included (#531).
 - Filter users before process to speed up certificate task (#634).
 
 ## [4.4.2] - 2024-09-28
@@ -62,7 +62,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Optimise email certificate task by reducing database reads/writes and introducing
   configurable settings for task efficiency (#531).
-- New element `expiry` which when used will display the expiry date on the list of issued certificates 
+- New element `expiry` which when used will display the expiry date on the list of issued certificates
   and the verification pages.<br />
   Any Custom Certificates that are using the `date` element and selected the expiry dates will
   automatically be upgraded to use this new element (#499).
@@ -144,7 +144,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   - An event for when a page is created.
   - An event for when a page is updated.
   - An event for when a page is deleted.
-  - An event for when a template is created. 
+  - An event for when a template is created.
   - An event for when a template is updated.
   - An event for when a template is deleted.
 
