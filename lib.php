@@ -89,10 +89,10 @@ function customcert_delete_instance($id) {
 
     $context = context_module::instance($cm->id);
 
-    // Trigger certificate_deleted events for each issue.
+    // Trigger issue_deleted events for each issue.
     $issues = $DB->get_records('customcert_issues', ['customcertid' => $id]);
     foreach ($issues as $issue) {
-        $event = \mod_customcert\event\certificate_deleted::create([
+        $event = \mod_customcert\event\issue_deleted::create([
             'objectid' => $issue->id,
             'context' => $context,
             'relateduserid' => $issue->userid,

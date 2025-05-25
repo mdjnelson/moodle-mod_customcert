@@ -31,11 +31,10 @@ namespace mod_customcert\event;
  * @copyright 2025 William Entriken <@fulldecent>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class certificate_deleted extends \core\event\base {
+class issue_deleted extends \core\event\base {
 
     /**
      * Initialises the event.
-     *
      */
     protected function init() {
         $this->data['crud'] = 'd'; // A 'delete' operation.
@@ -49,7 +48,7 @@ class certificate_deleted extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventcertificatedeleted', 'mod_customcert');
+        return get_string('eventissuedeleted', 'mod_customcert');
     }
 
     /**

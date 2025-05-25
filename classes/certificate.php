@@ -542,7 +542,7 @@ class certificate {
         $context = \context_module::instance($cm->id);
 
         // Trigger event.
-        $event = \mod_customcert\event\certificate_issued::create([
+        $event = \mod_customcert\event\issue_created::create([
             'objectid' => $issueid,
             'context' => $context,
             'relateduserid' => $userid

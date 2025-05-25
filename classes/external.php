@@ -219,12 +219,11 @@ class external extends external_api {
         require_capability('mod/customcert:manage', $context);
 
         // Delete the issue.
-        // Delete the issue.
         $deleted = $DB->delete_records('customcert_issues', ['id' => $issue->id]);
 
         // Trigger event if deletion succeeded.
         if ($deleted) {
-            $event = \mod_customcert\event\certificate_deleted::create([
+            $event = \mod_customcert\event\issue_deleted::create([
                 'objectid' => $issue->id,
                 'context' => $context,
                 'relateduserid' => $issue->userid,

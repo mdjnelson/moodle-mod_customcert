@@ -31,7 +31,7 @@ namespace mod_customcert\event;
  * @copyright 2025 William Entriken <@fulldecent>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class certificate_issued extends \core\event\base {
+class issue_created extends \core\event\base {
 
     /**
      * Initialises the event.
@@ -48,7 +48,7 @@ class certificate_issued extends \core\event\base {
      * @return string The name of the event.
      */
     public static function get_name() {
-        return get_string('eventcertificateissued', 'mod_customcert');
+        return get_string('eventissuecreated', 'mod_customcert');
     }
 
     /**

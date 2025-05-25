@@ -93,7 +93,7 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     // Trigger event.
     $cm = get_coursemodule_from_instance('customcert', $customcert->id, 0, false, MUST_EXIST);
     $context = \context_module::instance($cm->id);
-    $event = \mod_customcert\event\certificate_deleted::create([
+    $event = \mod_customcert\event\issue_deleted::create([
         'objectid' => $issue->id,
         'context' => $context,
         'relateduserid' => $issue->userid,
