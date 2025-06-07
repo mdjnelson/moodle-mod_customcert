@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.0.0] - 2025-06-07
+
+### Fixed
+
+- Updated subplugins.json file to match Moodle 5.0 format (#688).
+
 ## [4.4.6] - 2025-06-07
 
 ### Added
