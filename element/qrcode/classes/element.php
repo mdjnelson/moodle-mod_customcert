@@ -177,13 +177,21 @@ class element extends \mod_customcert\element {
             $qrcodeurl = $qrcodeurl->out(false);
         }
 
-        $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-        $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
+        try {
+            $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+            $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
 
-        $location = make_request_directory() . '/target';
-        file_put_contents($location, $image);
+            $location = make_request_directory() . '/target';
+            file_put_contents($location, $image);
 
-        $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+        } catch (\Throwable $e) {
+            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+
+            return;
+        }
     }
 
     /**
@@ -205,7 +213,15 @@ class element extends \mod_customcert\element {
         $qrcodeurl = new \moodle_url('/');
         $qrcodeurl = $qrcodeurl->out(false);
 
-        $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-        return $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
+        try {
+            $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+            return $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
+        } catch (\Throwable $e) {
+            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+
+            return '';
+        }
     }
 }
