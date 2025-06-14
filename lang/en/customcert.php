@@ -249,4 +249,15 @@ $string['verifycertificateanyone_help'] = 'This setting enables anyone with the 
 $string['verifycertificatedesc'] = 'This link will take you to a new screen where you will be able to verify certificates on the site';
 $string['width'] = 'Width';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
-
+$string['codegenerationmethod'] = 'Code generation method';
+$string['codegenerationmethod_desc'] = 'Choose between the two methods for generating certificate codes.';
+$string['Upper/lower/digits'] = '6aOdbLEuoC (Upper/lower/digits random string)';
+$string['digits-with-hyphens'] = '0123-4567-8901 (Digits with hyphens)';
+$string['deliveryoption'] = 'Delivery option';
+$string['deliveryoption_help'] = 'Choose how the certificate should be delivered to users.';
+$string['inline'] = 'Display inline';
+$string['download'] = 'Force download';
+$string['filenamepattern'] = 'File name pattern';
+$string['filenamepattern_help'] = 'Choose the pattern for naming certificate files.';
+$string['defaultpattern'] = 'Default (certificate name)';
+$string['custompattern'] = 'First name, Last name, Course short name, Issue date';
