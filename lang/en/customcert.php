@@ -257,7 +257,14 @@ $string['deliveryoption'] = 'Delivery option';
 $string['deliveryoption_help'] = 'Choose how the certificate should be delivered to users.';
 $string['inline'] = 'Display inline';
 $string['download'] = 'Force download';
-$string['filenamepattern'] = 'File name pattern';
-$string['filenamepattern_help'] = 'Choose the pattern for naming certificate files.';
+
+$string['usecustomfilename'] = 'Use custom file name pattern';
+$string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders such as {FIRST NAME}, {LAST NAME}, {GROUP}, {COUSRE SHORT NAME}, {DATE}.';
+
+$string['customfilenamepattern'] = 'Custom file name pattern';
+$string['customfilenamepattern_help'] = 'Enter the pattern for naming certificate files. You can use placeholders such as {firstname}, {lastname}, {group}, {coursename}, {date}.';
+
+$string['filenamepattern'] = 'File name pattern (legacy)';
+$string['filenamepattern_help'] = 'Choose the pattern for naming certificate files (legacy setting).';
 $string['defaultpattern'] = 'Default (certificate name)';
 $string['custompattern'] = 'First name, Last name, Course short name, Issue date';

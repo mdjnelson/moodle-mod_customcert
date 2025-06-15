@@ -271,7 +271,7 @@ class template {
      * @return string|void Can return the PDF in string format if specified.
      */
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
-        global $CFG, $DB, $USER, $COURSE;
+        global $CFG, $DB, $USER;
 
         if (empty($userid)) {
             $user = $USER;
@@ -308,12 +308,10 @@ class template {
                 $pdf->SetProtection($protection);
             }
 
-            // Get delivery option from global settings.
-            $deliveryoption = get_config('customcert', 'deliveryoption');
-
-            // Default to inline delivery if no setting is found.
-            if (empty($deliveryoption)) {
+            if (empty($customcert->deliveryoption)) {
                 $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
+            } else {
+                $deliveryoption = $customcert->deliveryoption;
             }
 
             // Set up PDF document properties — no header/footer, auto page break.
@@ -322,7 +320,12 @@ class template {
             $pdf->SetAutoPageBreak(true, 0);
 
             // Get filename pattern from global settings.
-            $filenamepattern = get_config('customcert', 'filenamepattern');
+            if (!empty($customcert->usecustomfilename) && !empty($customcert->customfilenamepattern)) {
+                $filenamepattern = $customcert->customfilenamepattern;
+            } else {
+                $filenamepattern = '{DEFAULT}';
+            }
+
 
             if (empty($filenamepattern) || $filenamepattern === '{DEFAULT}') {
                 // Use the custom cert name as the base filename (strip any trailing dot).
@@ -336,15 +339,30 @@ class template {
                     'customcertid' => $customcert->id
                 ], '*', IGNORE_MISSING);
 
-                $issuedate = $issue ? userdate($issue->timecreated, '%Y-%m-%d') : date('Y-m-d');
+                if ($issue && !empty($issue->timecreated)) {
+                    $issuedate = date('Y-m-d', $issue->timecreated);
+                } else {
+                    $issuedate = date('Y-m-d');
+                }
 
-                // Prepare substitution values for the pattern.
+                $course = $DB->get_record('course', ['id' => $customcert->course], '*', IGNORE_MISSING);
+
                 $values = [
                     '{FIRST NAME}' => $user->firstname ?? '',
                     '{LAST NAME}' => $user->lastname ?? '',
-                    '{COURSE SHORT NAME}' => $DB->get_field('course', 'shortname', ['id' => $customcert->course], IGNORE_MISSING) ?: '',
+                    '{COURSE SHORT NAME}' => $course ? $course->shortname : '',
+                    '{COURSE FULL NAME}' => $course ? $course->fullname : '',
                     '{DATE}' => $issuedate
                 ];
+
+                // Handle group if needed
+                $groups = groups_get_all_groups($course->id, $user->id);
+                if (!empty($groups)) {
+                    $groupnames = array_map(function($g) { return $g->name; }, $groups);
+                    $values['{GROUP}'] = implode(', ', $groupnames);
+                } else {
+                    $values['{GROUP}'] = '';
+                }
 
                 // Replace placeholders with actual values.
                 $filename = strtr($filenamepattern, $values);

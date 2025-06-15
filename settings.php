@@ -119,27 +119,6 @@ $settings->add(new admin_setting_configcheckbox('customcert/protection_copy',
     get_string('preventcopy', 'customcert'),
     get_string('preventcopy_desc', 'customcert'),
     0));
-$settings->add(new admin_setting_configselect(
-'customcert/deliveryoption',
-get_string('deliveryoption', 'customcert'),
-get_string('deliveryoption_help', 'customcert'),
-'I',
-[
-    'I' => get_string('inline', 'customcert'),
-    'D' => get_string('download', 'customcert')
-]
-));
-
-$settings->add(new admin_setting_configselect(
-'customcert/filenamepattern',
-get_string('filenamepattern', 'customcert'),
-get_string('filenamepattern_help', 'customcert'),
-'{DEFAULT}',
-[
-    '{DEFAULT}' => get_string('defaultpattern', 'customcert'),
-    '{FIRST NAME} {LAST NAME} {COURSE SHORT NAME} {DATE}' => get_string('custompattern', 'customcert')
-]
-));
 
 $ADMIN->add('customcert', $settings);
 
