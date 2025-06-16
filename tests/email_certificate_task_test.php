@@ -26,6 +26,7 @@
 namespace mod_customcert;
 
 use completion_info;
+use context_module;
 use stdClass;
 use context_course;
 use advanced_testcase;
@@ -220,6 +221,85 @@ final class email_certificate_task_test extends advanced_testcase {
         $issues = $DB->get_records('customcert_issues');
 
         $this->assertCount(2, $issues);
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Tests the email certificate task for instance on the site home course.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_sitehome(): void {
+        global $CFG, $DB, $SITE;
+
+        // Create some users.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        // Create a custom certificate.
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $SITE->id,
+            'emailstudents' => 1]);
+
+        $role = $DB->get_record('role', ['archetype' => 'user']);
+        role_change_permission($role->id, context_module::instance($customcert->cmid), 'mod/customcert:view', CAP_ALLOW);
+        role_change_permission($role->id, context_module::instance($customcert->cmid), 'mod/customcert:receiveissue', CAP_ALLOW);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($SITE->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Ok, now issue this to one user.
+        \mod_customcert\certificate::issue_certificate($customcert->id, $user1->id);
+
+        // Confirm there is only one entry in this table.
+        $this->assertEquals(1, $DB->count_records('customcert_issues'));
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Get the issues from the issues table now.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(3, $issues);
+
+        // Confirm that it was marked as emailed and was not issued to the teacher.
+        foreach ($issues as $issue) {
+            $this->assertEquals(1, $issue->emailed);
+        }
+
+        // Confirm that we sent out emails to the two users.
+        $this->assertCount(3, $emails);
+
+        $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
+        $this->assertEquals($user1->email, $emails[1]->to);
+
+        $this->assertEquals($CFG->noreplyaddress, $emails[2]->from);
+        $this->assertEquals($user2->email, $emails[2]->to);
+
+        // Now, run the task again and ensure we did not issue any more certificates.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        $issues = $DB->get_records('customcert_issues');
+
+        $this->assertCount(3, $issues);
         $this->assertCount(0, $emails);
     }
 
