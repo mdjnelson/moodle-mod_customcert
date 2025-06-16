@@ -71,7 +71,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     ON c.templateid = ct.id
                   JOIN {course} co
                     ON c.course = co.id
-                  JOIN {course_categories} cat
+             LEFT JOIN {course_categories} cat
                     ON co.category = cat.id
              LEFT JOIN {customcert_issues} ci
                     ON c.id = ci.customcertid
@@ -84,7 +84,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
         // Check the includeinnotvisiblecourses configuration.
         if (!$includeinnotvisiblecourses) {
             // Exclude certificates from hidden courses.
-            $sql .= " AND co.visible = 1 AND cat.visible = 1";
+            $sql .= " AND co.visible = 1 AND (cat.visible = 1 OR cat.id IS NULL)";
         }
 
         // Add condition based on certificate execution period.
