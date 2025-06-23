@@ -53,6 +53,14 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         $issueid = $customdata->issueid;
         $customcertid = $customdata->customcertid;
+
+        // Check if already emailed to prevent duplicates on retry.
+        $issue = $DB->get_record('customcert_issues', ['id' => $issueid], 'emailed');
+        if ($issue && $issue->emailed) {
+            mtrace("Certificate issue ID $issueid already emailed, skipping.");
+            return; // Already processed, skip to prevent duplicate emails.
+        }
+
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
                        co.fullname as coursefullname, co.shortname as courseshortname
                   FROM {customcert} c
@@ -61,6 +69,11 @@ class email_certificate_task extends \core\task\adhoc_task {
                  WHERE c.id = :id";
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
+
+        if (!$customcert) {
+            mtrace("Certificate with ID $customcertid not found.");
+            return;
+        }
 
         // The renderers used for sending emails.
         $page = new \moodle_page();
@@ -94,10 +107,15 @@ class email_certificate_task extends \core\task\adhoc_task {
                    AND ci.id = :issueid";
         $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
 
+        if (!$user) {
+            mtrace("User or certificate issue not found for issue ID $issueid.");
+            return;
+        }
+
         // Create a directory to store the PDF we will be sending.
         $tempdir = make_temp_directory('certificate/attachment');
         if (!$tempdir) {
-            return;
+            throw new \moodle_exception('Failed to create temporary directory for certificate attachment');
         }
 
         // Setup the user for the cron.
@@ -112,7 +130,15 @@ class email_certificate_task extends \core\task\adhoc_task {
         $template->name = $customcert->templatename;
         $template->contextid = $customcert->contextid;
         $template = new \mod_customcert\template($template);
-        $filecontents = $template->generate_pdf(false, $user->id, true);
+
+        try {
+            $filecontents = $template->generate_pdf(false, $user->id, true);
+        } catch (\Exception $e) {
+            // Log PDF generation failure and allow retry by throwing exception.
+            mtrace('Certificate PDF generation failed for issue ID ' . $issueid . ': ' . $e->getMessage());
+            debugging('Certificate PDF generation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            throw new \moodle_exception('PDF generation failed: ' . $e->getMessage());
+        }
 
         // Set the name of the file we are going to send.
         $filename = $courseshortname . '_' . $certificatename;
@@ -122,57 +148,144 @@ class email_certificate_task extends \core\task\adhoc_task {
         $filename = str_replace('&', '_', $filename) . '.pdf';
 
         // Create the file we will be sending.
-        $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
-        file_put_contents($tempfile, $filecontents);
+        $tempfile = $tempdir . '/' . md5(microtime() . $user->id . random_int(1000, 9999)) . '.pdf';
+        if (file_put_contents($tempfile, $filecontents) === false) {
+            mtrace('Certificate PDF could not be written to temp file for issue ID ' . $issueid);
+            debugging('Certificate PDF write failed for issue ID ' . $issueid, DEBUG_DEVELOPER);
+            throw new \moodle_exception('Failed to write PDF to temporary file');
+        }
 
+        $transaction = $DB->start_delegated_transaction();
+        try {
+            // Note: emailed flag is set before email sending.
+            // This is intentional to prevent infinite retries if emails fail.
+            $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+            mtrace("Marked certificate issue ID $issueid as emailed to prevent retries.");
+
+            // Track email sending results for logging
+            $emailresults = [];
+            $emailfailures = [];
+
+        // Now try to send emails; log any failures but DO NOT retry.
         if ($customcert->emailstudents) {
-            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+            try {
+                $renderable = new \mod_customcert\output\email_certificate(
+                    true,
+                    $userfullname,
+                    $courseshortname,
+                    $coursefullname,
+                    $certificatename,
+                    $context->instanceid
+                );
 
-            $subject = get_string('emailstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                $messagehtml, $tempfile, $filename);
+                $subject = get_string('emailstudentsubject', 'customcert', $info);
+                $message = $textrenderer->render($renderable);
+                $messagehtml = $htmlrenderer->render($renderable);
+
+                $result = email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
+                    $messagehtml, $tempfile, $filename);
+
+                if ($result) {
+                    $emailresults[] = "Student email sent to {$user->email}";
+                } else {
+                    $emailfailures[] = "Failed to send student email to {$user->email}";
+                }
+            } catch (\Exception $e) {
+                $emailfailures[] = "Exception sending student email: " . $e->getMessage();
+            }
         }
 
         if ($customcert->emailteachers) {
-            $teachers = get_enrolled_users($context, 'moodle/course:update');
+            try {
+                $teachers = get_enrolled_users($context, 'moodle/course:update');
 
-            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+                $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
+                    $coursefullname, $certificatename, $context->instanceid);
 
-            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
-            foreach ($teachers as $teacher) {
-                email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
-                    $message, $messagehtml, $tempfile, $filename);
+                $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+                $message = $textrenderer->render($renderable);
+                $messagehtml = $htmlrenderer->render($renderable);
+
+                foreach ($teachers as $teacher) {
+                    try {
+                        $result = email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
+                            $message, $messagehtml, $tempfile, $filename);
+
+                        if ($result) {
+                            $emailresults[] = "Teacher email sent to {$teacher->email}";
+                        } else {
+                            $emailfailures[] = "Failed to send teacher email to {$teacher->email}";
+                        }
+                    } catch (\Exception $e) {
+                        $emailfailures[] = "Exception sending teacher email to {$teacher->email}: " . $e->getMessage();
+                    }
+                }
+            } catch (\Exception $e) {
+                $emailfailures[] = "Exception getting teachers or sending teacher emails: " . $e->getMessage();
             }
         }
 
         if (!empty($customcert->emailothers)) {
-            $others = explode(',', $customcert->emailothers);
-            foreach ($others as $email) {
-                $email = trim($email);
-                if (validate_email($email)) {
-                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                        $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+            try {
+                $others = explode(',', $customcert->emailothers);
+                $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
+    $courseshortname, $coursefullname, $certificatename, $context->instanceid);
 
                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
                     $messagehtml = $htmlrenderer->render($renderable);
 
-                    $emailuser = new \stdClass();
-                    $emailuser->id = -1;
-                    $emailuser->email = $email;
-                    email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                        $messagehtml, $tempfile, $filename);
+                    foreach ($others as $email) {
+                        $email = trim($email);
+                        if (validate_email($email)) {
+                            try {
+                            $emailuser = new \stdClass();
+                            $emailuser->id = -1;
+                            $emailuser->email = $email;
+
+                            $result = email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
+                                $messagehtml, $tempfile, $filename);
+
+                            if ($result) {
+                                $emailresults[] = "Other email sent to {$email}";
+                            } else {
+                                $emailfailures[] = "Failed to send other email to {$email}";
+                            }
+                        } catch (\Exception $e) {
+                            $emailfailures[] = "Exception sending other email to {$email}: " . $e->getMessage();
+                        }
+                    } else {
+                        $emailfailures[] = "Invalid email address in others list: {$email}";
+                    }
                 }
+            } catch (\Exception $e) {
+                $emailfailures[] = "Exception processing other email addresses: " . $e->getMessage();
             }
         }
 
-        // Set the field so that it is emailed.
-        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+        // Log results
+        if (!empty($emailresults)) {
+            mtrace("Email successes for issue ID $issueid: " . implode(', ', $emailresults));
+        }
+
+        if (!empty($emailfailures)) {
+            mtrace("Email failures for issue ID $issueid: " . implode(', ', $emailfailures));
+            debugging("Certificate email failures for issue ID $issueid: " . implode('; ', $emailfailures), DEBUG_DEVELOPER);
+        }
+
+        if (empty($emailresults)) {
+            throw new \moodle_exception("No emails sent successfully for issue ID $issueid; retrying later.");
+        }
+        $transaction->allow_commit();
+        // Clean up temporary file
+        if (file_exists($tempfile)) {
+            unlink($tempfile);
+        }
+        } catch (\Exception $e) {
+            $emailfailures[] = "Email sending failed: " . $e->getMessage();
+            $transaction->rollback($e);
+            throw $e;
+        }
+        mtrace("Certificate email task completed for issue ID $issueid.");
     }
 }
