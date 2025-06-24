@@ -212,16 +212,42 @@ class report_table extends \table_sql {
     public function col_actions($user) {
         global $OUTPUT;
 
-        $icon = new \pix_icon('i/delete', get_string('delete'));
-        $link = new \moodle_url('/mod/customcert/view.php',
+        $actions = [
             [
-                'id' => $this->cm->id,
-                'deleteissue' => $user->issueid,
-                'sesskey' => sesskey(),
+                'icon' => new \pix_icon('i/delete', get_string('delete')),
+                'link' => new \moodle_url(
+                    '/mod/customcert/view.php',
+                    [
+                        'id' => $this->cm->id,
+                        'deleteissue' => $user->issueid,
+                        'sesskey' => sesskey()
+                    ]
+                ),
+                'attributes' => ['class' => 'action-icon delete-icon'],
             ]
-        );
+        ];
 
-        return $OUTPUT->action_icon($link, $icon, null, ['class' => 'action-icon delete-icon']);
+        if (has_capability('mod/customcert:deletelocalcopy', \context_module::instance($this->cm->id)) && localfile::existsPDF($this->cm, $user->id)) {
+            $actions[] = [
+                'icon' => new \pix_icon('deletelocalcopy', get_string('deletelocalcopy', 'customcert'), 'customcert'),
+                'link' => new \moodle_url(
+                    '/mod/customcert/view.php',
+                    [
+                        'id' => $this->cm->id,
+                        'deleteissue' => $user->issueid,
+                        'deletelocalcopy' => 1,
+                        'sesskey' => sesskey()
+                    ]
+                ),
+                'attributes' => ['class' => 'action-icon deletelocalcopy-icon'],
+            ];
+        }
+
+        return implode(" ", array_map(
+            fn ($action) =>
+             $OUTPUT->action_icon($action['link'], $action['icon'], null, $action['attributes'] ?? []),
+            $actions
+        ));
     }
 
     /**

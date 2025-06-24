@@ -22,6 +22,7 @@
         <FIELD NAME="language" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Force certificate to render with specified langauge"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="keeplocalcopy" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Force certificate to keep a local copy of the PDF"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for customcert"/>
