@@ -326,7 +326,6 @@ class template {
                 $filenamepattern = '{DEFAULT}';
             }
 
-
             if (empty($filenamepattern) || $filenamepattern === '{DEFAULT}') {
                 // Use the custom cert name as the base filename (strip any trailing dot).
                 $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
@@ -336,7 +335,7 @@ class template {
                 // Get issue record for date (if issued); fallback to current date if not found.
                 $issue = $DB->get_record('customcert_issues', [
                     'userid' => $user->id,
-                    'customcertid' => $customcert->id
+                    'customcertid' => $customcert->id,
                 ], '*', IGNORE_MISSING);
 
                 if ($issue && !empty($issue->timecreated)) {
@@ -352,13 +351,15 @@ class template {
                     '{LAST NAME}' => $user->lastname ?? '',
                     '{COURSE SHORT NAME}' => $course ? $course->shortname : '',
                     '{COURSE FULL NAME}' => $course ? $course->fullname : '',
-                    '{DATE}' => $issuedate
+                    '{DATE}' => $issuedate,
                 ];
 
-                // Handle group if needed
+                // Handle group if needed.
                 $groups = groups_get_all_groups($course->id, $user->id);
                 if (!empty($groups)) {
-                    $groupnames = array_map(function($g) { return $g->name; }, $groups);
+                    $groupnames = array_map(function($g) {
+                        return $g->name;
+                    }, $groups);
                     $values['{GROUP}'] = implode(', ', $groupnames);
                 } else {
                     $values['{GROUP}'] = '';

@@ -248,23 +248,18 @@ $string['verifycertificateanyone'] = 'Allow anyone to verify a certificate';
 $string['verifycertificateanyone_help'] = 'This setting enables anyone with the certificate verification link (including users not logged in) to verify a certificate.';
 $string['verifycertificatedesc'] = 'This link will take you to a new screen where you will be able to verify certificates on the site';
 $string['width'] = 'Width';
+$string['deliveryoption'] = 'Delivery option';
 $string['width_help'] = 'This is the width of the certificate PDF in mm. For reference an A4 piece of paper is 210mm wide and a letter is 216mm wide.';
-$string['codegenerationmethod'] = 'Code generation method';
-$string['codegenerationmethod_desc'] = 'Choose between the two methods for generating certificate codes.';
 $string['Upper/lower/digits'] = '6aOdbLEuoC (Upper/lower/digits random string)';
 $string['digits-with-hyphens'] = '0123-4567-8901 (Digits with hyphens)';
-$string['deliveryoption'] = 'Delivery option';
 $string['deliveryoption_help'] = 'Choose how the certificate should be delivered to users.';
-$string['inline'] = 'Display inline';
 $string['download'] = 'Force download';
-
+$string['inline'] = 'Display inline';
 $string['usecustomfilename'] = 'Use custom file name pattern';
-$string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders such as {FIRST NAME}, {LAST NAME}, {GROUP}, {COUSRE SHORT NAME}, {DATE}.';
-
 $string['customfilenamepattern'] = 'Custom file name pattern';
+$string['custompattern'] = 'First name, Last name, Course short name, Issue date';
+$string['defaultpattern'] = 'Default (certificate name)';
+$string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders such as {FIRST NAME}, {LAST NAME}, {GROUP}, {COUSRE SHORT NAME}, {DATE}.';
 $string['customfilenamepattern_help'] = 'Enter the pattern for naming certificate files. You can use placeholders such as {firstname}, {lastname}, {group}, {coursename}, {date}.';
-
 $string['filenamepattern'] = 'File name pattern (legacy)';
 $string['filenamepattern_help'] = 'Choose the pattern for naming certificate files (legacy setting).';
-$string['defaultpattern'] = 'Default (certificate name)';
-$string['custompattern'] = 'First name, Last name, Course short name, Issue date';
