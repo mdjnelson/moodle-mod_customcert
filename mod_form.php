@@ -78,8 +78,12 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->disabledIf('customfilenamepattern', 'usecustomfilename', 'notchecked');
 
         if ($this->current) {
-            $mform->setDefault('usecustomfilename', $this->current->usecustomfilename);
-            $mform->setDefault('customfilenamepattern', $this->current->customfilenamepattern);
+            if (property_exists($this->current, 'usecustomfilename')) {
+                $mform->setDefault('usecustomfilename', $this->current->usecustomfilename);
+            }
+            if (property_exists($this->current, 'customfilenamepattern')) {
+                $mform->setDefault('customfilenamepattern', $this->current->customfilenamepattern);
+            }
         }
 
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
