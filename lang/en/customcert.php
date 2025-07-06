@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['Upper/lower/digits'] = '6aOdbLEuoC (Upper/lower/digits random string)';
 $string['activity'] = 'Activity';
 $string['addcertpage'] = 'Add page';
 $string['addelement'] = 'Add element';
@@ -66,7 +65,6 @@ $string['customcert:viewreport'] = 'View course report';
 $string['customcertsettings'] = 'Custom certificate settings';
 $string['customfilenamepattern'] = 'Custom file name pattern';
 $string['customfilenamepattern_help'] = 'Enter the pattern for naming certificate files. You can use placeholders such as {firstname}, {lastname}, {group}, {coursename}, {date}.';
-$string['custompattern'] = 'First name, Last name, Course short name, Issue date';
 $string['defaultpattern'] = 'Default (certificate name)';
 $string['deletecertpage'] = 'Delete page';
 $string['deleteconfirm'] = 'Delete confirmation';
@@ -76,14 +74,10 @@ $string['deleteissueconfirm'] = 'Are you sure you want to delete this certificat
 $string['deleteissuedcertificates'] = 'Delete issued certificates';
 $string['deletepageconfirm'] = 'Are you sure you want to delete this certificate page?';
 $string['deletetemplateconfirm'] = 'Are you sure you want to delete this certificate template?';
-$string['deliveryoption'] = 'Delivery option';
-$string['deliveryoption_help'] = 'Choose how the certificate should be delivered to users.';
 $string['deliveryoptiondownload'] = 'Send to the browser and force a file download';
 $string['deliveryoptioninline'] = 'Send the file inline to the browser';
 $string['deliveryoptions'] = 'Delivery options';
 $string['description'] = 'Description';
-$string['digits-with-hyphens'] = '0123-4567-8901 (Digits with hyphens)';
-$string['download'] = 'Force download';
 $string['downloadallissuedcertificates'] = 'Download all issued certificates';
 $string['downloadallsitecertificates'] = 'Download all site certificates';
 $string['downloadallsitecertificatesdesc'] = 'This will download all the certificates on the site in a zip file.';
@@ -132,8 +126,6 @@ $string['eventtemplatecreated'] = 'Custom certificate template created';
 $string['eventtemplatedeleted'] = 'Custom certificate template deleted';
 $string['eventtemplateupdated'] = 'Custom certificate template updated';
 $string['exampledatawarning'] = 'Some of these values may just be an example to ensure positioning of the elements is possible.';
-$string['filenamepattern'] = 'File name pattern (legacy)';
-$string['filenamepattern_help'] = 'Choose the pattern for naming certificate files (legacy setting).';
 $string['font'] = 'Font';
 $string['font_help'] = 'The font used when generating this element.';
 $string['fontcolour'] = 'Colour';
@@ -146,7 +138,6 @@ $string['height'] = 'Height';
 $string['height_help'] = 'This is the height of the certificate PDF in mm. For reference an A4 piece of paper is 297mm high and a letter is 279mm high.';
 $string['includeinnotvisiblecourses'] = 'Include certificates in hidden courses';
 $string['includeinnotvisiblecourses_desc'] = 'Certificates from hidden courses are not proccesed by default. If you want to include them, enable this setting.';
-$string['inline'] = 'Display inline';
 $string['invalidcode'] = 'Invalid code supplied.';
 $string['invalidcolour'] = 'Invalid colour chosen, please enter a valid HTML colour name, or a six-digit, or three-digit hexadecimal colour.';
 $string['invalidelementwidthorheightnotnumber'] = 'Please enter a valid number.';
