@@ -238,7 +238,7 @@ $string['useadhoc_desc'] = 'When enabled, emails related to certificates will be
 
 Enabling this option may improve the performance of the scheduled task by offloading email processing to ad-hoc tasks.';
 $string['usecustomfilename'] = 'Use custom file name pattern';
-$string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders such as {FIRST NAME}, {LAST NAME}, {GROUP}, {COUSRE SHORT NAME}, {DATE}.';
+$string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders. The placeholders are {FIRST_NAME}, {LAST_NAME}, {GROUP_NAME}, {COURSE_SHORT_NAME}, {COURSE_FULL_NAME} and {ISSUE_DATE}.';
 $string['userlanguage'] = 'Use user preferences';
 $string['userlanguage_help'] = 'You can force the language of the certificate to override the user\'s language preferences.';
 $string['verified'] = 'Verified';
