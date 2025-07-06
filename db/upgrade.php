@@ -316,7 +316,7 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024042210, 'mod', 'customcert');
     }
 
-    if ($oldversion < 2025062100) {
+    if ($oldversion < 2025041401) {
         $table = new xmldb_table('customcert');
 
         // Add 'usecustomfilename' field.
@@ -332,7 +332,8 @@ function xmldb_customcert_upgrade($oldversion) {
         }
 
         // Savepoint reached.
-        upgrade_mod_savepoint(true, 2025062100, 'customcert');
+        upgrade_mod_savepoint(true, 2025041401, 'customcert');
     }
+
     return true;
 }
