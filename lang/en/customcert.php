@@ -243,7 +243,7 @@ $string['type'] = 'Type';
 $string['uploadimage'] = 'Upload image';
 $string['uploadimagedesc'] = 'This link will take you to a new screen where you will be able to upload images. Images uploaded using
 this method will be available throughout your site to all users who are able to create a certificate.';
-$string['useadhoc'] = 'Use Email Certificate Ad-hoc Task';
+$string['useadhoc'] = 'Use email certificate ad-hoc task';
 $string['useadhoc_desc'] = 'When enabled, emails related to certificates will be handled immediately through an ad-hoc task created for each issue. When disabled, emails will be managed by the regular scheduled task.
 
 Enabling this option may improve the performance of the scheduled task by offloading email processing to ad-hoc tasks.';
