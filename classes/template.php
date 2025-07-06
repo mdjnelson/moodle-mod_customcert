@@ -355,8 +355,8 @@ class template {
                 ];
 
                 // Handle group if needed.
-                $groups = groups_get_all_groups($course->id, $user->id);
                 if (!empty($groups)) {
+                    $groups = groups_get_all_groups($course->id, $user->id);
                     $groupnames = array_map(function($g) {
                         return $g->name;
                     }, $groups);
