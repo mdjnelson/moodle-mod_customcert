@@ -320,23 +320,15 @@ class template {
             $pdf->SetAutoPageBreak(true, 0);
 
             // Get filename pattern from global settings.
-            if (!empty($customcert->usecustomfilename) && !empty($customcert->customfilenamepattern)) {
-                $filenamepattern = $customcert->customfilenamepattern;
-            } else {
-                $filenamepattern = '{DEFAULT}';
-            }
-
-            if (empty($filenamepattern) || $filenamepattern === '{DEFAULT}') {
+            if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
                 // Use the custom cert name as the base filename (strip any trailing dot).
                 $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
             } else {
-                // Build filename from pattern substitutions.
-
                 // Get issue record for date (if issued); fallback to current date if not found.
                 $issue = $DB->get_record('customcert_issues', [
                     'userid' => $user->id,
                     'customcertid' => $customcert->id,
-                ], '*', IGNORE_MISSING);
+                ]);
 
                 if ($issue && !empty($issue->timecreated)) {
                     $issuedate = date('Y-m-d', $issue->timecreated);
@@ -344,14 +336,14 @@ class template {
                     $issuedate = date('Y-m-d');
                 }
 
-                $course = $DB->get_record('course', ['id' => $customcert->course], '*', IGNORE_MISSING);
+                $course = $DB->get_record('course', ['id' => $customcert->course]);
 
                 $values = [
-                    '{FIRST NAME}' => $user->firstname ?? '',
-                    '{LAST NAME}' => $user->lastname ?? '',
-                    '{COURSE SHORT NAME}' => $course ? $course->shortname : '',
-                    '{COURSE FULL NAME}' => $course ? $course->fullname : '',
-                    '{DATE}' => $issuedate,
+                    '{FIRST_NAME}' => $user->firstname ?? '',
+                    '{LAST_NAME}' => $user->lastname ?? '',
+                    '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
+                    '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
+                    '{ISSUE_DATE}' => $issuedate,
                 ];
 
                 // Handle group if needed.
@@ -360,13 +352,13 @@ class template {
                     $groupnames = array_map(function($g) {
                         return $g->name;
                     }, $groups);
-                    $values['{GROUP}'] = implode(', ', $groupnames);
+                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
                 } else {
-                    $values['{GROUP}'] = '';
+                    $values['{GROUP_NAME}'] = '';
                 }
 
                 // Replace placeholders with actual values.
-                $filename = strtr($filenamepattern, $values);
+                $filename = strtr($customcert->customfilenamepattern, $values);
 
                 // Remove trailing dot to avoid "..pdf" issues.
                 $filename = rtrim($filename, '.');
