@@ -162,7 +162,7 @@ class email_certificate_task extends \core\task\adhoc_task {
             $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
             mtrace("Marked certificate issue ID $issueid as emailed to prevent retries.");
 
-            // Track email sending results for logging
+            // Track email sending results for logging.
             $emailresults = [];
             $emailfailures = [];
 
@@ -263,7 +263,7 @@ class email_certificate_task extends \core\task\adhoc_task {
                 }
             }
 
-            // Log results
+            // Log results.
             if (!empty($emailresults)) {
                 mtrace("Email successes for issue ID $issueid: " . implode(', ', $emailresults));
             }
@@ -277,7 +277,7 @@ class email_certificate_task extends \core\task\adhoc_task {
                 throw new \moodle_exception("No emails sent successfully for issue ID $issueid; retrying later.");
             }
             $transaction->allow_commit();
-            // Clean up temporary file
+            // Clean up temporary file.
             if (file_exists($tempfile)) {
                 unlink($tempfile);
             }
