@@ -158,8 +158,7 @@ class element extends \mod_customcert\element {
             $context = \context::instance_by_id($issue->contextid);
 
             $urlparams = [
-                'code' => $code,
-                'qrcode' => 1,
+                'certId' => $code,
             ];
 
             // We only add the 'contextid' to the link if the site setting for verifying all certificates is off,

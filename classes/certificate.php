@@ -556,7 +556,7 @@ class certificate {
      * Generates an unused code of random letters and numbers.
      *
      * @return string
-    */
+     */
     public static function generate_code(): string {
         global $DB;
 
@@ -572,7 +572,6 @@ class certificate {
         return self::generate_code_digits_with_hyphens();
     }
 
-    // Upper/lower/digits random string.
     /**
      * Generate a random code of the format XXXXXXXXXX, where each X is a character from the set [A-Za-z0-9].
      * Does not check that it is unused.
