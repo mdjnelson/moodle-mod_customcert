@@ -552,23 +552,34 @@ class certificate {
         return $issueid;
     }
 
-    public static function generate_code() {
+    /**
+     * Generates an unused code of random letters and numbers.
+     *
+     * @return string
+    */
+    public static function generate_code(): string {
         global $DB;
 
-        // Get the user's selected method from settings
+        // Get the user's selected method from settings.
         $method = get_config('customcert', 'codegenerationmethod');
 
-        // If the upper/lower/digits is selected (0), use the upper/lower/digits code generation method
+        // If the upper/lower/digits is selected (0), use the upper/lower/digits code generation method.
         if ($method == 0) {
             return self::generate_code_upper_lower_digits();
         }
 
-        // Otherwise, use the digits with hyphens method (1)
+        // Otherwise, use the digits with hyphens method (1).
         return self::generate_code_digits_with_hyphens();
     }
 
-    // Upper/lower/digits random string
-    private static function generate_code_upper_lower_digits() {
+    // Upper/lower/digits random string.
+    /**
+     * Generate a random code of the format XXXXXXXXXX, where each X is a character from the set [A-Za-z0-9].
+     * Does not check that it is unused.
+     *
+     * @return string
+     */
+    private static function generate_code_upper_lower_digits(): string {
         global $DB;
 
         $uniquecodefound = false;
@@ -584,29 +595,34 @@ class certificate {
         return $code;
     }
 
-    // Digits with hyphens
-    private static function generate_code_digits_with_hyphens() {
+    /**
+     * Generate an random code of the format XXXX-XXXX-XXXX, where each X is a random digit.
+     * Does not check that it is unused.
+     *
+     * @return string
+     */
+    private static function generate_code_digits_with_hyphens(): string {
         global $DB;
 
         // Define the character set (digits only).
         $characters = '0123456789';
-        $charCount = strlen($characters); // Cache the length to optimize loop performance
-        $length = 12; // Total length excluding hyphens
+        $charCount = strlen($characters); // Cache the length to optimize loop performance.
+        $length = 12; // Total length excluding hyphens.
 
         do {
-            // Generate a raw code
+            // Generate a raw code.
             $rawcode = '';
             for ($i = 0; $i < $length; $i++) {
-                $rawcode .= $characters[random_int(0, $charCount - 1)]; // Secure random number selection
+                $rawcode .= $characters[random_int(0, $charCount - 1)]; // Secure random number selection.
             }
 
-            // Format the code as XXXX-XXXX-XXXX
+            // Format the code as XXXX-XXXX-XXXX.
             $code = substr($rawcode, 0, 4) . '-' . substr($rawcode, 4, 4) . '-' . substr($rawcode, 8, 4);
 
-            // Check if the generated code already exists in the database
+            // Check if the generated code already exists in the database.
             $exists = $DB->record_exists('customcert_issues', ['code' => $code]);
 
-        } while ($exists); // Repeat until a unique code is found
+        } while ($exists); // Repeat until a unique code is found.
 
         return $code;
     }
