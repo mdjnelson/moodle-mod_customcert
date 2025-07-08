@@ -136,7 +136,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         } catch (\Exception $e) {
             // Log PDF generation failure and allow retry by throwing exception.
             mtrace('Certificate PDF generation failed for issue ID ' . $issueid . ': ' . $e->getMessage());
-            debugging('Certificate PDF generation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
             throw new \moodle_exception('PDF generation failed: ' . $e->getMessage());
         }
 
@@ -151,7 +150,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         $tempfile = $tempdir . '/' . md5(microtime() . $user->id . random_int(1000, 9999)) . '.pdf';
         if (file_put_contents($tempfile, $filecontents) === false) {
             mtrace('Certificate PDF could not be written to temp file for issue ID ' . $issueid);
-            debugging('Certificate PDF write failed for issue ID ' . $issueid, DEBUG_DEVELOPER);
             throw new \moodle_exception('Failed to write PDF to temporary file');
         }
 
@@ -270,7 +268,6 @@ class email_certificate_task extends \core\task\adhoc_task {
 
             if (!empty($emailfailures)) {
                 mtrace("Email failures for issue ID $issueid: " . implode(', ', $emailfailures));
-                debugging("Certificate email failures for issue ID $issueid: " . implode('; ', $emailfailures), DEBUG_DEVELOPER);
             }
 
             if (empty($emailresults)) {
