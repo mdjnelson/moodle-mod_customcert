@@ -45,24 +45,16 @@ class issue_certificates_task extends \core\task\scheduled_task {
      * Execute.
      */
     public function execute() {
-        global $CFG, $DB;
+        global $DB;
 
         // Get the certificatesperrun, includeinnotvisiblecourses, and certificateexecutionperiod configurations.
         $certificatesperrun = (int)get_config('customcert', 'certificatesperrun');
         $includeinnotvisiblecourses = (bool)get_config('customcert', 'includeinnotvisiblecourses');
         $certificateexecutionperiod = (int)get_config('customcert', 'certificateexecutionperiod');
         $offset = (int)get_config('customcert', 'certificate_offset');
-
-        if ($CFG->dbtype === 'oci') {
-            // For Oracle, convert the CLOB to a VARCHAR2 (limiting to 4000 characters) since we are using DISTINCT.
-            $emailothersselect = "DBMS_LOB.SUBSTR(c.emailothers, 4000, 1) AS emailothers";
-            $emailotherslengthsql = "DBMS_LOB.GETLENGTH(c.emailothers)";
-        } else {
-            $emailothersselect = "c.emailothers";
-            $emailotherslengthsql = $DB->sql_length('c.emailothers');
-        }
-
+        $emailothersselect = "c.emailothers";
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
+
         $sql = "SELECT DISTINCT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, $emailothersselect,
                        ct.id AS templateid, ct.name AS templatename, ct.contextid, co.id AS courseid,
                        co.fullname AS coursefullname, co.shortname AS courseshortname
