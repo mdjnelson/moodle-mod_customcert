@@ -56,10 +56,8 @@ class issue_certificates_task extends \core\task\scheduled_task {
         if ($CFG->dbtype === 'oci') {
             // For Oracle, convert the CLOB to a VARCHAR2 (limiting to 4000 characters) since we are using DISTINCT.
             $emailothersselect = "DBMS_LOB.SUBSTR(c.emailothers, 4000, 1) AS emailothers";
-            $emailotherslengthsql = "DBMS_LOB.GETLENGTH(c.emailothers)";
         } else {
             $emailothersselect = "c.emailothers";
-            $emailotherslengthsql = $DB->sql_length('c.emailothers');
         }
 
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
