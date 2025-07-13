@@ -167,7 +167,7 @@ if (!$downloadown && !$downloadissue) {
         $downloadbutton = $OUTPUT->render($downloadbutton);
         if ($displayreturnbutton) {
             $url = new moodle_url('/course/view.php', ['id' => $course->id]);
-            $buttonreturntocourse = new single_button($url, get_string('returncourselabel', 'customcert'), 'get', true);
+            $buttonreturntocourse = new single_button($url, get_string('returncourselabel', 'customcert'), 'get');
             $renderbuttoncourse = $OUTPUT->render($buttonreturntocourse);
         }
     }
