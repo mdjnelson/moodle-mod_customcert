@@ -321,7 +321,7 @@ class template {
             }
 
             if ($customcert->keeplocalcopy) {
-                $retval = $this->localfile->sendPDF($userid, $deliveryoption, $return);
+                $retval = $this->localfile->send_pdf($userid, $deliveryoption, $return);
                 if ($return && !empty($retval)) {
                     return $retval;
                 }
@@ -426,7 +426,7 @@ class template {
             }
 
             if ($customcert->keeplocalcopy) {
-                $this->localfile->savePDF($pdf->Output('', 'S'), $userid);
+                $this->localfile->save_pdf($pdf->Output('', 'S'), $userid);
             }
 
             if ($return) {

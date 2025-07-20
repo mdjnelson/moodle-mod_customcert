@@ -327,27 +327,6 @@ function mod_customcert_output_fragment_editelement($args) {
 }
 
 /**
- * This function extends the course navigation block for the site.
- *
- * @param \navigation_node $parentnode
- * @param \stdClass $course
- * @param \context_course $context
- */
-function customcert_extend_navigation_course(\navigation_node $parentnode, \stdClass $course, \context_course $context) {
-    global $PAGE;
-
-    $addnode = $context->contextlevel === 50;
-    $addnode = $addnode && !($context->instanceid === SITEID);
-    $addnode = $addnode && has_capability('mod/customcert:viewallcertificates', $context);
-    $isCourseNav = !is_null($PAGE->cm) && is_null($PAGE->cm->instance);
-    if ($addnode && $isCourseNav) {
-        if ($node = build_downloadall_node($isCourseNav, $course, $context)) {
-            $parentnode->add_node($node);
-        }
-    }
-}
-
-/**
  * This function extends the settings navigation block for the site.
  *
  * It is safe to rely on PAGE here as we will only ever be within the module
@@ -378,12 +357,6 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
         $customcertnode->add_node($node, $beforekey);
     }
 
-    if (has_capability('mod/customcert:viewallcertificates', $PAGE->cm->context)) {
-        if ($node = build_downloadall_node(false, $PAGE->cm->get_course(), null)) {
-            $customcertnode->add_node($node, $beforekey);
-        }
-    }
-
     if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
         $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
             new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
@@ -393,50 +366,6 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     }
 
     return $customcertnode->trim_if_empty();
-}
-
-/**
- * Build the navigation node for the 'Download certificates' item.
- *
- * @param boolean $isCourseNav
- * @param \stdClass $course
- * @param \course_context $context
- * @return \navigation_node|null null if there are no certifcates available for the download
- */
-function build_downloadall_node(bool $isCourseNav, stdClass $course, \context_course $context = null) {
-
-    global $DB, $PAGE;
-
-    if (!$isCourseNav) {
-        $courseContext = \context_course::instance($course->id);
-        //Check if there is available certs
-        $certs = $DB->get_records('customcert', ['id' => $PAGE->cm->instance]);
-        $users = $DB->get_records('role_assignments', ['contextid' => $courseContext->id]);
-        $urlparams = ['customcertid' => $PAGE->cm->instance];
-    } else {
-        $certs = $DB->get_records('customcert', ['course' => $context->instanceid]);
-        $users = $DB->get_records('role_assignments', ['contextid' => $context->id]);
-        $urlparams = ['courseid' => $course->id];
-    }
-    $availablecerts = false;
-    foreach ($certs as $certid => $cert_fields) {
-        foreach ($users as $userid => $user_fields) {
-            if (!$DB->get_record('customcert_issues', ['userid' => $user_fields->userid, 'customcertid' => $certid])) {
-                continue;
-            }
-            $availablecerts = true;
-            break;
-        }
-        if ($availablecerts) break;
-    }
-    if ($availablecerts) {
-        $node = \navigation_node::create(get_string('bulkdownloadlink', 'mod_customcert'),
-                new \moodle_url('/mod/customcert/downloadcerts.php', $urlparams),
-                \navigation_node::TYPE_SETTING, null, 'mod_customcert_downloadcerts',
-                new \pix_icon('a/download_all', 'certificates'));
-        return $node;
-    }
-    return null;
 }
 
 /**

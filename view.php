@@ -69,7 +69,8 @@ if ($customcert->requiredtime && !$canmanage) {
 if ($deleteissue && $canmanage && confirm_sesskey()) {
     if (!$confirm) {
         $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
-        $yesurl = new moodle_url('/mod/customcert/view.php',
+        $yesurl = new moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $id,
                 'deleteissue' => $deleteissue,
@@ -99,13 +100,24 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
         $issues = $DB->get_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
         if (!empty($issues)) {
             $lf = new \mod_customcert\localfile(new \mod_customcert\template($template));
-            array_map(fn($issue) => $lf->deletePDF($issue->userid), $issues);
+            array_map(fn($issue) => $lf->delete_pdf($issue->userid), $issues);
         }
     }
 
     if (!$deletelocalcopy) {
         // Delete the issue.
+        $issue = $DB->get_record('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id], '*', MUST_EXIST);
         $DB->delete_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
+
+        // Trigger event.
+        $cm = get_coursemodule_from_instance('customcert', $customcert->id, 0, false, MUST_EXIST);
+        $context = \context_module::instance($cm->id);
+        $event = \mod_customcert\event\issue_deleted::create([
+            'objectid' => $issue->id,
+            'context' => $context,
+            'relateduserid' => $issue->userid,
+        ]);
+        $event->trigger();
     }
 
     // Redirect back to the manage templates page.
@@ -185,7 +197,8 @@ if (!$downloadown && !$downloadissue) {
     $downloadallbutton = '';
     if ($canviewreport && $numissues > 0) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
-        $link = new moodle_url('/mod/customcert/view.php',
+        $link = new moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $cm->id,
                 'downloadall' => true,

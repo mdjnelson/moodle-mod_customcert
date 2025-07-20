@@ -227,7 +227,7 @@ class report_table extends \table_sql {
             ]
         ];
 
-        if (has_capability('mod/customcert:deletelocalcopy', \context_module::instance($this->cm->id)) && localfile::existsPDF($this->cm, $user->id)) {
+        if (has_capability('mod/customcert:deletelocalcopy', \context_module::instance($this->cm->id)) && localfile::does_pdf_exist($this->cm, $user->id)) {
             $actions[] = [
                 'icon' => new \pix_icon('deletelocalcopy', get_string('deletelocalcopy', 'customcert'), 'customcert'),
                 'link' => new \moodle_url(

@@ -32,27 +32,25 @@ defined('MOODLE_INTERNAL') || die();
  * Class represents a local file of an issued certificate.
  *
  * @package    mod_customcert
- * @copyright  023 Giorgio Consorti <g.consorti@lynxlab.com>
+ * @copyright  2023 Giorgio Consorti <g.consorti@lynxlab.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class localfile {
 
     /**
-     * The template representing the content of the file.
-     *
-     * @var \mod_customcert\template
+     * @var \mod_customcert\template the template representing the content of the file.
      */
     protected $template;
 
     /**
      * The component name for the file storage.
      */
-    const component = 'mod_customcert';
+    private const component = 'mod_customcert';
 
     /**
      * The filearea name for the file storage.
      */
-    const filearea =  'customcert_issues';
+    private const filearea =  'customcert_issues';
 
     /**
      * The constructor.
@@ -67,10 +65,11 @@ class localfile {
      * Save the PDF to the file storage.
      *
      * @param string $pdfcontent string content of the pdf
-     * @param integer|null $userid the id of the user whose certificate we want to save
-     * @return stored_file|false the stored_file object on success, false on error
+     * @param int|null $userid the id of the user whose certificate we want to save
+     *
+     * @return \stored_file|bool the stored_file object on success, false on error
      */
-    public function savePDF(string $pdfcontent, ?int $userid = null) {
+    public function save_pdf(string $pdfcontent, ?int $userid = null): \stored_file|bool {
         global $CFG, $USER;
         require_once($CFG->libdir . '/filelib.php');
 
@@ -79,7 +78,7 @@ class localfile {
         }
 
         try {
-            $file = $this->getPDF($userid);
+            $file = $this->get_pdf($userid);
             if (!$file) {
                 // Create file containing the pdf
                 $fs = get_file_storage();
@@ -95,10 +94,11 @@ class localfile {
     /**
      * Get the PDF from the file storage.
      *
-     * @param integer|null $userid the id of the user whose certificate we want to get
-     * @return \stored_file|false the stored_file object on success, false on error
+     * @param int|null $userid the id of the user whose certificate we want to get
+     *
+     * @return \stored_file|bool the stored_file object on success, false on error
      */
-    public function getPDF(?int $userid = null) {
+    public function get_pdf(?int $userid = null): \stored_file|bool {
         global $CFG, $USER;
         require_once($CFG->libdir . '/filelib.php');
 
@@ -115,10 +115,11 @@ class localfile {
     /**
      * Delete the PDF from the file storage.
      *
-     * @param integer|null $userid the id of the user whose certificate we want to get
+     * @param int|null $userid the id of the user whose certificate we want to get
+     *
      * @return bool true on success
      */
-    public function deletePDF(?int $userid = null) {
+    public function delete_pdf(?int $userid = null): bool {
         global $USER;
 
         if (empty($userid)) {
@@ -126,13 +127,12 @@ class localfile {
         }
 
         try {
-            $file = $this->getPDF($userid);
+            $file = $this->get_pdf($userid);
             if ($file) {
                 return $file->delete();
             }
             return false;
         } catch (file_exception $e) {
-            // maybe log the exception
             return false;
         }
     }
@@ -143,16 +143,17 @@ class localfile {
      * @param int $userid the id of the user whose certificate we want to view
      * @param string $deliveryoption the delivery option of the customcert
      * @param bool $return Do we want to return the contents of the PDF?
-     * @return string|void Can return the PDF in string format if specified.
+     *
+     * @return string|null Can return the PDF in string format if specified.
      */
-    public function sendPDF(?int $userid = NULL, string $deliveryoption = certificate::DELIVERY_OPTION_DOWNLOAD, bool $return = false) {
+    public function send_pdf(?int $userid = NULL, string $deliveryoption = certificate::DELIVERY_OPTION_DOWNLOAD, bool $return = false): string|null {
         global $USER;
 
         if (empty($userid)) {
             $userid = $USER->id;
         }
 
-        $file = $this->getPDF($userid);
+        $file = $this->get_pdf($userid);
         if ($file) {
             if ($return) {
                 return $file->get_content();
@@ -168,19 +169,21 @@ class localfile {
                 die();
             }
         }
+        return null;
     }
 
     /**
      * Check if a pdf exists in the file storage area.
      *
      * @param \stdClass $cm the course module
-     * @param integer|null $userid the id of the user whose PDF we want to check
-     * @param integer|null $templateid the template id of the customcert we want to check
+     * @param int|null $userid the id of the user whose PDF we want to check
+     * @param int|null $templateid the template id of the customcert we want to check
+     *
      * @return \stored_file|false the stored_file object on success, false on error
      */
-    public static function existsPDF($cm, ?int $userid = null, ?int $templateid = null) {
+    public static function does_pdf_exist($cm, ?int $userid = null, ?int $templateid = null): \stored_file|bool {
 
-        $fileinfo =  self::buildFileInfoArr($cm, $userid, $templateid);
+        $fileinfo =  self::build_file_info($cm, $userid, $templateid);
         $fs = get_file_storage();
         return $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
                $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
@@ -189,23 +192,25 @@ class localfile {
     /**
      * Build the fileinfo array needed by the file storage.
      *
-     * @param integer|null $userid the id of the user whose fileinfo array we want to generate
+     * @param int|null $userid the id of the user whose fileinfo array we want to generate
+     *
      * @return array the fileinfo array
      */
-    protected function buildFileInfo(?int $userid = null) {
+    protected function buildFileInfo(?int $userid = null): array {
 
-        return self::buildFileInfoArr($this->template->get_cm(), $userid, $this->template->get_id());
+        return self::build_file_info($this->template->get_cm(), $userid, $this->template->get_id());
     }
 
     /**
      * Build the fileinfo array needed by the file storage, static version.
      *
      * @param \stdClass $cm the course module
-     * @param integer|null $userid the id of the user whose fileinfo array we want to generate
-     * @param integer|null $templateid the template id of the customcert of the array we want to generate
+     * @param int|null $userid the id of the user whose fileinfo array we want to generate
+     * @param int|null $templateid the template id of the customcert of the array we want to generate
+     *
      * @return array the fileinfo array
      */
-    private static function buildFileInfoArr ($cm, ?int $userid = null, ?int $templateid = null) {
+    private static function build_file_info ($cm, ?int $userid = null, ?int $templateid = null): array {
 
         /** @var \moodle_database $DB */
         global $DB, $USER;
@@ -243,7 +248,7 @@ class localfile {
      * @param string $courseShortname
      * @return string the PDF file name
      */
-    public static function buildFileName($username, $templateid, $courseShortname) {
+    public static function buildFileName($username, $templateid, $courseShortname): string {
         return $username . '_cert-' . $templateid . '_course-' . $courseShortname . '.pdf';
     }
 }
