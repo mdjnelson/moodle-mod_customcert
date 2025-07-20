@@ -157,12 +157,19 @@ if (!$downloadown && !$downloadissue) {
 
     // Create the button to download the customcert.
     $downloadbutton = '';
+    $renderbuttoncourse = '';
+    $displayreturnbutton = get_config('customcert', 'returncourse');
     if ($canreceive) {
         $linkname = get_string('getcustomcert', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'downloadown' => true]);
         $downloadbutton = new single_button($link, $linkname, 'get', single_button::BUTTON_PRIMARY);
         $downloadbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadbutton = $OUTPUT->render($downloadbutton);
+        if ($displayreturnbutton) {
+            $url = new moodle_url('/course/view.php', ['id' => $course->id]);
+            $buttonreturntocourse = new single_button($url, get_string('returncourselabel', 'customcert'), 'get');
+            $renderbuttoncourse = $OUTPUT->render($buttonreturntocourse);
+        }
     }
 
     $numissues = \mod_customcert\certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
@@ -187,6 +194,9 @@ if (!$downloadown && !$downloadissue) {
     echo $issuehtml;
     echo $downloadbutton;
     echo $downloadallbutton;
+    if ($displayreturnbutton) {
+        echo $renderbuttoncourse;
+    }
     if (isset($reporttable)) {
         echo $OUTPUT->heading(get_string('listofissues', 'customcert', $numissues), 3);
         groups_print_activity_menu($cm, $pageurl);

@@ -314,24 +314,75 @@ class template {
                 $deliveryoption = $customcert->deliveryoption;
             }
 
-            // Remove full-stop at the end, if it exists, to avoid "..pdf" being created and being filtered by clean_filename.
-            $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
-
+            // Set up PDF document properties — no header/footer, auto page break.
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
-            $pdf->SetTitle($filename);
             $pdf->SetAutoPageBreak(true, 0);
+
+            // Get filename pattern from global settings.
+            if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
+                // Use the custom cert name as the base filename (strip any trailing dot).
+                $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
+            } else {
+                // Get issue record for date (if issued); fallback to current date if not found.
+                $issue = $DB->get_record('customcert_issues', [
+                    'userid' => $user->id,
+                    'customcertid' => $customcert->id,
+                ]);
+
+                if ($issue && !empty($issue->timecreated)) {
+                    $issuedate = date('Y-m-d', $issue->timecreated);
+                } else {
+                    $issuedate = date('Y-m-d');
+                }
+
+                $course = $DB->get_record('course', ['id' => $customcert->course]);
+
+                $values = [
+                    '{FIRST_NAME}' => $user->firstname ?? '',
+                    '{LAST_NAME}' => $user->lastname ?? '',
+                    '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
+                    '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
+                    '{ISSUE_DATE}' => $issuedate,
+                ];
+
+                // Handle group if needed.
+                $groups = groups_get_all_groups($course->id, $user->id);
+                if (!empty($groups)) {
+                    $groupnames = array_map(function($g) {
+                        return $g->name;
+                    }, $groups);
+                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
+                } else {
+                    $values['{GROUP_NAME}'] = '';
+                }
+
+                // Replace placeholders with actual values.
+                $filename = strtr($customcert->customfilenamepattern, $values);
+
+                // Remove trailing dot to avoid "..pdf" issues.
+                $filename = rtrim($filename, '.');
+            }
 
             // This is the logic the TCPDF library uses when processing the name. This makes names
             // such as 'الشهادة' become empty, so set a default name in these cases.
             $filename = preg_replace('/[\s]+/', '_', $filename);
             $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
 
+            // If filename ends up empty (e.g. after removing unsupported characters), use default string.
             if (empty($filename)) {
                 $filename = get_string('certificate', 'customcert');
             }
 
+            // Remove existing ".pdf" extension if present to avoid duplication.
+            $filename = preg_replace('/\.pdf$/i', '', $filename);
+
+            // Clean the final filename and append ".pdf".
             $filename = clean_filename($filename . '.pdf');
+
+            // Set the PDF document title (for metadata, not the filename itself).
+            $pdf->SetTitle($filename);
+
             // Loop through the pages and display their content.
             foreach ($pages as $page) {
                 // Add the page to the PDF.

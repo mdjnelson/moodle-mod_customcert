@@ -318,5 +318,24 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024042210, 'mod', 'customcert');
     }
 
+    if ($oldversion < 2024042213) {
+        $table = new xmldb_table('customcert');
+
+        // Add 'usecustomfilename' field.
+        $field = new xmldb_field('usecustomfilename', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'deliveryoption');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add 'customfilenamepattern' field.
+        $field = new xmldb_field('customfilenamepattern', XMLDB_TYPE_TEXT, null, null, null, null, null, 'usecustomfilename');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2024042213, 'customcert');
+    }
+
     return true;
 }
