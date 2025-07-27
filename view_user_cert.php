@@ -32,6 +32,11 @@ $PAGE->set_heading('View certificate');
  * This function helps standardize error handling by rendering the page
  * properly and showing the error message in an alert box.
  *
+ * Code fragment to define the version of the customcert module
+ *
+ * @package    mod_customcert
+ * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @param string $message The error message to display.
  * @package mod_customcert
  */
@@ -60,7 +65,8 @@ if ($token !== $expectedtoken) {
     display_error_page('The verification token is invalid for this certificate. Please check the URL and try again.');
 }
 
-// Retrieve the certificate issue entry using the provided certificate code.
+// Retrieve the certificate issue entry
+// using the provided certificate code.
 // This helps fetch the associated user ID to verify ownership.
 $issue = $DB->get_record('customcert_issues', ['code' => $certcode], '*');
 
@@ -87,7 +93,8 @@ try {
     $template = new \mod_customcert\template($template);
 
     // Generate and output the certificate PDF.
-    // 'false' indicates that the PDF is displayed inline instead of being force-downloaded.
+    // 'false' indicates that the PDF is displayed inline,
+    // instead of being force-downloaded.
     // The second parameter ensures the certificate is generated for the correct user.
     $template->generate_pdf(false, $issue->userid);
 } catch (Exception $e) {
