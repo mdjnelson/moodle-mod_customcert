@@ -1,5 +1,20 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 // Include required Moodle configuration and custom certificate library.
+
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
@@ -18,6 +33,7 @@ $PAGE->set_heading('View certificate');
  * properly and showing the error message in an alert box.
  *
  * @param string $message The error message to display.
+ * @package mod_customcert
  */
 function display_error_page($message) {
     global $OUTPUT;
@@ -30,23 +46,23 @@ function display_error_page($message) {
 
 // Retrieve certificate code and verification token from URL parameters.
 // 'optional_param' is used instead of 'required_param' to avoid Moodle throwing an automatic error page.
-$cert_code = optional_param('cert_code', '', PARAM_ALPHANUMEXT);
+$certcode = optional_param('cert_code', '', PARAM_ALPHANUMEXT);
 $token = optional_param('token', '', PARAM_ALPHANUMEXT);
 
 // Ensure both required parameters are provided.
-if (empty($cert_code) || empty($token)) {
+if (empty($certcode) || empty($token)) {
     display_error_page('Certificate code or verification token is missing. Please check the URL and try again.');
 }
 
 // Validate the provided token by regenerating it using the expected algorithm.
-$expected_token = calculate_signature($cert_code);
-if ($token !== $expected_token) {
+$expectedtoken = calculate_signature($certcode);
+if ($token !== $expectedtoken) {
     display_error_page('The verification token is invalid for this certificate. Please check the URL and try again.');
 }
 
 // Retrieve the certificate issue entry using the provided certificate code.
 // This helps fetch the associated user ID to verify ownership.
-$issue = $DB->get_record('customcert_issues', ['code' => $cert_code], '*');
+$issue = $DB->get_record('customcert_issues', ['code' => $certcode], '*');
 
 if (!$issue) {
     display_error_page('The certificate with the provided code could not be found. Please verify the certificate code and try again.');

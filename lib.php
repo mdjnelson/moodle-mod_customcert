@@ -350,18 +350,26 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
         // Get the template id.
         $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
-        $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
-                navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
-                new pix_icon('t/edit', ''));
+        $node = navigation_node::create(
+            get_string('editcustomcert', 'customcert'),
+            new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_edit',
+            new pix_icon('t/edit', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
-        $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
+        $node = navigation_node::create(
+            get_string('verifycertificate', 'customcert'),
             new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
-            navigation_node::TYPE_SETTING, null, 'mod_customcert_verify_certificate',
-            new pix_icon('t/check', ''));
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_verify_certificate',
+            new pix_icon('t/check', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
@@ -380,8 +388,10 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
     global $USER;
 
-    if (($user->id != $USER->id)
-            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    if (
+        ($user->id != $USER->id)
+            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())
+    ) {
         return;
     }
 
@@ -392,8 +402,13 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
         $params['course'] = $course->id;
     }
     $url = new moodle_url('/mod/customcert/my_certificates.php', $params);
-    $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
-        get_string('mycertificates', 'customcert'), null, $url);
+    $node = new core_user\output\myprofile\node(
+        'miscellaneous',
+        'mycustomcerts',
+        get_string('mycertificates', 'customcert'),
+        null,
+        $url
+    );
     $tree->add_node($node);
 }
 
@@ -431,8 +446,14 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $updateelement->name = clean_param($newvalue, PARAM_TEXT);
         $DB->update_record('customcert_elements', $updateelement);
 
-        return new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id, true,
-            $updateelement->name, $updateelement->name);
+        return new \core\output\inplace_editable(
+            'mod_customcert',
+            'elementname',
+            $element->id,
+            true,
+            $updateelement->name,
+            $updateelement->name
+        );
     }
 }
 
@@ -449,14 +470,14 @@ defined('MOODLE_INTERNAL') || die();
  * @param string $cert_code The unique code of the certificate.
  * @return string The generated public URL for the certificate.
  */
-function generate_public_url_for_certificate(string $cert_code): string {
+function generate_public_url_for_certificate(string $certcode): string {
     global $CFG;
 
     // Generate a security token for the certificate using a private function.
-    $token = calculate_signature($cert_code);
+    $token = calculate_signature($certcode);
 
     // Construct and return the public URL to view the certificate.
-    return $CFG->wwwroot . '/mod/customcert/view_user_cert.php?cert_code=' . urlencode($cert_code) . '&token=' . urlencode($token);
+    return $CFG->wwwroot . '/mod/customcert/view_user_cert.php?cert_code=' . urlencode($certcode) . '&token=' . urlencode($token);
 }
 
 /**
@@ -467,22 +488,22 @@ function generate_public_url_for_certificate(string $cert_code): string {
  * It prevents unauthorized access by ensuring that only valid certificates can
  * be accessed through a generated URL.
  *
- * The signature is generated using the HMAC (Hash-based Message Authentication Code) 
+ * The signature is generated using the HMAC (Hash-based Message Authentication Code)
  * method with SHA-256, ensuring strong security. It uses Moodle's `siteidentifier`
  * as the secret key, making it unique to each Moodle installation.
  *
  * @param string $cert_code The unique certificate code.
  * @return string The generated HMAC signature.
  */
-function calculate_signature(string $cert_code): string {
+function calculate_signature(string $certcode): string {
     global $CFG;
 
     // Define a namespaced message prefix to avoid signature collisions.
-    $messagePrefix = 'mod_customcert:view_user_cert';
+    $messageprefix = 'mod_customcert:view_user_cert';
 
     // Construct the message that will be signed.
     // This includes the prefix and the certificate code to create a unique hash.
-    $message = $messagePrefix . '|' . $cert_code;
+    $message = $messageprefix . '|' . $certcode;
 
     // Use Moodle's unique site identifier as the secret key for HMAC.
     // This ensures that signatures are installation-specific.
