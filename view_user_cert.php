@@ -38,7 +38,6 @@ $PAGE->set_heading('View certificate');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @param string $message The error message to display.
- * @package mod_customcert
  */
 function display_error_page($message) {
     global $OUTPUT;
@@ -71,7 +70,8 @@ if ($token !== $expectedtoken) {
 $issue = $DB->get_record('customcert_issues', ['code' => $certcode], '*');
 
 if (!$issue) {
-    display_error_page('The certificate with the provided code could not be found. Please verify the certificate code and try again.');
+    display_error_page('Certificate with this code not found. '
+        . 'Please check the code and try again.');
 }
 
 // Fetch the certificate associated with the retrieved issue.
@@ -99,7 +99,8 @@ try {
     $template->generate_pdf(false, $issue->userid);
 } catch (Exception $e) {
     // Catch any errors that may occur while generating the certificate PDF.
-    display_error_page('There was an error generating the certificate PDF. Please try again later or contact support if the problem persists.');
+    display_error_page('Error generating certificate PDF. '
+        . 'Try again later or contact support.');
 }
 
 // Prevent further execution after rendering the certificate.
