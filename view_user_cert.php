@@ -18,6 +18,9 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
+// Allows guest access to course with ID 1.
+require_login(1, false);
+
 // Set up the page context before processing any parameters.
 // This ensures that Moodle properly initializes the page and handles any errors gracefully.
 $context = context_system::instance();
