@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Prevent direct access to this file.
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Customcert module core interaction API
  *
