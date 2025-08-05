@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// Prevent direct access to this file.
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Customcert module core interaction API
  *
@@ -456,9 +459,6 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         );
     }
 }
-
-// Prevent direct access to this file.
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Generates a public URL for viewing a user's certificate (eCard).
