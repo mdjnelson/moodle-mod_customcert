@@ -467,7 +467,7 @@ defined('MOODLE_INTERNAL') || die();
  * without requiring authentication. It does so by generating a secure token
  * based on the certificate code.
  *
- * @param string $cert_code The unique code of the certificate.
+ * @param string $certcode The unique code of the certificate.
  * @return string The generated public URL for the certificate.
  */
 function generate_public_url_for_certificate(string $certcode): string {
@@ -492,7 +492,7 @@ function generate_public_url_for_certificate(string $certcode): string {
  * method with SHA-256, ensuring strong security. It uses Moodle's `siteidentifier`
  * as the secret key, making it unique to each Moodle installation.
  *
- * @param string $cert_code The unique certificate code.
+ * @param string $certcode The unique certificate code.
  * @return string The generated HMAC signature.
  */
 function calculate_signature(string $certcode): string {
