@@ -50,4 +50,12 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'mod_customcert_get_or_create_certificate' => [
+        'classname'   => 'mod_customcert\external',
+        'methodname'  => 'get_or_create_certificate',
+        'classpath'   => '',
+        'description' => 'Get or create a certificate for the current user',
+        'type'        => 'write',
+        'ajax'        => true,
+    ],
 ];

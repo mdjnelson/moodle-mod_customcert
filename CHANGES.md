@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [Unreleased]
+
+### Added
+
+- Added web service function `mod_customcert_get_or_create_certificate` to get or create a certificate for the current user.
+
 ## [5.0.0] - 2025-06-07
 
 ### Fixed
