@@ -50,9 +50,12 @@ class email_certificate_task extends \core\task\adhoc_task {
         global $DB;
 
         $customdata = $this->get_custom_data();
+        if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
+            return;
+        }
 
-        $issueid = $customdata->issueid;
-        $customcertid = $customdata->customcertid;
+        $issueid = (int)$customdata->issueid;
+        $customcertid = (int)$customdata->customcertid;
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
                        co.fullname as coursefullname, co.shortname as courseshortname
                   FROM {customcert} c
@@ -61,6 +64,9 @@ class email_certificate_task extends \core\task\adhoc_task {
                  WHERE c.id = :id";
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
+        if (!$customcert) {
+            return;
+        }
 
         // The renderers used for sending emails.
         $page = new \moodle_page();
@@ -93,6 +99,9 @@ class email_certificate_task extends \core\task\adhoc_task {
                  WHERE ci.customcertid = :customcertid
                    AND ci.id = :issueid";
         $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
+        if (!$user) {
+            return;
+        }
 
         // Create a directory to store the PDF we will be sending.
         $tempdir = make_temp_directory('certificate/attachment');
