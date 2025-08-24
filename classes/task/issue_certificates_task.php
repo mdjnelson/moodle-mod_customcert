@@ -125,7 +125,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Get the context.
             $context = \context::instance_by_id($customcert->contextid);
 
-            // Get a list of all the issues.
+            // Get a list of all the issues that are already emailed (skip these users).
             $sql = "SELECT u.id
                       FROM {customcert_issues} ci
                       JOIN {user} u
@@ -140,39 +140,35 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Get the context of the Custom Certificate module.
             $cmcontext = \context_module::instance($cm->id);
 
-            // Now, get a list of users who can view and issue the certificate but have not yet.
             // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
             $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
             // Get users with mod/customcert:view capability.
             $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
-            // Users with both mod/customcert:view and mod/customcert:receiveissue cabapilities.
+            // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
             $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
-            // Filter the remaining users by determining whether they can actually see the CM or not
-            // (Note: filter_user_list only takes into account those availability condition which actually implement
-            // this function, so the second check with get_fast_modinfo must be still performed - but we can reduce the
-            // size of the users list here already).
+            // Filter remaining users by availability conditions.
             $infomodule = new \core_availability\info_module($cm);
             $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
             foreach ($filteredusers as $filtereduser) {
-                // Check if the user has already been issued and emailed.
+                // Skip if the user has already been issued and emailed.
                 if (in_array($filtereduser->id, array_keys((array)$issuedusers))) {
                     continue;
                 }
 
-                // Don't want to issue to teachers.
+                // Don't want to issue to teachers/managers.
                 if (in_array($filtereduser->id, array_keys((array)$userswithmanage))) {
                     continue;
                 }
 
-                // Now check if the certificate is not visible to the current user.
-                $cm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
-                if (!$cm->uservisible) {
+                // Check whether the CM is visible to this user.
+                $usercm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
+                if (!$usercm->uservisible) {
                     continue;
                 }
 
-                // Check that they have passed the required time.
+                // Check required time (if any).
                 if (!empty($customcert->requiredtime)) {
                     if (\mod_customcert\certificate::get_course_time($customcert->courseid,
                             $filtereduser->id) < ($customcert->requiredtime * 60)) {
@@ -180,17 +176,23 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     }
                 }
 
-                // Ensure the cert hasn't already been issued, e.g via the UI (view.php) - a race condition.
+                // Ensure the cert hasn't already been issued; if not, issue it now.
                 $issue = $DB->get_record('customcert_issues',
-                    ['userid' => $filtereduser->id, 'customcertid' => $customcert->id], 'id, emailed');
+                    ['userid' => $filtereduser->id, 'customcertid' => $customcert->id],
+                    'id, emailed');
 
-                // Ok, issue them the certificate.
-                $issueid = empty($issue) ?
-                    \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id) : $issue->id;
+                $issueid = null;
+                $emailed = 0;
+                if (!empty($issue)) {
+                    $issueid = (int)$issue->id;
+                    $emailed = (int)$issue->emailed;
+                } else {
+                    $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
+                    $emailed = 0;
+                }
 
-                // Validate issueid and one last check for emailed.
-                if (!empty($issueid) && empty($issue->emailed)) {
-                    // We create a new adhoc task to send the email.
+                // If we have an issue and it has not been emailed yet, send it now.
+                if (!empty($issueid) && $emailed === 0) {
                     $task = new \mod_customcert\task\email_certificate_task();
                     $task->set_custom_data(['issueid' => $issueid, 'customcertid' => $customcert->id]);
                     $useadhoc = get_config('customcert', 'useadhoc');

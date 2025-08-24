@@ -869,4 +869,72 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertEquals($student->email, $emails[0]->to, 'Email recipient is incorrect.');
     }
 
+    /**
+     * The email_certificate_task should no-op (not fatal) when custom data is missing.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_adhoc_task_ignores_missing_customdata(): void {
+        // No setup; call the adhoc task with no custom data.
+        $sink = $this->redirectEmails();
+
+        $task = new \mod_customcert\task\email_certificate_task();
+        // Intentionally DO NOT call set_custom_data().
+        $task->execute();
+
+        // Should not throw; should not send any email.
+        $emails = $sink->get_messages();
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * The email_certificate_task should no-op when customcert id is invalid.
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_adhoc_task_invalid_customcertid(): void {
+        $sink = $this->redirectEmails();
+
+        $task = new \mod_customcert\task\email_certificate_task();
+
+        // Point to bogus ids; both should be integers but not exist.
+        $task->set_custom_data((object)['issueid' => 999999, 'customcertid' => 999998]);
+        $task->execute();
+
+        $emails = $sink->get_messages();
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * The email_certificate_task should no-op when issue id is invalid (even if customcert exists).
+     *
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_adhoc_task_invalid_issueid_with_valid_customcert(): void {
+        global $DB;
+
+        // Minimal valid customcert (with one element) so the customcert lookup succeeds.
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        // Make the template valid.
+        $template = new \stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'T';
+        $template->contextid = \context_course::instance($course->id)->id;
+        $template = new \mod_customcert\template($template);
+        $pageid = $template->add_page();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $sink = $this->redirectEmails();
+
+        $task = new \mod_customcert\task\email_certificate_task();
+
+        // Valid customcertid, but bogus issueid.
+        $task->set_custom_data((object)['issueid' => 123456789, 'customcertid' => $customcert->id]);
+        $task->execute();
+
+        $emails = $sink->get_messages();
+        $this->assertCount(0, $emails);
+    }
 }
