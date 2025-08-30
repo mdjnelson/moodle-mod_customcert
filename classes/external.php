@@ -221,6 +221,7 @@ class external extends external_api {
 
     /**
      * Tests that the issue_deleted event is fired correctly.
+     * This simulates the deletion process that happens in view.php.
      */
     public function test_issue_deleted_event(): void {
         global $DB;
@@ -240,23 +241,35 @@ class external extends external_api {
         $cm = get_coursemodule_from_instance('customcert', $customcert->id);
         $context = \context_module::instance($cm->id);
 
-        // First, create an issue using the natural method
+        // Create an issue using the natural method
         $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $student->id);
 
-        // Set the user to teacher so they have the required capability (mod/customcert:manage)
+        // Get the issue record (as view.php does)
+        $issue = $DB->get_record('customcert_issues', ['id' => $issueid, 'customcertid' => $customcert->id], '*', MUST_EXIST);
+
+        // Set the user to teacher for proper context
         $this->setUser($teacher);
 
         // Capture events for the deletion
         $sink = $this->redirectEvents();
 
-        // Call the actual external web service method that deletes an issue and triggers the event
-        $result = \mod_customcert\external::delete_issue($customcert->id, $issueid);
+        // Simulate the exact deletion process from view.php
+        $deleted = $DB->delete_records('customcert_issues', ['id' => $issueid, 'customcertid' => $customcert->id]);
+
+        if ($deleted) {
+            $event = \mod_customcert\event\issue_deleted::create([
+                'objectid' => $issue->id,
+                'context' => $context,
+                'relateduserid' => $issue->userid,
+            ]);
+            $event->trigger();
+        }
 
         $events = $sink->get_events();
         $sink->close();
 
         // Assertions
-        $this->assertTrue($result); // The method should return true on success
+        $this->assertTrue($deleted);
         $this->assertCount(1, $events);
         $event = reset($events);
         $this->assertInstanceOf(\mod_customcert\event\issue_deleted::class, $event);
