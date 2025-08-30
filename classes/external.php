@@ -193,69 +193,35 @@ class external extends external_api {
     }
 
     /**
-     * Tests that the issue_created event is fired correctly.
+     * Handles deleting a customcert issue.
+     *
+     * @param int $certificateid The certificate id.
+     * @param int $issueid The issue id.
+     * @return bool
      */
-    public function test_issue_created_event(): void {
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $user = $this->getDataGenerator()->create_user();
-        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $context = \context_module::instance($customcert->cmid);
-
-        $sink = $this->redirectEvents();
-
-        // Call the actual function that creates an issue and triggers the event
-        $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $user->id);
-
-        $events = $sink->get_events();
-        $this->assertCount(1, $events);
-
-        $event = reset($events);
-        $this->assertInstanceOf(\mod_customcert\event\issue_created::class, $event);
-        $this->assertEquals($issueid, $event->objectid);
-        $this->assertEquals($context->id, $event->contextid);
-        $this->assertEquals($user->id, $event->relateduserid);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * Tests that the issue_deleted event is fired correctly.
-     * This simulates the deletion process that happens in view.php.
-     */
-    public function test_issue_deleted_event(): void {
+    public static function delete_issue($certificateid, $issueid) {
         global $DB;
 
-        $this->resetAfterTest();
+        $params = [
+            'certificateid' => $certificateid,
+            'issueid' => $issueid,
+        ];
+        self::validate_parameters(self::delete_issue_parameters(), $params);
 
-        // Create course, teacher, student, and customcert module.
-        $course = $this->getDataGenerator()->create_course();
-        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
-        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
+        $issue = $DB->get_record('customcert_issues', ['id' => $issueid, 'customcertid' => $certificateid], '*', MUST_EXIST);
 
-        $customcert = $this->getDataGenerator()->create_module('customcert', [
-            'course' => $course->id,
-            'name'   => 'Test cert'
-        ]);
+        $cm = get_coursemodule_from_instance('customcert', $certificate->id, 0, false, MUST_EXIST);
 
-        $cm = get_coursemodule_from_instance('customcert', $customcert->id);
+        // Make sure the user has the required capabilities.
         $context = \context_module::instance($cm->id);
+        self::validate_context($context);
+        require_capability('mod/customcert:manage', $context);
 
-        // Create an issue using the natural method
-        $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $student->id);
+        // Delete the issue.
+        $deleted = $DB->delete_records('customcert_issues', ['id' => $issue->id]);
 
-        // Get the issue record (as view.php does)
-        $issue = $DB->get_record('customcert_issues', ['id' => $issueid, 'customcertid' => $customcert->id], '*', MUST_EXIST);
-
-        // Set the user to teacher for proper context
-        $this->setUser($teacher);
-
-        // Capture events for the deletion
-        $sink = $this->redirectEvents();
-
-        // Simulate the exact deletion process from view.php
-        $deleted = $DB->delete_records('customcert_issues', ['id' => $issueid, 'customcertid' => $customcert->id]);
-
+        // Trigger event if deletion succeeded.
         if ($deleted) {
             $event = \mod_customcert\event\issue_deleted::create([
                 'objectid' => $issue->id,
@@ -265,21 +231,15 @@ class external extends external_api {
             $event->trigger();
         }
 
-        $events = $sink->get_events();
-        $sink->close();
+        return $deleted;
+    }
 
-        // Assertions
-        $this->assertTrue($deleted);
-        $this->assertCount(1, $events);
-        $event = reset($events);
-        $this->assertInstanceOf(\mod_customcert\event\issue_deleted::class, $event);
-        $this->assertEquals($issueid, $event->objectid);
-        $this->assertEquals($student->id, $event->relateduserid);
-        $this->assertEquals($context->id, $event->contextid);
-        $this->assertDebuggingNotCalled();
-
-        // Verify the issue was actually deleted from database
-        $issueexists = $DB->record_exists('customcert_issues', ['id' => $issueid]);
-        $this->assertFalse($issueexists);
+    /**
+     * Returns the delete_issue result value.
+     *
+     * @return external_value
+     */
+    public static function delete_issue_returns() {
+        return new external_value(PARAM_BOOL, 'True if successful, false otherwise');
     }
 }
