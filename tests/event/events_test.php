@@ -469,6 +469,9 @@ final class events_test extends \advanced_testcase {
 
     /**
      * Tests that the issue_created event is fired correctly.
+     *
+     * @covers \mod_customcert\certificate::issue_certificate
+     * @covers \mod_customcert\event\issue_created
      */
     public function test_issue_created_event(): void {
         $this->resetAfterTest();
@@ -480,9 +483,7 @@ final class events_test extends \advanced_testcase {
 
         $sink = $this->redirectEvents();
 
-        // Call the actual function that creates an issue and triggers the event
-        // This assumes there's a method like issue_certificate() or create_issue()
-        // You'll need to replace this with the actual method from your codebase
+        // Call the actual function that creates an issue and triggers the event.
         $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $user->id);
 
         $events = $sink->get_events();
@@ -498,11 +499,15 @@ final class events_test extends \advanced_testcase {
 
     /**
      * Tests that the issue_deleted event is fired correctly.
-    */
-    public function test_issue_deleted_event() {
+     * This simulates the deletion process that happens in view.php.
+     *
+     * @covers \mod_customcert\certificate::issue_certificate
+     * @covers \mod_customcert\event\issue_deleted
+     */
+    public function test_issue_deleted_event(): void {
         global $DB;
 
-        $this->resetAfterTest(true);
+        $this->resetAfterTest();
 
         // Create course, teacher, student, and customcert module.
         $course = $this->getDataGenerator()->create_course();
@@ -511,38 +516,57 @@ final class events_test extends \advanced_testcase {
 
         $customcert = $this->getDataGenerator()->create_module('customcert', [
             'course' => $course->id,
-            'name'   => 'Test cert'
+            'name'   => 'Test cert',
         ]);
 
         $cm = get_coursemodule_from_instance('customcert', $customcert->id);
+        $context = \context_module::instance($cm->id);
 
-        // Insert a fake certificate issue (instead of calling ::issue_certificate()).
-        $issueid = $DB->insert_record('customcert_issues', (object)[
+        // Create an issue using the natural method.
+        $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $student->id);
+
+        // Get the issue record (as view.php does).
+        $issue = $DB->get_record('customcert_issues', [
+            'id' => $issueid,
             'customcertid' => $customcert->id,
-            'userid'       => $student->id,
-            'code'         => 'UTEST123',
-            'timecreated'  => time(),
-        ]);
+        ], '*', MUST_EXIST);
 
-        // Capture events.
+        // Set the user to teacher for proper context.
+        $this->setUser($teacher);
+
+        // Capture events for the deletion.
         $sink = $this->redirectEvents();
 
-        // Manually trigger the issue_deleted event.
-        $event = \mod_customcert\event\issue_deleted::create([
-            'objectid'      => $issueid,
-            'context'       => \context_module::instance($cm->id),
-            'relateduserid' => $student->id,
+        // Simulate the exact deletion process from view.php.
+        $deleted = $DB->delete_records('customcert_issues', [
+            'id' => $issueid,
+            'customcertid' => $customcert->id,
         ]);
-        $event->trigger();
+
+        if ($deleted) {
+            $event = \mod_customcert\event\issue_deleted::create([
+                'objectid'      => $issue->id,
+                'context'       => $context,
+                'relateduserid' => $issue->userid,
+            ]);
+            $event->trigger();
+        }
 
         $events = $sink->get_events();
         $sink->close();
 
         // Assertions.
+        $this->assertTrue($deleted);
         $this->assertCount(1, $events);
-        $this->assertInstanceOf(\mod_customcert\event\issue_deleted::class, $events[0]);
-        $this->assertEquals($issueid, $events[0]->objectid);
-        $this->assertEquals($student->id, $events[0]->relateduserid);
-        $this->assertEquals(\context_module::instance($cm->id)->id, $events[0]->contextid);
+        $event = reset($events);
+        $this->assertInstanceOf(\mod_customcert\event\issue_deleted::class, $event);
+        $this->assertEquals($issueid, $event->objectid);
+        $this->assertEquals($student->id, $event->relateduserid);
+        $this->assertEquals($context->id, $event->contextid);
+        $this->assertDebuggingNotCalled();
+
+        // Verify the issue was actually deleted from database.
+        $issueexists = $DB->record_exists('customcert_issues', ['id' => $issueid]);
+        $this->assertFalse($issueexists);
     }
 }
