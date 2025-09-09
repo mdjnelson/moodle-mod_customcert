@@ -47,7 +47,8 @@ class email_certificate_task extends \core\task\adhoc_task {
      * Execute.
      */
     public function execute() {
-        global $DB;
+    global $DB;
+    require_once(__DIR__ . '/../../../lib.php');
 
         $customdata = $this->get_custom_data();
         if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
@@ -57,7 +58,7 @@ class email_certificate_task extends \core\task\adhoc_task {
         $issueid = (int)$customdata->issueid;
         $customcertid = (int)$customdata->customcertid;
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname
+                       co.fullname as coursefullname, co.shortname as courseshortname, co.lang as courselang
                   FROM {customcert} c
                   JOIN {customcert_templates} ct ON c.templateid = ct.id
                   JOIN {course} co ON c.course = co.id
@@ -67,6 +68,14 @@ class email_certificate_task extends \core\task\adhoc_task {
         if (!$customcert) {
             return;
         }
+
+        // Build a course object for language selection.
+        $course = new \stdClass();
+        $course->id = $customcert->courseid;
+        $course->lang = $customcert->courselang ?? '';
+
+        // Force the correct language for certificate email generation.
+        mod_customcert_force_language_for_certificate($customcert, $course);
 
         // The renderers used for sending emails.
         $page = new \moodle_page();

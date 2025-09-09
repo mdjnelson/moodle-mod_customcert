@@ -1,4 +1,6 @@
 <?php
+// Ensure Moodle core libraries for string and language management are loaded.
+require_once(__DIR__ . '/../../../../lib/moodlelib.php');
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -464,6 +466,52 @@ function mod_customcert_force_current_language($language): bool {
 
     if (array_key_exists($language, $activelangs) && $language != $userlang) {
         force_current_language($language);
+        $forced = true;
+    }
+
+    return $forced;
+}
+
+/**
+ * Force language for certificate generation, respecting Moodle's language priority hierarchy.
+ *
+ * Priority:
+ *   1. Certificate-specific language ($certificate->force_language)
+ *   2. Course language ($course->lang)
+ *   3. User language ($USER->lang)
+ *   4. Site default language ($CFG->lang)
+ *
+ * @param stdClass $certificate Certificate object (should have force_language property if used)
+ * @param stdClass $course Course object (should have lang property)
+ * @return bool True if language was forced, false otherwise
+ */
+function mod_customcert_force_language_for_certificate($certificate, $course): bool {
+    global $USER, $CFG;
+
+    $forced = false;
+    $activelangs = get_string_manager()->get_list_of_translations();
+
+    // 1. Priority: certificate-specific language
+    $lang = $certificate->force_language ?? '';
+
+    // 2. Priority: course language
+    if (empty($lang) && !empty($course->lang)) {
+        $lang = $course->lang;
+    }
+
+    // 3. Priority: user language
+    if (empty($lang) && !empty($USER->lang)) {
+        $lang = $USER->lang;
+    }
+
+    // 4. Priority: site default
+    if (empty($lang)) {
+        $lang = $CFG->lang;
+    }
+
+    // Only force if valid and different from current
+    if (!empty($lang) && array_key_exists($lang, $activelangs) && $lang != current_language()) {
+        force_current_language($lang);
         $forced = true;
     }
 
