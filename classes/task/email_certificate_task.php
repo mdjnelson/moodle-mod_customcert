@@ -50,14 +50,11 @@ class email_certificate_task extends \core\task\adhoc_task {
         global $CFG, $DB;
         
         // Force error_log output to a dedicated debug file for all executions.
-        ini_set('error_log', '/tmp/customcert_debug.log');
-        error_log('Customcert debug: script started');
 
         require_once(__DIR__ . '/../../lib.php');
 
         $customdata = $this->get_custom_data();
         if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
-            error_log('Customcert email: Missing custom data');
             return;
         }
 
@@ -74,7 +71,6 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
         if (!$customcert) {
-            error_log('Customcert email: Certificate not found');
             return;
         }
 
@@ -87,7 +83,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
         
         if (!$user) {
-            error_log('Customcert email: User or issue not found');
             return;
         }
 
@@ -96,18 +91,15 @@ class email_certificate_task extends \core\task\adhoc_task {
         
         // --- LANGUAGE SELECTION LOGIC (same hierarchy as certificate view) ---
         $lang = $this->resolve_certificate_language($customcert, $user);
-        error_log('Customcert email: Final resolved language: ' . $lang);
 
         // Force the resolved language
         $activelangs = get_string_manager()->get_list_of_translations();
         if (!empty($lang) && array_key_exists($lang, $activelangs)) {
             force_current_language($lang);
             get_string_manager()->reset_caches();
-            error_log('Customcert email: Language forced to: ' . $lang);
             
             // Test string fetch after forcing language
             $teststring = get_string('emailstudentsubject', 'customcert');
-            error_log('Customcert email: Test string after language force: ' . $teststring);
         }
 
         // Get the context
@@ -119,7 +111,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         // Create a directory to store the PDF
         $tempdir = make_temp_directory('certificate/attachment');
         if (!$tempdir) {
-            error_log('Customcert email: Could not create temp directory');
             // Restore original language before returning
             force_current_language($originallang);
             return;
@@ -190,7 +181,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         // Mark as emailed
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
         
-        error_log('Customcert email: Email sent successfully for issue ' . $issueid);
 
         // Restore original language
         force_current_language($originallang);
@@ -212,27 +202,23 @@ class email_certificate_task extends \core\task\adhoc_task {
         // 1. Certificate-specific language (if set)
         if (!empty($customcert->force_language)) {
             $lang = $customcert->force_language;
-            error_log('Customcert email: Using certificate-specific language: ' . $lang);
             return $lang;
         }
 
         // 2. Course language (if set)
         if (!empty($customcert->courselang)) {
             $lang = $customcert->courselang;
-            error_log('Customcert email: Using course language: ' . $lang);
             return $lang;
         }
 
         // 3. User profile language (if set)
         if (!empty($user->lang)) {
             $lang = $user->lang;
-            error_log('Customcert email: Using user profile language: ' . $lang);
             return $lang;
         }
 
         // 4. Site default language
         $lang = $CFG->lang;
-        error_log('Customcert email: Using site default language: ' . $lang);
         
         return $lang;
     }
@@ -256,7 +242,6 @@ class email_certificate_task extends \core\task\adhoc_task {
         $message = format_text($message, FORMAT_HTML, ['filter' => true, 'context' => $context]);
         $messagehtml = format_text($messagehtml, FORMAT_HTML, ['filter' => true, 'context' => $context]);
         
-        error_log('Customcert email: Sending to student - Subject: ' . $subject);
         
         email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), 
             $message, $messagehtml, $tempfile, $filename);
