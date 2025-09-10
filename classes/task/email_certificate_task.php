@@ -47,16 +47,24 @@ class email_certificate_task extends \core\task\adhoc_task {
      * Execute.
      */
     public function execute() {
-    global $DB;
-    require_once(__DIR__ . '/../../../lib.php');
+        global $CFG, $DB;
+        
+        // Force error_log output to a dedicated debug file for all executions.
+        ini_set('error_log', '/tmp/customcert_debug.log');
+        error_log('Customcert debug: script started');
+
+        require_once(__DIR__ . '/../../lib.php');
 
         $customdata = $this->get_custom_data();
         if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
+            error_log('Customcert email: Missing custom data');
             return;
         }
 
         $issueid = (int)$customdata->issueid;
         $customcertid = (int)$customdata->customcertid;
+        
+        // Get certificate and course information
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
                        co.fullname as coursefullname, co.shortname as courseshortname, co.lang as courselang
                   FROM {customcert} c
@@ -66,65 +74,58 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
         if (!$customcert) {
+            error_log('Customcert email: Certificate not found');
             return;
         }
 
-        // Build a course object for language selection.
-        $course = new \stdClass();
-        $course->id = $customcert->courseid;
-        $course->lang = $customcert->courselang ?? '';
+        // Get user and issue information
+        $userfields = helper::get_all_user_name_fields('u');
+        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed, u.lang as lang
+                  FROM {customcert_issues} ci
+                  JOIN {user} u ON ci.userid = u.id
+                 WHERE ci.customcertid = :customcertid AND ci.id = :issueid";
+        $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
+        
+        if (!$user) {
+            error_log('Customcert email: User or issue not found');
+            return;
+        }
 
-        // Force the correct language for certificate email generation.
-        mod_customcert_force_language_for_certificate($customcert, $course);
+        // Store original language to restore later
+        $originallang = current_language();
+        
+        // --- LANGUAGE SELECTION LOGIC (same hierarchy as certificate view) ---
+        $lang = $this->resolve_certificate_language($customcert, $user);
+        error_log('Customcert email: Final resolved language: ' . $lang);
 
-        // The renderers used for sending emails.
-        $page = new \moodle_page();
-        $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
-        $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
+        // Force the resolved language
+        $activelangs = get_string_manager()->get_list_of_translations();
+        if (!empty($lang) && array_key_exists($lang, $activelangs)) {
+            force_current_language($lang);
+            get_string_manager()->reset_caches();
+            error_log('Customcert email: Language forced to: ' . $lang);
+            
+            // Test string fetch after forcing language
+            $teststring = get_string('emailstudentsubject', 'customcert');
+            error_log('Customcert email: Test string after language force: ' . $teststring);
+        }
 
-        // Get the context.
+        // Get the context
         $context = \context::instance_by_id($customcert->contextid);
 
-        // Get the person we are going to send this email on behalf of.
-        $userfrom = \core_user::get_noreply_user();
-
-        $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
-        $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
-        $certificatename = format_string($customcert->name, true, ['context' => $context]);
-
-        // Used to create the email subject.
-        $info = new \stdClass();
-        $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
-        $info->courseshortname = $courseshortname;
-        $info->coursefullname = $coursefullname;
-        $info->certificatename = $certificatename;
-
-        // Get the information about the user and the certificate issue.
-        $userfields = helper::get_all_user_name_fields('u');
-        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed
-                  FROM {customcert_issues} ci
-                  JOIN {user} u
-                    ON ci.userid = u.id
-                 WHERE ci.customcertid = :customcertid
-                   AND ci.id = :issueid";
-        $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
-        if (!$user) {
-            return;
-        }
-
-        // Create a directory to store the PDF we will be sending.
-        $tempdir = make_temp_directory('certificate/attachment');
-        if (!$tempdir) {
-            return;
-        }
-
-        // Setup the user for the cron.
+        // Setup the user for the cron
         \core\cron::setup_user($user);
 
-        $userfullname = fullname($user);
-        $info->userfullname = $userfullname;
+        // Create a directory to store the PDF
+        $tempdir = make_temp_directory('certificate/attachment');
+        if (!$tempdir) {
+            error_log('Customcert email: Could not create temp directory');
+            // Restore original language before returning
+            force_current_language($originallang);
+            return;
+        }
 
-        // Now, get the PDF.
+        // Generate PDF with the forced language
         $template = new \stdClass();
         $template->id = $customcert->templateid;
         $template->name = $customcert->templatename;
@@ -132,65 +133,193 @@ class email_certificate_task extends \core\task\adhoc_task {
         $template = new \mod_customcert\template($template);
         $filecontents = $template->generate_pdf(false, $user->id, true);
 
-        // Set the name of the file we are going to send.
+        // Prepare file information
+        $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
+        $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
+        $certificatename = format_string($customcert->name, true, ['context' => $context]);
+        $userfullname = fullname($user);
+
+        // Set the name of the file we are going to send
         $filename = $courseshortname . '_' . $certificatename;
         $filename = \core_text::entities_to_utf8($filename);
         $filename = strip_tags($filename);
         $filename = rtrim($filename, '.');
         $filename = str_replace('&', '_', $filename) . '.pdf';
 
-        // Create the file we will be sending.
+        // Create the file we will be sending
         $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
         file_put_contents($tempfile, $filecontents);
 
-        if ($customcert->emailstudents) {
-            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+        // Prepare email information object
+        $info = new \stdClass();
+        $info->coursename = $courseshortname; // Added for BC
+        $info->courseshortname = $courseshortname;
+        $info->coursefullname = $coursefullname;
+        $info->certificatename = $certificatename;
+        $info->userfullname = $userfullname;
 
-            $subject = get_string('emailstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                $messagehtml, $tempfile, $filename);
+        // Get email renderers
+        $page = new \moodle_page();
+        $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
+        $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
+        
+        // Get the person we are going to send this email on behalf of
+        $userfrom = \core_user::get_noreply_user();
+
+        // Send email to students
+        if ($customcert->emailstudents) {
+            $this->send_email_to_student($user, $userfrom, $info, $context, $htmlrenderer, 
+                $textrenderer, $tempfile, $filename, $userfullname, $courseshortname, 
+                $coursefullname, $certificatename);
         }
 
+        // Send email to teachers
         if ($customcert->emailteachers) {
-            $teachers = get_enrolled_users($context, 'moodle/course:update');
+            $this->send_email_to_teachers($context, $userfrom, $info, $htmlrenderer, 
+                $textrenderer, $tempfile, $filename, $userfullname, $courseshortname, 
+                $coursefullname, $certificatename);
+        }
 
-            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+        // Send email to others
+        if (!empty($customcert->emailothers)) {
+            $this->send_email_to_others($customcert->emailothers, $userfrom, $info, 
+                $context, $htmlrenderer, $textrenderer, $tempfile, $filename, 
+                $userfullname, $courseshortname, $coursefullname, $certificatename);
+        }
 
-            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
-            foreach ($teachers as $teacher) {
-                email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
+        // Mark as emailed
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+        
+        error_log('Customcert email: Email sent successfully for issue ' . $issueid);
+
+        // Restore original language
+        force_current_language($originallang);
+        get_string_manager()->reset_caches();
+    }
+
+    /**
+     * Resolve the certificate language using the same hierarchy as certificate view
+     * 
+     * @param object $customcert The certificate record
+     * @param object $user The user record
+     * @return string The resolved language code
+     */
+    private function resolve_certificate_language($customcert, $user) {
+        global $CFG;
+        
+        $lang = null;
+
+        // 1. Certificate-specific language (if set)
+        if (!empty($customcert->force_language)) {
+            $lang = $customcert->force_language;
+            error_log('Customcert email: Using certificate-specific language: ' . $lang);
+            return $lang;
+        }
+
+        // 2. Course language (if set)
+        if (!empty($customcert->courselang)) {
+            $lang = $customcert->courselang;
+            error_log('Customcert email: Using course language: ' . $lang);
+            return $lang;
+        }
+
+        // 3. User profile language (if set)
+        if (!empty($user->lang)) {
+            $lang = $user->lang;
+            error_log('Customcert email: Using user profile language: ' . $lang);
+            return $lang;
+        }
+
+        // 4. Site default language
+        $lang = $CFG->lang;
+        error_log('Customcert email: Using site default language: ' . $lang);
+        
+        return $lang;
+    }
+
+    /**
+     * Send email to student
+     */
+    private function send_email_to_student($user, $userfrom, $info, $context, $htmlrenderer, 
+            $textrenderer, $tempfile, $filename, $userfullname, $courseshortname, 
+            $coursefullname, $certificatename) {
+        
+        $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, 
+            $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+
+        $subject = get_string('emailstudentsubject', 'customcert', $info);
+        $message = $textrenderer->render($renderable);
+        $messagehtml = $htmlrenderer->render($renderable);
+        
+        // Apply multilang filter to all text content
+        $subject = format_text($subject, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        $message = format_text($message, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        $messagehtml = format_text($messagehtml, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        
+        error_log('Customcert email: Sending to student - Subject: ' . $subject);
+        
+        email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), 
+            $message, $messagehtml, $tempfile, $filename);
+    }
+
+    /**
+     * Send email to teachers
+     */
+    private function send_email_to_teachers($context, $userfrom, $info, $htmlrenderer, 
+            $textrenderer, $tempfile, $filename, $userfullname, $courseshortname, 
+            $coursefullname, $certificatename) {
+        
+        $teachers = get_enrolled_users($context, 'moodle/course:update');
+
+        $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, 
+            $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+
+        $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+        $message = $textrenderer->render($renderable);
+        $messagehtml = $htmlrenderer->render($renderable);
+        
+        // Apply multilang filter
+        $subject = format_text($subject, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        $message = format_text($message, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        $messagehtml = format_text($messagehtml, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+        
+        foreach ($teachers as $teacher) {
+            email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
+                $message, $messagehtml, $tempfile, $filename);
+        }
+    }
+
+    /**
+     * Send email to other recipients
+     */
+    private function send_email_to_others($emailothers, $userfrom, $info, $context, 
+            $htmlrenderer, $textrenderer, $tempfile, $filename, $userfullname, 
+            $courseshortname, $coursefullname, $certificatename) {
+        
+        $others = explode(',', $emailothers);
+        
+        foreach ($others as $email) {
+            $email = trim($email);
+            if (validate_email($email)) {
+                $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
+                    $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+
+                $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+                $message = $textrenderer->render($renderable);
+                $messagehtml = $htmlrenderer->render($renderable);
+                
+                // Apply multilang filter
+                $subject = format_text($subject, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+                $message = format_text($message, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+                $messagehtml = format_text($messagehtml, FORMAT_HTML, ['filter' => true, 'context' => $context]);
+
+                $emailuser = new \stdClass();
+                $emailuser->id = -1;
+                $emailuser->email = $email;
+                
+                email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), 
                     $message, $messagehtml, $tempfile, $filename);
             }
         }
-
-        if (!empty($customcert->emailothers)) {
-            $others = explode(',', $customcert->emailothers);
-            foreach ($others as $email) {
-                $email = trim($email);
-                if (validate_email($email)) {
-                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                        $courseshortname, $coursefullname, $certificatename, $context->instanceid);
-
-                    $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-                    $message = $textrenderer->render($renderable);
-                    $messagehtml = $htmlrenderer->render($renderable);
-
-                    $emailuser = new \stdClass();
-                    $emailuser->id = -1;
-                    $emailuser->email = $email;
-                    email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                        $messagehtml, $tempfile, $filename);
-                }
-            }
-        }
-
-        // Set the field so that it is emailed.
-        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
     }
 }

@@ -1,6 +1,5 @@
 <?php
 // Ensure Moodle core libraries for string and language management are loaded.
-require_once(__DIR__ . '/../../../../lib/moodlelib.php');
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
