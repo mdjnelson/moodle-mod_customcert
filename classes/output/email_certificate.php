@@ -96,7 +96,6 @@ class email_certificate implements \renderable, \templatable {
         $info->certificatename = $this->certificatename;
         $info->courseshortname = $this->courseshortname;
         $info->coursefullname = $this->coursefullname;
-
         if ($this->isstudent) {
             $data->emailgreeting = get_string('emailstudentgreeting', 'customcert', $this->userfullname);
             $data->emailbody = get_string('emailstudentbody', 'customcert', $info);
