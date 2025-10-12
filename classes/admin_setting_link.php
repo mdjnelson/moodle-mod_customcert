@@ -58,8 +58,16 @@ class admin_setting_link extends \admin_setting_configtext {
      * @param string $paramtype
      * @param null $size
      */
-    public function __construct($name, $visiblename, $description, $linkname, $link, $defaultsetting,
-                                $paramtype = PARAM_RAW, $size=null) {
+    public function __construct(
+        $name,
+        $visiblename,
+        $description,
+        $linkname,
+        $link,
+        $defaultsetting,
+        $paramtype = PARAM_RAW,
+        $size = null
+) {
         $this->link = $link;
         $this->linkname = $linkname;
         parent::__construct($name, $visiblename, $description, $defaultsetting, $paramtype, $size);

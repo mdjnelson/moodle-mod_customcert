@@ -70,7 +70,6 @@ class restore_customcert_activity_task extends restore_activity_task {
         $rules[] = new restore_decode_rule('CUSTOMCERTINDEX', '/mod/customcert/index.php?id=$1', 'course');
 
         return $rules;
-
     }
 
     /**

@@ -38,10 +38,7 @@ use core_privacy\local\request\writer;
  * @copyright  2018 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements
-    \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\plugin\provider,
-    \core_privacy\local\request\core_userlist_provider {
+class provider implements \core_privacy\local\request\core_userlist_provider, \core_privacy\local\metadata\provider, \core_privacy\local\request\plugin\provider {
     /**
      * Return the fields which contain personal data.
      *
@@ -136,7 +133,7 @@ class provider implements
         global $DB;
 
         // Filter out any contexts that are not related to modules.
-        $cmids = array_reduce($contextlist->get_contexts(), function($carry, $context) {
+        $cmids = array_reduce($contextlist->get_contexts(), function ($carry, $context) {
             if ($context->contextlevel == CONTEXT_MODULE) {
                 $carry[] = $context->instanceid;
             }
@@ -152,7 +149,7 @@ class provider implements
         // Get all the customcert activities associated with the above course modules.
         $customcertidstocmids = self::get_customcert_ids_to_cmids_from_cmids($cmids);
 
-        list($insql, $inparams) = $DB->get_in_or_equal(array_keys($customcertidstocmids), SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal(array_keys($customcertidstocmids), SQL_PARAMS_NAMED);
         $params = array_merge($inparams, ['userid' => $user->id]);
         $recordset = $DB->get_recordset_select(
             'customcert_issues',
@@ -160,14 +157,14 @@ class provider implements
             $params,
             'timecreated, id ASC'
         );
-        self::recordset_loop_and_export($recordset, 'customcertid', [], function($carry, $record) {
+        self::recordset_loop_and_export($recordset, 'customcertid', [], function ($carry, $record) {
             $carry[] = [
                 'code' => $record->code,
                 'emailed' => transform::yesno($record->emailed),
                 'timecreated' => transform::datetime($record->timecreated),
             ];
             return $carry;
-        }, function($customcertid, $data) use ($user, $customcertidstocmids) {
+        }, function ($customcertid, $data) use ($user, $customcertidstocmids) {
             $context = \context_module::instance($customcertidstocmids[$customcertid]);
             $contextdata = helper::get_context_data($context, $user);
             $finaldata = (object) array_merge((array) $contextdata, ['issues' => $data]);
@@ -237,7 +234,7 @@ class provider implements
         }
 
         $userids = $userlist->get_userids();
-        list($usersql, $userparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        [$usersql, $userparams] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
 
         $select = "customcertid = :customcertid AND userid $usersql";
         $params = ['customcertid' => $cm->instance] + $userparams;
@@ -253,7 +250,7 @@ class provider implements
     protected static function get_customcert_ids_to_cmids_from_cmids(array $cmids) {
         global $DB;
 
-        list($insql, $inparams) = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
+        [$insql, $inparams] = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
         $sql = "SELECT customcert.id, cm.id AS cmid
                  FROM {customcert} customcert
                  JOIN {modules} m
@@ -277,8 +274,13 @@ class provider implements
      * @param callable $export The function to export the dataset, receives the last value from $splitkey and the dataset.
      * @return void
      */
-    protected static function recordset_loop_and_export(\moodle_recordset $recordset, $splitkey, $initial,
-            callable $reducer, callable $export) {
+    protected static function recordset_loop_and_export(
+        \moodle_recordset $recordset,
+        $splitkey,
+        $initial,
+        callable $reducer,
+        callable $export
+) {
         $data = $initial;
         $lastid = null;
 

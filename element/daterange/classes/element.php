@@ -574,7 +574,6 @@ class element extends \mod_customcert\element {
         $matchedrage = clone $range;
 
         if ($this->has_turn_of_the_year($matchedrage)) {
-
             if ($this->in_start_year($date, $matchedrage)) {
                 $startyear = date('Y', $date);
                 $endyear = $startyear + 1;
