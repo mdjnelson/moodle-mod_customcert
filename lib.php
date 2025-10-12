@@ -350,18 +350,26 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
         // Get the template id.
         $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
-        $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
-                navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
-                new pix_icon('t/edit', ''));
+        $node = navigation_node::create(
+            get_string('editcustomcert', 'customcert'),
+            new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_edit',
+            new pix_icon('t/edit', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
-        $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
+        $node = navigation_node::create(
+            get_string('verifycertificate', 'customcert'),
             new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
-            navigation_node::TYPE_SETTING, null, 'mod_customcert_verify_certificate',
-            new pix_icon('t/check', ''));
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_verify_certificate',
+            new pix_icon('t/check', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
@@ -380,8 +388,10 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
     global $USER;
 
-    if (($user->id != $USER->id)
-            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    if (
+        ($user->id != $USER->id)
+            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())
+    ) {
         return;
     }
 
@@ -392,8 +402,13 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
         $params['course'] = $course->id;
     }
     $url = new moodle_url('/mod/customcert/my_certificates.php', $params);
-    $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
-        get_string('mycertificates', 'customcert'), null, $url);
+    $node = new core_user\output\myprofile\node(
+        'miscellaneous',
+        'mycustomcerts',
+        get_string('mycertificates', 'customcert'),
+        null,
+        $url
+    );
     $tree->add_node($node);
 }
 
@@ -431,8 +446,14 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $updateelement->name = clean_param($newvalue, PARAM_TEXT);
         $DB->update_record('customcert_elements', $updateelement);
 
-        return new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id, true,
-            $updateelement->name, $updateelement->name);
+        return new \core\output\inplace_editable(
+            'mod_customcert',
+            'elementname',
+            $element->id,
+            true,
+            $updateelement->name,
+            $updateelement->name
+        );
     }
 }
 

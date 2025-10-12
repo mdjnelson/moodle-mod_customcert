@@ -34,7 +34,6 @@ require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/backup_customcert_s
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_customcert_activity_task extends backup_activity_task {
-
     /**
      * Define particular settings this activity can have.
      */
@@ -62,11 +61,11 @@ class backup_customcert_activity_task extends backup_activity_task {
         $base = preg_quote($CFG->wwwroot, "/");
 
         // Link to the list of customcerts.
-        $search = "/(".$base."\/mod\/customcert\/index.php\?id\=)([0-9]+)/";
+        $search = "/(" . $base . "\/mod\/customcert\/index.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@CUSTOMCERTINDEX*$2@$', $content);
 
         // Link to customcert view by moduleid.
-        $search = "/(".$base."\/mod\/customcert\/view.php\?id\=)([0-9]+)/";
+        $search = "/(" . $base . "\/mod\/customcert\/view.php\?id\=)([0-9]+)/";
         $content = preg_replace($search, '$@CUSTOMCERTVIEWBYID*$2@$', $content);
 
         return $content;

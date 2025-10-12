@@ -51,7 +51,7 @@ function xmldb_customcertelement_bgimage_upgrade($oldversion) {
                         'height' => (int) $elementinfo->height,
                     ];
                     $arrtostore = json_encode($arrtostore);
-                    $DB->set_field('customcert_elements', 'data', $arrtostore,  ['id' => $image->id]);
+                    $DB->set_field('customcert_elements', 'data', $arrtostore, ['id' => $image->id]);
                 }
             }
         }

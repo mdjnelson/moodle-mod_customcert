@@ -33,7 +33,6 @@ use mod_customcert\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class email_certificate_task extends \core\task\adhoc_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -135,28 +134,54 @@ class email_certificate_task extends \core\task\adhoc_task {
         file_put_contents($tempfile, $filecontents);
 
         if ($customcert->emailstudents) {
-            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+            $renderable = new \mod_customcert\output\email_certificate(
+                true,
+                $userfullname,
+                $courseshortname,
+                $coursefullname,
+                $certificatename,
+                $context->instanceid
+            );
 
             $subject = get_string('emailstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                $messagehtml, $tempfile, $filename);
+            email_to_user(
+                $user,
+                $userfrom,
+                html_entity_decode($subject, ENT_COMPAT),
+                $message,
+                $messagehtml,
+                $tempfile,
+                $filename
+            );
         }
 
         if ($customcert->emailteachers) {
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
-            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+            $renderable = new \mod_customcert\output\email_certificate(
+                false,
+                $userfullname,
+                $courseshortname,
+                $coursefullname,
+                $certificatename,
+                $context->instanceid
+            );
 
             $subject = get_string('emailnonstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
             foreach ($teachers as $teacher) {
-                email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
-                    $message, $messagehtml, $tempfile, $filename);
+                email_to_user(
+                    $teacher,
+                    $userfrom,
+                    html_entity_decode($subject, ENT_COMPAT),
+                    $message,
+                    $messagehtml,
+                    $tempfile,
+                    $filename
+                );
             }
         }
 
@@ -165,8 +190,14 @@ class email_certificate_task extends \core\task\adhoc_task {
             foreach ($others as $email) {
                 $email = trim($email);
                 if (validate_email($email)) {
-                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                        $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+                    $renderable = new \mod_customcert\output\email_certificate(
+                        false,
+                        $userfullname,
+                        $courseshortname,
+                        $coursefullname,
+                        $certificatename,
+                        $context->instanceid
+                    );
 
                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
@@ -175,8 +206,15 @@ class email_certificate_task extends \core\task\adhoc_task {
                     $emailuser = new \stdClass();
                     $emailuser->id = -1;
                     $emailuser->email = $email;
-                    email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                        $messagehtml, $tempfile, $filename);
+                    email_to_user(
+                        $emailuser,
+                        $userfrom,
+                        html_entity_decode($subject, ENT_COMPAT),
+                        $message,
+                        $messagehtml,
+                        $tempfile,
+                        $filename
+                    );
                 }
             }
         }

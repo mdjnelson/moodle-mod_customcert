@@ -32,7 +32,6 @@ namespace mod_customcert\event;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class issue_created extends \core\event\base {
-
     /**
      * Initialises the event.
      */

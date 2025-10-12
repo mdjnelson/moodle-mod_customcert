@@ -43,7 +43,6 @@ use mod_customcert\task\issue_certificates_task;
  * @coversDefaultClass \mod_customcert\task\email_certificate_task
  */
 final class email_certificate_task_test extends advanced_testcase {
-
     /**
      * Test set up.
      */
@@ -843,8 +842,10 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Verify that no certificate issues exist before task execution.
-        $this->assertEmpty($DB->get_records('customcert_issues'),
-            'No certificate issues should exist before executing the task.');
+        $this->assertEmpty(
+            $DB->get_records('customcert_issues'),
+            'No certificate issues should exist before executing the task.'
+        );
 
         // Redirect emails to a sink so we can capture any outgoing messages.
         $sink = $this->redirectEmails();
@@ -857,11 +858,17 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // After executing the task, verify that a certificate issue record was created.
         $issues = $DB->get_records('customcert_issues');
-        $this->assertCount(1, $issues,
-            'A certificate issue record should have been created by the task.');
+        $this->assertCount(
+            1,
+            $issues,
+            'A certificate issue record should have been created by the task.'
+        );
         $issue = reset($issues);
-        $this->assertEquals(1, $issue->emailed,
-            'The certificate issue should be marked as emailed.');
+        $this->assertEquals(
+            1,
+            $issue->emailed,
+            'The certificate issue should be marked as emailed.'
+        );
 
         // Verify that an email was sent to the student.
         $emails = $sink->get_messages();

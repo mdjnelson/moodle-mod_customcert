@@ -36,7 +36,6 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * @var string The barcode type.
      */
@@ -151,8 +150,12 @@ class element extends \mod_customcert\element {
                        AND cp.id = :pageid";
 
             // Now we can get the issue for this user.
-            $issue = $DB->get_record_sql($sql, ['userid' => $user->id, 'pageid' => $this->get_pageid()],
-                '*', MUST_EXIST);
+            $issue = $DB->get_record_sql(
+                $sql,
+                ['userid' => $user->id, 'pageid' => $this->get_pageid()],
+                '*',
+                MUST_EXIST
+            );
             $code = $issue->code;
 
             $context = \context::instance_by_id($issue->contextid);
@@ -168,8 +171,10 @@ class element extends \mod_customcert\element {
             $verifyallcertificatessitesetting = get_config('customcert', 'verifyallcertificates');
             $verifycertificateactivitysettings = $issue->verifyany;
             $canverifyallcertificates = has_capability('mod/customcert:verifyallcertificates', $context);
-            if ((!$verifyallcertificatessitesetting || !$verifycertificateactivitysettings)
-                    && !$canverifyallcertificates) {
+            if (
+                (!$verifyallcertificatessitesetting || !$verifycertificateactivitysettings)
+                    && !$canverifyallcertificates
+            ) {
                 $urlparams['contextid'] = $issue->contextid;
             }
 

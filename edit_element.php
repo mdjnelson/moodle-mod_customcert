@@ -69,11 +69,15 @@ $PAGE->activityheader->set_attrs(['hidecompletion' => true,
 
 // Additional page setup.
 if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
-    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
-        new moodle_url('/mod/customcert/manage_templates.php'));
+    $PAGE->navbar->add(
+        get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php')
+    );
 }
-$PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url('/mod/customcert/edit.php',
-    ['tid' => $tid]));
+$PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url(
+    '/mod/customcert/edit.php',
+    ['tid' => $tid]
+));
 $PAGE->navbar->add(get_string('editelement', 'customcert'));
 
 $mform = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);

@@ -35,7 +35,6 @@ use templatable;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class verify_certificate_result implements templatable, renderable {
-
     /**
      * @var string The URL to the user's profile.
      */

@@ -32,7 +32,6 @@ namespace customcertelement_image;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * @var array The file manager options.
      */
@@ -89,8 +88,13 @@ class element extends \mod_customcert\element {
             \mod_customcert\element_helper::render_form_element_position($mform);
         }
 
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
-            $this->filemanageroptions);
+        $mform->addElement(
+            'filemanager',
+            'customcertimage',
+            get_string('uploadimage', 'customcert'),
+            '',
+            $this->filemanageroptions
+        );
     }
 
     /**
@@ -239,10 +243,24 @@ class element extends \mod_customcert\element {
 
         // Get the image.
         $fs = get_file_storage();
-        if ($file = $fs->get_file($imageinfo->contextid, 'mod_customcert', $imageinfo->filearea, $imageinfo->itemid,
-                $imageinfo->filepath, $imageinfo->filename)) {
-            $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
-                $file->get_filepath(), $file->get_filename());
+        if (
+            $file = $fs->get_file(
+                $imageinfo->contextid,
+                'mod_customcert',
+                $imageinfo->filearea,
+                $imageinfo->itemid,
+                $imageinfo->filepath,
+                $imageinfo->filename
+            )
+        ) {
+            $url = \moodle_url::make_pluginfile_url(
+                $file->get_contextid(),
+                'mod_customcert',
+                'image',
+                $file->get_itemid(),
+                $file->get_filepath(),
+                $file->get_filename()
+            );
             $fileimageinfo = $file->get_imageinfo();
             $whratio = $fileimageinfo['width'] / $fileimageinfo['height'];
             // The size of the images to use in the CSS style.
@@ -350,8 +368,14 @@ class element extends \mod_customcert\element {
 
         $fs = get_file_storage();
 
-        return $fs->get_file($imageinfo->contextid, 'mod_customcert', $imageinfo->filearea, $imageinfo->itemid,
-            $imageinfo->filepath, $imageinfo->filename);
+        return $fs->get_file(
+            $imageinfo->contextid,
+            'mod_customcert',
+            $imageinfo->filearea,
+            $imageinfo->itemid,
+            $imageinfo->filepath,
+            $imageinfo->filename
+        );
     }
 
     /**
@@ -374,8 +398,16 @@ class element extends \mod_customcert\element {
             }
         }
         // Loop through the files uploaded in the course context.
-        if ($files = $fs->get_area_files(\context_course::instance($COURSE->id)->id, 'mod_customcert', 'image', false,
-            'filename', false)) {
+        if (
+            $files = $fs->get_area_files(
+                \context_course::instance($COURSE->id)->id,
+                'mod_customcert',
+                'image',
+                false,
+                'filename',
+                false
+            )
+        ) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$file->get_id()] = get_string('courseimage', 'customcertelement_image', $file->get_filename());
             }
@@ -411,14 +443,16 @@ class element extends \mod_customcert\element {
         // Check that a file has been selected.
         if (isset($imagedata->filearea)) {
             // If the course file doesn't exist, copy the system file to the course context.
-            if (!$coursefile = $fs->get_file(
-                $coursecontext->id,
-                'mod_customcert',
-                $imagedata->filearea,
-                $imagedata->itemid,
-                $imagedata->filepath,
-                $imagedata->filename
-            )) {
+            if (
+                !$coursefile = $fs->get_file(
+                    $coursecontext->id,
+                    'mod_customcert',
+                    $imagedata->filearea,
+                    $imagedata->itemid,
+                    $imagedata->filepath,
+                    $imagedata->filename
+                )
+            ) {
                 $systemfile = $fs->get_file(
                     $systemcontext->id,
                     'mod_customcert',

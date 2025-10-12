@@ -36,7 +36,6 @@ require_once($CFG->libdir . '/formslib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class load_template_form extends \moodleform {
-
     /**
      * Form definition.
      */
@@ -53,8 +52,10 @@ class load_template_form extends \moodleform {
 
         // Display a link to the manage templates page.
         if ($context->contextlevel != CONTEXT_SYSTEM && has_capability('mod/customcert:manage', $syscontext)) {
-            $link = \html_writer::link(new \moodle_url('/mod/customcert/manage_templates.php'),
-                get_string('managetemplates', 'customcert'));
+            $link = \html_writer::link(
+                new \moodle_url('/mod/customcert/manage_templates.php'),
+                get_string('managetemplates', 'customcert')
+            );
             $mform->addElement('static', 'managetemplates', '', $link);
         }
 

@@ -32,7 +32,6 @@ namespace customcertelement_gradeitemname;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * This function renders the form elements when adding a customcert element.
      *
@@ -41,8 +40,12 @@ class element extends \mod_customcert\element {
     public function render_form_elements($mform) {
         global $COURSE;
 
-        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_gradeitemname'),
-            \mod_customcert\element_helper::get_grade_items($COURSE));
+        $mform->addElement(
+            'select',
+            'gradeitem',
+            get_string('gradeitem', 'customcertelement_gradeitemname'),
+            \mod_customcert\element_helper::get_grade_items($COURSE)
+        );
         $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_gradeitemname');
 
         parent::render_form_elements($mform);

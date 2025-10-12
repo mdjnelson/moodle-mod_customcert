@@ -40,7 +40,6 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class report_table extends \table_sql {
-
     /**
      * @var int $customcertid The custom certificate id
      */
@@ -193,7 +192,8 @@ class report_table extends \table_sql {
         global $OUTPUT;
 
         $icon = new \pix_icon('download', get_string('download'), 'customcert');
-        $link = new \moodle_url('/mod/customcert/view.php',
+        $link = new \moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $this->cm->id,
                 'downloadissue' => $user->id,
@@ -213,7 +213,8 @@ class report_table extends \table_sql {
         global $OUTPUT;
 
         $icon = new \pix_icon('i/delete', get_string('delete'));
-        $link = new \moodle_url('/mod/customcert/view.php',
+        $link = new \moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $this->cm->id,
                 'deleteissue' => $user->issueid,
@@ -235,8 +236,14 @@ class report_table extends \table_sql {
 
         $this->pagesize($pagesize, $total);
 
-        $this->rawdata = \mod_customcert\certificate::get_issues($this->customcertid, $this->groupmode, $this->cm,
-            $this->get_page_start(), $this->get_page_size(), $this->get_sql_sort());
+        $this->rawdata = \mod_customcert\certificate::get_issues(
+            $this->customcertid,
+            $this->groupmode,
+            $this->cm,
+            $this->get_page_start(),
+            $this->get_page_size(),
+            $this->get_sql_sort()
+        );
 
         // Set initial bars.
         if ($useinitialsbar) {
