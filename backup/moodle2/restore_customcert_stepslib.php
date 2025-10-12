@@ -30,7 +30,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_customcert_activity_structure_step extends restore_activity_structure_step {
-
     /**
      * Define the different items to restore.
      *

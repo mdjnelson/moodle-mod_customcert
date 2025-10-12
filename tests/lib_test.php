@@ -30,8 +30,8 @@ use advanced_testcase;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot.'/mod/customcert/lib.php');
-require_once($CFG->libdir.'/componentlib.class.php');
+require_once($CFG->dirroot . '/mod/customcert/lib.php');
+require_once($CFG->libdir . '/componentlib.class.php');
 
 /**
  * Unit tests for mod_customcert lib.
@@ -42,7 +42,6 @@ require_once($CFG->libdir.'/componentlib.class.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class lib_test extends advanced_testcase {
-
     /**
      * Test set up.
      */

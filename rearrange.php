@@ -71,19 +71,34 @@ $PAGE->navbar->add($str, new \action_link($link, $str));
 $PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
 
 // Include the JS we need.
-$PAGE->requires->yui_module('moodle-mod_customcert-rearrange', 'Y.M.mod_customcert.rearrange.init',
+$PAGE->requires->yui_module(
+    'moodle-mod_customcert-rearrange',
+    'Y.M.mod_customcert.rearrange.init',
     [$template->get_id(),
           $page,
-          $elements]);
+    $elements]
+);
 
 // Create the buttons to save the position of the elements.
 $html = html_writer::start_tag('div', ['class' => 'buttons']);
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
-        get_string('saveandclose', 'customcert'), 'get', ['class' => 'savepositionsbtn']);
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]),
-        get_string('saveandcontinue', 'customcert'), 'get', ['class' => 'applypositionsbtn']);
-$html .= $OUTPUT->single_button(new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
-        get_string('cancel'), 'get', ['class' => 'cancelbtn']);
+$html .= $OUTPUT->single_button(
+    new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
+    get_string('saveandclose', 'customcert'),
+    'get',
+    ['class' => 'savepositionsbtn']
+);
+$html .= $OUTPUT->single_button(
+    new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]),
+    get_string('saveandcontinue', 'customcert'),
+    'get',
+    ['class' => 'applypositionsbtn']
+);
+$html .= $OUTPUT->single_button(
+    new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
+    get_string('cancel'),
+    'get',
+    ['class' => 'cancelbtn']
+);
 $html .= html_writer::end_tag('div');
 
 // Create the div that represents the PDF.
@@ -93,8 +108,7 @@ $html .= html_writer::start_tag('div', [
     'data-templateid' => $template->get_id(),
     'data-contextid' => $template->get_contextid(),
     'id' => 'pdf',
-    'style' => $style]
-);
+    'style' => $style]);
 if ($page->leftmargin) {
     $position = 'left:' . $page->leftmargin . 'mm;';
     $html .= "<div id='leftmargin' style='$position $marginstyle'></div>";

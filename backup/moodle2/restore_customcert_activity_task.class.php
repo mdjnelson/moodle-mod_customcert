@@ -34,7 +34,6 @@ require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_customcert_activity_task extends restore_activity_task {
-
     /**
      * Define  particular settings this activity can have.
      */

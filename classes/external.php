@@ -36,7 +36,6 @@ use core_external\external_function_parameters;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class external extends external_api {
-
     /**
      * Returns the save_element() parameters.
      *

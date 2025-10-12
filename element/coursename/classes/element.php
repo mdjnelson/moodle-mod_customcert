@@ -32,7 +32,6 @@ namespace customcertelement_coursename;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * The course short name.
      */
@@ -50,8 +49,12 @@ class element extends \mod_customcert\element {
      */
     public function render_form_elements($mform) {
         // The course name display options.
-        $mform->addElement('select', 'coursenamedisplay', get_string('coursenamedisplay', 'customcertelement_coursename'),
-            self::get_course_name_display_options());
+        $mform->addElement(
+            'select',
+            'coursenamedisplay',
+            get_string('coursenamedisplay', 'customcertelement_coursename'),
+            self::get_course_name_display_options()
+        );
         $mform->setType('coursenamedisplay', PARAM_INT);
         $mform->addHelpButton('coursenamedisplay', 'coursenamedisplay', 'customcertelement_coursename');
 

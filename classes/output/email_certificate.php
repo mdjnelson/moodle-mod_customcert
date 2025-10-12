@@ -31,7 +31,6 @@ namespace mod_customcert\output;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class email_certificate implements \renderable, \templatable {
-
     /**
      * @var bool Are we emailing the student?
      */

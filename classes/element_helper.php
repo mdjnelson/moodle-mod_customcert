@@ -40,7 +40,6 @@ require_once($CFG->dirroot . '/grade/querylib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element_helper {
-
     /**
      * @var int the top-left of element
      */
@@ -143,8 +142,12 @@ class element_helper {
         $mform->setType('font', PARAM_TEXT);
         $mform->setDefault('font', 'times');
         $mform->addHelpButton('font', 'font', 'customcert');
-        $mform->addElement('select', 'fontsize', get_string('fontsize', 'customcert'),
-            \mod_customcert\certificate::get_font_sizes());
+        $mform->addElement(
+            'select',
+            'fontsize',
+            get_string('fontsize', 'customcert'),
+            \mod_customcert\certificate::get_font_sizes()
+        );
         $mform->setType('fontsize', PARAM_INT);
         $mform->setDefault('fontsize', 12);
         $mform->addHelpButton('fontsize', 'fontsize', 'customcert');

@@ -32,15 +32,18 @@ namespace customcertelement_teachername;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        $mform->addElement('select', 'teacher', get_string('teacher', 'customcertelement_teachername'),
-            $this->get_list_of_teachers());
+        $mform->addElement(
+            'select',
+            'teacher',
+            get_string('teacher', 'customcertelement_teachername'),
+            $this->get_list_of_teachers()
+        );
         $mform->addHelpButton('teacher', 'teacher', 'customcertelement_teachername');
 
         parent::render_form_elements($mform);

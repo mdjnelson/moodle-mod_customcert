@@ -32,5 +32,4 @@ namespace mod_customcert\search;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class activity extends \core_search\base_activity {
-
 }

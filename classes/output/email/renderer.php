@@ -32,7 +32,6 @@ namespace mod_customcert\output\email;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends \mod_customcert\output\renderer {
-
     /**
      * The template name for this renderer.
      *

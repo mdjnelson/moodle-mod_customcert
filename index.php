@@ -33,8 +33,11 @@ require_login($course);
 
 // Set up the page variables.
 $pageurl = new moodle_url('/mod/customcert/index.php', ['id' => $course->id]);
-\mod_customcert\page_helper::page_setup($pageurl, context_course::instance($id),
-    get_string('modulenameplural', 'customcert'));
+\mod_customcert\page_helper::page_setup(
+    $pageurl,
+    context_course::instance($id),
+    get_string('modulenameplural', 'customcert')
+);
 
 // Additional page setup needed.
 $PAGE->set_pagelayout('incourse');
@@ -59,7 +62,7 @@ if (!$customcerts = get_all_instances_in_course('customcert', $course)) {
 $table = new html_table();
 
 if ($usesections = course_format_uses_sections($course->format)) {
-    $table->head = [get_string('sectionname', 'format_'.$course->format), get_string('name'),
+    $table->head = [get_string('sectionname', 'format_' . $course->format), get_string('name'),
         get_string('receiveddate', 'customcert')];
 } else {
     $table->head = [get_string('name'), get_string('receiveddate', 'customcert')];
@@ -69,8 +72,10 @@ $currentsection = '';
 foreach ($customcerts as $customcert) {
     // Check if the customcert is visible, if so show text as normal, else show it as dimmed.
     if ($customcert->visible) {
-        $link = html_writer::tag('a', $customcert->name, ['href' => new moodle_url('/mod/customcert/view.php',
-            ['id' => $customcert->coursemodule])]);
+        $link = html_writer::tag('a', $customcert->name, ['href' => new moodle_url(
+            '/mod/customcert/view.php',
+            ['id' => $customcert->coursemodule]
+        )]);
     } else {
         $link = html_writer::tag('a', $customcert->name, ['class' => 'dimmed',
             'href' => new moodle_url('/mod/customcert/view.php', ['id' => $customcert->coursemodule])]);

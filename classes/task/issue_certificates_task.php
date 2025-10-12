@@ -31,7 +31,6 @@ namespace mod_customcert\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class issue_certificates_task extends \core\task\scheduled_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -170,16 +169,22 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
                 // Check required time (if any).
                 if (!empty($customcert->requiredtime)) {
-                    if (\mod_customcert\certificate::get_course_time($customcert->courseid,
-                            $filtereduser->id) < ($customcert->requiredtime * 60)) {
+                    if (
+                        \mod_customcert\certificate::get_course_time(
+                            $customcert->courseid,
+                            $filtereduser->id
+                        ) < ($customcert->requiredtime * 60)
+                    ) {
                         continue;
                     }
                 }
 
                 // Ensure the cert hasn't already been issued; if not, issue it now.
-                $issue = $DB->get_record('customcert_issues',
+                $issue = $DB->get_record(
+                    'customcert_issues',
                     ['userid' => $filtereduser->id, 'customcertid' => $customcert->id],
-                    'id, emailed');
+                    'id, emailed'
+                );
 
                 $issueid = null;
                 $emailed = 0;

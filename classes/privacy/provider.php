@@ -42,7 +42,6 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\plugin\provider,
     \core_privacy\local\request\core_userlist_provider {
-
     /**
      * Return the fields which contain personal data.
      *
@@ -155,8 +154,12 @@ class provider implements
 
         list($insql, $inparams) = $DB->get_in_or_equal(array_keys($customcertidstocmids), SQL_PARAMS_NAMED);
         $params = array_merge($inparams, ['userid' => $user->id]);
-        $recordset = $DB->get_recordset_select('customcert_issues', "customcertid $insql AND userid = :userid",
-            $params, 'timecreated, id ASC');
+        $recordset = $DB->get_recordset_select(
+            'customcert_issues',
+            "customcertid $insql AND userid = :userid",
+            $params,
+            'timecreated, id ASC'
+        );
         self::recordset_loop_and_export($recordset, 'customcertid', [], function($carry, $record) {
             $carry[] = [
                 'code' => $record->code,

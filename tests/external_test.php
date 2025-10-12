@@ -37,7 +37,6 @@ use advanced_testcase;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class external_test extends advanced_testcase {
-
     /**
      * Test set up.
      */
