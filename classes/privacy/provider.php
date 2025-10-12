@@ -283,7 +283,7 @@ class provider implements
         $initial,
         callable $reducer,
         callable $export
-) {
+    ) {
         $data = $initial;
         $lastid = null;
 

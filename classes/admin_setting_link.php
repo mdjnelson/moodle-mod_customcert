@@ -67,7 +67,7 @@ class admin_setting_link extends \admin_setting_configtext {
         $defaultsetting,
         $paramtype = PARAM_RAW,
         $size = null
-) {
+    ) {
         $this->link = $link;
         $this->linkname = $linkname;
         parent::__construct($name, $visiblename, $description, $defaultsetting, $paramtype, $size);
