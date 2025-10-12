@@ -186,4 +186,3 @@ class my_certificates_table extends \table_sql {
         exit;
     }
 }
-

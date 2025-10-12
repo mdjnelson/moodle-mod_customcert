@@ -348,7 +348,7 @@ class template {
                 // Handle group if needed.
                 $groups = groups_get_all_groups($course->id, $user->id);
                 if (!empty($groups)) {
-                    $groupnames = array_map(function($g) {
+                    $groupnames = array_map(function ($g) {
                         return $g->name;
                     }, $groups);
                     $values['{GROUP_NAME}'] = implode(', ', $groupnames);

@@ -472,7 +472,6 @@ abstract class element {
      * @param \restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
-
     }
 
     /**
