@@ -24,10 +24,14 @@
 
 namespace customcertelement_grade;
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Grade - Course
  */
 define('CUSTOMCERT_GRADE_COURSE', '0');
+
+require_once($CFG->libdir . '/gradelib.php');
 
 /**
  * The customcert element grade's core interaction API.
