@@ -147,7 +147,6 @@ $string['invalidmargin'] = 'The margin has to be a valid number greater than 0.'
 $string['invalidposition'] = 'Please select a positive number for position {$a}.';
 $string['invalidwidth'] = 'The width has to be a valid number greater than 0.';
 $string['landscape'] = 'Landscape';
-$string['languageoptions'] = 'Force Certificate Language';
 $string['leftmargin'] = 'Left margin';
 $string['leftmargin_help'] = 'This is the left margin of the certificate PDF in mm.';
 $string['listofissues'] = 'Recipients: {$a}';
@@ -242,8 +241,6 @@ $string['useadhoc_desc'] = 'When enabled, emails related to certificates will be
 Enabling this option may improve the performance of the scheduled task by offloading email processing to ad-hoc tasks.';
 $string['usecustomfilename'] = 'Use custom file name pattern';
 $string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders. The placeholders are {FIRST_NAME}, {LAST_NAME}, {GROUP_NAME}, {COURSE_SHORT_NAME}, {COURSE_FULL_NAME} and {ISSUE_DATE}.';
-$string['userlanguage'] = 'Use user preferences';
-$string['userlanguage_help'] = 'You can force the language of the certificate to override the user\'s language preferences.';
 $string['verified'] = 'Verified';
 $string['verify'] = 'Verify';
 $string['verifyallcertificates'] = 'Allow verification of all certificates';

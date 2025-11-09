@@ -129,9 +129,8 @@ class mod_customcert_mod_form extends moodleform_mod {
         // Create an element for language selector.
         if (has_capability('mod/customcert:managelanguages', $this->get_context())) {
             $languages = get_string_manager()->get_list_of_translations();
-            $languages = ['' => get_string('userlanguage', 'customcert')] + $languages;
-            $mform->addElement('select', 'language', get_string('languageoptions', 'customcert'), $languages);
-            $mform->addHelpButton('language', 'userlanguage', 'customcert');
+            $languages = ['' => get_string('forceno')] + $languages;
+            $mform->addElement('select', 'language', get_string('forcelanguage'), $languages);
         }
 
         $this->standard_coursemodule_elements();
