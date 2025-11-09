@@ -288,16 +288,17 @@ class template {
 
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
 
-            // I want to have my digital diplomas without having to change my preferred language.
-            $userlang = $USER->lang ?? current_language();
+            // Snapshot the current runtime language to restore later.
+            $originallang = current_language();
 
-            // Check the $customcert exists as it is false when previewing from mod/customcert/manage_templates.php.
+            // If this template belongs to a certificate, pick language and apply it for this run.
             if ($customcert) {
-                $forcelang = mod_customcert_force_current_language($customcert->language);
-                if (!empty($forcelang)) {
+                $uselang = mod_customcert_get_language_to_use($customcert, $user);
+                $switched = mod_customcert_apply_runtime_language($uselang);
+                if ($switched) {
                     // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
                     // Preventing a user from getting trapped with the wrong language.
-                    \core_shutdown_manager::register_function('force_current_language', [$userlang]);
+                    \core_shutdown_manager::register_function('force_current_language', [$originallang]);
                 }
             }
 
@@ -404,11 +405,10 @@ class template {
                 }
             }
 
-            // Check the $customcert exists as it is false when previewing from mod/customcert/manage_templates.php.
+            // Restore original language if we changed it.
             if ($customcert) {
-                // We restore original language.
-                if ($userlang != $customcert->language) {
-                    mod_customcert_force_current_language($userlang);
+                if ($originallang !== $uselang) {
+                    mod_customcert_apply_runtime_language($originallang);
                 }
             }
 

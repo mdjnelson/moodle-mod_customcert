@@ -467,26 +467,59 @@ function mod_customcert_get_fontawesome_icon_map() {
 }
 
 /**
- * Force custom language for current session.
+ * Determine which language should be used for this certificate or email.
  *
- * @param string $language
- * @return bool
+ * Precedence:
+ *   1. Certificate's forced language.
+ *   2. Course language.
+ *   3. User profile language.
+ *   4. Site default.
+ *
+ * @param stdClass $customcert Certificate record.
+ * @param stdClass|null $user Target user - falls back to global $USER if not specified.
+ * @param string|null $courselang Course language, if available.
+ * @return string Language code to use.
  */
-function mod_customcert_force_current_language($language): bool {
-    global $USER;
+function mod_customcert_get_language_to_use(stdClass $customcert, ?stdClass $user = null, ?string $courselang = null): string {
+    global $CFG, $USER;
 
-    $forced = false;
+    if (empty($user)) {
+        $user = $USER;
+    }
+
+    if (!empty($customcert->language)) {
+        return $customcert->language;
+    }
+
+    if (!empty($courselang)) {
+        return $courselang;
+    }
+
+    if (!empty($user) && !empty($user->lang)) {
+        return $user->lang;
+    }
+
+    return $CFG->lang;
+}
+
+/**
+ * Apply a runtime language switch for the current execution context.
+ *
+ * @param string $language The language code (e.g. 'es_co')
+ * @return bool True if language was switched.
+ */
+function mod_customcert_apply_runtime_language(string $language): bool {
     if (empty($language)) {
-        return $forced;
+        return false;
     }
 
     $activelangs = get_string_manager()->get_list_of_translations();
-    $userlang = $USER->lang ?? current_language();
+    $current = current_language();
 
-    if (array_key_exists($language, $activelangs) && $language != $userlang) {
+    if (array_key_exists($language, $activelangs) && $language !== $current) {
         force_current_language($language);
-        $forced = true;
+        return true;
     }
 
-    return $forced;
+    return false;
 }
