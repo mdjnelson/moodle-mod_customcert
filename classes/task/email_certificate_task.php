@@ -56,7 +56,7 @@ class email_certificate_task extends \core\task\adhoc_task {
         $issueid = (int)$customdata->issueid;
         $customcertid = (int)$customdata->customcertid;
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname
+                       co.fullname as coursefullname, co.shortname as courseshortname, co.lang as courselang
                   FROM {customcert} c
                   JOIN {customcert_templates} ct ON c.templateid = ct.id
                   JOIN {course} co ON c.course = co.id
@@ -114,6 +114,9 @@ class email_certificate_task extends \core\task\adhoc_task {
         $userfullname = fullname($user);
         $info->userfullname = $userfullname;
 
+        // Snapshot the current language before we start forcing per-recipient.
+        $originallang = current_language();
+
         // Now, get the PDF.
         $template = new \stdClass();
         $template->id = $customcert->templateid;
@@ -134,6 +137,14 @@ class email_certificate_task extends \core\task\adhoc_task {
         file_put_contents($tempfile, $filecontents);
 
         if ($customcert->emailstudents) {
+            $recipientlang = mod_customcert_get_language_to_use($customcert, $user, $customcert->courselang ?? null);
+            $switched = mod_customcert_apply_runtime_language($recipientlang);
+            if ($switched) {
+                // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                // Preventing a user from getting trapped with the wrong language.
+                \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+            }
+
             $renderable = new \mod_customcert\output\email_certificate(
                 true,
                 $userfullname,
@@ -155,6 +166,10 @@ class email_certificate_task extends \core\task\adhoc_task {
                 $tempfile,
                 $filename
             );
+
+            if ($recipientlang !== $originallang) {
+                mod_customcert_apply_runtime_language($originallang);
+            }
         }
 
         if ($customcert->emailteachers) {
@@ -169,10 +184,18 @@ class email_certificate_task extends \core\task\adhoc_task {
                 $context->instanceid
             );
 
-            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
             foreach ($teachers as $teacher) {
+                $recipientlang = mod_customcert_get_language_to_use($customcert, $teacher, $customcert->courselang ?? null);
+                $switched = mod_customcert_apply_runtime_language($recipientlang);
+                if ($switched) {
+                    // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                    // Preventing a user from getting trapped with the wrong language.
+                    \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+                }
+
+                $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+                $message = $textrenderer->render($renderable);
+                $messagehtml = $htmlrenderer->render($renderable);
                 email_to_user(
                     $teacher,
                     $userfrom,
@@ -182,6 +205,10 @@ class email_certificate_task extends \core\task\adhoc_task {
                     $tempfile,
                     $filename
                 );
+
+                if ($recipientlang !== $originallang) {
+                    mod_customcert_apply_runtime_language($originallang);
+                }
             }
         }
 
