@@ -31,6 +31,7 @@
     * courseurl The URL of the course
     * coursefullname The full name of the course
     * certificatename The name of the certificate
+    * timeissuecreated The time the issue was created
 
     Example context (json):
     {
@@ -38,7 +39,8 @@
         "userfullname": "Mark Smith",
         "courseurl": "http://www.example.com",
         "coursefullname": "Computing 101",
-        "certificatename": "Ability to write 'Hello world' in Java."
+        "certificatename": "Ability to write 'Hello world' in Java.",
+        "timeissuecreated": "1762695493"
     }
 }}
 <ul class="list-unstyled unstyled">
@@ -48,4 +50,5 @@
     {{#expiry}}
         <li><strong>{{#str}}expireson, customcertelement_expiry{{/str}}:</strong> {{{.}}}</li>
     {{/expiry}}
+    <li><strong>{{#str}}receiveddate, customcert{{/str}}:</strong> {{#userdate}} {{timeissuecreated}}, {{#str}} strftimedate, core_langconfig {{/str}} {{/userdate}}</li>
 </ul>

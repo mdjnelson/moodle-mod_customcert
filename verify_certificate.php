@@ -95,7 +95,7 @@ if ($code) {
     $userfields = \mod_customcert\helper::get_all_user_name_fields('u');
     $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
                    co.fullname as coursefullname, c.id as certificateid,
-                   c.name as certificatename, c.verifyany
+                   c.name as certificatename, c.verifyany, ci.timecreated
               FROM {customcert} c
               JOIN {customcert_issues} ci
                 ON c.id = ci.customcertid
