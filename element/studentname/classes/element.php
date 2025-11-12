@@ -23,7 +23,6 @@
  */
 
 namespace customcertelement_studentname;
-require_once($CFG->dirroot . '/mod/customcert/locallib.php');
 /**
  * The customcert element studentname's core interaction API.
  *
