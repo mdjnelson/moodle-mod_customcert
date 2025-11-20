@@ -100,6 +100,7 @@ $string['elementwidth_help'] = 'Specify the width of the element. If \'0\' is al
 $string['emailnonstudentbody'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentbodyplaintext'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentcertificatelinktext'] = 'View certificate report';
+$string['emailnonstudentfooter'] = '<a href="{$a->emailcertificatelink}">{$a->emailcertificatelinktext}</a>.';
 $string['emailnonstudentgreeting'] = 'Hi';
 $string['emailnonstudentsubject'] = '{$a->coursefullname}: {$a->certificatename}';
 $string['emailothers'] = 'Email others';
@@ -107,6 +108,7 @@ $string['emailothers_help'] = 'If set this will email the email addresses listed
 $string['emailstudentbody'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
 $string['emailstudentbodyplaintext'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
 $string['emailstudentcertificatelinktext'] = 'View certificate';
+$string['emailstudentfooter'] = '<a href="{$a->emailcertificatelink}">{$a->emailcertificatelinktext}</a>.';
 $string['emailstudentgreeting'] = 'Dear {$a}';
 $string['emailstudents'] = 'Email students';
 $string['emailstudents_help'] = 'If set this will email the students a copy of the certificate when it becomes available. <strong>Warning:</strong> Setting this to \'Yes\' before you have finished creating the certificate will email the student an incomplete certificate.';
