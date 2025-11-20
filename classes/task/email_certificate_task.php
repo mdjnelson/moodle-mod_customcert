@@ -78,20 +78,9 @@ class email_certificate_task extends \core\task\adhoc_task {
         // Get the person we are going to send this email on behalf of.
         $userfrom = \core_user::get_noreply_user();
 
-        $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
-        $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
-        $certificatename = format_string($customcert->name, true, ['context' => $context]);
-
-        // Used to create the email subject.
-        $info = new \stdClass();
-        $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
-        $info->courseshortname = $courseshortname;
-        $info->coursefullname = $coursefullname;
-        $info->certificatename = $certificatename;
-
         // Get the information about the user and the certificate issue.
         $userfields = helper::get_all_user_name_fields('u');
-        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed
+        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, u.lang, ci.id as issueid, ci.emailed
                   FROM {customcert_issues} ci
                   JOIN {user} u
                     ON ci.userid = u.id
@@ -110,6 +99,17 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         // Setup the user for the cron.
         \core\cron::setup_user($user);
+
+        $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
+        $coursefullname = format_string($customcert->coursefullname, true, ['context' => $context]);
+        $certificatename = format_string($customcert->name, true, ['context' => $context]);
+
+        // Used to create the email subject.
+        $info = new \stdClass();
+        $info->coursename = $courseshortname; // Added for BC, so users who have edited the string don't lose this value.
+        $info->courseshortname = $courseshortname;
+        $info->coursefullname = $coursefullname;
+        $info->certificatename = $certificatename;
 
         $userfullname = fullname($user);
         $info->userfullname = $userfullname;
