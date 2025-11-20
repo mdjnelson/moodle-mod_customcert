@@ -95,19 +95,20 @@ class email_certificate implements \renderable, \templatable {
         $info->certificatename = $this->certificatename;
         $info->courseshortname = $this->courseshortname;
         $info->coursefullname = $this->coursefullname;
+        $info->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
 
         if ($this->isstudent) {
+            $info->emailcertificatelinktext = get_string('emailstudentcertificatelinktext', 'customcert');
             $data->emailgreeting = get_string('emailstudentgreeting', 'customcert', $this->userfullname);
             $data->emailbody = get_string('emailstudentbody', 'customcert', $info);
             $data->emailbodyplaintext = get_string('emailstudentbodyplaintext', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
-            $data->emailcertificatelinktext = get_string('emailstudentcertificatelinktext', 'customcert');
+            $data->emailfooter = get_string('emailstudentfooter', 'customcert', $info);
         } else {
+            $info->emailcertificatelinktext = get_string('emailnonstudentcertificatelinktext', 'customcert');
             $data->emailgreeting = get_string('emailnonstudentgreeting', 'customcert');
             $data->emailbody = get_string('emailnonstudentbody', 'customcert', $info);
             $data->emailbodyplaintext = get_string('emailnonstudentbodyplaintext', 'customcert', $info);
-            $data->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
-            $data->emailcertificatelinktext = get_string('emailnonstudentcertificatelinktext', 'customcert');
+            $data->emailfooter = get_string('emailnonstudentfooter', 'customcert', $info);
         }
 
         return $data;
