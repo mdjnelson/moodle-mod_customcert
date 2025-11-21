@@ -204,12 +204,13 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Confirm that we sent out emails to the two users.
         $this->assertCount(2, $emails);
+        $expectedemails = [$user1->email, $user2->email];
 
-        $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
-        $this->assertEquals($user1->email, $emails[0]->to);
-
-        $this->assertEquals($CFG->noreplyaddress, $emails[1]->from);
-        $this->assertEquals($user2->email, $emails[1]->to);
+        foreach ($emails as $email) {
+            $this->assertEquals($CFG->noreplyaddress, $email->from);
+            $this->assertContains($email->to, $expectedemails);
+            $expectedemails = array_diff($expectedemails, [$email->to]);
+        }
 
         // Now, run the task again and ensure we did not issue any more certificates.
         $sink = $this->redirectEmails();
