@@ -26,7 +26,7 @@ namespace mod_customcert;
 use core\context;
 use stdClass;
 
-//defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class for a customcert specific fullname (adapted version of the original core get_fullname function)
