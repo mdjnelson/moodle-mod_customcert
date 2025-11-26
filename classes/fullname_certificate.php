@@ -29,10 +29,10 @@ use stdClass;
 //defined('MOODLE_INTERNAL') || die();
 
 /**
- * Class for a customcert specific fullname
+ * Class for a customcert specific fullname (adapted version of the original core get_fullname function)
  *
  * @package    mod_customcert
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2025 University of Vienna
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fullname_certificate {
