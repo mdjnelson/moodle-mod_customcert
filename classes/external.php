@@ -241,4 +241,100 @@ class external extends external_api {
     public static function delete_issue_returns() {
         return new external_value(PARAM_BOOL, 'True if successful, false otherwise');
     }
+
+    /**
+     * Returns the get_or_create_certificate parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_or_create_certificate_parameters() {
+        return new external_function_parameters(
+            [
+                'cmid' => new external_value(PARAM_INT, 'The course module id'),
+            ]
+        );
+    }
+
+    /**
+     * Get or create a certificate for the current user.
+     *
+     * @param int $cmid The course module id
+     * @return array
+     */
+    public static function get_or_create_certificate($cmid) {
+        global $DB, $USER, $CFG;
+
+        $params = [
+            'cmid' => $cmid,
+        ];
+        self::validate_parameters(self::get_or_create_certificate_parameters(), $params);
+
+        // Get the course module, course, and customcert record.
+        $cm = $DB->get_record('course_modules', ['id' => $cmid]);
+        if (!$cm) {
+            throw new \moodle_exception('invalidcoursemodule', 'error');
+        }
+        $course = $DB->get_record('course', ['id' => $cm->course]);
+        if (!$course) {
+            throw new \moodle_exception('invalidcourseid', 'error');
+        }
+        $customcert = $DB->get_record('customcert', ['id' => $cm->instance]);
+        if (!$customcert) {
+            throw new \moodle_exception('invalidrecord', 'mod_customcert', '', ['id' => $cm->instance]);
+        }
+
+        // Ensure the user is allowed to view this page.
+        self::validate_context(\context_module::instance($cm->id));
+        require_capability('mod/customcert:view', \context_module::instance($cm->id));
+        $canreceive = has_capability('mod/customcert:receiveissue', \context_module::instance($cm->id));
+
+        // Check if user can receive certificate.
+        if (!$canreceive) {
+            throw new \moodle_exception('nopermissiontogetcertificate', 'customcert');
+        }
+
+        // Check if the user can view the certificate based on time spent in course.
+        if ($customcert->requiredtime) {
+            if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
+                throw new \moodle_exception('requiredtimenotmet', 'customcert', '', $customcert->requiredtime);
+            }
+        }
+
+        // Check if an issue already exists for this user and certificate.
+        $issue = $DB->get_record('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id], '*', IGNORE_MISSING);
+        
+        // If no issue exists, create one.
+        if (!$issue) {
+            $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
+            $issue = $DB->get_record('customcert_issues', ['id' => $issueid], '*', IGNORE_MISSING);
+            if (!$issue) {
+                throw new \moodle_exception('no new issue', 'error');
+            }
+        }
+
+        // Generate the download URL. TODO: replace with wsfunction https://github.com/mdjnelson/moodle-mod_customcert/pull/681
+        $downloadurl = $CFG->wwwroot . '/mod/customcert/view.php?id=' . $cm->id . '&downloadown=1';
+
+        // Return the issue data and download URL.
+        return [
+            'issueid' => $issue->id,
+            'code' => $issue->code,
+            'timecreated' => $issue->timecreated,
+            'downloadurl' => $downloadurl,
+        ];
+    }
+
+    /**
+     * Returns the get_or_create_certificate result value.
+     *
+     * @return external_single_structure
+     */
+    public static function get_or_create_certificate_returns() {
+        return new external_single_structure([
+            'issueid' => new external_value(PARAM_INT, 'issue id'),
+            'code' => new external_value(PARAM_TEXT, 'certificate code'),
+            'timecreated' => new external_value(PARAM_INT, 'time created'),
+            'downloadurl' => new external_value(PARAM_URL, 'download URL'),
+        ]);
+    }
 }
