@@ -946,4 +946,82 @@ final class email_certificate_task_test extends advanced_testcase {
         $emails = $sink->get_messages();
         $this->assertCount(0, $emails);
     }
+
+    /**
+     * Tests that a user with ONLY a teacher/manager role does NOT receive a certificate.
+     *
+     * This confirms that the patch allowing teachers enrolled as students to receive
+     * certificates does not incorrectly allow teachers/managers who are *not* students.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_manager_only_does_not_receive_certificate(): void {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create users: one student and one manager-only.
+        $student = $this->getDataGenerator()->create_user();
+        $manager = $this->getDataGenerator()->create_user(['firstname' => 'Manager', 'lastname' => 'Only']);
+
+        // Enrol student normally.
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Enrol manager as editingteacher (manage capability), but NOT as student.
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $this->getDataGenerator()->enrol_user($manager->id, $course->id, $roleids['editingteacher']);
+
+        // Create custom certificate.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1, // Only students should receive.
+            'emailteachers' => 1 // Teachers get notified *about* students, but should not receive their own cert.
+        ]);
+
+        // Create valid template.
+        $template = new \stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'Manager Test Template';
+        $template->contextid = \context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        $pageid = $template->add_page();
+        $DB->insert_record('customcert_elements', (object)[
+            'pageid' => $pageid,
+            'name' => 'ElementX'
+        ]);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Fetch issues.
+        $issues = $DB->get_records('customcert_issues');
+
+        // Exactly 1 issue should exist: for the student only.
+        $this->assertCount(1, $issues);
+        $issueUserIds = array_column($issues, 'userid');
+        $this->assertContains($student->id, $issueUserIds);
+        $this->assertNotContains($manager->id, $issueUserIds);
+
+        // Email count:
+        // - One email to the student (their certificate)
+        // - If emailteachers = 1, teacher receives notifications *about students*,
+        //   but NOT their own certificate. So total emails = 2.
+        $this->assertCount(2, $emails);
+
+        // Email recipients:
+        $tos = array_map(fn ($e) => $e->to, $emails);
+        $this->assertContains($student->email, $tos);
+        $this->assertContains($manager->email, $tos); // Manager receives notifications, not a certificate.
+
+        // Confirm manager did NOT get issued their own certificate:
+        foreach ($issues as $issue) {
+            $this->assertNotEquals($manager->id, $issue->userid);
+        }
+    }
 }
