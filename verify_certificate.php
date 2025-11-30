@@ -27,7 +27,7 @@
 require_once('../../config.php');
 
 $contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
-$code = optional_param('code', '', PARAM_ALPHANUM); // The code for the certificate we are verifying.
+$code = optional_param('code', '', PARAM_ALPHANUMEXT); // The code for the certificate we are verifying.
 $qrcode = optional_param('qrcode', false, PARAM_BOOL);
 
 $context = context::instance_by_id($contextid);
