@@ -247,23 +247,44 @@ class external extends external_api {
      *
      * @return external_function_parameters
      */
-    public static function list_issues_parameters() {
+    public static function list_issues_parameters(): external_function_parameters {
         return new external_function_parameters(
             [
                 'timecreatedfrom' => new external_value(
                     PARAM_INT,
                     'Timestamp. Returns items created after this date (included).',
-                    VALUE_OPTIONAL
+                    VALUE_DEFAULT,
+                    null
                 ),
                 'userid' => new external_value(
                     PARAM_INT,
                     'User id. Returns items for this user.',
-                    VALUE_OPTIONAL
+                    VALUE_DEFAULT,
+                    null
                 ),
                 'customcertid' => new external_value(
                     PARAM_INT,
                     'Customcert id. Returns items for this customcert.',
-                    VALUE_OPTIONAL
+                    VALUE_DEFAULT,
+                    null
+                ),
+                'includepdf' => new external_value(
+                    PARAM_BOOL,
+                    'Whether to include base64-encoded PDF content',
+                    VALUE_DEFAULT,
+                    false
+                ),
+                'limit' => new external_value(
+                    PARAM_INT,
+                    'Maximum number of results (default 100, max 500)',
+                    VALUE_DEFAULT,
+                    100
+                ),
+                'offset' => new external_value(
+                    PARAM_INT,
+                    'Offset for results (default 0)',
+                    VALUE_DEFAULT,
+                    0
                 ),
             ]
         );
@@ -275,93 +296,134 @@ class external extends external_api {
      * @param ?int $timecreatedfrom Timestamp. Returns items created after this date (included).
      * @param ?int $userid User id. Returns items for this user.
      * @param ?int $customcertid Customcert id. Returns items for this customcert.
+     * @param bool $includepdf Whether to include PDF contents
+     * @param int $limit Max results
+     * @param int $offset Offset for paging
      * @return array
      */
-    public static function list_issues($timecreatedfrom = null, $userid = null, $customcertid = null) {
+    public static function list_issues(
+        ?int $timecreatedfrom = null,
+        ?int $userid = null,
+        ?int $customcertid = null,
+        bool $includepdf = false,
+        int $limit = 100,
+        int $offset = 0
+    ): array {
         global $DB;
 
-        $params = [
-            'timecreatedfrom' => $timecreatedfrom,
-            'userid' => $userid,
-            'customcertid' => $customcertid,
-        ];
-        self::validate_parameters(self::list_issues_parameters(), $params);
+        // Validate parameters based on declared external function structure.
+        $params = self::validate_parameters(
+            self::list_issues_parameters(),
+            [
+                'timecreatedfrom' => $timecreatedfrom,
+                'userid' => $userid,
+                'customcertid' => $customcertid,
+                'includepdf' => $includepdf,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        );
 
+        // Enforce safe boundaries.
+        $timecreatedfrom = $params['timecreatedfrom'];
+        $userid = $params['userid'];
+        $customcertid = $params['customcertid'];
+        $includepdf = !empty($params['includepdf']);
+        $limit = max(1, min(500, $params['limit']));
+        $offset = max(0, $params['offset']);
+
+        // Capability check.
         $context = \context_system::instance();
+        self::validate_context($context);
         require_capability('mod/customcert:viewallcertificates', $context);
+
+        // Prepare SQL.
+        [$fullnamefields, $sqlparams] = \core_user\fields::get_sql_fullname();
+        $where = [];
+
+        if (!empty($timecreatedfrom)) {
+            $where[] = "ci.timecreated >= :timecreatedfrom";
+            $sqlparams['timecreatedfrom'] = $timecreatedfrom;
+        }
+        if (!empty($userid)) {
+            $where[] = "ci.userid = :userid";
+            $sqlparams['userid'] = $userid;
+        }
+        if (!empty($customcertid)) {
+            $where[] = "ci.customcertid = :customcertid";
+            $sqlparams['customcertid'] = $customcertid;
+        }
+
+        $sql = "SELECT ci.*,
+                   $fullnamefields AS fullname, u.username, u.email,
+                   ct.id AS templateid, ct.name AS templatename, ct.contextid
+              FROM {customcert_issues} ci
+              JOIN {user} u ON u.id = ci.userid
+              JOIN {customcert} c ON c.id = ci.customcertid
+              JOIN {customcert_templates} ct ON ct.id = c.templateid";
+
+        if ($where) {
+            $sql .= " WHERE " . implode(" AND ", $where);
+        }
+
+        $sql .= " ORDER BY ci.timecreated DESC";
+
+        $records = $DB->get_records_sql($sql, $sqlparams, $offset, $limit);
 
         $output = [];
 
-        list($namefields, $nameparams) = \core_user\fields::get_sql_fullname();
-        $sql = "SELECT ci.*,
-                       $namefields as fullname, u.username, u.email,
-                       ct.id as templateid, ct.name as templatename, ct.contextid
-                  FROM {customcert_issues} ci
-                  JOIN {user} u
-                    ON ci.userid = u.id
-                  JOIN {customcert} c
-                    ON ci.customcertid = c.id
-                  JOIN {customcert_templates} ct
-                    ON c.templateid = ct.id";
-        $conditions = [];
-        if ($timecreatedfrom) {
-            $conditions[] = "ci.timecreated >= :timecreatedfrom";
-            $nameparams['timecreatedfrom'] = $timecreatedfrom;
-        }
-        if ($userid) {
-            $conditions[] = "ci.userid = :userid";
-            $nameparams['userid'] = $userid;
-        }
-        if ($customcertid) {
-            $conditions[] = "ci.customcertid = :customcertid";
-            $nameparams['customcertid'] = $customcertid;
-        }
-        if ($conditions) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
-        }
+        foreach ($records as $issue) {
+            $pdfname = null;
+            $pdfcontent = null;
 
-        if ($issues = $DB->get_records_sql($sql, $nameparams)) {
-
-            foreach ($issues as $issue) {
-
-                // Generate PDF.
-
-                $template = new \stdClass();
-                $template->id = $issue->templateid;
-                $template->name = $issue->templatename;
-                $template->contextid = $issue->contextid;
-                $template = new \mod_customcert\template($template);
-
-                $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
-                $pdfname = $ctname . '_' . 'certificate.pdf';
-                $filecontents = $template->generate_pdf(false, $issue->userid, true);
-
-                $output[] = [
-                    'issue' => [
-                        'id' => $issue->id,
-                        'customcertid' => $issue->customcertid,
-                        'code' => $issue->code,
-                        'emailed' => $issue->emailed,
-                        'timecreated' => $issue->timecreated,
-                    ],
-                    'user' => [
-                        'id' => $issue->userid,
-                        'fullname' => $issue->fullname,
-                        'username' => $issue->username,
-                        'email' => $issue->email,
-                    ],
-                    'template' => [
+            if ($includepdf) {
+                try {
+                    $templatedata = (object)[
                         'id' => $issue->templateid,
                         'name' => $issue->templatename,
                         'contextid' => $issue->contextid,
-                    ],
-                    'pdf' => [
-                        'name' => $pdfname,
-                        'content' => base64_encode($filecontents),
-                    ],
-                ];
+                    ];
+
+                    $template = new \mod_customcert\template($templatedata);
+                    $safe = str_replace(' ', '_', mb_strtolower($template->get_name()));
+
+                    $pdfname = $safe . '_certificate.pdf';
+                    $pdfcontent = base64_encode(
+                        $template->generate_pdf(false, $issue->userid, true)
+                    );
+                } catch (\Throwable $e) {
+                    // Leave PDF fields null on failure and log for developers.
+                    debugging('Failed to generate PDF for list_issues: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                    $pdfname = null;
+                    $pdfcontent = null;
+                }
             }
 
+            $output[] = [
+                'issue' => [
+                    'id' => $issue->id,
+                    'customcertid' => $issue->customcertid,
+                    'code' => $issue->code,
+                    'emailed' => $issue->emailed,
+                    'timecreated' => $issue->timecreated,
+                ],
+                'user' => [
+                    'id' => $issue->userid,
+                    'fullname' => $issue->fullname,
+                    'username' => $issue->username,
+                    'email' => $issue->email,
+                ],
+                'template' => [
+                    'id' => $issue->templateid,
+                    'name' => $issue->templatename,
+                    'contextid' => $issue->contextid,
+                ],
+                'pdf' => [
+                    'name' => $pdfname,
+                    'content' => $pdfcontent,
+                    'haspdf' => ($pdfcontent !== null),
+                ],
+            ];
         }
 
         return $output;
@@ -372,7 +434,7 @@ class external extends external_api {
      *
      * @return external_multiple_structure
      */
-    public static function list_issues_returns() {
+    public static function list_issues_returns(): external_multiple_structure {
         return new external_multiple_structure(
             new external_single_structure([
                 'issue' => new external_single_structure([
@@ -394,8 +456,9 @@ class external extends external_api {
                     'contextid' => new external_value(PARAM_INT, 'context id'),
                 ]),
                 'pdf' => new external_single_structure([
-                    'name' => new external_value(PARAM_TEXT, 'name'),
-                    'content' => new external_value(PARAM_TEXT, 'base64 content'),
+                    'name' => new external_value(PARAM_TEXT, 'name', VALUE_OPTIONAL),
+                    'content' => new external_value(PARAM_TEXT, 'base64 content', VALUE_OPTIONAL),
+                    'haspdf' => new external_value(PARAM_BOOL, 'Whether PDF content was included'),
                 ]),
             ])
         );

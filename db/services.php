@@ -51,12 +51,12 @@ $functions = [
         'ajax'        => true,
     ],
     'mod_customcert_list_issues' => [
-        'classname'   => 'mod_customcert\external',
-        'methodname'  => 'list_issues',
-        'classpath'   => '',
-        'description' => 'List issued certificates',
+        'classname'    => 'mod_customcert\external',
+        'methodname'   => 'list_issues',
+        'classpath'    => '',
+        'description'  => 'List issued certificates',
         'capabilities' => 'mod/customcert:viewallcertificates',
-        'type'        => 'read',
-        'ajax'        => true,
+        'type'         => 'read',
+        'ajax'         => true,
     ],
 ];
