@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.0.1] - 2025-11-30
+
+### Fixed
+
+- Fixed emails not being sent for certificates on the site home page (#693).
+- Added customisable filename options for certificates (#684).
+- Added missing fields to backups (#705).
+- Ensure certificates are issued and emailed only once when emailing is enabled (#671).
+- Fixed "grade_item" not found error due to missing required file.
+- Fixed language handling for certificates and emails (#717).
+- Fixed issue with code dashes being stripped on verification page (#727).
+- Allow teachers enrolled as students to receive certificates (#690).
+- Standardization of spacing in HTML as in the plain text version of emails (#724).
+
+### Changed
+
+- Hard-coded URL in email is now stored as language string allowing it to be modified/moved (#724).
+
+### Added
+
+- Add setting that adds a button to return to course from the certificate page (#655).
+- Added awarded on date to verification page (#566).
+- Added webservice to retrieve a list of issued certificates (#644).
+
 ## [5.0.0] - 2025-06-07
 
 ### Fixed
