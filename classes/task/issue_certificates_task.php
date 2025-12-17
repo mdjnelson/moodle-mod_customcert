@@ -150,21 +150,8 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     continue;
                 }
 
-                // Don't want to issue to teachers/managers.
-                // Teachers/managers should only be excluded if they are NOT enrolled as students.
-                // If a user has a student role in the course, they should still be eligible.
-                $isenrolledasstudent = false;
-                $studentroles = get_archetype_roles('student'); // Returns all roles with archetype 'student'.
-
-                foreach ($studentroles as $role) {
-                    if (user_has_role_assignment($filtereduser->id, $role->id, $context->id)) {
-                        $isenrolledasstudent = true;
-                        break;
-                    }
-                }
-
-                // If they have manage capability AND are not enrolled as students, skip them.
-                if (in_array($filtereduser->id, array_keys((array)$userswithmanage)) && !$isenrolledasstudent) {
+                // Require mod/customcert:receiveissue capability.
+                if (!in_array($filtereduser->id, array_keys($userswithissue))) {
                     continue;
                 }
 
