@@ -1024,4 +1024,90 @@ final class email_certificate_task_test extends advanced_testcase {
             $this->assertNotEquals($manager->id, $issue->userid);
         }
     }
+
+    /**
+     * Tests that certificate issuing and emailing are controlled solely
+     * by the mod/customcert:receiveissue capability.
+     *
+     * Users who have receiveissue + view should receive a certificate and email.
+     * Users who lack receiveissue should NOT receive a certificate or email,
+     * even if they have the manage capability.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_receiveissue_capability_based_issuing(): void {
+        global $DB, $CFG;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Users -
+        // student: normal student, has mod/customcert:receiveissue.
+        // teacherstudent: teacher but also student, so still has mod/customcert:receiveissue.
+        // manager: has manage but no student role, so NO mod/customcert:receiveissue.
+        $student = $this->getDataGenerator()->create_user();
+        $teacherstudent = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'Student']);
+        $manager = $this->getDataGenerator()->create_user(['firstname' => 'Manager', 'lastname' => 'Only']);
+
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+
+        // Enrolments.
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // The teacherstudent gets BOTH roles → receives mod/customcert:receiveissue via student role.
+        $this->getDataGenerator()->enrol_user($teacherstudent->id, $course->id);
+        $this->getDataGenerator()->enrol_user($teacherstudent->id, $course->id, $roleids['editingteacher']);
+
+        // The manager gets ONLY editingteacher → has manage but NO mod/customcert:receiveissue.
+        $this->getDataGenerator()->enrol_user($manager->id, $course->id, $roleids['editingteacher']);
+
+        // Create custom certificate.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Create valid template (one element).
+        $template = new \stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'ReceiveIssue Test Template';
+        $template->contextid = \context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        $pageid = $template->add_page();
+        $DB->insert_record('customcert_elements', (object)[
+            'pageid' => $pageid,
+            'name' => 'ElementX',
+        ]);
+
+        // Run issuing task.
+        $sink = $this->redirectEmails();
+        $task = new \mod_customcert\task\issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+
+        // Issues table assertions.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(2, $issues);
+
+        $uids = array_column($issues, 'userid');
+
+        // Expected.
+        $this->assertContains($student->id, $uids);
+        $this->assertContains($teacherstudent->id, $uids);
+        $this->assertNotContains($manager->id, $uids);
+
+        // Email assertions.
+        // Two eligible (student + teacherstudent) so we get two emails.
+        $this->assertCount(2, $emails);
+
+        $expected = [$student->email, $teacherstudent->email];
+
+        foreach ($emails as $email) {
+            $this->assertEquals($CFG->noreplyaddress, $email->from);
+            $this->assertContains($email->to, $expected);
+            $expected = array_diff($expected, [$email->to]);
+        }
+    }
 }
