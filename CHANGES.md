@@ -8,7 +8,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Fixed
 
-Ensure certificates are only emailed to users who can view the certificate and have the 'mod/customcert:receiveissue' capability (#732)
+- Ensure certificates are only emailed to users who can view the certificate and have the 'mod/customcert:receiveissue'
+  capability (#732).
 
 ## [4.4.7] - 2025-11-30
 
