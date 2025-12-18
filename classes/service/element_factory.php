@@ -27,6 +27,8 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element as legacy_base;
 use stdClass;
 
 /**
@@ -72,5 +74,15 @@ class element_factory {
         // to preserve compatibility while the adapter layer is introduced.
         $instance = new $class($record);
         return $instance;
+    }
+
+    /**
+     * Wrap a legacy element instance with the v2 adapter.
+     *
+     * @param legacy_base $legacy
+     * @return legacy_element_adapter
+     */
+    public function wrap_legacy(legacy_base $legacy): legacy_element_adapter {
+        return new legacy_element_adapter($legacy);
     }
 }
