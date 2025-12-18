@@ -22,8 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
 use mod_customcert\edit_form;
 use mod_customcert\load_template_form;
+use mod_customcert\local\preview_renderer;
 use mod_customcert\page_helper;
 use mod_customcert\template;
 
@@ -242,7 +244,20 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-        $template->generate_pdf(true);
+        $preview = new preview_renderer();
+        $pdf = $template->create_preview_pdf($USER);
+
+        // Render each page of this template in sequence.
+        if ($pages = $DB->get_records('customcert_pages', ['templateid' => $template->get_id()], 'sequence ASC')) {
+            foreach ($pages as $page) {
+                $preview->render_pdf_page((int)$page->id, $pdf, $USER);
+            }
+        }
+
+        // Compute preview filename using the same rules as generate_pdf().
+        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]);
+        $pdffilename = $template->compute_filename_for_user($USER, $customcert);
+        $pdf->Output($pdffilename, \mod_customcert\certificate::DELIVERY_OPTION_INLINE);
         exit();
     }
 
