@@ -107,6 +107,10 @@ final class element_registry_test extends advanced_testcase {
 
         foreach ($map as $type => $expectedclass) {
             $instance = $factory->create($type, $record);
+            // Factory returns adapter instances now; unwrap if needed.
+            if ($instance instanceof \mod_customcert\element\legacy_element_adapter) {
+                $instance = $instance->get_inner();
+            }
             $this->assertInstanceOf($expectedclass, $instance, "Factory did not create expected class for '{$type}'");
         }
     }
