@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
 use pdf;
 use stdClass;
 
@@ -44,6 +45,13 @@ final class pdf_renderer implements element_renderer {
      * @return void
      */
     public function render_pdf(element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
+        // If adapter, delegate to wrapped legacy element's render().
+        if ($element instanceof legacy_element_adapter) {
+            $legacy = $element->get_inner();
+            $legacy->render($pdf, $preview, $user);
+            return;
+        }
+        // Otherwise call render if exposed directly.
         if (method_exists($element, 'render')) {
             $element->render($pdf, $preview, $user);
         }

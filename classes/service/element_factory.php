@@ -67,13 +67,12 @@ class element_factory {
      * @param stdClass $record
      * @return element_interface
      */
-    public function create(string $type, stdClass $record)/*: element_interface */ {
+    public function create(string $type, stdClass $record): element_interface {
         $class = $this->registry->get($type);
-        // The returned instance will be a legacy element class (e.g., customcertelement_foo\element)
-        // which does not implement element_interface yet. We keep the return type unhinted here
-        // to preserve compatibility while the adapter layer is introduced.
-        $instance = new $class($record);
-        return $instance;
+        // Instantiate the legacy element class and wrap it with the adapter so
+        // callers always receive an element_interface instance.
+        $legacy = new $class($record);
+        return new legacy_element_adapter($legacy);
     }
 
     /**

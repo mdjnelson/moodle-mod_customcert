@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
 use pdf;
 use stdClass;
 
@@ -54,6 +55,12 @@ final class html_renderer implements element_renderer {
      * @return string
      */
     public function render_html(element_interface $element): string {
+        // If adapter, delegate to wrapped legacy element.
+        if ($element instanceof legacy_element_adapter) {
+            $legacy = $element->get_inner();
+            return $legacy->render_html();
+        }
+        // Otherwise, if element exposes render_html itself.
         if (method_exists($element, 'render_html')) {
             return $element->render_html();
         }
