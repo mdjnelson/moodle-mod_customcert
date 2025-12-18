@@ -24,8 +24,6 @@
 
 namespace mod_customcert;
 
-use context;
-use mod_customcert\event\element_deleted;
 use mod_customcert\event\page_created;
 use mod_customcert\event\page_deleted;
 use mod_customcert\event\page_updated;
@@ -61,7 +59,7 @@ class template {
     /**
      * The constructor.
      *
-     * @param \stdClass $template
+     * @param stdClass $template
      */
     public function __construct($template) {
         $this->id = $template->id;
@@ -135,7 +133,7 @@ class template {
     /**
      * Handles saving page data.
      *
-     * @param \stdClass $data the template data
+     * @param stdClass $data the template data
      */
     public function save_page($data) {
         global $DB;
@@ -295,101 +293,23 @@ class template {
         // Get the pages for the template, there should always be at least one page for each template.
         if ($pages = $DB->get_records('customcert_pages', ['templateid' => $this->id], 'sequence ASC')) {
             // Create the pdf object.
-            $pdf = new \pdf();
+            $pdf = new pdf();
 
             $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
 
-            // Snapshot the current runtime language to restore later.
-            $originallang = current_language();
+            // Apply runtime language (with shutdown failsafe) and remember original to restore later.
+            $originallang = $this->apply_runtime_language_for_user($customcert, $user);
 
-            // If this template belongs to a certificate, pick language and apply it for this run.
-            if ($customcert) {
-                $uselang = mod_customcert_get_language_to_use($customcert, $user);
-                $switched = mod_customcert_apply_runtime_language($uselang);
-                if ($switched) {
-                    // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
-                    // Preventing a user from getting trapped with the wrong language.
-                    \core_shutdown_manager::register_function('force_current_language', [$originallang]);
-                }
-            }
-
-            // If the template belongs to a certificate then we need to check what permissions we set for it.
-            if (!empty($customcert->protection)) {
-                $protection = explode(', ', $customcert->protection);
-                $pdf->SetProtection($protection);
-            }
+            // Configure PDF (protection, headers/footers, autopagebreak).
+            $this->configure_pdf_for_customcert($pdf, $customcert);
 
             if (empty($customcert->deliveryoption)) {
                 $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
             } else {
                 $deliveryoption = $customcert->deliveryoption;
             }
-
-            // Set up PDF document properties — no header/footer, auto page break.
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetAutoPageBreak(true, 0);
-
-            // Get filename pattern from global settings.
-            if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
-                // Use the custom cert name as the base filename (strip any trailing dot).
-                $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
-            } else {
-                // Get issue record for date (if issued); fallback to current date if not found.
-                $issue = $DB->get_record('customcert_issues', [
-                    'userid' => $user->id,
-                    'customcertid' => $customcert->id,
-                ]);
-
-                if ($issue && !empty($issue->timecreated)) {
-                    $issuedate = date('Y-m-d', $issue->timecreated);
-                } else {
-                    $issuedate = date('Y-m-d');
-                }
-
-                $course = $DB->get_record('course', ['id' => $customcert->course]);
-
-                $values = [
-                    '{FIRST_NAME}' => $user->firstname ?? '',
-                    '{LAST_NAME}' => $user->lastname ?? '',
-                    '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
-                    '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
-                    '{ISSUE_DATE}' => $issuedate,
-                ];
-
-                // Handle group if needed.
-                $groups = groups_get_all_groups($course->id, $user->id);
-                if (!empty($groups)) {
-                    $groupnames = array_map(function ($g) {
-                        return $g->name;
-                    }, $groups);
-                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
-                } else {
-                    $values['{GROUP_NAME}'] = '';
-                }
-
-                // Replace placeholders with actual values.
-                $filename = strtr($customcert->customfilenamepattern, $values);
-
-                // Remove trailing dot to avoid "..pdf" issues.
-                $filename = rtrim($filename, '.');
-            }
-
-            // This is the logic the TCPDF library uses when processing the name. This makes names
-            // such as 'الشهادة' become empty, so set a default name in these cases.
-            $filename = preg_replace('/[\s]+/', '_', $filename);
-            $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
-
-            // If filename ends up empty (e.g. after removing unsupported characters), use default string.
-            if (empty($filename)) {
-                $filename = get_string('certificate', 'customcert');
-            }
-
-            // Remove existing ".pdf" extension if present to avoid duplication.
-            $filename = preg_replace('/\.pdf$/i', '', $filename);
-
-            // Clean the final filename and append ".pdf".
-            $filename = clean_filename($filename . '.pdf');
+            // Compute final filename (mirrors legacy logic).
+            $filename = $this->compute_filename_for_user($user, $customcert);
 
             // Set the PDF document title (for metadata, not the filename itself).
             $pdf->SetTitle($filename);
@@ -417,11 +337,8 @@ class template {
             }
 
             // Restore original language if we changed it.
-            if ($customcert) {
-                if ($originallang !== $uselang) {
-                    mod_customcert_apply_runtime_language($originallang);
-                }
-            }
+            // Restore original language if we switched earlier.
+            $this->restore_runtime_language($originallang);
 
             if ($return) {
                 return $pdf->Output('', 'S');
@@ -429,6 +346,147 @@ class template {
 
             $pdf->Output($filename, $deliveryoption);
         }
+    }
+
+    /**
+     * Create and configure a PDF instance suitable for preview rendering.
+     *
+     * This helper mirrors the setup used in {@see template::generate_pdf} for preview
+     * and can be used by alternate preview flows (e.g., the V2 orchestrator).
+     *
+     * @param stdClass $user The user that the preview is for.
+     * @return pdf A configured PDF instance ready for element rendering.
+     */
+    public function create_preview_pdf(stdClass $user): pdf {
+        global $CFG, $DB;
+
+        require_once($CFG->libdir . '/pdflib.php');
+        require_once($CFG->dirroot . '/mod/customcert/lib.php');
+
+        $pdf = new pdf();
+
+        $customcert = $DB->get_record('customcert', ['templateid' => $this->id]);
+        // Apply language and configure pdf consistently with generate_pdf().
+        $this->apply_runtime_language_for_user($customcert, $user);
+        $this->configure_pdf_for_customcert($pdf, $customcert);
+
+        return $pdf;
+    }
+
+    /**
+     * Apply runtime language for this certificate/user and register a shutdown restore.
+     * Returns original language if a switch occurred, null otherwise.
+     *
+     * @param object|null $customcert
+     * @param stdClass $user
+     * @return string|null
+     */
+    private function apply_runtime_language_for_user($customcert, stdClass $user): ?string {
+        if (!$customcert) {
+            return null;
+        }
+        $originallang = current_language();
+        $uselang = mod_customcert_get_language_to_use($customcert, $user);
+        $switched = mod_customcert_apply_runtime_language($uselang);
+        if ($switched) {
+            \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+            return $originallang;
+        }
+        return null;
+    }
+
+    /**
+     * Restore runtime language if previously switched.
+     *
+     * @param string|null $originallang
+     * @return void
+     */
+    private function restore_runtime_language(?string $originallang): void {
+        if (!empty($originallang)) {
+            mod_customcert_apply_runtime_language($originallang);
+        }
+    }
+
+    /**
+     * Configure a PDF for this certificate: protection, header/footer and page break.
+     *
+     * @param pdf $pdf
+     * @param object|null $customcert
+     * @return void
+     */
+    private function configure_pdf_for_customcert(pdf $pdf, $customcert): void {
+        if ($customcert && !empty($customcert->protection)) {
+            $protection = explode(', ', $customcert->protection);
+            $pdf->SetProtection($protection);
+        }
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetAutoPageBreak(true, 0);
+    }
+
+    /**
+     * Compute filename for the current user/certificate using template and pattern settings.
+     * Mirrors the logic in generate_pdf(). Returns a clean filename with .pdf suffix.
+     *
+     * @param stdClass $user
+     * @param object|null $customcert
+     * @return string
+     */
+    public function compute_filename_for_user(stdClass $user, $customcert): string {
+        global $DB;
+
+        // Default to the template name when custom filename is disabled.
+        if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
+            $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
+        } else {
+            // Get issue record for date (if issued); fallback to current date if not found.
+            $issue = $DB->get_record('customcert_issues', [
+                'userid' => $user->id,
+                'customcertid' => $customcert->id,
+            ]);
+
+            if ($issue && !empty($issue->timecreated)) {
+                $issuedate = date('Y-m-d', $issue->timecreated);
+            } else {
+                $issuedate = date('Y-m-d');
+            }
+
+            $course = $DB->get_record('course', ['id' => $customcert->course]);
+
+            $values = [
+                '{FIRST_NAME}' => $user->firstname ?? '',
+                '{LAST_NAME}' => $user->lastname ?? '',
+                '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
+                '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
+                '{ISSUE_DATE}' => $issuedate,
+            ];
+
+            // Handle group if needed.
+            if ($course) {
+                $groups = groups_get_all_groups($course->id, $user->id);
+                if (!empty($groups)) {
+                    $groupnames = array_map(
+                        fn ($group) => $group->name,
+                        $groups
+                    );
+                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
+                } else {
+                    $values['{GROUP_NAME}'] = '';
+                }
+            }
+
+            $filename = strtr($customcert->customfilenamepattern, $values);
+            $filename = rtrim($filename, '.');
+        }
+
+        // Match TCPDF filename sanitation and ensure sensible default.
+        $filename = preg_replace('/[\s]+/', '_', $filename);
+        $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
+        if (empty($filename)) {
+            $filename = get_string('certificate', 'customcert');
+        }
+        $filename = preg_replace('/\.pdf$/i', '', $filename);
+        return clean_filename($filename . '.pdf');
     }
 
     /**
@@ -613,8 +671,8 @@ class template {
     /**
      * Checks if a page has been updated given form information
      *
-     * @param \stdClass $page
-     * @param \stdClass $formdata
+     * @param stdClass $page
+     * @param stdClass $formdata
      * @return bool
      */
     private function has_page_been_updated($page, $formdata): bool {
