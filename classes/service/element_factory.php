@@ -27,15 +27,25 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
-use moodle_exception;
 use stdClass;
 
 /**
  * Registry-based factory for creating elements by type.
  */
 class element_factory {
-    /** @var array<string, class-string> */
-    private array $registry = [];
+    /**
+     * @var element_registry Element type registry instance.
+     */
+    private element_registry $registry;
+
+    /**
+     * Constructor.
+     *
+     * @param element_registry $registry
+     */
+    public function __construct(element_registry $registry) {
+        $this->registry = $registry;
+    }
 
     /**
      * Register an element class for a given type key.
@@ -45,7 +55,7 @@ class element_factory {
      * @return void
      */
     public function register(string $type, string $class): void {
-        $this->registry[$type] = $class;
+        $this->registry->register($type, $class);
     }
 
     /**
@@ -55,12 +65,11 @@ class element_factory {
      * @param stdClass $record
      * @return element_interface
      */
-    public function create(string $type, stdClass $record): element_interface {
-        if (!isset($this->registry[$type])) {
-            throw new moodle_exception('Unknown element type: ' . $type);
-        }
-        $class = $this->registry[$type];
-        /** @var element_interface $instance */
+    public function create(string $type, stdClass $record)/*: element_interface */ {
+        $class = $this->registry->get($type);
+        // The returned instance will be a legacy element class (e.g., customcertelement_foo\element)
+        // which does not implement element_interface yet. We keep the return type unhinted here
+        // to preserve compatibility while the adapter layer is introduced.
         $instance = new $class($record);
         return $instance;
     }
