@@ -100,6 +100,7 @@ $string['elementwidth_help'] = 'Specify the width of the element. If \'0\' is al
 $string['emailnonstudentbody'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentbodyplaintext'] = 'Attached is the certificate \'{$a->certificatename}\' for \'{$a->userfullname}\' for the course \'{$a->coursefullname}\'.';
 $string['emailnonstudentcertificatelinktext'] = 'View certificate report';
+$string['emailnonstudentfooter'] = '<a href="{$a->emailcertificatelink}">{$a->emailcertificatelinktext}</a>.';
 $string['emailnonstudentgreeting'] = 'Hi';
 $string['emailnonstudentsubject'] = '{$a->coursefullname}: {$a->certificatename}';
 $string['emailothers'] = 'Email others';
@@ -107,6 +108,7 @@ $string['emailothers_help'] = 'If set this will email the email addresses listed
 $string['emailstudentbody'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
 $string['emailstudentbodyplaintext'] = 'Attached is your certificate \'{$a->certificatename}\' for the course \'{$a->coursefullname}\'.';
 $string['emailstudentcertificatelinktext'] = 'View certificate';
+$string['emailstudentfooter'] = '<a href="{$a->emailcertificatelink}">{$a->emailcertificatelinktext}</a>.';
 $string['emailstudentgreeting'] = 'Dear {$a}';
 $string['emailstudents'] = 'Email students';
 $string['emailstudents_help'] = 'If set this will email the students a copy of the certificate when it becomes available. <strong>Warning:</strong> Setting this to \'Yes\' before you have finished creating the certificate will email the student an incomplete certificate.';
@@ -154,7 +156,6 @@ $string['invalidmargin'] = 'The margin has to be a valid number greater than 0.'
 $string['invalidposition'] = 'Please select a positive number for position {$a}.';
 $string['invalidwidth'] = 'The width has to be a valid number greater than 0.';
 $string['landscape'] = 'Landscape';
-$string['languageoptions'] = 'Force Certificate Language';
 $string['leftmargin'] = 'Left margin';
 $string['leftmargin_help'] = 'This is the left margin of the certificate PDF in mm.';
 $string['listofissues'] = 'Recipients: {$a}';
@@ -249,8 +250,6 @@ $string['useadhoc_desc'] = 'When enabled, emails related to certificates will be
 Enabling this option may improve the performance of the scheduled task by offloading email processing to ad-hoc tasks.';
 $string['usecustomfilename'] = 'Use custom file name pattern';
 $string['usecustomfilename_help'] = 'If enabled, you can define a custom file name pattern for certificates using placeholders. The placeholders are {FIRST_NAME}, {LAST_NAME}, {GROUP_NAME}, {COURSE_SHORT_NAME}, {COURSE_FULL_NAME} and {ISSUE_DATE}.';
-$string['userlanguage'] = 'Use user preferences';
-$string['userlanguage_help'] = 'You can force the language of the certificate to override the user\'s language preferences.';
 $string['verified'] = 'Verified';
 $string['verify'] = 'Verify';
 $string['verifyallcertificates'] = 'Allow verification of all certificates';

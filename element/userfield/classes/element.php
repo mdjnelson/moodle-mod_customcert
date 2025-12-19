@@ -34,7 +34,6 @@ use core_user\fields;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * This function renders the form elements when adding a customcert element.
      *

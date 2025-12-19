@@ -350,18 +350,26 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
         // Get the template id.
         $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
-        $node = navigation_node::create(get_string('editcustomcert', 'customcert'),
-                new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
-                navigation_node::TYPE_SETTING, null, 'mod_customcert_edit',
-                new pix_icon('t/edit', ''));
+        $node = navigation_node::create(
+            get_string('editcustomcert', 'customcert'),
+            new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_edit',
+            new pix_icon('t/edit', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
     if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
-        $node = navigation_node::create(get_string('verifycertificate', 'customcert'),
+        $node = navigation_node::create(
+            get_string('verifycertificate', 'customcert'),
             new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
-            navigation_node::TYPE_SETTING, null, 'mod_customcert_verify_certificate',
-            new pix_icon('t/check', ''));
+            navigation_node::TYPE_SETTING,
+            null,
+            'mod_customcert_verify_certificate',
+            new pix_icon('t/check', '')
+        );
         $customcertnode->add_node($node, $beforekey);
     }
 
@@ -380,8 +388,10 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
     global $USER;
 
-    if (($user->id != $USER->id)
-            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+    if (
+        ($user->id != $USER->id)
+            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())
+    ) {
         return;
     }
 
@@ -392,8 +402,13 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
         $params['course'] = $course->id;
     }
     $url = new moodle_url('/mod/customcert/my_certificates.php', $params);
-    $node = new core_user\output\myprofile\node('miscellaneous', 'mycustomcerts',
-        get_string('mycertificates', 'customcert'), null, $url);
+    $node = new core_user\output\myprofile\node(
+        'miscellaneous',
+        'mycustomcerts',
+        get_string('mycertificates', 'customcert'),
+        null,
+        $url
+    );
     $tree->add_node($node);
 }
 
@@ -431,8 +446,14 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $updateelement->name = clean_param($newvalue, PARAM_TEXT);
         $DB->update_record('customcert_elements', $updateelement);
 
-        return new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id, true,
-            $updateelement->name, $updateelement->name);
+        return new \core\output\inplace_editable(
+            'mod_customcert',
+            'elementname',
+            $element->id,
+            true,
+            $updateelement->name,
+            $updateelement->name
+        );
     }
 }
 
@@ -446,26 +467,59 @@ function mod_customcert_get_fontawesome_icon_map() {
 }
 
 /**
- * Force custom language for current session.
+ * Determine which language should be used for this certificate or email.
  *
- * @param string $language
- * @return bool
+ * Precedence:
+ *   1. Certificate's forced language.
+ *   2. Course language.
+ *   3. User profile language.
+ *   4. Site default.
+ *
+ * @param stdClass $customcert Certificate record.
+ * @param stdClass|null $user Target user - falls back to global $USER if not specified.
+ * @param string|null $courselang Course language, if available.
+ * @return string Language code to use.
  */
-function mod_customcert_force_current_language($language): bool {
-    global $USER;
+function mod_customcert_get_language_to_use(stdClass $customcert, ?stdClass $user = null, ?string $courselang = null): string {
+    global $CFG, $USER;
 
-    $forced = false;
+    if (empty($user)) {
+        $user = $USER;
+    }
+
+    if (!empty($customcert->language)) {
+        return $customcert->language;
+    }
+
+    if (!empty($courselang)) {
+        return $courselang;
+    }
+
+    if (!empty($user) && !empty($user->lang)) {
+        return $user->lang;
+    }
+
+    return $CFG->lang;
+}
+
+/**
+ * Apply a runtime language switch for the current execution context.
+ *
+ * @param string $language The language code (e.g. 'es_co')
+ * @return bool True if language was switched.
+ */
+function mod_customcert_apply_runtime_language(string $language): bool {
     if (empty($language)) {
-        return $forced;
+        return false;
     }
 
     $activelangs = get_string_manager()->get_list_of_translations();
-    $userlang = $USER->lang ?? current_language();
+    $current = current_language();
 
-    if (array_key_exists($language, $activelangs) && $language != $userlang) {
+    if (array_key_exists($language, $activelangs) && $language !== $current) {
         force_current_language($language);
-        $forced = true;
+        return true;
     }
 
-    return $forced;
+    return false;
 }

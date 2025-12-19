@@ -34,7 +34,6 @@ namespace mod_customcert;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class element {
-
     /**
      * @var string The left alignment constant.
      */
@@ -473,7 +472,6 @@ abstract class element {
      * @param \restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
-
     }
 
     /**

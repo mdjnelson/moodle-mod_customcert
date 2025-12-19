@@ -54,8 +54,10 @@ $pageurl = new moodle_url('/mod/customcert/manage_templates.php');
 
 // Additional page setup.
 if ($tid && $action && confirm_sesskey()) {
-    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
-        new moodle_url('/mod/customcert/manage_templates.php'));
+    $PAGE->navbar->add(
+        get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php')
+    );
 } else {
     $PAGE->navbar->add(get_string('managetemplates', 'customcert'));
 }
@@ -63,7 +65,8 @@ if ($tid && $action && confirm_sesskey()) {
 if ($tid) {
     if ($action && confirm_sesskey()) {
         $nourl = new moodle_url('/mod/customcert/manage_templates.php');
-        $yesurl = new moodle_url('/mod/customcert/manage_templates.php',
+        $yesurl = new moodle_url(
+            '/mod/customcert/manage_templates.php',
             [
                 'tid' => $tid,
                 'action' => $action,

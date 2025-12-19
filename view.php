@@ -55,7 +55,7 @@ $pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
 // Check if the user can view the certificate based on time spent in course.
 if ($customcert->requiredtime && !$canmanage) {
     if (\mod_customcert\certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
-        $a = new stdClass;
+        $a = new stdClass();
         $a->requiredtime = $customcert->requiredtime;
         $url = new moodle_url('/course/view.php', ['id' => $course->id]);
         notice(get_string('requiredtimenotmet', 'customcert', $a), $url);
@@ -67,7 +67,8 @@ if ($customcert->requiredtime && !$canmanage) {
 if ($deleteissue && $canmanage && confirm_sesskey()) {
     if (!$confirm) {
         $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
-        $yesurl = new moodle_url('/mod/customcert/view.php',
+        $yesurl = new moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $id,
                 'deleteissue' => $deleteissue,
@@ -177,7 +178,8 @@ if (!$downloadown && !$downloadissue) {
     $downloadallbutton = '';
     if ($canviewreport && $numissues > 0) {
         $linkname = get_string('downloadallissuedcertificates', 'customcert');
-        $link = new moodle_url('/mod/customcert/view.php',
+        $link = new moodle_url(
+            '/mod/customcert/view.php',
             [
                 'id' => $cm->id,
                 'downloadall' => true,

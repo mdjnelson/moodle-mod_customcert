@@ -26,7 +26,7 @@ namespace mod_customcert;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 /**
  * Class extends admin setting class to allow/process an uploaded file
@@ -36,7 +36,6 @@ require_once($CFG->libdir.'/adminlib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_link extends \admin_setting_configtext {
-
     /**
      * @var string the link.
      */
@@ -59,8 +58,16 @@ class admin_setting_link extends \admin_setting_configtext {
      * @param string $paramtype
      * @param null $size
      */
-    public function __construct($name, $visiblename, $description, $linkname, $link, $defaultsetting,
-                                $paramtype = PARAM_RAW, $size=null) {
+    public function __construct(
+        $name,
+        $visiblename,
+        $description,
+        $linkname,
+        $link,
+        $defaultsetting,
+        $paramtype = PARAM_RAW,
+        $size = null
+    ) {
         $this->link = $link;
         $this->linkname = $linkname;
         parent::__construct($name, $visiblename, $description, $defaultsetting, $paramtype, $size);
@@ -77,7 +84,15 @@ class admin_setting_link extends \admin_setting_configtext {
         // Create a dummy variable for this field to avoid being redirected back to the upgrade settings page.
         $this->config_write($this->name, '');
 
-        return format_admin_setting($this, $this->visiblename,
-            \html_writer::link($this->link, $this->linkname), $this->description, true, '', null, $query);
+        return format_admin_setting(
+            $this,
+            $this->visiblename,
+            \html_writer::link($this->link, $this->linkname),
+            $this->description,
+            true,
+            '',
+            null,
+            $query
+        );
     }
 }

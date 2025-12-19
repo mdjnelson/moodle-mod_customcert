@@ -38,7 +38,6 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * Max recurring period in seconds.
      */
@@ -275,14 +274,14 @@ class element extends \mod_customcert\element {
             }
 
             // Check that end date is correctly set.
-            if ( $data['startdate'][$i] >= $data['enddate'][$i] ) {
+            if ($data['startdate'][$i] >= $data['enddate'][$i]) {
                 $errors[$this->build_element_name('enddate', $i)] = get_string('error:enddate', 'customcertelement_daterange');
             }
 
             $rangeperiod = $data['enddate'][$i] - $data['startdate'][$i];
 
             // Check that recurring dateranges are not longer than 12 months.
-            if (!empty($data['recurring'][$i]) && $rangeperiod >= self::MAX_RECURRING_PERIOD ) {
+            if (!empty($data['recurring'][$i]) && $rangeperiod >= self::MAX_RECURRING_PERIOD) {
                 $errors[$this->build_element_name('enddate', $i)] = get_string('error:recurring', 'customcertelement_daterange');
             }
         }
@@ -346,8 +345,12 @@ class element extends \mod_customcert\element {
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', ['templateid' => $page->templateid], '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', ['userid' => $user->id, 'customcertid' => $customcert->id],
-                '*', MUST_EXIST);
+            $issue = $DB->get_record(
+                'customcert_issues',
+                ['userid' => $user->id, 'customcertid' => $customcert->id],
+                '*',
+                MUST_EXIST
+            );
 
             switch ($dateitem) {
                 case self::DATE_ISSUE:
@@ -382,7 +385,8 @@ class element extends \mod_customcert\element {
                 case self::DATE_COURSE_GRADE:
                     $grade = element_helper::get_course_grade_info(
                         $courseid,
-                        GRADE_DISPLAY_TYPE_DEFAULT, $user->id
+                        GRADE_DISPLAY_TYPE_DEFAULT,
+                        $user->id
                     );
                     if ($grade && !empty($grade->get_dategraded())) {
                         $date = $grade->get_dategraded();
@@ -570,7 +574,6 @@ class element extends \mod_customcert\element {
         $matchedrage = clone $range;
 
         if ($this->has_turn_of_the_year($matchedrage)) {
-
             if ($this->in_start_year($date, $matchedrage)) {
                 $startyear = date('Y', $date);
                 $endyear = $startyear + 1;

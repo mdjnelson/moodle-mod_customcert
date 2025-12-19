@@ -68,13 +68,17 @@ $PAGE->activityheader->set_attrs(['hidecompletion' => true,
 
 if ($context->contextlevel == CONTEXT_SYSTEM) {
     // We are managing a template - add some navigation.
-    $PAGE->navbar->add(get_string('managetemplates', 'customcert'),
-        new moodle_url('/mod/customcert/manage_templates.php'));
+    $PAGE->navbar->add(
+        get_string('managetemplates', 'customcert'),
+        new moodle_url('/mod/customcert/manage_templates.php')
+    );
     if (!$tid) {
         $PAGE->navbar->add(get_string('editcustomcert', 'customcert'));
     } else {
-        $PAGE->navbar->add(get_string('editcustomcert', 'customcert'),
-            new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]));
+        $PAGE->navbar->add(
+            get_string('editcustomcert', 'customcert'),
+            new moodle_url('/mod/customcert/edit.php', ['tid' => $tid])
+        );
     }
 }
 
@@ -84,24 +88,24 @@ $deleting = false;
 if ($tid) {
     if ($action && confirm_sesskey()) {
         switch ($action) {
-            case 'pmoveup' :
+            case 'pmoveup':
                 $template->move_item('page', $actionid, 'up');
                 break;
-            case 'pmovedown' :
+            case 'pmovedown':
                 $template->move_item('page', $actionid, 'down');
                 break;
-            case 'emoveup' :
+            case 'emoveup':
                 $template->move_item('element', $actionid, 'up');
                 break;
-            case 'emovedown' :
+            case 'emovedown':
                 $template->move_item('element', $actionid, 'down');
                 break;
-            case 'addpage' :
+            case 'addpage':
                 $template->add_page();
                 $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                 redirect($url);
                 break;
-            case 'deletepage' :
+            case 'deletepage':
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
                     $template->delete_page($actionid);
                     $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
@@ -113,7 +117,8 @@ if ($tid) {
                     $message = get_string('deletepageconfirm', 'customcert');
                     // Create the link options.
                     $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
-                    $yesurl = new moodle_url('/mod/customcert/edit.php',
+                    $yesurl = new moodle_url(
+                        '/mod/customcert/edit.php',
                         [
                             'tid' => $tid,
                             'action' => 'deletepage',
@@ -124,7 +129,7 @@ if ($tid) {
                     );
                 }
                 break;
-            case 'deleteelement' :
+            case 'deleteelement':
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
                     $template->delete_element($actionid);
                 } else {
@@ -134,7 +139,8 @@ if ($tid) {
                     $message = get_string('deleteelementconfirm', 'customcert');
                     // Create the link options.
                     $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
-                    $yesurl = new moodle_url('/mod/customcert/edit.php',
+                    $yesurl = new moodle_url(
+                        '/mod/customcert/edit.php',
                         [
                             'tid' => $tid,
                             'action' => 'deleteelement',
@@ -244,8 +250,13 @@ echo $OUTPUT->header();
 $mform->display();
 if ($tid && $context->contextlevel == CONTEXT_MODULE) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid]);
-    $loadtemplateform = new \mod_customcert\load_template_form($loadtemplateurl, ['context' => $context], 'post',
-        '', ['id' => 'loadtemplateform']);
+    $loadtemplateform = new \mod_customcert\load_template_form(
+        $loadtemplateurl,
+        ['context' => $context],
+        'post',
+        '',
+        ['id' => 'loadtemplateform']
+    );
     $loadtemplateform->display();
 }
 echo $OUTPUT->footer();

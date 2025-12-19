@@ -32,7 +32,6 @@ namespace customcertelement_bgimage;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \customcertelement_image\element {
-
     /**
      * This function renders the form elements when adding a customcert element.
      *
@@ -40,8 +39,13 @@ class element extends \customcertelement_image\element {
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
-        $mform->addElement('filemanager', 'customcertimage', get_string('uploadimage', 'customcert'), '',
-            $this->filemanageroptions);
+        $mform->addElement(
+            'filemanager',
+            'customcertimage',
+            get_string('uploadimage', 'customcert'),
+            '',
+            $this->filemanageroptions
+        );
     }
 
     /**
@@ -114,8 +118,14 @@ class element extends \customcertelement_image\element {
         }
 
         if ($file = $this->get_file()) {
-            $url = \moodle_url::make_pluginfile_url($file->get_contextid(), 'mod_customcert', 'image', $file->get_itemid(),
-                $file->get_filepath(), $file->get_filename());
+            $url = \moodle_url::make_pluginfile_url(
+                $file->get_contextid(),
+                'mod_customcert',
+                'image',
+                $file->get_itemid(),
+                $file->get_filepath(),
+                $file->get_filename()
+            );
             // Get the page we are rendering this on.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
 

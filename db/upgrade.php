@@ -34,7 +34,6 @@ function xmldb_customcert_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2016120503) {
-
         $table = new xmldb_table('customcert_templates');
         $field = new xmldb_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'id');
         $dbman->change_field_precision($table, $field);
@@ -107,8 +106,16 @@ function xmldb_customcert_upgrade($oldversion) {
     if ($oldversion < 2017050502) {
         // Add column for new 'verifycertificateanyone' setting.
         $table = new xmldb_table('customcert');
-        $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
-            'requiredtime');
+        $field = new xmldb_field(
+            'verifyany',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'requiredtime'
+        );
 
         // Conditionally launch add field.
         if (!$dbman->field_exists($table, $field)) {
@@ -225,8 +232,16 @@ function xmldb_customcert_upgrade($oldversion) {
     if ($oldversion < 2023042405) {
         // Changing precision of field verifyany on table customcert to (1).
         $table = new xmldb_table('customcert');
-        $field = new xmldb_field('verifyany', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0',
-            'requiredtime');
+        $field = new xmldb_field(
+            'verifyany',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'requiredtime'
+        );
 
         // Launch change of precision for field verifyany.
         $dbman->change_field_precision($table, $field);
@@ -236,7 +251,6 @@ function xmldb_customcert_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024042202) {
-
         // Define table customcert_email_task_prgrs to be created.
         $table = new xmldb_table('customcert_email_task_prgrs');
 

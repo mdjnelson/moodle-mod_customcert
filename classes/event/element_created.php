@@ -32,7 +32,6 @@ namespace mod_customcert\event;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element_created extends \core\event\base {
-
     /**
      * Initialises the event.
      */
@@ -95,8 +94,10 @@ class element_created extends \core\event\base {
         if ($this->contextlevel == \context_system::instance()->contextlevel) {
             return new \moodle_url('/mod/customcert/manage_templates.php');
         } else {
-            return new \moodle_url('/mod/customcert/view.php',
-                ['id' => $this->contextinstanceid]);
+            return new \moodle_url(
+                '/mod/customcert/view.php',
+                ['id' => $this->contextinstanceid]
+            );
         }
     }
 

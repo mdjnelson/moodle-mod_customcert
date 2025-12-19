@@ -33,7 +33,6 @@ use mod_customcert\helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class email_certificate_task extends \core\task\adhoc_task {
-
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -50,17 +49,23 @@ class email_certificate_task extends \core\task\adhoc_task {
         global $DB;
 
         $customdata = $this->get_custom_data();
+        if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
+            return;
+        }
 
-        $issueid = $customdata->issueid;
-        $customcertid = $customdata->customcertid;
+        $issueid = (int)$customdata->issueid;
+        $customcertid = (int)$customdata->customcertid;
         $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname
+                       co.fullname as coursefullname, co.shortname as courseshortname, co.lang as courselang
                   FROM {customcert} c
                   JOIN {customcert_templates} ct ON c.templateid = ct.id
                   JOIN {course} co ON c.course = co.id
                  WHERE c.id = :id";
 
         $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
+        if (!$customcert) {
+            return;
+        }
 
         // The renderers used for sending emails.
         $page = new \moodle_page();
@@ -93,6 +98,9 @@ class email_certificate_task extends \core\task\adhoc_task {
                  WHERE ci.customcertid = :customcertid
                    AND ci.id = :issueid";
         $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
+        if (!$user) {
+            return;
+        }
 
         // Create a directory to store the PDF we will be sending.
         $tempdir = make_temp_directory('certificate/attachment');
@@ -105,6 +113,9 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         $userfullname = fullname($user);
         $info->userfullname = $userfullname;
+
+        // Snapshot the current language before we start forcing per-recipient.
+        $originallang = current_language();
 
         // Now, get the PDF.
         $template = new \stdClass();
@@ -126,28 +137,78 @@ class email_certificate_task extends \core\task\adhoc_task {
         file_put_contents($tempfile, $filecontents);
 
         if ($customcert->emailstudents) {
-            $renderable = new \mod_customcert\output\email_certificate(true, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+            $recipientlang = mod_customcert_get_language_to_use($customcert, $user, $customcert->courselang ?? null);
+            $switched = mod_customcert_apply_runtime_language($recipientlang);
+            if ($switched) {
+                // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                // Preventing a user from getting trapped with the wrong language.
+                \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+            }
+
+            $renderable = new \mod_customcert\output\email_certificate(
+                true,
+                $userfullname,
+                $courseshortname,
+                $coursefullname,
+                $certificatename,
+                $context->instanceid
+            );
 
             $subject = get_string('emailstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user($user, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                $messagehtml, $tempfile, $filename);
+            email_to_user(
+                $user,
+                $userfrom,
+                html_entity_decode($subject, ENT_COMPAT),
+                $message,
+                $messagehtml,
+                $tempfile,
+                $filename
+            );
+
+            if ($recipientlang !== $originallang) {
+                mod_customcert_apply_runtime_language($originallang);
+            }
         }
 
         if ($customcert->emailteachers) {
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
-            $renderable = new \mod_customcert\output\email_certificate(false, $userfullname, $courseshortname,
-                $coursefullname, $certificatename, $context->instanceid);
+            $renderable = new \mod_customcert\output\email_certificate(
+                false,
+                $userfullname,
+                $courseshortname,
+                $coursefullname,
+                $certificatename,
+                $context->instanceid
+            );
 
-            $subject = get_string('emailnonstudentsubject', 'customcert', $info);
-            $message = $textrenderer->render($renderable);
-            $messagehtml = $htmlrenderer->render($renderable);
             foreach ($teachers as $teacher) {
-                email_to_user($teacher, $userfrom, html_entity_decode($subject, ENT_COMPAT),
-                    $message, $messagehtml, $tempfile, $filename);
+                $recipientlang = mod_customcert_get_language_to_use($customcert, $teacher, $customcert->courselang ?? null);
+                $switched = mod_customcert_apply_runtime_language($recipientlang);
+                if ($switched) {
+                    // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
+                    // Preventing a user from getting trapped with the wrong language.
+                    \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+                }
+
+                $subject = get_string('emailnonstudentsubject', 'customcert', $info);
+                $message = $textrenderer->render($renderable);
+                $messagehtml = $htmlrenderer->render($renderable);
+                email_to_user(
+                    $teacher,
+                    $userfrom,
+                    html_entity_decode($subject, ENT_COMPAT),
+                    $message,
+                    $messagehtml,
+                    $tempfile,
+                    $filename
+                );
+
+                if ($recipientlang !== $originallang) {
+                    mod_customcert_apply_runtime_language($originallang);
+                }
             }
         }
 
@@ -156,8 +217,14 @@ class email_certificate_task extends \core\task\adhoc_task {
             foreach ($others as $email) {
                 $email = trim($email);
                 if (validate_email($email)) {
-                    $renderable = new \mod_customcert\output\email_certificate(false, $userfullname,
-                        $courseshortname, $coursefullname, $certificatename, $context->instanceid);
+                    $renderable = new \mod_customcert\output\email_certificate(
+                        false,
+                        $userfullname,
+                        $courseshortname,
+                        $coursefullname,
+                        $certificatename,
+                        $context->instanceid
+                    );
 
                     $subject = get_string('emailnonstudentsubject', 'customcert', $info);
                     $message = $textrenderer->render($renderable);
@@ -166,8 +233,15 @@ class email_certificate_task extends \core\task\adhoc_task {
                     $emailuser = new \stdClass();
                     $emailuser->id = -1;
                     $emailuser->email = $email;
-                    email_to_user($emailuser, $userfrom, html_entity_decode($subject, ENT_COMPAT), $message,
-                        $messagehtml, $tempfile, $filename);
+                    email_to_user(
+                        $emailuser,
+                        $userfrom,
+                        html_entity_decode($subject, ENT_COMPAT),
+                        $message,
+                        $messagehtml,
+                        $tempfile,
+                        $filename
+                    );
                 }
             }
         }

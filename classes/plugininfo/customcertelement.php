@@ -33,7 +33,6 @@ use core\plugininfo\base;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class customcertelement extends base {
-
     /**
      * Do not allow users to uninstall these plugins as it could cause customcerts to break.
      *

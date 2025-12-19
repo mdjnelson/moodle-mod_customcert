@@ -34,8 +34,7 @@ use templatable;
  * @copyright 2017 Mark Nelson <markn@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class verify_certificate_results implements templatable, renderable {
-
+class verify_certificate_results implements renderable, templatable {
     /**
      * @var bool Was the code successfully verified?
      */

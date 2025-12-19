@@ -37,7 +37,6 @@ use mod_customcert\privacy\provider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
-
     /**
      * Test for provider::get_contexts_for_userid().
      *
@@ -229,8 +228,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals(2, $count);
 
         $context = \context_module::instance($customcert->cmid);
-        $contextlist = new \core_privacy\local\request\approved_contextlist($user1, 'customcert',
-            [$context->id]);
+        $contextlist = new \core_privacy\local\request\approved_contextlist(
+            $user1,
+            'customcert',
+            [$context->id]
+        );
         provider::delete_data_for_user($contextlist);
 
         // After deletion, the issued certificates for the first user should have been deleted.
@@ -276,8 +278,11 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $this->assertEquals(2, $count);
 
         $context1 = context_module::instance($cm1->id);
-        $approveduserlist = new \core_privacy\local\request\approved_userlist($context1, 'customcert',
-                [$user1->id, $user2->id]);
+        $approveduserlist = new \core_privacy\local\request\approved_userlist(
+            $context1,
+            'customcert',
+            [$user1->id, $user2->id]
+        );
         provider::delete_data_for_users($approveduserlist);
 
         // After deletion, the customcert of the 2 students provided above should have been deleted

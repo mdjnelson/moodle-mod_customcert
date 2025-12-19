@@ -29,8 +29,11 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 
-\MoodleQuickForm::registerElementType('customcert_colourpicker',
-    $CFG->dirroot . '/mod/customcert/includes/colourpicker.php', 'MoodleQuickForm_customcert_colourpicker');
+\MoodleQuickForm::registerElementType(
+    'customcert_colourpicker',
+    $CFG->dirroot . '/mod/customcert/includes/colourpicker.php',
+    'MoodleQuickForm_customcert_colourpicker'
+);
 
 /**
  * The form for handling the layout of the customcert instance.
@@ -40,7 +43,6 @@ require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class edit_form extends \moodleform {
-
     /**
      * @var int The id of the template being used.
      */
@@ -82,7 +84,8 @@ class edit_form extends \moodleform {
 
         // Link to add another page, only display it when the template has been created.
         if (isset($this->_customdata['tid'])) {
-            $addpagelink = new \moodle_url('/mod/customcert/edit.php',
+            $addpagelink = new \moodle_url(
+                '/mod/customcert/edit.php',
                 [
                     'tid' => $this->tid,
                     'aid' => 1,
@@ -251,8 +254,14 @@ class edit_form extends \moodleform {
             $table->align = ['left', 'left', 'left'];
             // Loop through and add the elements to the table.
             foreach ($elements as $element) {
-                $elementname = new \core\output\inplace_editable('mod_customcert', 'elementname', $element->id,
-                    true, format_string($element->name), $element->name);
+                $elementname = new \core\output\inplace_editable(
+                    'mod_customcert',
+                    'elementname',
+                    $element->id,
+                    true,
+                    format_string($element->name),
+                    $element->name
+                );
 
                 $row = new \html_table_row();
                 $row->cells[] = $OUTPUT->render($elementname);
@@ -260,13 +269,21 @@ class edit_form extends \moodleform {
                 // Link to edit this element.
                 $link = new \moodle_url($editelementlink, $editelementlinkparams + ['id' => $element->id,
                     'action' => 'edit']);
-                $icons = $OUTPUT->action_icon($link, new \pix_icon('t/edit', get_string('edit')), null,
-                    ['class' => 'action-icon edit-icon']);
+                $icons = $OUTPUT->action_icon(
+                    $link,
+                    new \pix_icon('t/edit', get_string('edit')),
+                    null,
+                    ['class' => 'action-icon edit-icon']
+                );
                 // Link to delete the element.
                 $link = new \moodle_url($editlink, $editlinkparams + ['action' => 'deleteelement',
                     'aid' => $element->id]);
-                $icons .= $OUTPUT->action_icon($link, new \pix_icon('t/delete', get_string('delete')), null,
-                    ['class' => 'action-icon delete-icon']);
+                $icons .= $OUTPUT->action_icon(
+                    $link,
+                    new \pix_icon('t/delete', get_string('delete')),
+                    null,
+                    ['class' => 'action-icon delete-icon']
+                );
                 // Now display any moving arrows if they are needed.
                 if ($numelements > 1) {
                     // Only display the move up arrow if it is not the first.
@@ -288,18 +305,25 @@ class edit_form extends \moodleform {
                 $table->data[] = $row;
             }
             // Create link to order the elements.
-            $link = \html_writer::link(new \moodle_url('/mod/customcert/rearrange.php', ['pid' => $page->id]),
-                get_string('rearrangeelements', 'customcert'));
+            $link = \html_writer::link(
+                new \moodle_url('/mod/customcert/rearrange.php', ['pid' => $page->id]),
+                get_string('rearrangeelements', 'customcert')
+            );
             // Add the table to the form.
             $mform->addElement('static', 'elements_' . $page->id, get_string('elements', 'customcert'), \html_writer::table($table)
-                . \html_writer::tag( 'div', $link));
+                . \html_writer::tag('div', $link));
             $mform->addHelpButton('elements_' . $page->id, 'elements', 'customcert');
         }
 
         $group = [];
         $group[] = $mform->createElement('select', 'element_' . $page->id, '', element_helper::get_available_element_types());
-        $group[] = $mform->createElement('submit', 'addelement_' . $page->id, get_string('addelement', 'customcert'),
-            [], false);
+        $group[] = $mform->createElement(
+            'submit',
+            'addelement_' . $page->id,
+            get_string('addelement', 'customcert'),
+            [],
+            false
+        );
         $mform->addElement('group', 'elementgroup', '', $group, '', false);
 
         // Add option to delete this page if there is more than one page.

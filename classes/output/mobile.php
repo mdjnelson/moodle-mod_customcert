@@ -31,7 +31,6 @@ namespace mod_customcert\output;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mobile {
-
     /**
      * Returns the initial page when viewing the activity for the mobile app.
      *
@@ -55,13 +54,23 @@ class mobile {
         // Set some variables we are going to be using.
         $certificate = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
         $certificate->name = format_string($certificate->name);
-        list($certificate->intro, $certificate->introformat) = \core_external\util::format_text($certificate->intro,
-            $certificate->introformat, $context, 'mod_customcert', 'intro');
+        [$certificate->intro, $certificate->introformat] = \core_external\util::format_text(
+            $certificate->intro,
+            $certificate->introformat,
+            $context,
+            'mod_customcert',
+            'intro'
+        );
 
         // Get any issues this person may have.
         $issue = false;
-        if ($issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $certificate->id],
-                'timecreated DESC')) {
+        if (
+            $issues = $DB->get_records(
+                'customcert_issues',
+                ['userid' => $USER->id, 'customcertid' => $certificate->id],
+                'timecreated DESC'
+            )
+        ) {
             $issue = reset($issues);
         }
 

@@ -36,7 +36,6 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_mod_customcert extends behat_base {
-
     /**
      * Adds an element to the specified page of a template.
      *
@@ -50,8 +49,12 @@ class behat_mod_customcert extends behat_base {
         global $DB;
 
         $template = $DB->get_record('customcert_templates', ['name' => $templatename], '*', MUST_EXIST);
-        $page = $DB->get_record('customcert_pages', ['templateid' => $template->id, 'sequence' => $pagenum],
-            '*', MUST_EXIST);
+        $page = $DB->get_record(
+            'customcert_pages',
+            ['templateid' => $template->id, 'sequence' => $pagenum],
+            '*',
+            MUST_EXIST
+        );
 
         $this->execute('behat_forms::i_set_the_field_to', [$this->escape('element_' . $page->id),
             $this->escape($elementname)]);
@@ -69,8 +72,12 @@ class behat_mod_customcert extends behat_base {
         global $DB;
 
         $template = $DB->get_record('customcert_templates', ['name' => $templatename], '*', MUST_EXIST);
-        $page = $DB->get_record('customcert_pages', ['templateid' => $template->id, 'sequence' => $pagenum],
-            '*', MUST_EXIST);
+        $page = $DB->get_record(
+            'customcert_pages',
+            ['templateid' => $template->id, 'sequence' => $pagenum],
+            '*',
+            MUST_EXIST
+        );
 
         $this->execute('behat_general::i_click_on_in_the', ['Delete page', 'link',
             $this->escape('#id_page_' . $page->id), 'css_element']);
@@ -89,8 +96,12 @@ class behat_mod_customcert extends behat_base {
 
         $certificate = $DB->get_record('customcert', ['name' => $certificatename], '*', MUST_EXIST);
         $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
-        $issue = $DB->get_record('customcert_issues', ['userid' => $user->id, 'customcertid' => $certificate->id],
-            '*', MUST_EXIST);
+        $issue = $DB->get_record(
+            'customcert_issues',
+            ['userid' => $user->id, 'customcertid' => $certificate->id],
+            '*',
+            MUST_EXIST
+        );
 
         $this->execute('behat_forms::i_set_the_field_to', [get_string('code', 'customcert'), $issue->code]);
         $this->execute('behat_forms::press_button', get_string('verify', 'customcert'));
@@ -110,8 +121,12 @@ class behat_mod_customcert extends behat_base {
 
         $certificate = $DB->get_record('customcert', ['name' => $certificatename], '*', MUST_EXIST);
         $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
-        $issue = $DB->get_record('customcert_issues', ['userid' => $user->id, 'customcertid' => $certificate->id],
-            '*', MUST_EXIST);
+        $issue = $DB->get_record(
+            'customcert_issues',
+            ['userid' => $user->id, 'customcertid' => $certificate->id],
+            '*',
+            MUST_EXIST
+        );
 
         $this->execute('behat_forms::i_set_the_field_to', [get_string('code', 'customcert'), $issue->code]);
         $this->execute('behat_forms::press_button', get_string('verify', 'customcert'));

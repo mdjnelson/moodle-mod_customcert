@@ -34,7 +34,6 @@ namespace mod_customcert;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class certificate {
-
     /**
      * Send the file inline to the browser.
      */
@@ -293,7 +292,7 @@ class certificate {
     public static function download_all_for_site(): void {
         global $DB;
 
-        list($namefields, $nameparams) = \core_user\fields::get_sql_fullname();
+        [$namefields, $nameparams] = \core_user\fields::get_sql_fullname();
         $sql = "SELECT ci.*, $namefields as fullname, ct.id as templateid, ct.name as templatename, ct.contextid
                   FROM {customcert_issues} ci
                   JOIN {user} u
@@ -350,7 +349,7 @@ class certificate {
         global $DB;
 
         // Get the conditional SQL.
-        list($conditionssql, $conditionsparams) = self::get_conditional_issues_sql($cm, $groupmode);
+        [$conditionssql, $conditionsparams] = self::get_conditional_issues_sql($cm, $groupmode);
 
         // If it is empty then return an empty array.
         if (empty($conditionsparams)) {
@@ -389,7 +388,7 @@ class certificate {
         global $DB;
 
         // Get the conditional SQL.
-        list($conditionssql, $conditionsparams) = self::get_conditional_issues_sql($cm, $groupmode);
+        [$conditionssql, $conditionsparams] = self::get_conditional_issues_sql($cm, $groupmode);
 
         // If it is empty then return 0.
         if (empty($conditionsparams)) {
@@ -428,7 +427,7 @@ class certificate {
         // Get all users that can manage this certificate to exclude them from the report.
         $certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'));
         $certmanagers = array_merge($certmanagers, array_keys(get_admins()));
-        list($sql, $params) = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
+        [$sql, $params] = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
         $conditionssql .= "AND NOT u.id $sql \n";
         $conditionsparams += $params;
 
@@ -464,7 +463,7 @@ class certificate {
                     return ['', []];
                 }
 
-                list($sql, $params) = $DB->get_in_or_equal($groupusers, SQL_PARAMS_NAMED, 'grp');
+                [$sql, $params] = $DB->get_in_or_equal($groupusers, SQL_PARAMS_NAMED, 'grp');
                 $conditionssql .= "AND u.id $sql ";
                 $conditionsparams += $params;
             }

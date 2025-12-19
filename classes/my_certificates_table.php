@@ -38,7 +38,6 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class my_certificates_table extends \table_sql {
-
     /**
      * @var int $userid The user id
      */
@@ -143,10 +142,12 @@ class my_certificates_table extends \table_sql {
         global $OUTPUT;
 
         $icon = new \pix_icon('download', get_string('download'), 'customcert');
-        $link = new \moodle_url('/mod/customcert/my_certificates.php',
+        $link = new \moodle_url(
+            '/mod/customcert/my_certificates.php',
             ['userid' => $this->userid,
                   'certificateid' => $certificate->id,
-                  'downloadcert' => '1']);
+            'downloadcert' => '1']
+        );
 
         return $OUTPUT->action_link($link, '', null, null, $icon);
     }
@@ -162,8 +163,12 @@ class my_certificates_table extends \table_sql {
 
         $this->pagesize($pagesize, $total);
 
-        $this->rawdata = certificate::get_certificates_for_user($this->userid, $this->get_page_start(),
-            $this->get_page_size(), $this->get_sql_sort());
+        $this->rawdata = certificate::get_certificates_for_user(
+            $this->userid,
+            $this->get_page_start(),
+            $this->get_page_size(),
+            $this->get_sql_sort()
+        );
 
         // Set initial bars.
         if ($useinitialsbar) {
@@ -181,4 +186,3 @@ class my_certificates_table extends \table_sql {
         exit;
     }
 }
-

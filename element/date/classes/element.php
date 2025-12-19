@@ -78,7 +78,6 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
-
     /**
      * This function renders the form elements when adding a customcert element.
      *
@@ -105,8 +104,12 @@ class element extends \mod_customcert\element {
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
 
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_date'),
-            element_helper::get_date_formats());
+        $mform->addElement(
+            'select',
+            'dateformat',
+            get_string('dateformat', 'customcertelement_date'),
+            element_helper::get_date_formats()
+        );
         $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
 
         parent::render_form_elements($mform);
@@ -161,8 +164,12 @@ class element extends \mod_customcert\element {
             // Get the customcert this page belongs to.
             $customcert = $DB->get_record('customcert', ['templateid' => $page->templateid], '*', MUST_EXIST);
             // Now we can get the issue for this user.
-            $issue = $DB->get_record('customcert_issues', ['userid' => $user->id, 'customcertid' => $customcert->id],
-                '*', IGNORE_MULTIPLE);
+            $issue = $DB->get_record(
+                'customcert_issues',
+                ['userid' => $user->id, 'customcertid' => $customcert->id],
+                '*',
+                IGNORE_MULTIPLE
+            );
 
             if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
                 $date = $issue->timecreated;
@@ -257,8 +264,10 @@ class element extends \mod_customcert\element {
         $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
-        return \mod_customcert\element_helper::render_html_content($this,
-            element_helper::get_date_format_string(time(), $dateformat));
+        return \mod_customcert\element_helper::render_html_content(
+            $this,
+            element_helper::get_date_format_string(time(), $dateformat)
+        );
     }
 
     /**

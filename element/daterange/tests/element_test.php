@@ -42,7 +42,6 @@ require_once($CFG->dirroot . '/mod/customcert/element/daterange/tests/fixtures/f
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class element_test extends advanced_testcase {
-
     /**
      * Helper function to build element data.
      *
@@ -260,5 +259,4 @@ final class element_test extends advanced_testcase {
         $date = strtotime('1.02.2024');
         $this->assertEquals('2017-2018-2023-2024', $element->get_daterange_string($date));
     }
-
 }
