@@ -22,11 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_userpicture;
 
 use context_user;
 use html_writer;
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -40,13 +43,13 @@ use user_picture;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param MoodleQuickForm $mform the edit_form instance
      */
-    public function render_form_elements($mform) {
+    public function render_form_elements($mform): void {
         element_helper::render_form_element_width($mform);
 
         element_helper::render_form_element_height($mform);
@@ -88,14 +91,14 @@ class element extends base_element {
      * @param stdClass $data the form data
      * @return string the json encoded array
      */
-    public function save_unique_data($data) {
+    public function save_unique_data($data): string {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'width' => (int) $data->width,
             'height' => (int) $data->height,
         ];
 
-        return json_encode($arrtostore);
+        return (string) json_encode($arrtostore);
     }
 
     /**
@@ -105,7 +108,7 @@ class element extends base_element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview, $user) {
+    public function render($pdf, $preview, $user): void {
         global $CFG;
 
         // If there is no element data, we have nothing to display.
@@ -149,7 +152,7 @@ class element extends base_element {
      *
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(): string {
         global $PAGE, $USER;
 
         // If there is no element data, we have nothing to display.
@@ -188,7 +191,7 @@ class element extends base_element {
      *
      * @param MoodleQuickForm $mform the edit_form instance
      */
-    public function definition_after_data($mform) {
+    public function definition_after_data($mform): void {
         // Set the image, width and height for this element.
         if (!empty($this->get_data())) {
             $imageinfo = json_decode($this->get_data());

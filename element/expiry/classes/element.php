@@ -22,9 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_expiry;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -38,7 +41,7 @@ use stdClass;
  * @copyright  2024 Leon Stringer <leon.stringer@ntlworld.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * Date - Relative expiry date of 1 year
      */
@@ -109,7 +112,7 @@ class element extends base_element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -127,9 +130,9 @@ class element extends base_element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
@@ -233,7 +236,7 @@ class element extends base_element {
      * We will want to update the course module the date element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;
@@ -358,7 +361,7 @@ class element extends base_element {
             return '';
         }
 
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->date = userdate($expiry);
         $expired = ($expiry - time()) / DAYSECS;
 

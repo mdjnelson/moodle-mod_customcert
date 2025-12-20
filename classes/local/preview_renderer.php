@@ -32,6 +32,7 @@ use mod_customcert\element\element_bootstrap;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_renderer;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\html_renderer;
 use mod_customcert\service\pdf_renderer;
 use pdf;
@@ -53,12 +54,16 @@ final class preview_renderer {
     /** @var element_renderer */
     private element_renderer $htmlrenderer;
 
+    /** @var element_repository */
+    private element_repository $repository;
+
     /**
      * Constructor with optional DI for factory.
      *
      * @param element_factory|null $factory Optional injected factory (useful for tests)
+     * @param element_repository|null $repository Optional injected factory (useful for tests)
      */
-    public function __construct(?element_factory $factory = null) {
+    public function __construct(?element_factory $factory = null, ?element_repository $repository = null) {
         if ($factory) {
             $this->factory = $factory;
         } else {
@@ -66,6 +71,7 @@ final class preview_renderer {
             element_bootstrap::register_defaults($registry);
             $this->factory = new element_factory($registry);
         }
+        $this->repository = $repository ?? new element_repository($this->factory);
         $this->pdfrenderer = new pdf_renderer();
         $this->htmlrenderer = new html_renderer();
     }
@@ -98,18 +104,9 @@ final class preview_renderer {
         // Reset cursor to top-left after adding the page and setting margins.
         $pdf->SetXY(0, 0);
 
-        // Load element records.
-        $records = $DB->get_records(
-            'customcert_elements',
-            ['pageid' => $pageid],
-            'sequence ASC'
-        );
-
-        foreach ($records as $record) {
-            if (empty($record->element)) {
-                continue;
-            }
-            $element = $this->factory->create($record->element, $record);
+        // Load elements via repository and render.
+        $elements = $this->repository->load_by_page_id($pageid);
+        foreach ($elements as $element) {
             $this->pdfrenderer->render_pdf($element, $pdf, true, $user);
         }
     }
@@ -126,12 +123,8 @@ final class preview_renderer {
         global $DB;
 
         $html = '';
-        $records = $DB->get_records('customcert_elements', ['pageid' => $pageid], 'sequence ASC');
-        foreach ($records as $record) {
-            if (empty($record->element)) {
-                continue;
-            }
-            $element = $this->factory->create($record->element, $record);
+        $elements = $this->repository->load_by_page_id($pageid);
+        foreach ($elements as $element) {
             $html .= $this->htmlrenderer->render_html($element);
         }
         return $html;

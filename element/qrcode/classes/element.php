@@ -22,10 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_qrcode;
 
 use context;
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use moodle_url;
@@ -36,6 +39,7 @@ use Throwable;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
 require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
 
 /**
@@ -45,7 +49,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * @copyright  2019 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * @var string The barcode type.
      */
@@ -132,7 +136,7 @@ class element extends base_element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview, $user) {
+    public function render($pdf, $preview, $user): void {
         global $DB;
 
         // If there is no element data, we have nothing to display.
@@ -217,10 +221,10 @@ class element extends base_element {
      *
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(): string {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
-            return;
+            return '';
         }
 
         $imageinfo = json_decode($this->get_data());

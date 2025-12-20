@@ -22,10 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_grade;
 
 use grade_item;
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -48,7 +51,7 @@ require_once($CFG->libdir . '/gradelib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * This function renders the form elements when adding a customcert element.
      *
@@ -172,7 +175,7 @@ class element extends base_element {
 
         $courseitem = grade_item::fetch_course_item($COURSE->id);
 
-        $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
+        $grade = grade_format_gradevalue(100, $courseitem, true, $gradeinfo->gradeformat);
 
         return element_helper::render_html_content($this, $grade);
     }
@@ -203,7 +206,7 @@ class element extends base_element {
      * We will want to update the course module the grade element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;
