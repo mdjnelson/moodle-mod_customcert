@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-$plugin->version   = 2025041404; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2025041400; // Requires this Moodle version (5.0).
+$plugin->version   = 2025122000; // The current module version (Date: YYYYMMDDXX).
+$plugin->requires  = 2025121900; // Requires this Moodle version (5.2).
 $plugin->cron      = 0; // Period for cron to check this module (secs).
 $plugin->component = 'mod_customcert';
 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "5.0.2"; // User-friendly version number.
+$plugin->maturity  = MATURITY_ALPHA;
+$plugin->release   = "5.2dev (Build: 20251220)"; // User-friendly version number.
