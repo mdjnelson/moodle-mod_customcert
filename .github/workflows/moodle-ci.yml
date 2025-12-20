@@ -8,7 +8,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -28,32 +28,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Moodle 5.0
+          # Main
           - php: '8.4'
-            moodle-branch: 'MOODLE_500_STABLE'
+            moodle-branch: 'main'
             database: pgsql
           - php: '8.4'
-            moodle-branch: 'MOODLE_500_STABLE'
+            moodle-branch: 'main'
             database: mariadb
-          - php: '8.2'
-            moodle-branch: 'MOODLE_500_STABLE'
+          - php: '8.3'
+            moodle-branch: 'main'
             database: pgsql
-          - php: '8.2'
-            moodle-branch: 'MOODLE_500_STABLE'
+          - php: '8.3'
+            moodle-branch: 'main'
             database: mariadb
-          # Moodle 5.1
-          - php: '8.4'
-            moodle-branch: 'MOODLE_501_STABLE'
-            database: pgsql
-          - php: '8.4'
-            moodle-branch: 'MOODLE_501_STABLE'
-            database: mariadb
-          - php: '8.2'
-            moodle-branch: 'MOODLE_501_STABLE'
-            database: pgsql
-          - php: '8.2'
-            moodle-branch: 'MOODLE_501_STABLE'
-            database: mariadb
+
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
