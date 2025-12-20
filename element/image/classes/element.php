@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_image;
 
 use context_course;
@@ -30,6 +32,7 @@ use core_collator;
 use html_writer;
 use mod_customcert\certificate;
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use moodle_url;
@@ -45,7 +48,7 @@ use stored_file;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * @var array The file manager options.
      */

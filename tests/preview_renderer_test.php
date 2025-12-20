@@ -79,4 +79,49 @@ final class preview_renderer_test extends advanced_testcase {
         // For an empty page (no elements) we expect empty string or minimal markup from renderers.
         $this->assertNotNull($html);
     }
+
+    /**
+     * Tests that the render_html_page method returns non-empty HTML when a Text element exists.
+     *
+     * @covers \mod_customcert\local\preview_renderer::render_html_page
+     * @return void
+     */
+    public function test_render_html_page_with_text_element(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $templateid = $DB->insert_record('customcert_templates', (object) [
+            'name' => 'Text Test Template',
+            'contextid' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $pageid = $DB->insert_record('customcert_pages', (object) [
+            'templateid' => $templateid,
+            'width' => 210,
+            'height' => 297,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'font' => 'times',
+            'name' => 'Test Text',
+            'data' => 'Hello World',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $preview = new preview_renderer();
+        $html = $preview->render_html_page((int)$pageid);
+
+        $this->assertIsString($html);
+        $this->assertStringContainsString('Hello World', $html);
+    }
 }

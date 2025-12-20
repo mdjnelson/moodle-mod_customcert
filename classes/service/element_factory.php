@@ -69,10 +69,13 @@ class element_factory {
      */
     public function create(string $type, stdClass $record): element_interface {
         $class = $this->registry->get($type);
-        // Instantiate the legacy element class and wrap it with the adapter so
-        // callers always receive an element_interface instance.
-        $legacy = new $class($record);
-        return new legacy_element_adapter($legacy);
+        // Instantiate the element class. If it already implements element_interface
+        // (migrated element), return it directly; otherwise wrap with the legacy adapter.
+        $instance = new $class($record);
+        if ($instance instanceof element_interface) {
+            return $instance;
+        }
+        return new legacy_element_adapter($instance);
     }
 
     /**

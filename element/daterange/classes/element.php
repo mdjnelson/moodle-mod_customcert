@@ -22,9 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_daterange;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -42,7 +45,7 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * Max recurring period in seconds.
      */
@@ -569,8 +572,7 @@ class element extends base_element {
      *
      * @param int $date Unix timestamp date to check.
      * @param stdClass $range Range object.
-     *
-     * @return stdClass || null
+     * @return stdClass|null
      */
     protected function get_matched_recurring_range($date, stdClass $range) {
         if (!$this->is_date_in_recurring_range($date, $range)) {
@@ -623,7 +625,6 @@ class element extends base_element {
      *
      * @param string $datestring The date string
      * @param array $formatdata A list of format data.
-     *
      * @return string
      */
     protected function format_date_string($datestring, array $formatdata) {
@@ -715,7 +716,7 @@ class element extends base_element {
     public function render_html() {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
-            return;
+            return '';
         }
 
         return element_helper::render_html_content($this, get_string('preview', 'customcertelement_daterange', $this->get_name()));
@@ -727,7 +728,7 @@ class element extends base_element {
      * We will want to update the course module the date element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;

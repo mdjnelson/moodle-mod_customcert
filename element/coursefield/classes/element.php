@@ -23,13 +23,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_coursefield;
 
 use core_collator;
 use core_course\customfield\course_handler;
-use MoodleQuickForm;
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use MoodleQuickForm;
 use pdf;
 use stdClass;
 
@@ -40,7 +43,7 @@ use stdClass;
  * @copyright  2019 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * This function renders the form elements when adding a customcert element.
      *

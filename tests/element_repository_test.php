@@ -1,0 +1,90 @@
+<?php
+// This file is part of the customcert module for Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Unit tests for the element repository.
+ *
+ * @package    mod_customcert
+ * @category   test
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+declare(strict_types=1);
+
+namespace mod_customcert;
+
+use advanced_testcase;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_registry;
+use mod_customcert\service\element_repository;
+use customcertelement_text\element as text_element;
+
+/**
+ * Unit tests for the element repository.
+ */
+final class element_repository_test extends advanced_testcase {
+    /**
+     * Test that elements are loaded in sequence order.
+     *
+     * @covers \mod_customcert\service\element_repository::load_by_page_id
+     */
+    public function test_load_by_page_id_ordering(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $registry = new element_registry();
+        $registry->register('text', text_element::class);
+        $factory = new element_factory($registry);
+        $repository = new element_repository($factory);
+
+        $pageid = 100;
+
+        // Insert elements out of order.
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'Second',
+            'sequence' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'First',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'Third',
+            'sequence' => 3,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $elements = $repository->load_by_page_id($pageid);
+
+        $this->assertCount(3, $elements);
+        $this->assertEquals('First', $elements[0]->get_name());
+        $this->assertEquals('Second', $elements[1]->get_name());
+        $this->assertEquals('Third', $elements[2]->get_name());
+    }
+}

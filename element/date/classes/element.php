@@ -22,9 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_date;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -73,6 +76,7 @@ define('CUSTOMCERT_DATE_ENROLMENT_START', '-6');
  */
 define('CUSTOMCERT_DATE_ENROLMENT_END', '-7');
 
+global $CFG;
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
 /**
@@ -82,13 +86,13 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element {
+class element extends base_element implements element_interface {
     /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param MoodleQuickForm $mform the edit_form instance
      */
-    public function render_form_elements($mform) {
+    public function render_form_elements($mform): void {
         global $CFG, $COURSE;
 
         // Get the possible date options.
@@ -127,7 +131,7 @@ class element extends base_element {
      * @param stdClass $data the form data
      * @return string the json encoded array
      */
-    public function save_unique_data($data) {
+    public function save_unique_data($data): string {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'dateitem' => $data->dateitem,
@@ -145,7 +149,7 @@ class element extends base_element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
-    public function render($pdf, $preview, $user) {
+    public function render($pdf, $preview, $user): void {
         global $DB;
 
         // If there is no element data, we have nothing to display.
@@ -301,7 +305,7 @@ class element extends base_element {
      * We will want to update the course module the date element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;

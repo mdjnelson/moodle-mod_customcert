@@ -22,12 +22,15 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_digitalsignature;
 
 use context_course;
 use context_system;
 use core_collator;
 use mod_customcert\certificate;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -41,7 +44,7 @@ use stored_file;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element {
+class element extends \customcertelement_image\element implements element_interface {
     /**
      * @var array The file manager options for the certificate.
      */

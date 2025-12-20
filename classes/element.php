@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace mod_customcert;
 
 use coding_exception;
@@ -144,18 +146,30 @@ abstract class element {
         // Keeping this for legacy reasons so we do not break third-party elements.
         $this->element = clone($element);
 
-        $this->id = $element->id;
-        $this->pageid = $element->pageid;
-        $this->name = $element->name;
-        $this->data = $element->data;
-        $this->font = $element->font;
-        $this->fontsize = $element->fontsize;
-        $this->colour = $element->colour;
-        $this->posx = $element->posx;
-        $this->posy = $element->posy;
-        $this->width = $element->width;
-        $this->refpoint = $element->refpoint;
-        $this->showposxy = isset($showposxy) && $showposxy;
+        // Normalise types defensively — DB/fixtures may provide strings for numeric fields.
+        // Helper: return null if unset or empty string, otherwise cast.
+        $optional = static function ($value, callable $cast) {
+            return (isset($value) && $value !== '') ? $cast($value) : null;
+        };
+
+        // Required scalars.
+        $this->id = isset($element->id) ? (int) $element->id : 0;
+        $this->pageid = isset($element->pageid) ? (int) $element->pageid : 0;
+        $this->name = isset($element->name) ? (string) $element->name : '';
+
+        // Mixed data payload.
+        $this->data = $element->data ?? null;
+
+        // Optional fields (preserve NULL when unset or empty string).
+        $this->font = $optional($element->font ?? null, 'strval');
+        $this->fontsize = $optional($element->fontsize ?? null, 'intval');
+        $this->colour = $optional($element->colour ?? null, 'strval');
+        $this->posx = $optional($element->posx ?? null, 'intval');
+        $this->posy = $optional($element->posy ?? null, 'intval');
+        $this->width = $optional($element->width ?? null, 'intval');
+        $this->refpoint = $optional($element->refpoint ?? null, 'intval');
+
+        $this->showposxy = (bool) ($showposxy ?? false);
         $this->set_alignment($element->alignment ?? self::ALIGN_LEFT);
     }
 
@@ -164,7 +178,7 @@ abstract class element {
      *
      * @return int
      */
-    public function get_id() {
+    public function get_id(): int {
         return $this->id;
     }
 
@@ -173,7 +187,7 @@ abstract class element {
      *
      * @return int
      */
-    public function get_pageid() {
+    public function get_pageid(): int {
         return $this->pageid;
     }
 
@@ -182,7 +196,7 @@ abstract class element {
      *
      * @return int
      */
-    public function get_name() {
+    public function get_name(): string {
         return $this->name;
     }
 
@@ -191,7 +205,7 @@ abstract class element {
      *
      * @return mixed
      */
-    public function get_data() {
+    public function get_data(): mixed {
         return $this->data;
     }
 
@@ -200,8 +214,8 @@ abstract class element {
      *
      * @return string
      */
-    public function get_font() {
-        return $this->font;
+    public function get_font(): ?string {
+        return $this->font ?? null;
     }
 
     /**
@@ -209,8 +223,8 @@ abstract class element {
      *
      * @return int
      */
-    public function get_fontsize() {
-        return $this->fontsize;
+    public function get_fontsize(): ?int {
+        return $this->fontsize ?? null;
     }
 
     /**
@@ -218,8 +232,8 @@ abstract class element {
      *
      * @return string
      */
-    public function get_colour() {
-        return $this->colour;
+    public function get_colour(): ?string {
+        return $this->colour ?? null;
     }
 
     /**
@@ -227,8 +241,8 @@ abstract class element {
      *
      * @return int
      */
-    public function get_posx() {
-        return $this->posx;
+    public function get_posx(): ?int {
+        return $this->posx ?? null;
     }
 
     /**
@@ -236,8 +250,8 @@ abstract class element {
      *
      * @return int
      */
-    public function get_posy() {
-        return $this->posy;
+    public function get_posy(): ?int {
+        return $this->posy ?? null;
     }
 
     /**
@@ -245,8 +259,8 @@ abstract class element {
      *
      * @return int
      */
-    public function get_width() {
-        return $this->width;
+    public function get_width(): ?int {
+        return $this->width ?? null;
     }
 
     /**
@@ -254,8 +268,8 @@ abstract class element {
      *
      * @return int
      */
-    public function get_refpoint() {
-        return $this->refpoint;
+    public function get_refpoint(): ?int {
+        return $this->refpoint ?? null;
     }
 
     /**
@@ -263,7 +277,7 @@ abstract class element {
      *
      * @return string The current alignment value.
      */
-    public function get_alignment() {
+    public function get_alignment(): string {
         return $this->alignment ?? self::ALIGN_LEFT;
     }
 

@@ -27,11 +27,23 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use stdClass;
 
 /**
  * Contract and minimal stub for loading/saving/copying elements.
  */
 class element_repository {
+    /** @var element_factory */
+    private element_factory $factory;
+
+    /**
+     * Constructor.
+     *
+     * @param element_factory $factory
+     */
+    public function __construct(element_factory $factory) {
+        $this->factory = $factory;
+    }
     /**
      * Load elements for a given page id.
      *
@@ -39,7 +51,17 @@ class element_repository {
      * @return element_interface[]
      */
     public function load_by_page_id(int $pageid): array {
-        return [];
+        global $DB;
+
+        $records = $DB->get_records('customcert_elements', ['pageid' => $pageid], 'sequence ASC');
+        $elements = [];
+        foreach ($records as $record) {
+            if (empty($record->element)) {
+                continue;
+            }
+            $elements[] = $this->factory->create($record->element, $record);
+        }
+        return $elements;
     }
 
     /**
@@ -49,7 +71,14 @@ class element_repository {
      * @return element_interface[]
      */
     public function load_by_template_id(int $templateid): array {
-        return [];
+        global $DB;
+
+        $pages = $DB->get_records('customcert_pages', ['templateid' => $templateid], 'sequence ASC');
+        $result = [];
+        foreach ($pages as $page) {
+            $result = array_merge($result, $this->load_by_page_id((int)$page->id));
+        }
+        return $result;
     }
 
     /**

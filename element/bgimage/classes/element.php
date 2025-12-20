@@ -22,9 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace customcertelement_bgimage;
 
 use html_writer;
+use mod_customcert\element\element_interface;
 use moodle_url;
 use MoodleQuickForm;
 use pdf;
@@ -37,7 +40,7 @@ use stdClass;
  * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element {
+class element extends \customcertelement_image\element implements element_interface {
     /**
      * This function renders the form elements when adding a customcert element.
      *
