@@ -87,4 +87,104 @@ final class element_repository_test extends advanced_testcase {
         $this->assertEquals('Second', $elements[1]->get_name());
         $this->assertEquals('Third', $elements[2]->get_name());
     }
+
+    /**
+     * Test saving an element.
+     *
+     * @covers \mod_customcert\service\element_repository::save
+     */
+    public function test_save(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $registry = new element_registry();
+        $registry->register('text', text_element::class);
+        $factory = new element_factory($registry);
+        $repository = new element_repository($factory);
+
+        $pageid = 100;
+        $id = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'Original Name',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+            'data' => 'Original Data',
+        ]);
+
+        $elements = $repository->load_by_page_id($pageid);
+        $element = $elements[0];
+
+        // Modify the element.
+        // Since element properties are often private/protected and only accessible via getters in the interface,
+        // and there are no setters in the interface, we usually modify the database record or have a way to
+        // update the object. In this case, we'll mimic a change by creating a new instance with updated data
+        // or just updating the DB record and re-loading if we had setters.
+        // Wait, the element_interface only has getters. How are elements supposed to be updated?
+        // Usually through a form. For this test, we can use a mock or a special test element if needed.
+        // But the task is to implement save() that takes an element_interface.
+
+        // Let's create a record that represents the updated state.
+        $updatedrecord = $DB->get_record('customcert_elements', ['id' => $id]);
+        $updatedrecord->name = 'Updated Name';
+        $updatedrecord->data = 'Updated Data';
+
+        $updatedelement = $factory->create('text', $updatedrecord);
+
+        $repository->save($updatedelement);
+
+        $savedrecord = $DB->get_record('customcert_elements', ['id' => $id]);
+        $this->assertEquals('Updated Name', $savedrecord->name);
+        // Note: text element save_unique_data might format the data.
+        $this->assertStringContainsString('Updated Data', $savedrecord->data);
+    }
+
+    /**
+     * Test copying a page.
+     *
+     * @covers \mod_customcert\service\element_repository::copy_page
+     */
+    public function test_copy_page(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $registry = new element_registry();
+        $registry->register('text', text_element::class);
+        $factory = new element_factory($registry);
+        $repository = new element_repository($factory);
+
+        $frompageid = 100;
+        $topageid = 200;
+
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $frompageid,
+            'element' => 'text',
+            'name' => 'Element 1',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $frompageid,
+            'element' => 'text',
+            'name' => 'Element 2',
+            'sequence' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $count = $repository->copy_page($frompageid, $topageid);
+
+        $this->assertEquals(2, $count);
+        $newelements = $DB->get_records('customcert_elements', ['pageid' => $topageid], 'sequence ASC');
+        $this->assertCount(2, $newelements);
+        $newelements = array_values($newelements);
+        $this->assertEquals('Element 1', $newelements[0]->name);
+        $this->assertEquals('Element 2', $newelements[1]->name);
+        $this->assertEquals(1, $newelements[0]->sequence);
+        $this->assertEquals(2, $newelements[1]->sequence);
+    }
 }
