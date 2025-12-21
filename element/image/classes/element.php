@@ -34,6 +34,7 @@ use mod_customcert\certificate;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
 use pdf;
@@ -202,8 +203,9 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user) {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
@@ -217,23 +219,27 @@ class element extends base_element implements element_interface {
         }
 
         if ($file = $this->get_file()) {
-            $location = make_request_directory() . '/target';
-            $file->copy_content_to($location);
-
-            // Check if the alpha channel is set, if it is, use it.
-            if (isset($imageinfo->alphachannel)) {
-                $pdf->SetAlpha($imageinfo->alphachannel);
-            }
-
-            $mimetype = $file->get_mimetype();
-            if ($mimetype == 'image/svg+xml') {
-                $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            if ($renderer) {
+                $this->render_html($renderer);
             } else {
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
-            }
+                $location = make_request_directory() . '/target';
+                $file->copy_content_to($location);
 
-            // Restore to full opacity.
-            $pdf->SetAlpha(1);
+                // Check if the alpha channel is set, if it is, use it.
+                if (isset($imageinfo->alphachannel)) {
+                    $pdf->SetAlpha($imageinfo->alphachannel);
+                }
+
+                $mimetype = $file->get_mimetype();
+                if ($mimetype == 'image/svg+xml') {
+                    $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                } else {
+                    $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                }
+
+                // Restore to full opacity.
+                $pdf->SetAlpha(1);
+            }
         }
     }
 
@@ -243,9 +249,10 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(?element_renderer $renderer = null): string {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
@@ -298,8 +305,16 @@ class element extends base_element implements element_interface {
                 $style .= 'height: ' . $imageinfo->height . 'mm';
             }
 
-            return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+            $content = html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+
+            if ($renderer) {
+                return (string) $renderer->render_content($this, $content);
+            }
+
+            return $content;
         }
+
+        return '';
     }
 
     /**

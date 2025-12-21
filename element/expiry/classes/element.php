@@ -29,6 +29,7 @@ namespace customcertelement_expiry;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
@@ -133,10 +134,9 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user) {
-        global $DB;
-
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
@@ -150,20 +150,29 @@ class element extends base_element implements element_interface {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
+            $content = '';
             if ($dateformat == 'validfor') {
                 if ($dateitem == self::EXPIRY_ONE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 1 year');
+                    $content = 'Valid for 1 year';
                 } else if ($dateitem == self::EXPIRY_TWO) {
-                    element_helper::render_content($pdf, $this, 'Valid for 2 years');
+                    $content = 'Valid for 2 years';
                 } else if ($dateitem == self::EXPIRY_THREE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 3 years');
+                    $content = 'Valid for 3 years';
                 } else if ($dateitem == self::EXPIRY_FOUR) {
-                    element_helper::render_content($pdf, $this, 'Valid for 4 years');
+                    $content = 'Valid for 4 years';
                 } else if ($dateitem == self::EXPIRY_FIVE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 5 years');
+                    $content = 'Valid for 5 years';
                 }
             } else {
-                element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
+                $content = element_helper::get_date_format_string($date, $dateformat);
+            }
+
+            if (!empty($content)) {
+                if ($renderer) {
+                    $renderer->render_content($this, $content);
+                } else {
+                    element_helper::render_content($pdf, $this, $content);
+                }
             }
         }
     }
@@ -174,12 +183,13 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(?element_renderer $renderer = null): string {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
-            return;
+            return '';
         }
 
         // Decode the information stored in the database.
@@ -187,24 +197,35 @@ class element extends base_element implements element_interface {
         $dateformat = $dateinfo->dateformat;
         $dateitem = $dateinfo->dateitem;
 
+        $content = '';
         if ($dateformat == 'validfor') {
             if ($dateitem == self::EXPIRY_ONE) {
-                return element_helper::render_html_content($this, get_string('validfor1year', 'customcertelement_expiry'));
+                $content = get_string('validfor1year', 'customcertelement_expiry');
             } else if ($dateitem == self::EXPIRY_TWO) {
-                return element_helper::render_html_content($this, get_string('validfor2years', 'customcertelement_expiry'));
+                $content = get_string('validfor2years', 'customcertelement_expiry');
             } else if ($dateitem == self::EXPIRY_THREE) {
-                return element_helper::render_html_content($this, get_string('validfor3years', 'customcertelement_expiry'));
+                $content = get_string('validfor3years', 'customcertelement_expiry');
             } else if ($dateitem == self::EXPIRY_FOUR) {
-                return element_helper::render_html_content($this, get_string('validfor4years', 'customcertelement_expiry'));
+                $content = get_string('validfor4years', 'customcertelement_expiry');
             } else if ($dateitem == self::EXPIRY_FIVE) {
-                return element_helper::render_html_content($this, get_string('validfor5years', 'customcertelement_expiry'));
+                $content = get_string('validfor5years', 'customcertelement_expiry');
             }
         } else {
-            return element_helper::render_html_content($this, element_helper::get_date_format_string(
+            $content = element_helper::get_date_format_string(
                 strtotime($this->relative[$dateitem], time()),
                 $dateformat
-            ));
+            );
         }
+
+        if (empty($content)) {
+            return '';
+        }
+
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $content);
+        }
+
+        return element_helper::render_html_content($this, $content);
     }
 
     /**
@@ -322,7 +343,7 @@ class element extends base_element implements element_interface {
             return 0;
         }
 
-        return strtotime($this->relative[$dateitem], $starttime);
+        return strtotime($this->relative[$dateitem], (int) $starttime);
     }
 
     /**

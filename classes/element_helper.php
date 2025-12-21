@@ -26,13 +26,15 @@ namespace mod_customcert;
 
 use context;
 use context_module;
-use core_plugin_manager;
+use mod_customcert\element\element_interface;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
 use TCPDF_COLORS;
 
 defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
 
 require_once($CFG->libdir . '/grade/constants.php');
 require_once($CFG->dirroot . '/grade/lib.php');
@@ -67,13 +69,14 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param element $element the customcert element
+     * @param element_interface $element the customcert element
      * @param string $content the content to render
      */
-    public static function render_content($pdf, $element, $content) {
+    public static function render_content(pdf $pdf, element_interface $element, string $content) {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
-        $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($element->get_colour(), $fontcolour);
+        $colour = $element->get_colour() ?? '#000000';
+        $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
         $x = $element->get_posx();
@@ -119,11 +122,11 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element $element the customcert element
+     * @param element_interface $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
-    public static function render_html_content($element, $content) {
+    public static function render_html_content(element_interface $element, string $content): string {
         [$font, $attr] = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
@@ -133,7 +136,9 @@ class element_helper {
             $fontstyle .= '; font-style: italic';
         }
 
-        $style = $fontstyle . '; color: ' . $element->get_colour() . '; font-size: ' . $element->get_fontsize() . 'pt;';
+        $colour = $element->get_colour() ?? '#000000';
+        $fontsize = $element->get_fontsize() ?? 12;
+        $style = $fontstyle . '; color: ' . $colour . '; font-size: ' . $fontsize . 'pt;';
         if ($element->get_width()) {
             $style .= ' width: ' . $element->get_width() . 'mm';
         }
@@ -143,7 +148,7 @@ class element_helper {
     /**
      * Helper function to render the font elements.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_font($mform) {
         $mform->addElement('select', 'font', get_string('font', 'customcert'), \mod_customcert\certificate::get_fonts());
@@ -164,7 +169,7 @@ class element_helper {
     /**
      * Helper function to render the colour elements.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_colour($mform) {
         $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
@@ -176,7 +181,7 @@ class element_helper {
     /**
      * Helper function to render the position elements.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_position($mform) {
         $mform->addElement('text', 'posx', get_string('posx', 'customcert'), ['size' => 10]);
@@ -192,7 +197,7 @@ class element_helper {
     /**
      * Helper function to render the width element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_width($mform) {
         $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), ['size' => 10]);
@@ -204,7 +209,7 @@ class element_helper {
     /**
      * Helper function to render the height element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_height($mform) {
         $mform->addElement('text', 'height', get_string('elementheight', 'customcert'), ['size' => 10]);
@@ -216,7 +221,7 @@ class element_helper {
     /**
      * Helper function to render the refpoint element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_refpoint($mform) {
         $refpointoptions = [];
@@ -233,7 +238,7 @@ class element_helper {
     /**
      * Helper function to render the alignment form element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_alignment($mform) {
         $alignmentoptions = [];
@@ -352,16 +357,20 @@ class element_helper {
     /**
      * Returns the font used for this element.
      *
-     * @param \mod_customcert\element $element the customcert element
+     * @param element_interface $element the customcert element
      * @return array the font and font attributes
      */
-    public static function get_font($element) {
+    public static function get_font(element_interface $element) {
         // Variable for the font.
         $font = $element->get_font();
+        // If there is no font, then we have nothing to do.
+        if (empty($font)) {
+            return ['', ''];
+        }
         // Get the last two characters of the font name.
         $fontlength = strlen($font);
         $lastchar = $font[$fontlength - 1];
-        $secondlastchar = $font[$fontlength - 2];
+        $secondlastchar = ($fontlength > 1) ? $font[$fontlength - 2] : '';
         // The attributes of the font.
         $attr = '';
         // Check if the last character is 'i'.

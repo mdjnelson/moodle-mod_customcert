@@ -30,6 +30,7 @@ use mod_customcert\event\page_updated;
 use mod_customcert\event\template_created;
 use mod_customcert\event\template_deleted;
 use mod_customcert\event\template_updated;
+use mod_customcert\local\preview_renderer;
 use pdf;
 use stdClass;
 
@@ -315,25 +316,9 @@ class template {
             $pdf->SetTitle($filename);
 
             // Loop through the pages and display their content.
+            $previewrenderer = new preview_renderer();
             foreach ($pages as $page) {
-                // Add the page to the PDF.
-                if ($page->width > $page->height) {
-                    $orientation = 'L';
-                } else {
-                    $orientation = 'P';
-                }
-                $pdf->AddPage($orientation, [$page->width, $page->height]);
-                $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
-                // Get the elements for the page.
-                if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id], 'sequence ASC')) {
-                    // Loop through and display.
-                    foreach ($elements as $element) {
-                        // Get an instance of the element class.
-                        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                            $e->render($pdf, $preview, $user);
-                        }
-                    }
-                }
+                $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user);
             }
 
             // Restore original language if we changed it.

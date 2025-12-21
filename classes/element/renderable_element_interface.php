@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\element;
 
+use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
@@ -41,13 +42,15 @@ interface renderable_element_interface {
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
+     * @param element_renderer|null $renderer
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user): void;
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void;
 
     /**
      * Render the element into HTML for the designer UI.
      *
+     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html(): string;
+    public function render_html(?element_renderer $renderer = null): string;
 }

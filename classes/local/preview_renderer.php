@@ -106,6 +106,9 @@ final class preview_renderer {
 
         // Load elements via repository and render.
         $elements = $this->repository->load_by_page_id($pageid);
+        if ($this->pdfrenderer instanceof pdf_renderer) {
+            $this->pdfrenderer->set_pdf($pdf);
+        }
         foreach ($elements as $element) {
             $this->pdfrenderer->render_pdf($element, $pdf, true, $user);
         }

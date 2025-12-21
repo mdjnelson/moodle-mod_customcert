@@ -30,12 +30,14 @@ use context;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
 use pdf;
 use stdClass;
 use TCPDF2DBarcode;
 use Throwable;
+
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -135,8 +137,9 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
         // If there is no element data, we have nothing to display.
@@ -196,20 +199,24 @@ class element extends base_element implements element_interface {
             $qrcodeurl = $qrcodeurl->out(false);
         }
 
-        try {
-            $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-            $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
+        if ($renderer) {
+            $this->render_html($renderer);
+        } else {
+            try {
+                $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+                $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
 
-            $location = make_request_directory() . '/target';
-            file_put_contents($location, $image);
+                $location = make_request_directory() . '/target';
+                file_put_contents($location, $image);
 
-            $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
-        } catch (Throwable $e) {
-            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
-                debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            } catch (Throwable $e) {
+                if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                    debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+
+                return;
             }
-
-            return;
         }
     }
 
@@ -219,9 +226,10 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html(): string {
+    public function render_html(?element_renderer $renderer = null): string {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
@@ -234,8 +242,14 @@ class element extends base_element implements element_interface {
 
         try {
             $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-            return $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
-        } catch (Throwable $e) {
+            $content = $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
+
+            if ($renderer) {
+                return (string) $renderer->render_content($this, $content);
+            }
+
+            return $content;
+        } catch (\Throwable $e) {
             if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                 debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
