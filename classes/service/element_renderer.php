@@ -52,4 +52,13 @@ interface element_renderer {
      * @return string
      */
     public function render_html(element_interface $element): string;
+
+    /**
+     * Common behaviour for rendering specified content.
+     *
+     * @param element_interface $element
+     * @param string $content
+     * @return mixed
+     */
+    public function render_content(element_interface $element, string $content);
 }

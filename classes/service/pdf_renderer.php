@@ -27,14 +27,28 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element_helper;
 use pdf;
 use stdClass;
 
 /**
- * Simple PDF renderer (scaffolding only; not wired yet).
+ * Simple PDF renderer.
  */
 final class pdf_renderer implements element_renderer {
+    /** @var pdf|null */
+    private ?pdf $pdf = null;
+
+    /**
+     * Set the PDF.
+     *
+     * @param pdf $pdf
+     */
+    public function set_pdf(pdf $pdf): void {
+        $this->pdf = $pdf;
+    }
+
     /**
      * Renders PDF.
      *
@@ -45,16 +59,30 @@ final class pdf_renderer implements element_renderer {
      * @return void
      */
     public function render_pdf(element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
+        if ($element instanceof renderable_element_interface) {
+            $element->render($pdf, $preview, $user, $this);
+            return;
+        }
+
         // If adapter, delegate to wrapped legacy element's render().
         if ($element instanceof legacy_element_adapter) {
             $legacy = $element->get_inner();
-            $legacy->render($pdf, $preview, $user);
+            $legacy->render($pdf, $preview, $user, $this);
             return;
         }
-        // Otherwise call render if exposed directly.
-        if (method_exists($element, 'render')) {
-            $element->render($pdf, $preview, $user);
+    }
+
+    /**
+     * Common behaviour for rendering specified content on the pdf.
+     *
+     * @param element_interface $element the customcert element
+     * @param string $content the content to render
+     */
+    public function render_content(element_interface $element, string $content): void {
+        if ($this->pdf === null) {
+            throw new \coding_exception('PDF object not set in pdf_renderer');
         }
+        element_helper::render_content($this->pdf, $element, $content);
     }
 
     /**

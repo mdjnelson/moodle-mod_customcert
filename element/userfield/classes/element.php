@@ -32,6 +32,7 @@ use core_user\fields;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -101,9 +102,15 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user): void {
-        element_helper::render_content($pdf, $this, $this->get_user_field_value($user, $preview));
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+        $value = $this->get_user_field_value($user, $preview);
+        if ($renderer) {
+            $renderer->render_content($this, $value);
+        } else {
+            element_helper::render_content($pdf, $this, $value);
+        }
     }
 
     /**
@@ -112,12 +119,18 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html(): string {
+    public function render_html(?element_renderer $renderer = null): string {
         global $USER;
 
-        return element_helper::render_html_content($this, $this->get_user_field_value($USER, true));
+        $value = $this->get_user_field_value($USER, true);
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $value);
+        }
+
+        return element_helper::render_html_content($this, $value);
     }
 
     /**

@@ -33,6 +33,7 @@ use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
 use stdClass;
+use mod_customcert\service\element_renderer;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -148,8 +149,9 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
         // If there is no element data, we have nothing to display.
@@ -251,7 +253,12 @@ class element extends base_element implements element_interface {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
+            $content = element_helper::get_date_format_string($date, $dateformat);
+            if ($renderer) {
+                $renderer->render_content($this, $content);
+            } else {
+                element_helper::render_content($pdf, $this, $content);
+            }
         }
     }
 
@@ -261,22 +268,25 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(?element_renderer $renderer = null): string {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
-            return;
+            return '';
         }
 
         // Decode the information stored in the database.
         $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
-        return element_helper::render_html_content(
-            $this,
-            element_helper::get_date_format_string(time(), $dateformat)
-        );
+        $content = element_helper::get_date_format_string(time(), $dateformat);
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $content);
+        }
+
+        return element_helper::render_html_content($this, $content);
     }
 
     /**

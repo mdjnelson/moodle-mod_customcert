@@ -28,9 +28,11 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -44,7 +46,7 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element {
+abstract class element implements renderable_element_interface {
     /**
      * @var string The left alignment constant.
      */
@@ -138,7 +140,7 @@ abstract class element {
     /**
      * Constructor.
      *
-     * @param \stdClass $element the element data
+     * @param stdClass $element the element data
      */
     public function __construct($element) {
         $showposxy = get_config('customcert', 'showposxy');
@@ -369,7 +371,7 @@ abstract class element {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
@@ -418,7 +420,7 @@ abstract class element {
      * customcert_elements table.
      * Can be overridden if more functionality is needed.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the unique data to save
      */
     public function save_unique_data($data) {
@@ -429,7 +431,7 @@ abstract class element {
      * This handles copying data from another element of the same type.
      * Can be overridden if more functionality is needed.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
     public function copy_element($data) {
@@ -451,11 +453,12 @@ abstract class element {
      *
      * Must be overridden.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    abstract public function render($pdf, $preview, $user);
+    abstract public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void;
 
     /**
      * Render the element in html.
@@ -465,9 +468,10 @@ abstract class element {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    abstract public function render_html();
+    abstract public function render_html(?element_renderer $renderer = null): string;
 
     /**
      * Handles deleting any data this element may have introduced.

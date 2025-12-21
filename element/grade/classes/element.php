@@ -29,6 +29,7 @@ namespace customcertelement_grade;
 use grade_item;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\service\element_renderer;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -105,9 +106,10 @@ class element extends base_element implements element_interface {
      *
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rengdering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user) {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
@@ -123,7 +125,7 @@ class element extends base_element implements element_interface {
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
             $courseitem = grade_item::fetch_course_item($courseid);
-            $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
+            $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeinfo->gradeformat);
         } else {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
                 $grade = element_helper::get_course_grade_info(
@@ -151,7 +153,11 @@ class element extends base_element implements element_interface {
             }
         }
 
-        element_helper::render_content($pdf, $this, $grade);
+        if ($renderer) {
+            $renderer->render_content($this, $grade);
+        } else {
+            element_helper::render_content($pdf, $this, $grade);
+        }
     }
 
     /**
@@ -160,14 +166,15 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html() {
+    public function render_html(?element_renderer $renderer = null): string {
         global $COURSE;
 
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
-            return;
+            return '';
         }
 
         // Decode the information stored in the database.
@@ -175,7 +182,11 @@ class element extends base_element implements element_interface {
 
         $courseitem = grade_item::fetch_course_item($COURSE->id);
 
-        $grade = grade_format_gradevalue(100, $courseitem, true, $gradeinfo->gradeformat);
+        $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeinfo->gradeformat);
+
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $grade);
+        }
 
         return element_helper::render_html_content($this, $grade);
     }

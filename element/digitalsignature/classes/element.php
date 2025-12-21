@@ -32,6 +32,7 @@ use core_collator;
 use mod_customcert\certificate;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -215,8 +216,9 @@ class element extends \customcertelement_image\element implements element_interf
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user) {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;

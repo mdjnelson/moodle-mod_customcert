@@ -30,6 +30,7 @@ use context_system;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -80,14 +81,19 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
         $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
 
-        element_helper::render_content($pdf, $this, $teachername);
+        if ($renderer) {
+            $renderer->render_content($this, $teachername);
+        } else {
+            element_helper::render_content($pdf, $this, $teachername);
+        }
     }
 
     /**
@@ -96,13 +102,18 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html(): string {
+    public function render_html(?element_renderer $renderer = null): string {
         global $DB;
 
         $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
+
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $teachername);
+        }
 
         return element_helper::render_html_content($this, $teachername);
     }

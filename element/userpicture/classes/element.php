@@ -31,6 +31,7 @@ use html_writer;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -107,40 +108,45 @@ class element extends base_element implements element_interface {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
+     * @param element_renderer|null $renderer the renderer service
      */
-    public function render($pdf, $preview, $user): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $CFG;
 
-        // If there is no element data, we have nothing to display.
-        if (empty($this->get_data())) {
-            return;
-        }
-
-        $imageinfo = json_decode($this->get_data());
-
-        $context = context_user::instance($user->id);
-
-        // Get files in the user icon area.
-        $fs = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
-
-        // Get the file we want to display.
-        $file = null;
-        foreach ($files as $filefound) {
-            if (!$filefound->is_directory()) {
-                $file = $filefound;
-                break;
+        if ($renderer) {
+            $this->render_html($renderer);
+        } else {
+            // If there is no element data, we have nothing to display.
+            if (empty($this->get_data())) {
+                return;
             }
-        }
 
-        // Show image if we found one.
-        if ($file) {
-            $location = make_request_directory() . '/target';
-            $file->copy_content_to($location);
-            $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
-        } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
-            $location = $CFG->dirroot . '/pix/u/f1.png';
-            $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            $imageinfo = json_decode($this->get_data());
+
+            $context = context_user::instance($user->id);
+
+            // Get files in the user icon area.
+            $fs = get_file_storage();
+            $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
+
+            // Get the file we want to display.
+            $file = null;
+            foreach ($files as $filefound) {
+                if (!$filefound->is_directory()) {
+                    $file = $filefound;
+                    break;
+                }
+            }
+
+            // Show image if we found one.
+            if ($file) {
+                $location = make_request_directory() . '/target';
+                $file->copy_content_to($location);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
+                $location = $CFG->dirroot . '/pix/u/f1.png';
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            }
         }
     }
 
@@ -150,9 +156,10 @@ class element extends base_element implements element_interface {
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
+     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html(): string {
+    public function render_html(?element_renderer $renderer = null): string {
         global $PAGE, $USER;
 
         // If there is no element data, we have nothing to display.
@@ -183,7 +190,13 @@ class element extends base_element implements element_interface {
             $style .= 'height: ' . $imageinfo->height . 'mm';
         }
 
-        return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+        $content = html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+
+        if ($renderer) {
+            return (string) $renderer->render_content($this, $content);
+        }
+
+        return $content;
     }
 
     /**
