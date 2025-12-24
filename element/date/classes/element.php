@@ -24,7 +24,12 @@
 
 namespace customcertelement_date;
 
+use mod_customcert\element as base_element;
 use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -77,11 +82,11 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         global $CFG, $COURSE;
@@ -99,7 +104,7 @@ class element extends \mod_customcert\element {
         $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
         $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
-        $dateoptions = $dateoptions + \mod_customcert\element_helper::get_grade_items($COURSE);
+        $dateoptions = $dateoptions + element_helper::get_grade_items($COURSE);
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
@@ -119,7 +124,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -136,9 +141,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
@@ -148,7 +153,7 @@ class element extends \mod_customcert\element {
             return;
         }
 
-        $courseid = \mod_customcert\element_helper::get_courseid($this->id);
+        $courseid = element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
         $dateinfo = json_decode($this->get_data());
@@ -214,20 +219,20 @@ class element extends \mod_customcert\element {
                 $date = $DB->get_field('course', 'enddate', ['id' => $courseid]);
             } else {
                 if ($dateitem == CUSTOMCERT_DATE_COURSE_GRADE) {
-                    $grade = \mod_customcert\element_helper::get_course_grade_info(
+                    $grade = element_helper::get_course_grade_info(
                         $courseid,
                         GRADE_DISPLAY_TYPE_DEFAULT,
                         $user->id
                     );
                 } else if (strpos($dateitem, 'gradeitem:') === 0) {
                     $gradeitemid = substr($dateitem, 10);
-                    $grade = \mod_customcert\element_helper::get_grade_item_info(
+                    $grade = element_helper::get_grade_item_info(
                         $gradeitemid,
                         $dateitem,
                         $user->id
                     );
                 } else {
-                    $grade = \mod_customcert\element_helper::get_mod_grade_info(
+                    $grade = element_helper::get_mod_grade_info(
                         $dateitem,
                         GRADE_DISPLAY_TYPE_DEFAULT,
                         $user->id
@@ -242,7 +247,7 @@ class element extends \mod_customcert\element {
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            \mod_customcert\element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
+            element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
         }
     }
 
@@ -264,7 +269,7 @@ class element extends \mod_customcert\element {
         $dateinfo = json_decode($this->get_data());
         $dateformat = $dateinfo->dateformat;
 
-        return \mod_customcert\element_helper::render_html_content(
+        return element_helper::render_html_content(
             $this,
             element_helper::get_date_format_string(time(), $dateformat)
         );
@@ -273,7 +278,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.

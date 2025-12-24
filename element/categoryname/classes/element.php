@@ -24,6 +24,11 @@
 
 namespace customcertelement_categoryname;
 
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element categoryname's core interaction API.
  *
@@ -31,16 +36,16 @@ namespace customcertelement_categoryname;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_category_name());
+        element_helper::render_content($pdf, $this, $this->get_category_name());
     }
 
     /**
@@ -52,7 +57,7 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_category_name());
+        return element_helper::render_html_content($this, $this->get_category_name());
     }
 
     /**
@@ -63,9 +68,9 @@ class element extends \mod_customcert\element {
     protected function get_category_name(): string {
         global $DB, $SITE;
 
-        $courseid = \mod_customcert\element_helper::get_courseid($this->get_id());
+        $courseid = element_helper::get_courseid($this->get_id());
         $course = get_course($courseid);
-        $context = \mod_customcert\element_helper::get_context($this->get_id());
+        $context = element_helper::get_context($this->get_id());
 
         // Check that there is a course category available.
         if (!empty($course->category)) {

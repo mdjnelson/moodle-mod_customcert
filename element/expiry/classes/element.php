@@ -24,7 +24,12 @@
 
 namespace customcertelement_expiry;
 
+use mod_customcert\element as base_element;
 use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
 
 /**
  * The customcert element expiry's core interaction API.
@@ -33,7 +38,7 @@ use mod_customcert\element_helper;
  * @copyright  2024 Leon Stringer <leon.stringer@ntlworld.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * Date - Relative expiry date of 1 year
      */
@@ -71,7 +76,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         global $CFG, $COURSE;
@@ -202,7 +207,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.
@@ -284,7 +289,7 @@ class element extends \mod_customcert\element {
         if ($preview) {
             $starttime = time();
         } else if ($startfrom == 'coursecomplete') {
-            $courseid = \mod_customcert\element_helper::get_courseid($this->id);
+            $courseid = element_helper::get_courseid($this->id);
             // Get the last completion date.
             $sql = "SELECT MAX(c.timecompleted) as timecompleted
                       FROM {course_completions} c

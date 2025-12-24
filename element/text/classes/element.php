@@ -24,6 +24,12 @@
 
 namespace customcertelement_text;
 
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element text's core interaction API.
  *
@@ -31,11 +37,11 @@ namespace customcertelement_text;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('textarea', 'text', get_string('text', 'customcertelement_text'));
@@ -49,7 +55,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the text
      */
     public function save_unique_data($data) {
@@ -59,12 +65,12 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_text());
+        element_helper::render_content($pdf, $this, $this->get_text());
     }
 
     /**
@@ -76,13 +82,13 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_text());
+        return element_helper::render_html_content($this, $this->get_text());
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->get_data())) {
@@ -98,7 +104,7 @@ class element extends \mod_customcert\element {
      * @return string
      */
     protected function get_text(): string {
-        $context = \mod_customcert\element_helper::get_context($this->get_id());
+        $context = element_helper::get_context($this->get_id());
         return format_text($this->get_data(), FORMAT_HTML, ['context' => $context]);
     }
 }

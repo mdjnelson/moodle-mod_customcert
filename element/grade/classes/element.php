@@ -24,6 +24,14 @@
 
 namespace customcertelement_grade;
 
+use grade_item;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -40,11 +48,11 @@ require_once($CFG->libdir . '/gradelib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         global $COURSE;
@@ -52,7 +60,7 @@ class element extends \mod_customcert\element {
         // Get the grade items we can display.
         $gradeitems = [];
         $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
-        $gradeitems = $gradeitems + \mod_customcert\element_helper::get_grade_items($COURSE);
+        $gradeitems = $gradeitems + element_helper::get_grade_items($COURSE);
 
         // The grade items.
         $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
@@ -75,7 +83,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data.
+     * @param stdClass $data the form data.
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -92,9 +100,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
@@ -102,7 +110,7 @@ class element extends \mod_customcert\element {
             return;
         }
 
-        $courseid = \mod_customcert\element_helper::get_courseid($this->id);
+        $courseid = element_helper::get_courseid($this->id);
 
         // Decode the information stored in the database.
         $gradeinfo = json_decode($this->get_data());
@@ -111,24 +119,24 @@ class element extends \mod_customcert\element {
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
-            $courseitem = \grade_item::fetch_course_item($courseid);
+            $courseitem = grade_item::fetch_course_item($courseid);
             $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
         } else {
             if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
-                $grade = \mod_customcert\element_helper::get_course_grade_info(
+                $grade = element_helper::get_course_grade_info(
                     $courseid,
                     $gradeformat,
                     $user->id
                 );
             } else if (strpos($gradeitem, 'gradeitem:') === 0) {
                 $gradeitemid = substr($gradeitem, 10);
-                $grade = \mod_customcert\element_helper::get_grade_item_info(
+                $grade = element_helper::get_grade_item_info(
                     $gradeitemid,
                     $gradeformat,
                     $user->id
                 );
             } else {
-                $grade = \mod_customcert\element_helper::get_mod_grade_info(
+                $grade = element_helper::get_mod_grade_info(
                     $gradeitem,
                     $gradeformat,
                     $user->id
@@ -140,7 +148,7 @@ class element extends \mod_customcert\element {
             }
         }
 
-        \mod_customcert\element_helper::render_content($pdf, $this, $grade);
+        element_helper::render_content($pdf, $this, $grade);
     }
 
     /**
@@ -162,17 +170,17 @@ class element extends \mod_customcert\element {
         // Decode the information stored in the database.
         $gradeinfo = json_decode($this->get_data());
 
-        $courseitem = \grade_item::fetch_course_item($COURSE->id);
+        $courseitem = grade_item::fetch_course_item($COURSE->id);
 
         $grade = grade_format_gradevalue('100', $courseitem, true, $gradeinfo->gradeformat);
 
-        return \mod_customcert\element_helper::render_html_content($this, $grade);
+        return element_helper::render_html_content($this, $grade);
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the item and format for this element.

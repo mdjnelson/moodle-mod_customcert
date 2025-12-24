@@ -24,6 +24,10 @@
 
 namespace mod_customcert;
 
+use context;
+use moodle_url;
+use navigation_node;
+
 /**
  * Class helper.
  *
@@ -37,8 +41,8 @@ class page_helper {
     /**
      * Sets up the page variables.
      *
-     * @param \moodle_url $pageurl
-     * @param \context $context
+     * @param moodle_url $pageurl
+     * @param context $context
      * @param string $title the page title
      */
     public static function page_setup($pageurl, $context, $title) {
@@ -53,8 +57,8 @@ class page_helper {
             $PAGE->set_pagelayout('admin');
             $PAGE->set_heading($SITE->fullname);
 
-            $urloverride = new \moodle_url('/admin/settings.php?section=modsettingcustomcert');
-            \navigation_node::override_active_url($urloverride);
+            $urloverride = new moodle_url('/admin/settings.php?section=modsettingcustomcert');
+            navigation_node::override_active_url($urloverride);
         } else {
             $PAGE->set_heading(format_string($COURSE->fullname));
         }

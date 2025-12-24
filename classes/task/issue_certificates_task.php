@@ -23,6 +23,8 @@
  */
 namespace mod_customcert\task;
 
+use core\task\scheduled_task;
+
 /**
  * A scheduled task for issuing certificates that have requested someone get emailed.
  *
@@ -30,7 +32,7 @@ namespace mod_customcert\task;
  * @copyright  2024 Oscar Nadjar <oscar.nadjar@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class issue_certificates_task extends \core\task\scheduled_task {
+class issue_certificates_task extends scheduled_task {
     /**
      * Get a descriptive name for this task (shown to admins).
      *

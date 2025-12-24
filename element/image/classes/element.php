@@ -24,6 +24,20 @@
 
 namespace customcertelement_image;
 
+use context_course;
+use context_system;
+use core_collator;
+use html_writer;
+use mod_customcert\certificate;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use moodle_url;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
+use stored_file;
+
 /**
  * The customcert element image's core interaction API.
  *
@@ -31,7 +45,7 @@ namespace customcertelement_image;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * @var array The file manager options.
      */
@@ -40,7 +54,7 @@ class element extends \mod_customcert\element {
     /**
      * Constructor.
      *
-     * @param \stdClass $element the element data
+     * @param stdClass $element the element data
      */
     public function __construct($element) {
         global $COURSE;
@@ -57,14 +71,14 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
 
-        \mod_customcert\element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_width($mform);
 
-        \mod_customcert\element_helper::render_form_element_height($mform);
+        element_helper::render_form_element_height($mform);
 
         $alphachannelvalues = [
             '0' => 0,
@@ -85,7 +99,7 @@ class element extends \mod_customcert\element {
         $mform->addHelpButton('alphachannel', 'alphachannel', 'customcertelement_image');
 
         if (get_config('customcert', 'showposxy')) {
-            \mod_customcert\element_helper::render_form_element_position($mform);
+            element_helper::render_form_element_position($mform);
         }
 
         $mform->addElement(
@@ -109,14 +123,14 @@ class element extends \mod_customcert\element {
         $errors = [];
 
         // Validate the width.
-        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
+        $errors += element_helper::validate_form_element_width($data);
 
         // Validate the height.
-        $errors += \mod_customcert\element_helper::validate_form_element_height($data);
+        $errors += element_helper::validate_form_element_height($data);
 
         // Validate the position.
         if (get_config('customcert', 'showposxy')) {
-            $errors += \mod_customcert\element_helper::validate_form_element_position($data);
+            $errors += element_helper::validate_form_element_position($data);
         }
 
         return $errors;
@@ -126,7 +140,7 @@ class element extends \mod_customcert\element {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
@@ -134,13 +148,13 @@ class element extends \mod_customcert\element {
 
         // Set the context.
         if ($COURSE->id == $SITE->id) {
-            $context = \context_system::instance();
+            $context = context_system::instance();
         } else {
-            $context = \context_course::instance($COURSE->id);
+            $context = context_course::instance($COURSE->id);
         }
 
         // Handle file uploads.
-        \mod_customcert\certificate::upload_files($data->customcertimage, $context->id);
+        certificate::upload_files($data->customcertimage, $context->id);
 
         return parent::save_form_elements($data);
     }
@@ -149,7 +163,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -182,9 +196,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
@@ -253,7 +267,7 @@ class element extends \mod_customcert\element {
                 $imageinfo->filename
             )
         ) {
-            $url = \moodle_url::make_pluginfile_url(
+            $url = moodle_url::make_pluginfile_url(
                 $file->get_contextid(),
                 'mod_customcert',
                 'image',
@@ -281,14 +295,14 @@ class element extends \mod_customcert\element {
                 $style .= 'height: ' . $imageinfo->height . 'mm';
             }
 
-            return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+            return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
         }
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         global $COURSE, $SITE;
@@ -321,9 +335,9 @@ class element extends \mod_customcert\element {
 
         // Set the context.
         if ($COURSE->id == $SITE->id) {
-            $context = \context_system::instance();
+            $context = context_system::instance();
         } else {
-            $context = \context_course::instance($COURSE->id);
+            $context = context_course::instance($COURSE->id);
         }
 
         // Editing existing instance - copy existing files into draft area.
@@ -340,7 +354,7 @@ class element extends \mod_customcert\element {
      *
      * We will want to update the file's pathname hash.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;
@@ -349,7 +363,7 @@ class element extends \mod_customcert\element {
         $elementinfo = json_decode($this->get_data());
 
         // Update the context.
-        $elementinfo->contextid = \context_course::instance($restore->get_courseid())->id;
+        $elementinfo->contextid = context_course::instance($restore->get_courseid())->id;
 
         // Encode again before saving.
         $elementinfo = json_encode($elementinfo);
@@ -361,7 +375,7 @@ class element extends \mod_customcert\element {
     /**
      * Fetch stored file.
      *
-     * @return \stored_file|bool stored_file instance if exists, false if not
+     * @return stored_file|bool stored_file instance if exists, false if not
      */
     public function get_file() {
         $imageinfo = json_decode($this->get_data());
@@ -392,7 +406,7 @@ class element extends \mod_customcert\element {
         // The array used to store the images.
         $arrfiles = [];
         // Loop through the files uploaded in the system context.
-        if ($files = $fs->get_area_files(\context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
+        if ($files = $fs->get_area_files(context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$file->get_id()] = get_string('systemimage', 'customcertelement_image', $file->get_filename());
             }
@@ -400,7 +414,7 @@ class element extends \mod_customcert\element {
         // Loop through the files uploaded in the course context.
         if (
             $files = $fs->get_area_files(
-                \context_course::instance($COURSE->id)->id,
+                context_course::instance($COURSE->id)->id,
                 'mod_customcert',
                 'image',
                 false,
@@ -413,7 +427,7 @@ class element extends \mod_customcert\element {
             }
         }
 
-        \core_collator::asort($arrfiles);
+        core_collator::asort($arrfiles);
         $arrfiles = ['0' => get_string('noimage', 'customcert')] + $arrfiles;
 
         return $arrfiles;
@@ -422,7 +436,7 @@ class element extends \mod_customcert\element {
     /**
      * This handles copying data from another element of the same type.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
     public function copy_element($data) {
@@ -435,8 +449,8 @@ class element extends \mod_customcert\element {
             return true;
         }
 
-        $coursecontext = \context_course::instance($COURSE->id);
-        $systemcontext = \context_system::instance();
+        $coursecontext = context_course::instance($COURSE->id);
+        $systemcontext = context_system::instance();
 
         $fs = get_file_storage();
 

@@ -24,6 +24,14 @@
 
 namespace mod_customcert;
 
+use context;
+use context_module;
+use core_plugin_manager;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+use TCPDF_COLORS;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/grade/constants.php');
@@ -58,14 +66,14 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param \pdf $pdf the pdf object
-     * @param \mod_customcert\element $element the customcert element
+     * @param pdf $pdf the pdf object
+     * @param element $element the customcert element
      * @param string $content the content to render
      */
     public static function render_content($pdf, $element, $content) {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
-        $fontcolour = \TCPDF_COLORS::convertHTMLColorToDec($element->get_colour(), $fontcolour);
+        $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($element->get_colour(), $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
         $x = $element->get_posx();
@@ -111,7 +119,7 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param \mod_customcert\element $element the customcert element
+     * @param element $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
@@ -479,9 +487,9 @@ class element_helper {
      * Helper function that returns the context for this element.
      *
      * @param int $elementid The element id
-     * @return \context The context
+     * @return context The context
      */
-    public static function get_context(int $elementid): \context {
+    public static function get_context(int $elementid): context {
         global $DB;
 
         $sql = "SELECT ct.contextid
@@ -493,7 +501,7 @@ class element_helper {
                  WHERE ce.id = :elementid";
         $contextid = $DB->get_field_sql($sql, ['elementid' => $elementid], MUST_EXIST);
 
-        return \context::instance_by_id($contextid);
+        return context::instance_by_id($contextid);
     }
 
     /**
@@ -541,7 +549,7 @@ class element_helper {
     /**
      * Helper function to return all the grades items for a given course.
      *
-     * @param \stdClass $course The course we want to return the grade items for
+     * @param stdClass $course The course we want to return the grade items for
      * @return array the array of gradeable items in the course
      */
     public static function get_grade_items($course) {
@@ -557,7 +565,7 @@ class element_helper {
 
                 if ($gi->is_external_item()) {
                     $cm = get_coursemodule_from_instance($gi->itemmodule, $gi->iteminstance, $course->id);
-                    $modcontext = \context_module::instance($cm->id);
+                    $modcontext = context_module::instance($cm->id);
                     $modname = format_string($cm->name, true, ['context' => $modcontext]);
                 }
 

@@ -22,6 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\edit_form;
+use mod_customcert\load_template_form;
+use mod_customcert\page_helper;
+use mod_customcert\template;
+
 require_once('../../config.php');
 
 $tid = optional_param('tid', 0, PARAM_INT);
@@ -35,7 +40,7 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 if ($tid) {
     // Create the template object.
     $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
-    $template = new \mod_customcert\template($template);
+    $template = new template($template);
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.
@@ -62,7 +67,7 @@ if ($context->contextlevel == CONTEXT_MODULE) {
 require_capability('mod/customcert:manage', $context);
 
 // Set up the page.
-\mod_customcert\page_helper::page_setup($pageurl, $context, $title);
+page_helper::page_setup($pageurl, $context, $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
@@ -102,13 +107,13 @@ if ($tid) {
                 break;
             case 'addpage':
                 $template->add_page();
-                $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
+                $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                 redirect($url);
                 break;
             case 'deletepage':
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
                     $template->delete_page($actionid);
-                    $url = new \moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
+                    $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     redirect($url);
                 } else {
                     // Set deletion flag to true.
@@ -166,17 +171,17 @@ if ($deleting) {
 }
 
 if ($tid) {
-    $mform = new \mod_customcert\edit_form($pageurl, ['tid' => $tid]);
+    $mform = new edit_form($pageurl, ['tid' => $tid]);
     // Set the name for the form.
     $mform->set_data(['name' => $template->get_name()]);
 } else {
-    $mform = new \mod_customcert\edit_form($pageurl);
+    $mform = new edit_form($pageurl);
 }
 
 if ($data = $mform->get_data()) {
     // If there is no id, then we are creating a template.
     if (!$tid) {
-        $template = \mod_customcert\template::create($data->name, $contextid);
+        $template = template::create($data->name, $contextid);
 
         // Create a page for this template.
         $pageid = $template->add_page(false);
@@ -250,7 +255,7 @@ echo $OUTPUT->header();
 $mform->display();
 if ($tid && $context->contextlevel == CONTEXT_MODULE) {
     $loadtemplateurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid]);
-    $loadtemplateform = new \mod_customcert\load_template_form(
+    $loadtemplateform = new load_template_form(
         $loadtemplateurl,
         ['context' => $context],
         'post',

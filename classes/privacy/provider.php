@@ -23,6 +23,8 @@
  */
 namespace mod_customcert\privacy;
 
+use context;
+use context_module;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\metadata\provider as metadata_provider;
 use core_privacy\local\request\approved_contextlist;
@@ -34,6 +36,7 @@ use core_privacy\local\request\plugin\provider as plugin_provider;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use moodle_recordset;
 
 /**
  * Privacy Subsystem implementation for mod_customcert.
@@ -104,7 +107,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
     public static function get_users_in_context(userlist $userlist) {
         $context = $userlist->get_context();
 
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
 
@@ -168,7 +171,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             ];
             return $carry;
         }, function ($customcertid, $data) use ($user, $customcertidstocmids) {
-            $context = \context_module::instance($customcertidstocmids[$customcertid]);
+            $context = context_module::instance($customcertidstocmids[$customcertid]);
             $contextdata = helper::get_context_data($context, $user);
             $finaldata = (object) array_merge((array) $contextdata, ['issues' => $data]);
             helper::export_context_files($context, $user);
@@ -179,12 +182,12 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
     /**
      * Delete all data for all users in the specified context.
      *
-     * @param \context $context the context to delete in.
+     * @param context $context the context to delete in.
      */
-    public static function delete_data_for_all_users_in_context(\context $context) {
+    public static function delete_data_for_all_users_in_context(context $context) {
         global $DB;
 
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
 
@@ -209,7 +212,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
 
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if (!$context instanceof \context_module) {
+            if (!$context instanceof context_module) {
                 continue;
             }
             $instanceid = $DB->get_field('course_modules', 'instance', ['id' => $context->instanceid], MUST_EXIST);
@@ -226,7 +229,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         global $DB;
 
         $context = $userlist->get_context();
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
 
@@ -278,7 +281,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      * @return void
      */
     protected static function recordset_loop_and_export(
-        \moodle_recordset $recordset,
+        moodle_recordset $recordset,
         $splitkey,
         $initial,
         callable $reducer,

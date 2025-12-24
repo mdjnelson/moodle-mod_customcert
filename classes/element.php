@@ -24,6 +24,15 @@
 
 namespace mod_customcert;
 
+use coding_exception;
+use InvalidArgumentException;
+use mod_customcert\event\element_created;
+use mod_customcert\event\element_deleted;
+use mod_customcert\event\element_updated;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+
 /**
  * Class element
  *
@@ -50,7 +59,7 @@ abstract class element {
     const ALIGN_RIGHT = 'R';
 
     /**
-     * @var \stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
+     * @var stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
      */
     protected $element;
 
@@ -263,12 +272,12 @@ abstract class element {
      *
      * @param string $alignment The new alignment.
      *
-     * @throws \InvalidArgumentException if the provided new alignment is not valid.
+     * @throws InvalidArgumentException if the provided new alignment is not valid.
      */
     protected function set_alignment(string $alignment) {
         $validvalues = [self::ALIGN_LEFT, self::ALIGN_CENTER, self::ALIGN_RIGHT];
         if (!in_array($alignment, $validvalues)) {
-            throw new \InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " .
+            throw new InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " .
                 implode(', ', $validvalues));
         }
         $this->alignment = $alignment;
@@ -278,7 +287,7 @@ abstract class element {
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance.
+     * @param MoodleQuickForm $mform the edit_form instance.
      */
     public function render_form_elements($mform) {
         // Render the common elements.
@@ -353,7 +362,7 @@ abstract class element {
         global $DB;
 
         // Get the data from the form.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
         $element->font = $data->font ?? null;
@@ -373,18 +382,18 @@ abstract class element {
             $element->id = $this->id;
             $return = $DB->update_record('customcert_elements', $element);
 
-            \mod_customcert\event\element_updated::create_from_element($this)->trigger();
+            element_updated::create_from_element($this)->trigger();
 
             return $return;
         } else { // Must be adding a new one.
             $element->element = $data->element;
             $element->pageid = $data->pageid;
-            $element->sequence = \mod_customcert\element_helper::get_element_sequence($element->pageid);
+            $element->sequence = element_helper::get_element_sequence($element->pageid);
             $element->timecreated = time();
             $element->id = $DB->insert_record('customcert_elements', $element, true);
             $this->id = $element->id;
 
-            \mod_customcert\event\element_created::create_from_element($this)->trigger();
+            element_created::create_from_element($this)->trigger();
 
             return $element->id;
         }
@@ -457,7 +466,7 @@ abstract class element {
 
         $return = $DB->delete_records('customcert_elements', ['id' => $this->id]);
 
-        \mod_customcert\event\element_deleted::create_from_element($this)->trigger();
+        element_deleted::create_from_element($this)->trigger();
 
         return $return;
     }
@@ -502,7 +511,7 @@ abstract class element {
      */
     public function get_edit_element_form() {
         if (empty($this->editelementform)) {
-            throw new \coding_exception('Edit element form instance is not set.');
+            throw new coding_exception('Edit element form instance is not set.');
         }
 
         return $this->editelementform;

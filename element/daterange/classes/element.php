@@ -24,7 +24,12 @@
 
 namespace customcertelement_daterange;
 
+use mod_customcert\element as base_element;
 use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -37,7 +42,7 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2018 Dmitrii Metelkin <dmitriim@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * Max recurring period in seconds.
      */
@@ -106,7 +111,7 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit form instance
+     * @param MoodleQuickForm $mform the edit form instance
      */
     public function render_form_elements($mform) {
         global $COURSE;
@@ -206,18 +211,19 @@ class element extends \mod_customcert\element {
     /**
      * Get decoded data stored in DB.
      *
-     * @return \stdClass
+     * @return stdClass
      */
     protected function get_decoded_data() {
         if ($this->get_data()) {
             return json_decode($this->get_data());
         }
+        return new stdClass();
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit form instance
+     * @param MoodleQuickForm $mform the edit form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->get_data()) && !$mform->isSubmitted()) {
@@ -293,7 +299,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -321,9 +327,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
@@ -461,11 +467,11 @@ class element extends \mod_customcert\element {
     /**
      * Returns whether or not a range is recurring.
      *
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
      * @return bool
      */
-    protected function is_recurring_range(\stdClass $range) {
+    protected function is_recurring_range(stdClass $range) {
         return !empty($range->recurring);
     }
 
@@ -473,11 +479,11 @@ class element extends \mod_customcert\element {
      * Check if the provided date is in the date range.
      *
      * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
      * @return bool
      */
-    protected function is_date_in_range($date, \stdClass $range) {
+    protected function is_date_in_range($date, stdClass $range) {
         return ($date >= $range->startdate && $date <= $range->enddate);
     }
 
@@ -485,11 +491,11 @@ class element extends \mod_customcert\element {
      * Check if provided date is in the recurring date range.
      *
      * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
      * @return bool
      */
-    protected function is_date_in_recurring_range($date, \stdClass $range) {
+    protected function is_date_in_recurring_range($date, stdClass $range) {
         $intdate = $this->build_number_from_date($date);
         $intstart = $this->build_number_from_date($range->startdate);
         $intend = $this->build_number_from_date($range->enddate);
@@ -514,11 +520,11 @@ class element extends \mod_customcert\element {
     /**
      * Check if provided recurring range has a turn of the year.
      *
-     * @param \stdClass $reccurringrange Range object.
+     * @param stdClass $reccurringrange Range object.
      *
      * @return bool
      */
-    protected function has_turn_of_the_year(\stdClass $reccurringrange) {
+    protected function has_turn_of_the_year(stdClass $reccurringrange) {
         return date('Y', $reccurringrange->startdate) != date('Y', $reccurringrange->enddate);
     }
 
@@ -526,11 +532,11 @@ class element extends \mod_customcert\element {
      * Check if provided date is in the start year of the recurring range with a turn of the year.
      *
      * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
      * @return bool
      */
-    protected function in_start_year($date, \stdClass $range) {
+    protected function in_start_year($date, stdClass $range) {
         $intdate = $this->build_number_from_date($date);
         $intstart = $this->build_number_from_date($range->startdate);
         $intend = $this->build_number_from_date($range->enddate);
@@ -542,11 +548,11 @@ class element extends \mod_customcert\element {
      * Check if provided date is in the end year of the recurring range with a turn of the year.
      *
      * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
      * @return bool
      */
-    protected function in_end_year($date, \stdClass $range) {
+    protected function in_end_year($date, stdClass $range) {
         $intdate = $this->build_number_from_date($date);
         $intstart = $this->build_number_from_date($range->startdate);
         $intend = $this->build_number_from_date($range->enddate);
@@ -562,11 +568,11 @@ class element extends \mod_customcert\element {
      * start year and end year. This is required to replace placeholders like range_first_year and range_last_year.
      *
      * @param int $date Unix timestamp date to check.
-     * @param \stdClass $range Range object.
+     * @param stdClass $range Range object.
      *
-     * @return \stdClass || null
+     * @return stdClass || null
      */
-    protected function get_matched_recurring_range($date, \stdClass $range) {
+    protected function get_matched_recurring_range($date, stdClass $range) {
         if (!$this->is_date_in_recurring_range($date, $range)) {
             return null;
         }
@@ -673,11 +679,11 @@ class element extends \mod_customcert\element {
     /**
      * Return a list of range related placeholders to replace in date string as search => $replace pairs.
      *
-     * @param \stdClass $range
+     * @param stdClass $range
      *
      * @return array
      */
-    protected function get_range_placeholders(\stdClass $range) {
+    protected function get_range_placeholders(stdClass $range) {
         return [
             self::RANGE_FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
             self::RANGE_LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),
@@ -687,11 +693,11 @@ class element extends \mod_customcert\element {
     /**
      * Return a list of recurring range s placeholders to replace in date string as search => $replace pairs.
      *
-     * @param \stdClass $range
+     * @param stdClass $range
      *
      * @return array
      */
-    protected function get_recurring_range_placeholders(\stdClass $range) {
+    protected function get_recurring_range_placeholders(stdClass $range) {
         return [
             self::RECUR_RANGE_FIRST_YEAR_PLACEHOLDER => date('Y', $range->startdate),
             self::RECUR_RANGE_LAST_YEAR_PLACEHOLDER => date('Y', $range->enddate),

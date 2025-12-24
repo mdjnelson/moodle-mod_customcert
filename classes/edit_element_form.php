@@ -24,12 +24,16 @@
 
 namespace mod_customcert;
 
+use core_text;
+use moodleform;
+use MoodleQuickForm;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 
-\MoodleQuickForm::registerElementType(
+MoodleQuickForm::registerElementType(
     'customcert_colourpicker',
     $CFG->dirroot . '/mod/customcert/includes/colourpicker.php',
     'MoodleQuickForm_customcert_colourpicker'
@@ -42,9 +46,9 @@ require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class edit_element_form extends \moodleform {
+class edit_element_form extends moodleform {
     /**
-     * @var \mod_customcert\element The element object.
+     * @var element The element object.
      */
     protected $element;
 
@@ -65,7 +69,7 @@ class edit_element_form extends \moodleform {
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
-        $this->element = \mod_customcert\element_factory::get_element_instance($element);
+        $this->element = element_factory::get_element_instance($element);
         $this->element->set_edit_element_form($this);
         $this->element->render_form_elements($mform);
         $buttonarray = [];
@@ -100,7 +104,7 @@ class edit_element_form extends \moodleform {
     public function validation($data, $files) {
         $errors = [];
 
-        if (\core_text::strlen($data['name']) > 255) {
+        if (core_text::strlen($data['name']) > 255) {
             $errors['name'] = get_string('nametoolong', 'customcert');
         }
 

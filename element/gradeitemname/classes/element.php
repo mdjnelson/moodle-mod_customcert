@@ -24,6 +24,14 @@
 
 namespace customcertelement_gradeitemname;
 
+use grade_item;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use restore_customcert_activity_task;
+use stdClass;
+
 /**
  * The customcert element gradeitemname's core interaction API.
  *
@@ -31,11 +39,11 @@ namespace customcertelement_gradeitemname;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         global $COURSE;
@@ -44,7 +52,7 @@ class element extends \mod_customcert\element {
             'select',
             'gradeitem',
             get_string('gradeitem', 'customcertelement_gradeitemname'),
-            \mod_customcert\element_helper::get_grade_items($COURSE)
+            element_helper::get_grade_items($COURSE)
         );
         $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_gradeitemname');
 
@@ -55,7 +63,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the text
      */
     public function save_unique_data($data) {
@@ -69,14 +77,14 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         // Check that the grade item is not empty.
         if (!empty($this->get_data())) {
-            \mod_customcert\element_helper::render_content($pdf, $this, $this->get_grade_item_name());
+            element_helper::render_content($pdf, $this, $this->get_grade_item_name());
         }
     }
 
@@ -91,7 +99,7 @@ class element extends \mod_customcert\element {
     public function render_html() {
         // Check that the grade item is not empty.
         if (!empty($this->get_data())) {
-            return \mod_customcert\element_helper::render_html_content($this, $this->get_grade_item_name());
+            return element_helper::render_html_content($this, $this->get_grade_item_name());
         }
 
         return '';
@@ -100,7 +108,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->get_data())) {
@@ -116,7 +124,7 @@ class element extends \mod_customcert\element {
      * We will want to update the course module the grade element is pointing to as it will
      * have changed in the course restore.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
         global $DB;
@@ -132,7 +140,7 @@ class element extends \mod_customcert\element {
 
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
         if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
-            $gradeinfo = new \stdClass();
+            $gradeinfo = new stdClass();
             $gradeinfo->gradeitem = '';
             if ($isgradeitem) {
                 $gradeinfo->gradeitem = 'gradeitem:';
@@ -154,7 +162,7 @@ class element extends \mod_customcert\element {
 
         if (strpos($gradeitem, 'gradeitem:') === 0) {
             $gradeitemid = substr($gradeitem, 10);
-            $gradeitem = \grade_item::fetch(['id' => $gradeitemid]);
+            $gradeitem = grade_item::fetch(['id' => $gradeitemid]);
 
             // If the gradeitem was not found, return an empty string.
             // This will effectively prevent the element from rendering.
@@ -176,7 +184,7 @@ class element extends \mod_customcert\element {
                 'itemnumber' => 0,
             ];
 
-            $gradeitem = \grade_item::fetch($params);
+            $gradeitem = grade_item::fetch($params);
 
             // If the gradeitem was not found, return an empty string.
             // This will effectively prevent the element from rendering.

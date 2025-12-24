@@ -24,7 +24,11 @@
 
 namespace mod_customcert\output;
 
+use context_module;
+use moodle_url;
 use renderable;
+use renderer_base;
+use stdClass;
 use templatable;
 
 /**
@@ -73,16 +77,16 @@ class verify_certificate_result implements renderable, templatable {
     /**
      * Constructor.
      *
-     * @param \stdClass $result
+     * @param stdClass $result
      */
     public function __construct($result) {
         $cm = get_coursemodule_from_instance('customcert', $result->certificateid);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
-        $this->userprofileurl = new \moodle_url('/user/view.php', ['id' => $result->userid,
+        $this->userprofileurl = new moodle_url('/user/view.php', ['id' => $result->userid,
             'course' => $result->courseid]);
         $this->userfullname = fullname($result);
-        $this->courseurl = new \moodle_url('/course/view.php', ['id' => $result->courseid]);
+        $this->courseurl = new moodle_url('/course/view.php', ['id' => $result->courseid]);
         $this->coursefullname = format_string($result->coursefullname, true, ['context' => $context]);
         $this->certificatename = format_string($result->certificatename, true, ['context' => $context]);
         $this->timeissuecreated = $result->timecreated;
@@ -97,11 +101,11 @@ class verify_certificate_result implements renderable, templatable {
     /**
      * Function to export the renderer data in a format that is suitable for a mustache template.
      *
-     * @param \renderer_base $output Used to do a final render of any components that need to be rendered for export.
-     * @return \stdClass|array
+     * @param renderer_base $output Used to do a final render of any components that need to be rendered for export.
+     * @return stdClass|array
      */
-    public function export_for_template(\renderer_base $output) {
-        $result = new \stdClass();
+    public function export_for_template(renderer_base $output) {
+        $result = new stdClass();
         $result->userprofileurl = $this->userprofileurl;
         $result->userfullname = $this->userfullname;
         $result->coursefullname = $this->coursefullname;

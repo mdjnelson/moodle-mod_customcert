@@ -24,7 +24,14 @@
 
 namespace customcertelement_userfield;
 
+use availability_profile\condition;
+use core_collator;
 use core_user\fields;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
 
 /**
  * The customcert element userfield's core interaction API.
@@ -33,11 +40,11 @@ use core_user\fields;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         // Get the user profile fields.
@@ -57,14 +64,14 @@ class element extends \mod_customcert\element {
             'address' => fields::get_display_name('address'),
         ];
         // Get the user custom fields.
-        $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
+        $arrcustomfields = condition::get_custom_profile_fields();
         $customfields = [];
         foreach ($arrcustomfields as $key => $customfield) {
             $customfields[$customfield->id] = $customfield->name;
         }
         // Combine the two.
         $fields = $userfields + $customfields;
-        \core_collator::asort($fields);
+        core_collator::asort($fields);
 
         // Create the select box where the user field is selected.
         $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $fields);
@@ -78,7 +85,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the text
      */
     public function save_unique_data($data) {
@@ -88,12 +95,12 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, $this->get_user_field_value($user, $preview));
+        element_helper::render_content($pdf, $this, $this->get_user_field_value($user, $preview));
     }
 
     /**
@@ -105,13 +112,13 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $USER;
 
-        return \mod_customcert\element_helper::render_html_content($this, $this->get_user_field_value($USER, true));
+        return element_helper::render_html_content($this, $this->get_user_field_value($USER, true));
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->get_data())) {
@@ -124,11 +131,11 @@ class element extends \mod_customcert\element {
     /**
      * Helper function that returns the text.
      *
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      * @param bool $preview Is this a preview?
      * @return string
      */
-    protected function get_user_field_value(\stdClass $user, bool $preview): string {
+    protected function get_user_field_value(stdClass $user, bool $preview): string {
         global $CFG, $DB;
 
         // The user field to display.
@@ -156,7 +163,7 @@ class element extends \mod_customcert\element {
             $value = $user->$field;
         }
 
-        $context = \mod_customcert\element_helper::get_context($this->get_id());
+        $context = element_helper::get_context($this->get_id());
         return format_string($value, true, ['context' => $context]);
     }
 }

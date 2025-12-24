@@ -24,6 +24,15 @@
 
 namespace customcertelement_userpicture;
 
+use context_user;
+use html_writer;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+use user_picture;
+
 /**
  * The customcert element userpicture's core interaction API.
  *
@@ -31,19 +40,19 @@ namespace customcertelement_userpicture;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        \mod_customcert\element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_width($mform);
 
-        \mod_customcert\element_helper::render_form_element_height($mform);
+        element_helper::render_form_element_height($mform);
 
         if (get_config('customcert', 'showposxy')) {
-            \mod_customcert\element_helper::render_form_element_position($mform);
+            element_helper::render_form_element_position($mform);
         }
     }
 
@@ -59,14 +68,14 @@ class element extends \mod_customcert\element {
         $errors = [];
 
         // Validate the width.
-        $errors += \mod_customcert\element_helper::validate_form_element_width($data);
+        $errors += element_helper::validate_form_element_width($data);
 
         // Validate the height.
-        $errors += \mod_customcert\element_helper::validate_form_element_height($data);
+        $errors += element_helper::validate_form_element_height($data);
 
         // Validate the position.
         if (get_config('customcert', 'showposxy')) {
-            $errors += \mod_customcert\element_helper::validate_form_element_position($data);
+            $errors += element_helper::validate_form_element_position($data);
         }
 
         return $errors;
@@ -76,7 +85,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -92,9 +101,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $CFG;
@@ -106,7 +115,7 @@ class element extends \mod_customcert\element {
 
         $imageinfo = json_decode($this->get_data());
 
-        $context = \context_user::instance($user->id);
+        $context = context_user::instance($user->id);
 
         // Get files in the user icon area.
         $fs = get_file_storage();
@@ -151,7 +160,7 @@ class element extends \mod_customcert\element {
         $imageinfo = json_decode($this->get_data());
 
         // Get the image.
-        $userpicture = new \user_picture($USER);
+        $userpicture = new user_picture($USER);
         $userpicture->size = 1;
         $url = $userpicture->get_url($PAGE)->out(false);
 
@@ -171,13 +180,13 @@ class element extends \mod_customcert\element {
             $style .= 'height: ' . $imageinfo->height . 'mm';
         }
 
-        return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+        return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
     }
 
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         // Set the image, width and height for this element.

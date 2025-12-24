@@ -24,6 +24,8 @@
 
 namespace mod_customcert;
 
+use admin_setting_configtext;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/adminlib.php');
@@ -35,7 +37,7 @@ require_once($CFG->libdir . '/adminlib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_setting_link extends \admin_setting_configtext {
+class admin_setting_link extends admin_setting_configtext {
     /**
      * @var string the link.
      */

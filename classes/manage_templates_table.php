@@ -24,6 +24,12 @@
 
 namespace mod_customcert;
 
+use context;
+use moodle_url;
+use pix_icon;
+use stdClass;
+use table_sql;
+
 defined('MOODLE_INTERNAL') || die;
 
 global $CFG;
@@ -37,16 +43,16 @@ require_once($CFG->libdir . '/tablelib.php');
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class manage_templates_table extends \table_sql {
+class manage_templates_table extends table_sql {
     /**
-     * @var \context $context
+     * @var context $context
      */
     protected $context;
 
     /**
      * Sets up the table.
      *
-     * @param \context $context
+     * @param context $context
      */
     public function __construct($context) {
         parent::__construct('mod_customcert_manage_templates_table');
@@ -72,7 +78,7 @@ class manage_templates_table extends \table_sql {
     /**
      * Generate the name column.
      *
-     * @param \stdClass $template
+     * @param stdClass $template
      * @return string
      */
     public function col_name($template) {
@@ -82,18 +88,18 @@ class manage_templates_table extends \table_sql {
     /**
      * Generate the actions column.
      *
-     * @param \stdClass $template
+     * @param stdClass $template
      * @return string
      */
     public function col_actions($template) {
         global $OUTPUT;
 
         // Link to edit the template.
-        $editlink = new \moodle_url('/mod/customcert/edit.php', ['tid' => $template->id]);
-        $editicon = $OUTPUT->action_icon($editlink, new \pix_icon('t/edit', get_string('edit')));
+        $editlink = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->id]);
+        $editicon = $OUTPUT->action_icon($editlink, new pix_icon('t/edit', get_string('edit')));
 
         // Link to duplicate the template.
-        $duplicatelink = new \moodle_url(
+        $duplicatelink = new moodle_url(
             '/mod/customcert/manage_templates.php',
             [
                 'tid' => $template->id,
@@ -103,13 +109,13 @@ class manage_templates_table extends \table_sql {
         );
         $duplicateicon = $OUTPUT->action_icon(
             $duplicatelink,
-            new \pix_icon('t/copy', get_string('duplicate')),
+            new pix_icon('t/copy', get_string('duplicate')),
             null,
             ['class' => 'action-icon duplicate-icon']
         );
 
         // Link to delete the template.
-        $deletelink = new \moodle_url(
+        $deletelink = new moodle_url(
             '/mod/customcert/manage_templates.php',
             [
                 'tid' => $template->id,
@@ -119,7 +125,7 @@ class manage_templates_table extends \table_sql {
         );
         $deleteicon = $OUTPUT->action_icon(
             $deletelink,
-            new \pix_icon('t/delete', get_string('delete')),
+            new pix_icon('t/delete', get_string('delete')),
             null,
             ['class' => 'action-icon delete-icon']
         );

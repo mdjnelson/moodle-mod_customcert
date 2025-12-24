@@ -24,6 +24,8 @@
 
 namespace mod_customcert\event;
 
+use core\event\base;
+
 /**
  * Event triggered when a certificate issue is deleted.
  *
@@ -31,7 +33,7 @@ namespace mod_customcert\event;
  * @copyright 2025 William Entriken <@fulldecent>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class issue_deleted extends \core\event\base {
+class issue_deleted extends base {
     /**
      * Initialises the event.
      */

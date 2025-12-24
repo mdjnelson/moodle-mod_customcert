@@ -24,6 +24,9 @@
 
 namespace mod_customcert\event;
 
+use context_system;
+use core\event\base;
+use moodle_url;
 use mod_customcert\template;
 
 /**
@@ -33,7 +36,7 @@ use mod_customcert\template;
  * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class template_created extends \core\event\base {
+class template_created extends base {
     /**
      * Initialises the event.
      */
@@ -49,7 +52,7 @@ class template_created extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        if ($this->contextlevel == \context_system::instance()->contextlevel) {
+        if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
             return "The user with id '$this->userid' created the certificate template with id '$this->objectid'.";
         } else {
@@ -85,13 +88,13 @@ class template_created extends \core\event\base {
 
     /**
      * Returns relevant URL.
-     * @return \moodle_url
+     * @return moodle_url
      */
     public function get_url() {
-        if ($this->contextlevel == \context_system::instance()->contextlevel) {
-            return new \moodle_url('/mod/customcert/manage_templates.php');
+        if ($this->contextlevel == context_system::instance()->contextlevel) {
+            return new moodle_url('/mod/customcert/manage_templates.php');
         } else {
-            return new \moodle_url(
+            return new moodle_url(
                 '/mod/customcert/view.php',
                 ['id' => $this->contextinstanceid]
             );

@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\template;
+use mod_customcert\event\element_updated;
+use mod_customcert\event\template_updated;
+
 require_once(__DIR__ . '/../../config.php');
 
 if (!defined('AJAX_SCRIPT')) {
@@ -36,7 +40,7 @@ $values = json_decode($values);
 $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
 
 // Set the template.
-$template = new \mod_customcert\template($template);
+$template = new template($template);
 // Perform checks.
 if ($cm = $template->get_cm()) {
     $courseid = $cm->course;
@@ -54,7 +58,7 @@ foreach ($values as $value) {
     $element->posx = $value->posx;
     $element->posy = $value->posy;
     $DB->update_record('customcert_elements', $element);
-    \mod_customcert\event\element_updated::create_from_id($element->id, $template)->trigger();
+    element_updated::create_from_id($element->id, $template)->trigger();
 }
 
-\mod_customcert\event\template_updated::create_from_template($template)->trigger();
+template_updated::create_from_template($template)->trigger();

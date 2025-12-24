@@ -24,13 +24,19 @@
 
 namespace mod_customcert\output;
 
+use moodle_url;
+use renderable;
+use renderer_base;
+use stdClass;
+use templatable;
+
 /**
  * Email certificate renderable.
  *
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class email_certificate implements \renderable, \templatable {
+class email_certificate implements renderable, templatable {
     /**
      * @var bool Are we emailing the student?
      */
@@ -83,19 +89,19 @@ class email_certificate implements \renderable, \templatable {
     /**
      * Export this data so it can be used as the context for a mustache template.
      *
-     * @param \renderer_base $renderer The render to be used for formatting the email
-     * @return \stdClass The data ready for use in a mustache template
+     * @param renderer_base $renderer The render to be used for formatting the email
+     * @return stdClass The data ready for use in a mustache template
      */
-    public function export_for_template(\renderer_base $renderer) {
-        $data = new \stdClass();
+    public function export_for_template(renderer_base $renderer) {
+        $data = new stdClass();
 
         // Used for the body text.
-        $info = new \stdClass();
+        $info = new stdClass();
         $info->userfullname = $this->userfullname;
         $info->certificatename = $this->certificatename;
         $info->courseshortname = $this->courseshortname;
         $info->coursefullname = $this->coursefullname;
-        $info->emailcertificatelink = new \moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
+        $info->emailcertificatelink = new moodle_url('/mod/customcert/view.php', ['id' => $this->cmid]);
 
         if ($this->isstudent) {
             $info->emailcertificatelinktext = get_string('emailstudentcertificatelinktext', 'customcert');

@@ -24,6 +24,13 @@
 
 namespace customcertelement_teachername;
 
+use context_system;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element teachername's core interaction API.
  *
@@ -31,11 +38,11 @@ namespace customcertelement_teachername;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement(
@@ -53,7 +60,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the text
      */
     public function save_unique_data($data) {
@@ -65,9 +72,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
@@ -75,7 +82,7 @@ class element extends \mod_customcert\element {
         $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
 
-        \mod_customcert\element_helper::render_content($pdf, $this, $teachername);
+        element_helper::render_content($pdf, $this, $teachername);
     }
 
     /**
@@ -92,7 +99,7 @@ class element extends \mod_customcert\element {
         $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
         $teachername = fullname($teacher);
 
-        return \mod_customcert\element_helper::render_html_content($this, $teachername);
+        return element_helper::render_html_content($this, $teachername);
     }
 
     /**
@@ -104,7 +111,7 @@ class element extends \mod_customcert\element {
         global $PAGE;
 
         // Return early if we are in a site template.
-        if ($PAGE->context->id == \context_system::instance()->id) {
+        if ($PAGE->context->id == context_system::instance()->id) {
             return [];
         }
 
@@ -124,7 +131,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         if (!empty($this->get_data())) {

@@ -164,9 +164,9 @@ class mod_customcert_mod_form extends moodleform_mod {
     /**
      * Post process form data.
      *
-     * @param \stdClass $data
+     * @param stdClass $data
      *
-     * @throws \dml_exception
+     * @throws dml_exception
      */
     public function data_postprocessing($data) {
         global $DB;
@@ -236,7 +236,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      *
      * @param string $protection Protection sting from database.
      *
-     * @return \stdClass
+     * @return stdClass
      */
     protected function build_protection_data($protection) {
         $data = new stdClass();

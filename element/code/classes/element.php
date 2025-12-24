@@ -24,6 +24,12 @@
 
 namespace customcertelement_code;
 
+use mod_customcert\certificate;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element code's core interaction API.
  *
@@ -31,19 +37,19 @@ namespace customcertelement_code;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
 
         if ($preview) {
-            $code = \mod_customcert\certificate::generate_code();
+            $code = certificate::generate_code();
         } else {
             // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
@@ -59,7 +65,7 @@ class element extends \mod_customcert\element {
             $code = $issue->code;
         }
 
-        \mod_customcert\element_helper::render_content($pdf, $this, $code);
+        element_helper::render_content($pdf, $this, $code);
     }
 
     /**
@@ -71,8 +77,8 @@ class element extends \mod_customcert\element {
      * @return string the html
      */
     public function render_html() {
-        $code = \mod_customcert\certificate::generate_code();
+        $code = certificate::generate_code();
 
-        return \mod_customcert\element_helper::render_html_content($this, $code);
+        return element_helper::render_html_content($this, $code);
     }
 }

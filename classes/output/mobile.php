@@ -24,6 +24,13 @@
 
 namespace mod_customcert\output;
 
+use context;
+use context_module;
+use core_external\util;
+use mod_customcert\certificate;
+use moodle_url;
+use stdClass;
+
 /**
  * Mobile output class for the custom certificate.
  *
@@ -48,13 +55,13 @@ class mobile {
 
         // Capabilities check.
         $cm = get_coursemodule_from_id('customcert', $cmid);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
         self::require_capability($cm, $context, 'mod/customcert:view');
 
         // Set some variables we are going to be using.
         $certificate = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
         $certificate->name = format_string($certificate->name);
-        [$certificate->intro, $certificate->introformat] = \core_external\util::format_text(
+        [$certificate->intro, $certificate->introformat] = util::format_text(
             $certificate->intro,
             $certificate->introformat,
             $context,
@@ -77,14 +84,14 @@ class mobile {
         $requiredtimemet = true;
         $canmanage = has_capability('mod/customcert:manage', $context);
         if ($certificate->requiredtime && !$canmanage) {
-            if (\mod_customcert\certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
+            if (certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
                 $requiredtimemet = false;
             }
         }
 
         $fileurl = "";
         if ($requiredtimemet) {
-            $fileurl = new \moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
+            $fileurl = new moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
                 'userid' => $USER->id]);
             $fileurl = $fileurl->out(true);
         }
@@ -102,10 +109,10 @@ class mobile {
                 $groupmode = 'aag';
             }
 
-            $recipients = \mod_customcert\certificate::get_issues($certificate->id, $groupmode, $cm, 0, 0);
+            $recipients = certificate::get_issues($certificate->id, $groupmode, $cm, 0, 0);
             foreach ($recipients as $recipient) {
                 $recipient->displayname = fullname($recipient);
-                $recipient->fileurl = new \moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
+                $recipient->fileurl = new moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
                     'userid' => $recipient->id]);
             }
         }
@@ -145,7 +152,7 @@ class mobile {
      *
      * The groups API is a mess hence the hackiness.
      *
-     * @param \stdClass $cm The course module
+     * @param stdClass $cm The course module
      * @param int $groupid The group id
      * @param int $userid The user id
      * @return array The array of groups, may be empty.
@@ -154,9 +161,9 @@ class mobile {
         $arrgroups = [];
         if ($groupmode = groups_get_activity_groupmode($cm)) {
             if ($groups = groups_get_activity_allowed_groups($cm, $userid)) {
-                $context = \context_module::instance($cm->id);
+                $context = context_module::instance($cm->id);
                 if ($groupmode == VISIBLEGROUPS || has_capability('moodle/site:accessallgroups', $context)) {
-                    $allparticipants = new \stdClass();
+                    $allparticipants = new stdClass();
                     $allparticipants->id = 0;
                     $allparticipants->name = get_string('allparticipants');
                     $allparticipants->selected = $groupid === 0;
@@ -183,12 +190,12 @@ class mobile {
      * @param int $groupmode The group mode we are in, eg. NOGROUPS, VISIBLEGROUPS
      * @param int $groupid The id of the group that has been selected
      * @param array $allowedgroups The allowed groups this user can access
-     * @param \stdClass $cm The course module
+     * @param stdClass $cm The course module
      */
     private static function update_active_group($groupmode, $groupid, $allowedgroups, $cm) {
         global $SESSION;
 
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
         if (has_capability('moodle/site:accessallgroups', $context)) {
             $groupmode = 'aag';
@@ -209,11 +216,11 @@ class mobile {
     /**
      * Confirms the user is logged in and has the specified capability.
      *
-     * @param \stdClass $cm
-     * @param \context $context
+     * @param stdClass $cm
+     * @param context $context
      * @param string $cap
      */
-    protected static function require_capability(\stdClass $cm, \context $context, string $cap) {
+    protected static function require_capability(stdClass $cm, context $context, string $cap) {
         require_login($cm->course, false, $cm, true, true);
         require_capability($cap, $context);
     }

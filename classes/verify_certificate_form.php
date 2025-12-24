@@ -24,6 +24,8 @@
 
 namespace mod_customcert;
 
+use moodleform;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->libdir . '/formslib.php');
@@ -35,7 +37,7 @@ require_once($CFG->libdir . '/formslib.php');
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class verify_certificate_form extends \moodleform {
+class verify_certificate_form extends moodleform {
     /**
      * Form definition.
      */

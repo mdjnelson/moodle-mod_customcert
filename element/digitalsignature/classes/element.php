@@ -24,6 +24,16 @@
 
 namespace customcertelement_digitalsignature;
 
+use context_course;
+use context_system;
+use core_collator;
+use mod_customcert\certificate;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+use stored_file;
+
 /**
  * The customcert element digital signature's core interaction API.
  *
@@ -40,7 +50,7 @@ class element extends \customcertelement_image\element {
     /**
      * Constructor.
      *
-     * @param \stdClass $element the element data
+     * @param stdClass $element the element data
      */
     public function __construct($element) {
         global $COURSE;
@@ -57,7 +67,7 @@ class element extends \customcertelement_image\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
@@ -97,12 +107,12 @@ class element extends \customcertelement_image\element {
         $mform->setType('signaturecontactinfo', PARAM_TEXT);
         $mform->setDefault('signaturecontactinfo', '');
 
-        \mod_customcert\element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_width($mform);
 
-        \mod_customcert\element_helper::render_form_element_height($mform);
+        element_helper::render_form_element_height($mform);
 
         if (get_config('customcert', 'showposxy')) {
-            \mod_customcert\element_helper::render_form_element_position($mform);
+            element_helper::render_form_element_position($mform);
         }
 
         $mform->addElement(
@@ -126,7 +136,7 @@ class element extends \customcertelement_image\element {
      * Handles saving the form elements created by this element.
      * Can be overridden if more functionality is needed.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return bool true of success, false otherwise.
      */
     public function save_form_elements($data) {
@@ -134,16 +144,16 @@ class element extends \customcertelement_image\element {
 
         // Set the context.
         if ($COURSE->id == $SITE->id) {
-            $context = \context_system::instance();
+            $context = context_system::instance();
         } else {
-            $context = \context_course::instance($COURSE->id);
+            $context = context_course::instance($COURSE->id);
         }
 
         // Handle file uploads.
-        \mod_customcert\certificate::upload_files($data->customcertimage, $context->id);
+        certificate::upload_files($data->customcertimage, $context->id);
 
         // Handle file certificate uploads.
-        \mod_customcert\certificate::upload_files($data->digitalsignature, $context->id, 'signature');
+        certificate::upload_files($data->digitalsignature, $context->id, 'signature');
 
         return parent::save_form_elements($data);
     }
@@ -152,7 +162,7 @@ class element extends \customcertelement_image\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -199,9 +209,9 @@ class element extends \customcertelement_image\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
@@ -250,16 +260,16 @@ class element extends \customcertelement_image\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         global $COURSE, $SITE;
 
         // Set the context.
         if ($COURSE->id == $SITE->id) {
-            $context = \context_system::instance();
+            $context = context_system::instance();
         } else {
-            $context = \context_course::instance($COURSE->id);
+            $context = context_course::instance($COURSE->id);
         }
 
         if (!empty($this->get_data())) {
@@ -320,7 +330,7 @@ class element extends \customcertelement_image\element {
         // Loop through the files uploaded in the system context.
         if (
             $files = $fs->get_area_files(
-                \context_system::instance()->id,
+                context_system::instance()->id,
                 'mod_customcert',
                 'signature',
                 false,
@@ -335,7 +345,7 @@ class element extends \customcertelement_image\element {
         // Loop through the files uploaded in the course context.
         if (
             $files = $fs->get_area_files(
-                \context_course::instance($COURSE->id)->id,
+                context_course::instance($COURSE->id)->id,
                 'mod_customcert',
                 'signature',
                 false,
@@ -348,7 +358,7 @@ class element extends \customcertelement_image\element {
             }
         }
 
-        \core_collator::asort($arrfiles);
+        core_collator::asort($arrfiles);
         $arrfiles = ['0' => get_string('nosignature', 'customcertelement_digitalsignature')] + $arrfiles;
 
         return $arrfiles;
@@ -357,7 +367,7 @@ class element extends \customcertelement_image\element {
     /**
      * Fetch stored file.
      *
-     * @return \stored_file|bool stored_file instance if exists, false if not
+     * @return stored_file|bool stored_file instance if exists, false if not
      */
     public function get_signature_file() {
         $imageinfo = json_decode($this->get_data());

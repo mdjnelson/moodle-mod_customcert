@@ -24,6 +24,16 @@
 
 namespace customcertelement_qrcode;
 
+use context;
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use MoodleQuickForm;
+use moodle_url;
+use pdf;
+use stdClass;
+use TCPDF2DBarcode;
+use Throwable;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
@@ -35,7 +45,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * @copyright  2019 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * @var string The barcode type.
      */
@@ -44,15 +54,15 @@ class element extends \mod_customcert\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
-        \mod_customcert\element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_width($mform);
 
-        \mod_customcert\element_helper::render_form_element_height($mform);
+        element_helper::render_form_element_height($mform);
 
         if ($this->showposxy) {
-            \mod_customcert\element_helper::render_form_element_position($mform);
+            element_helper::render_form_element_position($mform);
         }
     }
 
@@ -68,13 +78,13 @@ class element extends \mod_customcert\element {
         $errors = [];
 
         // Validate the width.
-        $errors += \mod_customcert\element_helper::validate_form_element_width($data, false);
+        $errors += element_helper::validate_form_element_width($data, false);
 
         // Validate the height.
-        $errors += \mod_customcert\element_helper::validate_form_element_height($data, false);
+        $errors += element_helper::validate_form_element_height($data, false);
 
         if ($this->showposxy) {
-            $errors += \mod_customcert\element_helper::validate_form_element_position($data);
+            $errors += element_helper::validate_form_element_position($data);
         }
 
         return $errors;
@@ -84,7 +94,7 @@ class element extends \mod_customcert\element {
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
-     * @param \stdClass $data the form data
+     * @param stdClass $data the form data
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
@@ -99,7 +109,7 @@ class element extends \mod_customcert\element {
     /**
      * Sets the data on the form when editing an element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function definition_after_data($mform) {
         parent::definition_after_data($mform);
@@ -118,9 +128,9 @@ class element extends \mod_customcert\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         global $DB;
@@ -134,7 +144,7 @@ class element extends \mod_customcert\element {
 
         if ($preview) {
             // Generate the URL to verify this.
-            $qrcodeurl = new \moodle_url('/');
+            $qrcodeurl = new moodle_url('/');
             $qrcodeurl = $qrcodeurl->out(false);
         } else {
             // Get the information we need.
@@ -158,7 +168,7 @@ class element extends \mod_customcert\element {
             );
             $code = $issue->code;
 
-            $context = \context::instance_by_id($issue->contextid);
+            $context = context::instance_by_id($issue->contextid);
 
             $urlparams = [
                 'code' => $code,
@@ -178,19 +188,19 @@ class element extends \mod_customcert\element {
                 $urlparams['contextid'] = $issue->contextid;
             }
 
-            $qrcodeurl = new \moodle_url('/mod/customcert/verify_certificate.php', $urlparams);
+            $qrcodeurl = new moodle_url('/mod/customcert/verify_certificate.php', $urlparams);
             $qrcodeurl = $qrcodeurl->out(false);
         }
 
         try {
-            $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+            $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
             $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
 
             $location = make_request_directory() . '/target';
             file_put_contents($location, $image);
 
             $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                 debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
@@ -215,13 +225,13 @@ class element extends \mod_customcert\element {
 
         $imageinfo = json_decode($this->get_data());
 
-        $qrcodeurl = new \moodle_url('/');
+        $qrcodeurl = new moodle_url('/');
         $qrcodeurl = $qrcodeurl->out(false);
 
         try {
-            $barcode = new \TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+            $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
             return $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                 debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }

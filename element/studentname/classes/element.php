@@ -24,6 +24,11 @@
 
 namespace customcertelement_studentname;
 
+use mod_customcert\element as base_element;
+use mod_customcert\element_helper;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element studentname's core interaction API.
  *
@@ -31,16 +36,16 @@ namespace customcertelement_studentname;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \mod_customcert\element {
+class element extends base_element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
-        \mod_customcert\element_helper::render_content($pdf, $this, fullname($user));
+        element_helper::render_content($pdf, $this, fullname($user));
     }
 
     /**
@@ -54,6 +59,6 @@ class element extends \mod_customcert\element {
     public function render_html() {
         global $USER;
 
-        return \mod_customcert\element_helper::render_html_content($this, fullname($USER));
+        return element_helper::render_html_content($this, fullname($USER));
     }
 }

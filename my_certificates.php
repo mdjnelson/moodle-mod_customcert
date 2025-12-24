@@ -22,6 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\certificate;
+use mod_customcert\my_certificates_table;
+use mod_customcert\template;
+
 require_once('../../config.php');
 
 $userid = optional_param('userid', $USER->id, PARAM_INT);
@@ -38,7 +42,7 @@ if ($downloadcert) {
     }
 }
 $page = optional_param('page', 0, PARAM_INT);
-$perpage = optional_param('perpage', \mod_customcert\certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
+$perpage = optional_param('perpage', certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
 $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid' => $userid,
     'page' => $page, 'perpage' => $perpage]);
 
@@ -50,7 +54,7 @@ if ($courseid) {
 }
 
 // Check that we have a valid user.
-$user = \core_user::get_user($userid, '*', MUST_EXIST);
+$user = core_user::get_user($userid, '*', MUST_EXIST);
 
 // If we are viewing certificates that are not for the currently logged in user then do a capability check.
 if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
@@ -66,12 +70,12 @@ $PAGE->navigation->extend_for_user($user);
 // Check if we requested to download a certificate.
 if ($downloadcert) {
     $template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
-    $template = new \mod_customcert\template($template);
+    $template = new template($template);
     $template->generate_pdf(false, $userid);
     exit();
 }
 
-$table = new \mod_customcert\my_certificates_table($userid, $download);
+$table = new my_certificates_table($userid, $download);
 $table->define_baseurl($pageurl);
 
 if ($table->is_downloading()) {

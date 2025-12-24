@@ -24,7 +24,11 @@
 
 namespace mod_customcert\event;
 
+use context_system;
+use core\event\base;
 use mod_customcert\template;
+use moodle_url;
+use stdClass;
 
 /**
  * Certificate template page created event class.
@@ -33,7 +37,7 @@ use mod_customcert\template;
  * @copyright 2023 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class page_created extends \core\event\base {
+class page_created extends base {
     /**
      * Initialises the event.
      */
@@ -49,7 +53,7 @@ class page_created extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        if ($this->contextlevel == \context_system::instance()->contextlevel) {
+        if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
             return "The user with id '$this->userid' created the page with id '$this->objectid'.";
         } else {
@@ -71,11 +75,11 @@ class page_created extends \core\event\base {
     /**
      * Create instance of event.
      *
-     * @param \stdClass $page
+     * @param stdClass $page
      * @param template $template
      * @return page_created
      */
-    public static function create_from_page(\stdClass $page, template $template): page_created {
+    public static function create_from_page(stdClass $page, template $template): page_created {
         $data = [
             'context' => $template->get_context(),
             'objectid' => $page->id,
@@ -86,13 +90,13 @@ class page_created extends \core\event\base {
 
     /**
      * Returns relevant URL.
-     * @return \moodle_url
+     * @return moodle_url
      */
     public function get_url() {
-        if ($this->contextlevel == \context_system::instance()->contextlevel) {
-            return new \moodle_url('/mod/customcert/manage_templates.php');
+        if ($this->contextlevel == context_system::instance()->contextlevel) {
+            return new moodle_url('/mod/customcert/manage_templates.php');
         } else {
-            return new \moodle_url(
+            return new moodle_url(
                 '/mod/customcert/view.php',
                 ['id' => $this->contextinstanceid]
             );

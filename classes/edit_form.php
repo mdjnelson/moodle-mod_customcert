@@ -24,12 +24,23 @@
 
 namespace mod_customcert;
 
+use core\output\inplace_editable;
+use core_text;
+use html_table;
+use html_table_row;
+use html_writer;
+use moodle_url;
+use moodleform;
+use MoodleQuickForm;
+use pix_icon;
+use stdClass;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
 
-\MoodleQuickForm::registerElementType(
+MoodleQuickForm::registerElementType(
     'customcert_colourpicker',
     $CFG->dirroot . '/mod/customcert/includes/colourpicker.php',
     'MoodleQuickForm_customcert_colourpicker'
@@ -42,7 +53,7 @@ require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class edit_form extends \moodleform {
+class edit_form extends moodleform {
     /**
      * @var int The id of the template being used.
      */
@@ -76,7 +87,7 @@ class edit_form extends \moodleform {
             }
         } else { // Add a new template.
             // Create a 'fake' page to display the elements on - not yet saved in the DB.
-            $page = new \stdClass();
+            $page = new stdClass();
             $page->id = 0;
             $page->sequence = 1;
             $this->add_customcert_page_elements($page);
@@ -84,7 +95,7 @@ class edit_form extends \moodleform {
 
         // Link to add another page, only display it when the template has been created.
         if (isset($this->_customdata['tid'])) {
-            $addpagelink = new \moodle_url(
+            $addpagelink = new moodle_url(
                 '/mod/customcert/edit.php',
                 [
                     'tid' => $this->tid,
@@ -94,8 +105,8 @@ class edit_form extends \moodleform {
                 ]
             );
             $icon = $OUTPUT->pix_icon('t/switch_plus', get_string('addcertpage', 'customcert'));
-            $addpagehtml = \html_writer::link($addpagelink, $icon . get_string('addcertpage', 'customcert'));
-            $mform->addElement('html', \html_writer::tag('div', $addpagehtml, ['class' => 'addpage']));
+            $addpagehtml = html_writer::link($addpagelink, $icon . get_string('addcertpage', 'customcert'));
+            $mform->addElement('html', html_writer::tag('div', $addpagehtml, ['class' => 'addpage']));
         }
 
         // Add the submit buttons.
@@ -150,7 +161,7 @@ class edit_form extends \moodleform {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        if (\core_text::strlen($data['name']) > 255) {
+        if (core_text::strlen($data['name']) > 255) {
             $errors['name'] = get_string('nametoolong', 'customcert');
         }
 
@@ -192,7 +203,7 @@ class edit_form extends \moodleform {
     /**
      * Adds the page elements to the form.
      *
-     * @param \stdClass $page the customcert page
+     * @param stdClass $page the customcert page
      */
     protected function add_customcert_page_elements($page) {
         global $DB, $OUTPUT;
@@ -212,13 +223,13 @@ class edit_form extends \moodleform {
         // Place the ordering arrows.
         // Only display the move up arrow if it is not the first.
         if ($page->sequence > 1) {
-            $url = new \moodle_url($editlink, $editlinkparams + ['action' => 'pmoveup', 'aid' => $page->id]);
-            $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/up', get_string('moveup'))));
+            $url = new moodle_url($editlink, $editlinkparams + ['action' => 'pmoveup', 'aid' => $page->id]);
+            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup'))));
         }
         // Only display the move down arrow if it is not the last.
         if ($page->sequence < $this->numpages) {
-            $url = new \moodle_url($editlink, $editlinkparams + ['action' => 'pmovedown', 'aid' => $page->id]);
-            $mform->addElement('html', $OUTPUT->action_icon($url, new \pix_icon('t/down', get_string('movedown'))));
+            $url = new moodle_url($editlink, $editlinkparams + ['action' => 'pmovedown', 'aid' => $page->id]);
+            $mform->addElement('html', $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown'))));
         }
 
         $mform->addElement('text', 'pagewidth_' . $page->id, get_string('width', 'customcert'));
@@ -248,13 +259,13 @@ class edit_form extends \moodleform {
             // Get the total number of elements.
             $numelements = count($elements);
             // Create a table to display these elements.
-            $table = new \html_table();
+            $table = new html_table();
             $table->attributes = ['class' => 'generaltable elementstable'];
             $table->head  = [get_string('name', 'customcert'), get_string('type', 'customcert'), get_string('actions')];
             $table->align = ['left', 'left', 'left'];
             // Loop through and add the elements to the table.
             foreach ($elements as $element) {
-                $elementname = new \core\output\inplace_editable(
+                $elementname = new inplace_editable(
                     'mod_customcert',
                     'elementname',
                     $element->id,
@@ -263,24 +274,24 @@ class edit_form extends \moodleform {
                     $element->name
                 );
 
-                $row = new \html_table_row();
+                $row = new html_table_row();
                 $row->cells[] = $OUTPUT->render($elementname);
                 $row->cells[] = $element->element;
                 // Link to edit this element.
-                $link = new \moodle_url($editelementlink, $editelementlinkparams + ['id' => $element->id,
+                $link = new moodle_url($editelementlink, $editelementlinkparams + ['id' => $element->id,
                     'action' => 'edit']);
                 $icons = $OUTPUT->action_icon(
                     $link,
-                    new \pix_icon('t/edit', get_string('edit')),
+                    new pix_icon('t/edit', get_string('edit')),
                     null,
                     ['class' => 'action-icon edit-icon']
                 );
                 // Link to delete the element.
-                $link = new \moodle_url($editlink, $editlinkparams + ['action' => 'deleteelement',
+                $link = new moodle_url($editlink, $editlinkparams + ['action' => 'deleteelement',
                     'aid' => $element->id]);
                 $icons .= $OUTPUT->action_icon(
                     $link,
-                    new \pix_icon('t/delete', get_string('delete')),
+                    new pix_icon('t/delete', get_string('delete')),
                     null,
                     ['class' => 'action-icon delete-icon']
                 );
@@ -289,15 +300,15 @@ class edit_form extends \moodleform {
                     // Only display the move up arrow if it is not the first.
                     $moveicons = '';
                     if ($element->sequence > 1) {
-                        $url = new \moodle_url($editlink, $editlinkparams + ['action' => 'emoveup',
+                        $url = new moodle_url($editlink, $editlinkparams + ['action' => 'emoveup',
                             'aid' => $element->id]);
-                        $moveicons .= $OUTPUT->action_icon($url, new \pix_icon('t/up', get_string('moveup')));
+                        $moveicons .= $OUTPUT->action_icon($url, new pix_icon('t/up', get_string('moveup')));
                     }
                     // Only display the move down arrow if it is not the last.
                     if ($element->sequence < $numelements) {
-                        $url = new \moodle_url($editlink, $editlinkparams + ['action' => 'emovedown',
+                        $url = new moodle_url($editlink, $editlinkparams + ['action' => 'emovedown',
                             'aid' => $element->id]);
-                        $moveicons .= $OUTPUT->action_icon($url, new \pix_icon('t/down', get_string('movedown')));
+                        $moveicons .= $OUTPUT->action_icon($url, new pix_icon('t/down', get_string('movedown')));
                     }
                     $icons .= $moveicons;
                 }
@@ -305,13 +316,13 @@ class edit_form extends \moodleform {
                 $table->data[] = $row;
             }
             // Create link to order the elements.
-            $link = \html_writer::link(
-                new \moodle_url('/mod/customcert/rearrange.php', ['pid' => $page->id]),
+            $link = html_writer::link(
+                new moodle_url('/mod/customcert/rearrange.php', ['pid' => $page->id]),
                 get_string('rearrangeelements', 'customcert')
             );
             // Add the table to the form.
-            $mform->addElement('static', 'elements_' . $page->id, get_string('elements', 'customcert'), \html_writer::table($table)
-                . \html_writer::tag('div', $link));
+            $mform->addElement('static', 'elements_' . $page->id, get_string('elements', 'customcert'), html_writer::table($table)
+                . html_writer::tag('div', $link));
             $mform->addHelpButton('elements_' . $page->id, 'elements', 'customcert');
         }
 
@@ -329,10 +340,10 @@ class edit_form extends \moodleform {
         // Add option to delete this page if there is more than one page.
         if ($this->numpages > 1) {
             // Link to delete the page.
-            $deletelink = new \moodle_url($editlink, $editlinkparams + ['action' => 'deletepage', 'aid' => $page->id]);
+            $deletelink = new moodle_url($editlink, $editlinkparams + ['action' => 'deletepage', 'aid' => $page->id]);
             $icon = $OUTPUT->pix_icon('t/delete', get_string('deletecertpage', 'customcert'));
-            $deletepagehtml = \html_writer::link($deletelink, $icon . get_string('deletecertpage', 'customcert'));
-            $mform->addElement('html', \html_writer::tag('div', $deletepagehtml, ['class' => 'deletebutton']));
+            $deletepagehtml = html_writer::link($deletelink, $icon . get_string('deletecertpage', 'customcert'));
+            $mform->addElement('html', html_writer::tag('div', $deletepagehtml, ['class' => 'deletebutton']));
         }
     }
 }

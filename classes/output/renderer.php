@@ -39,7 +39,7 @@ class renderer extends plugin_renderer_base {
      *
      * Defer to template.
      *
-     * @param \mod_customcert\output\verify_certificate_results $page
+     * @param verify_certificate_results $page
      * @return string html for the page
      */
     public function render_verify_certificate_results(verify_certificate_results $page) {

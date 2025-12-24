@@ -24,6 +24,9 @@
 
 namespace mod_customcert;
 
+use context_system;
+use moodleform;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->libdir . '/formslib.php');
@@ -35,7 +38,7 @@ require_once($CFG->libdir . '/formslib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class upload_image_form extends \moodleform {
+class upload_image_form extends moodleform {
     /** @var array the filemanager options */
     protected $filemanageroptions = [];
 
@@ -71,7 +74,7 @@ class upload_image_form extends \moodleform {
         $draftitemid = file_get_submitted_draft_itemid('customcertimage');
         file_prepare_draft_area(
             $draftitemid,
-            \context_system::instance()->id,
+            context_system::instance()->id,
             'mod_customcert',
             'image',
             0,

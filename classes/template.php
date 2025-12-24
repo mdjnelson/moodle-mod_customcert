@@ -24,6 +24,17 @@
 
 namespace mod_customcert;
 
+use context;
+use mod_customcert\event\element_deleted;
+use mod_customcert\event\page_created;
+use mod_customcert\event\page_deleted;
+use mod_customcert\event\page_updated;
+use mod_customcert\event\template_created;
+use mod_customcert\event\template_deleted;
+use mod_customcert\event\template_updated;
+use pdf;
+use stdClass;
+
 /**
  * Class represents a customcert template.
  *
@@ -61,12 +72,12 @@ class template {
     /**
      * Handles saving data.
      *
-     * @param \stdClass $data the template data
+     * @param stdClass $data the template data
      */
     public function save($data) {
         global $DB;
 
-        $savedata = new \stdClass();
+        $savedata = new stdClass();
         $savedata->id = $this->id;
         $savedata->name = $data->name;
         $savedata->timemodified = time();
@@ -75,7 +86,7 @@ class template {
 
         // Only trigger event if the name has changed.
         if ($this->get_name() != $data->name) {
-            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+            template_updated::create_from_template($this)->trigger();
         }
     }
 
@@ -99,7 +110,7 @@ class template {
         }
 
         // New page creation.
-        $page = new \stdClass();
+        $page = new stdClass();
         $page->templateid = $this->id;
         $page->width = '210';
         $page->height = '297';
@@ -112,10 +123,10 @@ class template {
 
         $page->id = $pageid;
 
-        \mod_customcert\event\page_created::create_from_page($page, $this)->trigger();
+        page_created::create_from_page($page, $this)->trigger();
 
         if ($triggertemplateupdatedevent) {
-            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+            template_updated::create_from_template($this)->trigger();
         }
 
         return $page->id;
@@ -143,7 +154,7 @@ class template {
                     $leftmargin = 'pageleftmargin_' . $page->id;
                     $rightmargin = 'pagerightmargin_' . $page->id;
 
-                    $p = new \stdClass();
+                    $p = new stdClass();
                     $p->id = $page->id;
                     $p->width = $data->$width;
                     $p->height = $data->$height;
@@ -156,7 +167,7 @@ class template {
 
                     // Calling code is expected to trigger template_updated
                     // after this method.
-                    \mod_customcert\event\page_updated::create_from_page($p, $this)->trigger();
+                    page_updated::create_from_page($p, $this)->trigger();
                 }
             }
         }
@@ -182,7 +193,7 @@ class template {
             return false;
         }
 
-        \mod_customcert\event\template_deleted::create_from_template($this)->trigger();
+        template_deleted::create_from_template($this)->trigger();
 
         return true;
     }
@@ -204,7 +215,7 @@ class template {
         if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
             foreach ($elements as $element) {
                 // Get an instance of the element class.
-                if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+                if ($e = element_factory::get_element_instance($element)) {
                     $e->delete();
                 } else {
                     // The plugin files are missing, so just remove the entry from the DB.
@@ -216,7 +227,7 @@ class template {
         // Delete this page.
         $DB->delete_records('customcert_pages', ['id' => $page->id]);
 
-        \mod_customcert\event\page_deleted::create_from_page($page, $this)->trigger();
+        page_deleted::create_from_page($page, $this)->trigger();
 
         // Now we want to decrease the page number values of
         // the pages that are greater than the page we deleted.
@@ -227,7 +238,7 @@ class template {
         $DB->execute($sql, ['templateid' => $this->id, 'sequence' => $page->sequence]);
 
         if ($triggertemplateupdatedevent) {
-            \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+            template_updated::create_from_template($this)->trigger();
         }
     }
 
@@ -243,7 +254,7 @@ class template {
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+        if ($e = element_factory::get_element_instance($element)) {
             $e->delete();
         } else {
             // The plugin files are missing, so just remove the entry from the DB.
@@ -258,7 +269,7 @@ class template {
                    AND sequence > :sequence";
         $DB->execute($sql, ['pageid' => $element->pageid, 'sequence' => $element->sequence]);
 
-        \mod_customcert\event\template_updated::create_from_template($this)->trigger();
+        template_updated::create_from_template($this)->trigger();
     }
 
     /**
@@ -580,21 +591,21 @@ class template {
      *
      * @param string $templatename the name of the template
      * @param int $contextid the context id
-     * @return \mod_customcert\template the template object
+     * @return template the template object
      */
     public static function create($templatename, $contextid) {
         global $DB;
 
-        $template = new \stdClass();
+        $template = new stdClass();
         $template->name = $templatename;
         $template->contextid = $contextid;
         $template->timecreated = time();
         $template->timemodified = $template->timecreated;
         $template->id = $DB->insert_record('customcert_templates', $template);
 
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
-        \mod_customcert\event\template_created::create_from_template($template)->trigger();
+        template_created::create_from_template($template)->trigger();
 
         return $template;
     }

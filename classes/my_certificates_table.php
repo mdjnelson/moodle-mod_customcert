@@ -24,6 +24,13 @@
 
 namespace mod_customcert;
 
+use context_module;
+use core\session\manager;
+use moodle_url;
+use pix_icon;
+use stdClass;
+use table_sql;
+
 defined('MOODLE_INTERNAL') || die;
 
 global $CFG;
@@ -37,7 +44,7 @@ require_once($CFG->libdir . '/tablelib.php');
  * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class my_certificates_table extends \table_sql {
+class my_certificates_table extends table_sql {
     /**
      * @var int $userid The user id
      */
@@ -89,12 +96,12 @@ class my_certificates_table extends \table_sql {
     /**
      * Generate the name column.
      *
-     * @param \stdClass $certificate
+     * @param stdClass $certificate
      * @return string
      */
     public function col_name($certificate) {
         $cm = get_coursemodule_from_instance('customcert', $certificate->id);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
         return format_string($certificate->name, true, ['context' => $context]);
     }
@@ -102,12 +109,12 @@ class my_certificates_table extends \table_sql {
     /**
      * Generate the course name column.
      *
-     * @param \stdClass $certificate
+     * @param stdClass $certificate
      * @return string
      */
     public function col_coursename($certificate) {
         $cm = get_coursemodule_from_instance('customcert', $certificate->id);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
         return format_string($certificate->coursename, true, ['context' => $context]);
     }
@@ -115,7 +122,7 @@ class my_certificates_table extends \table_sql {
     /**
      * Generate the certificate time created column.
      *
-     * @param \stdClass $certificate
+     * @param stdClass $certificate
      * @return string
      */
     public function col_timecreated($certificate) {
@@ -125,7 +132,7 @@ class my_certificates_table extends \table_sql {
     /**
      * Generate the code column.
      *
-     * @param \stdClass $certificate
+     * @param stdClass $certificate
      * @return string
      */
     public function col_code($certificate) {
@@ -135,14 +142,14 @@ class my_certificates_table extends \table_sql {
     /**
      * Generate the download column.
      *
-     * @param \stdClass $certificate
+     * @param stdClass $certificate
      * @return string
      */
     public function col_download($certificate) {
         global $OUTPUT;
 
-        $icon = new \pix_icon('download', get_string('download'), 'customcert');
-        $link = new \moodle_url(
+        $icon = new pix_icon('download', get_string('download'), 'customcert');
+        $link = new moodle_url(
             '/mod/customcert/my_certificates.php',
             ['userid' => $this->userid,
                   'certificateid' => $certificate->id,
@@ -180,7 +187,7 @@ class my_certificates_table extends \table_sql {
      * Download the data.
      */
     public function download() {
-        \core\session\manager::write_close();
+        manager::write_close();
         $total = certificate::get_number_of_certificates_for_user($this->userid);
         $this->out($total, false);
         exit;

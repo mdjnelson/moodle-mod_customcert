@@ -24,6 +24,17 @@
 
 namespace mod_customcert;
 
+use context_module;
+use context_system;
+use core\log\sql_internal_table_reader;
+use core_user\fields;
+use logstore_legacy\log\store;
+use mod_customcert\event\issue_created;
+use pdf;
+use stdClass;
+use TCPDF_FONTS;
+use zip_archive;
+
 /**
  * Class certificate.
  *
@@ -78,7 +89,7 @@ class certificate {
     /**
      * Handles setting the protection field for the customcert
      *
-     * @param \stdClass $data
+     * @param stdClass $data
      * @return string the value to insert into the protection field
      */
     public static function set_protection($data) {
@@ -122,7 +133,7 @@ class certificate {
         require_once($CFG->libdir . '/pdflib.php');
 
         $arrfonts = [];
-        $pdf = new \pdf();
+        $pdf = new pdf();
         $fontfamilies = $pdf->get_font_families();
         foreach ($fontfamilies as $fontfamily => $fontstyles) {
             foreach ($fontstyles as $fontstyle) {
@@ -132,7 +143,7 @@ class certificate {
                 } else {
                     $filenamewoextension = $fontfamily . $fontstyle;
                 }
-                $fullpath = \TCPDF_FONTS::_getfontpath() . $filenamewoextension;
+                $fullpath = TCPDF_FONTS::_getfontpath() . $filenamewoextension;
                 // Set the name of the font to null, the include next should then set this
                 // value, if it is not set then the file does not include the necessary data.
                 $name = null;
@@ -200,12 +211,12 @@ class certificate {
         // Go through all the readers until we find one that we can use.
         foreach ($enabledreaders as $enabledreader) {
             $reader = $readers[$enabledreader];
-            if ($reader instanceof \logstore_legacy\log\store) {
+            if ($reader instanceof store) {
                 $logtable = 'log';
                 $coursefield = 'course';
                 $timefield = 'time';
                 break;
-            } else if ($reader instanceof \core\log\sql_internal_table_reader) {
+            } else if ($reader instanceof sql_internal_table_reader) {
                 $logtable = $reader->get_internal_log_table_name();
                 $coursefield = 'courseid';
                 $timefield = 'timecreated';
@@ -259,7 +270,7 @@ class certificate {
      * @return void
      * @throws \moodle_exception
      */
-    public static function download_all_issues_for_instance(\mod_customcert\template $template, array $issues): void {
+    public static function download_all_issues_for_instance(template $template, array $issues): void {
         $zipdir = make_request_directory();
         if (!$zipdir) {
             return;
@@ -269,7 +280,7 @@ class certificate {
         $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
         $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
 
-        $ziparchive = new \zip_archive();
+        $ziparchive = new zip_archive();
         if ($ziparchive->open($zipfullpath)) {
             foreach ($issues as $issue) {
                 $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
@@ -292,7 +303,7 @@ class certificate {
     public static function download_all_for_site(): void {
         global $DB;
 
-        [$namefields, $nameparams] = \core_user\fields::get_sql_fullname();
+        [$namefields, $nameparams] = fields::get_sql_fullname();
         $sql = "SELECT ci.*, $namefields as fullname, ct.id as templateid, ct.name as templatename, ct.contextid
                   FROM {customcert_issues} ci
                   JOIN {user} u
@@ -311,14 +322,14 @@ class certificate {
             $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
             $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
 
-            $ziparchive = new \zip_archive();
+            $ziparchive = new zip_archive();
             if ($ziparchive->open($zipfullpath)) {
                 foreach ($issues as $issue) {
-                    $template = new \stdClass();
+                    $template = new stdClass();
                     $template->id = $issue->templateid;
                     $template->name = $issue->templatename;
                     $template->contextid = $issue->contextid;
-                    $template = new \mod_customcert\template($template);
+                    $template = new template($template);
 
                     $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
                     $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
@@ -339,7 +350,7 @@ class certificate {
      *
      * @param int $customcertid
      * @param bool $groupmode are we in group mode
-     * @param \stdClass $cm the course module
+     * @param stdClass $cm the course module
      * @param int $limitfrom
      * @param int $limitnum
      * @param string $sort
@@ -357,8 +368,8 @@ class certificate {
         }
 
         // Return the issues.
-        $context = \context_module::instance($cm->id);
-        $query = \core_user\fields::for_identity($context)->with_userpic()->get_sql('u', true, '', '', false);
+        $context = context_module::instance($cm->id);
+        $query = fields::for_identity($context)->with_userpic()->get_sql('u', true, '', '', false);
 
         // Add the conditional SQL and the customcertid to form all used parameters.
         $allparams = $query->params + $conditionsparams + ['customcertid' => $customcertid];
@@ -380,7 +391,7 @@ class certificate {
      * Returns the total number of issues for a given customcert.
      *
      * @param int $customcertid
-     * @param \stdClass $cm the course module
+     * @param stdClass $cm the course module
      * @param bool $groupmode the group mode
      * @return int the number of issues
      */
@@ -412,7 +423,7 @@ class certificate {
     /**
      * Returns an array of the conditional variables to use in the get_issues SQL query.
      *
-     * @param \stdClass $cm the course module
+     * @param stdClass $cm the course module
      * @param bool $groupmode are we in group mode ?
      * @return array the conditional variables
      */
@@ -420,7 +431,7 @@ class certificate {
         global $DB, $USER;
 
         // Get all users that can manage this customcert to exclude them from the report.
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
         $conditionssql = '';
         $conditionsparams = [];
 
@@ -526,7 +537,7 @@ class certificate {
     public static function issue_certificate($certificateid, $userid) {
         global $DB;
 
-        $issue = new \stdClass();
+        $issue = new stdClass();
         $issue->userid = $userid;
         $issue->customcertid = $certificateid;
         $issue->code = self::generate_code();
@@ -538,10 +549,10 @@ class certificate {
 
         // Get course module context for event.
         $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
         // Trigger event.
-        $event = \mod_customcert\event\issue_created::create([
+        $event = issue_created::create([
             'objectid' => $issueid,
             'context' => $context,
             'relateduserid' => $userid,

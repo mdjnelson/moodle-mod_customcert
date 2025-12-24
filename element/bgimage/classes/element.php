@@ -24,6 +24,12 @@
 
 namespace customcertelement_bgimage;
 
+use html_writer;
+use moodle_url;
+use MoodleQuickForm;
+use pdf;
+use stdClass;
+
 /**
  * The customcert element background image's core interaction API.
  *
@@ -35,7 +41,7 @@ class element extends \customcertelement_image\element {
     /**
      * This function renders the form elements when adding a customcert element.
      *
-     * @param \MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
@@ -63,9 +69,9 @@ class element extends \customcertelement_image\element {
     /**
      * Handles rendering the element on the pdf.
      *
-     * @param \pdf $pdf the pdf object
+     * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
-     * @param \stdClass $user the user we are rendering this for
+     * @param stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
         // If there is no element data, we have nothing to display.
@@ -118,7 +124,7 @@ class element extends \customcertelement_image\element {
         }
 
         if ($file = $this->get_file()) {
-            $url = \moodle_url::make_pluginfile_url(
+            $url = moodle_url::make_pluginfile_url(
                 $file->get_contextid(),
                 'mod_customcert',
                 'image',
@@ -131,7 +137,7 @@ class element extends \customcertelement_image\element {
 
             // Set the image to the size of the page.
             $style = 'width: ' . $page->width . 'mm; height: ' . $page->height . 'mm';
-            return \html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
+            return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
         }
     }
 

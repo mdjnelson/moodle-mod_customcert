@@ -23,6 +23,7 @@
  */
 namespace mod_customcert\task;
 
+use core\task\adhoc_task;
 use mod_customcert\helper;
 
 /**
@@ -32,7 +33,7 @@ use mod_customcert\helper;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class email_certificate_task extends \core\task\adhoc_task {
+class email_certificate_task extends adhoc_task {
     /**
      * Get a descriptive name for this task (shown to admins).
      *

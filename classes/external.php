@@ -23,11 +23,17 @@
  */
 namespace mod_customcert;
 
+use context_module;
+use context_system;
 use core_external\external_api;
 use core_external\external_value;
 use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
+use core_user\fields;
+use mod_customcert\event\issue_deleted;
+use stdClass;
+use Throwable;
 
 /**
  * This is the external API for this tool.
@@ -80,19 +86,19 @@ class external extends external_api {
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
-            self::validate_context(\context_module::instance($cm->id));
+            self::validate_context(context_module::instance($cm->id));
         } else {
-            self::validate_context(\context_system::instance());
+            self::validate_context(context_system::instance());
         }
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
         // Set the values we are going to save.
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->id = $element->id;
         $data->name = $element->name;
         foreach ($values as $value) {
@@ -101,7 +107,7 @@ class external extends external_api {
         }
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+        if ($e = element_factory::get_element_instance($element)) {
             return $e->save_form_elements($data);
         }
 
@@ -151,17 +157,17 @@ class external extends external_api {
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
-            self::validate_context(\context_module::instance($cm->id));
+            self::validate_context(context_module::instance($cm->id));
         } else {
-            self::validate_context(\context_system::instance());
+            self::validate_context(context_system::instance());
         }
 
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+        if ($e = element_factory::get_element_instance($element)) {
             return $e->render_html();
         }
 
@@ -213,7 +219,7 @@ class external extends external_api {
         $cm = get_coursemodule_from_instance('customcert', $certificate->id, 0, false, MUST_EXIST);
 
         // Make sure the user has the required capabilities.
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/customcert:manage', $context);
 
@@ -222,7 +228,7 @@ class external extends external_api {
 
         // Trigger event if deletion succeeded.
         if ($deleted) {
-            $event = \mod_customcert\event\issue_deleted::create([
+            $event = issue_deleted::create([
                 'objectid' => $issue->id,
                 'context' => $context,
                 'relateduserid' => $issue->userid,
@@ -333,12 +339,12 @@ class external extends external_api {
         $offset = max(0, $params['offset']);
 
         // Capability check.
-        $context = \context_system::instance();
+        $context = context_system::instance();
         self::validate_context($context);
         require_capability('mod/customcert:viewallcertificates', $context);
 
         // Prepare SQL.
-        [$fullnamefields, $sqlparams] = \core_user\fields::get_sql_fullname();
+        [$fullnamefields, $sqlparams] = fields::get_sql_fullname();
         $where = [];
 
         if (!empty($timecreatedfrom)) {
@@ -384,14 +390,14 @@ class external extends external_api {
                         'contextid' => $issue->contextid,
                     ];
 
-                    $template = new \mod_customcert\template($templatedata);
+                    $template = new template($templatedata);
                     $safe = str_replace(' ', '_', mb_strtolower($template->get_name()));
 
                     $pdfname = $safe . '_certificate.pdf';
                     $pdfcontent = base64_encode(
                         $template->generate_pdf(false, $issue->userid, true)
                     );
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // Leave PDF fields null on failure and log for developers.
                     debugging('Failed to generate PDF for list_issues: ' . $e->getMessage(), DEBUG_DEVELOPER);
                     $pdfname = null;
