@@ -29,7 +29,7 @@
  * @return bool always true
  */
 function xmldb_customcert_upgrade($oldversion) {
-    global $DB;
+    global $CFG, $DB;
 
     $dbman = $DB->get_manager();
 
@@ -347,6 +347,16 @@ function xmldb_customcert_upgrade($oldversion) {
 
         // Savepoint reached.
         upgrade_mod_savepoint(true, 2025041401, 'customcert');
+    }
+
+    if ($oldversion < 2025122600) {
+        // If date range is no longer present, then delete it.
+        if (!file_exists($CFG->dirroot . '/mod/customcert/element/daterange/version.php')) {
+            uninstall_plugin('customcertelement', 'daterange');
+        }
+
+        // Savepoint reached.
+        upgrade_mod_savepoint(true, 2025122600, 'customcert');
     }
 
     return true;

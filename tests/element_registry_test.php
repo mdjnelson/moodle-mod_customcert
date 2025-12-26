@@ -51,7 +51,7 @@ final class element_registry_test extends advanced_testcase {
 
         $expected = [
             'text', 'image', 'date', 'grade', 'coursename', 'code',
-            'bgimage', 'border', 'categoryname', 'coursefield', 'daterange',
+            'bgimage', 'border', 'categoryname', 'coursefield',
             'digitalsignature', 'expiry', 'gradeitemname', 'qrcode',
             'studentname', 'teachername', 'userfield', 'userpicture',
         ];
