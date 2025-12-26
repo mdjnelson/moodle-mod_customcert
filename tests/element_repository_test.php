@@ -103,7 +103,10 @@ final class element_repository_test extends advanced_testcase {
         $factory = new element_factory($registry);
         $repository = new element_repository($factory);
 
-        $pageid = 100;
+        // Create a real template and page so that repository::save() can resolve
+        // the event context via page->template (MUST_EXIST lookups).
+        $template = template::create('Test name', \context_system::instance()->id);
+        $pageid = $template->add_page();
         $id = $DB->insert_record('customcert_elements', (object) [
             'pageid' => $pageid,
             'element' => 'text',
@@ -117,14 +120,7 @@ final class element_repository_test extends advanced_testcase {
         $elements = $repository->load_by_page_id($pageid);
         $element = $elements[0];
 
-        // Modify the element.
-        // Since element properties are often private/protected and only accessible via getters in the interface,
-        // and there are no setters in the interface, we usually modify the database record or have a way to
-        // update the object. In this case, we'll mimic a change by creating a new instance with updated data
-        // or just updating the DB record and re-loading if we had setters.
-        // Wait, the element_interface only has getters. How are elements supposed to be updated?
-        // Usually through a form. For this test, we can use a mock or a special test element if needed.
-        // But the task is to implement save() that takes an element_interface.
+        // Modify the element by updating the DB record and re-instantiating via the factory.
 
         // Let's create a record that represents the updated state.
         $updatedrecord = $DB->get_record('customcert_elements', ['id' => $id]);

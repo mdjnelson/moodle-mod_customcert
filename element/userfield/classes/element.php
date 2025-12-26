@@ -31,6 +31,8 @@ use core_collator;
 use core_user\fields;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -44,13 +46,13 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform): void {
+    public function get_form_fields(): array {
         // Get the user profile fields.
         $userfields = [
             'firstname' => fields::get_display_name('firstname'),
@@ -77,12 +79,21 @@ class element extends base_element implements element_interface {
         $fields = $userfields + $customfields;
         core_collator::asort($fields);
 
-        // Create the select box where the user field is selected.
-        $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $fields);
-        $mform->setType('userfield', PARAM_ALPHANUM);
-        $mform->addHelpButton('userfield', 'userfield', 'customcertelement_userfield');
-
-        parent::render_form_elements($mform);
+        return [
+            'userfield' => [
+                'type' => 'select',
+                'label' => get_string('userfield', 'customcertelement_userfield'),
+                'options' => $fields,
+                'help' => ['userfield', 'customcertelement_userfield'],
+                'type_param' => PARAM_ALPHANUM,
+            ],
+            // Standard controls expected by tests.
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -94,6 +105,18 @@ class element extends base_element implements element_interface {
      */
     public function save_unique_data($data): string {
         return (string) $data->userfield;
+    }
+
+    /**
+     * Prepare the form by populating the userfield field from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        if (!empty($this->get_data())) {
+            $mform->getElement('userfield')->setValue($this->get_data());
+        }
     }
 
     /**
@@ -133,18 +156,6 @@ class element extends base_element implements element_interface {
         return element_helper::render_html_content($this, $value);
     }
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform): void {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('userfield');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
-    }
 
     /**
      * Helper function that returns the text.

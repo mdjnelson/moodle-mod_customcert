@@ -28,6 +28,8 @@ namespace customcertelement_border;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -42,18 +44,53 @@ use TCPDF_COLORS;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Returns the configured border width for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * The Border element stores its stroke width directly in the element 'data'
+     * column (as a scalar), not in the standard 'width' column. Override the
+     * getter so edit forms populated via edit_element_form pick up the saved
+     * value correctly when editing.
+     *
+     * @return int|null Width in mm, or null if not set.
      */
-    public function render_form_elements($mform) {
-        // We want to define the width of the border.
-        element_helper::render_form_element_width($mform);
+    public function get_width(): ?int {
+        $data = $this->get_data();
 
-        // The only other thing to define is the colour we want the border to be.
-        element_helper::render_form_element_colour($mform);
+        if ($data === null || $data === '') {
+            return null;
+        }
+
+        // Data is stored as a scalar (the width value directly), not JSON.
+        return (int) $data;
+    }
+
+    /**
+     * Define the configuration fields for this element in the same order as before the refactor.
+     *
+     * @return array
+     */
+    public function get_form_fields(): array {
+        // Width first, then Colour.
+        return [
+            'width' => [],
+            'colour' => [],
+        ];
+    }
+
+    /**
+     * Prepare the form by populating the width field from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        // Border stores width as a scalar in the data column.
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $mform->getElement('width')->setValue((int)$data);
+        }
     }
 
     /**
@@ -66,7 +103,7 @@ class element extends base_element implements element_interface {
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         $colour = TCPDF_COLORS::convertHTMLColorToDec($this->get_colour(), $colour);
-        $pdf->SetLineStyle(['width' => $this->get_data(), 'color' => $colour]);
+        $pdf->SetLineStyle(['width' => $this->get_width() ?? 0, 'color' => $colour]);
         $pdf->Line(0, 0, $pdf->getPageWidth(), 0);
         $pdf->Line($pdf->getPageWidth(), 0, $pdf->getPageWidth(), $pdf->getPageHeight());
         $pdf->Line(0, $pdf->getPageHeight(), $pdf->getPageWidth(), $pdf->getPageHeight());
@@ -91,39 +128,6 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * Performs validation on the element values.
-     *
-     * @param array $data the submitted data
-     * @param array $files the submitted files
-     * @return array the validation errors
-     */
-    public function validate_form_elements($data, $files) {
-        // Array to return the errors.
-        $errors = [];
-
-        // Validate the width.
-        $errors += element_helper::validate_form_element_width($data, false);
-
-        // Validate the colour.
-        $errors += element_helper::validate_form_element_colour($data);
-
-        return $errors;
-    }
-
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('width');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
-    }
-
-    /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
@@ -131,6 +135,7 @@ class element extends base_element implements element_interface {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        return $data->width;
+        // Persist a plain scalar width in the data column for compatibility with pre-refactor behaviour.
+        return isset($data->width) ? (int)$data->width : 0;
     }
 }

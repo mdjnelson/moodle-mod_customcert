@@ -26,6 +26,8 @@ namespace customcertelement_text;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -39,18 +41,43 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
-        $mform->addElement('textarea', 'text', get_string('text', 'customcertelement_text'));
-        $mform->setType('text', PARAM_RAW);
-        $mform->addHelpButton('text', 'text', 'customcertelement_text');
+    public function get_form_fields(): array {
+        return [
+            'text' => [
+                'type' => 'textarea',
+                'label' => get_string('text', 'customcertelement_text'),
+                'help' => ['text', 'customcertelement_text'],
+                'type_param' => PARAM_RAW,
+            ],
+            // Standard fields used by Text before the refactor.
+            'font' => [],
+            'colour' => [],
+            'posx' => [],
+            'posy' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
+    }
 
-        parent::render_form_elements($mform);
+    /**
+     * Prepare the form by populating the text field from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        // Text stores raw HTML/text in the data column.
+        $data = $this->get_data();
+        if ($data !== null && $data !== '') {
+            $mform->getElement('text')->setValue($data);
+        }
     }
 
     /**
@@ -97,18 +124,6 @@ class element extends base_element implements element_interface {
         return element_helper::render_html_content($this, $this->get_text());
     }
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('text');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
-    }
 
     /**
      * Helper function that returns the text.

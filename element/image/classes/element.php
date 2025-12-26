@@ -34,6 +34,9 @@ use mod_customcert\certificate;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
@@ -49,7 +52,12 @@ use stored_file;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements
+    dynamic_selects_interface,
+    element_interface,
+    form_definable_interface,
+    preparable_form_interface
+{
     /**
      * @var array The file manager options.
      */
@@ -73,17 +81,12 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element in the same order as before the refactor.
+     * The form builder renders fields exactly in this order, mapping standard names to helpers.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
-        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
-
-        element_helper::render_form_element_width($mform);
-
-        element_helper::render_form_element_height($mform);
-
+    public function get_form_fields(): array {
         $alphachannelvalues = [
             '0' => 0,
             '0.1' => 0.1,
@@ -97,71 +100,96 @@ class element extends base_element implements element_interface {
             '0.9' => 0.9,
             '1' => 1,
         ];
-        $mform->addElement('select', 'alphachannel', get_string('alphachannel', 'customcertelement_image'), $alphachannelvalues);
-        $mform->setType('alphachannel', PARAM_FLOAT);
-        $mform->setDefault('alphachannel', 1);
-        $mform->addHelpButton('alphachannel', 'alphachannel', 'customcertelement_image');
 
-        if (get_config('customcert', 'showposxy')) {
-            element_helper::render_form_element_position($mform);
-        }
-
-        $mform->addElement(
-            'filemanager',
-            'customcertimage',
-            get_string('uploadimage', 'customcert'),
-            '',
-            $this->filemanageroptions
-        );
+        return [
+            'fileid' => [
+                'type' => 'select',
+                'label' => get_string('image', 'customcertelement_image'),
+            ],
+            // Standard fields in the expected order.
+            'width' => [],
+            'height' => [],
+            'alphachannel' => [
+                'type' => 'select',
+                'label' => get_string('alphachannel', 'customcertelement_image'),
+                'options' => $alphachannelvalues,
+                'type_param' => PARAM_FLOAT,
+                'default' => 1,
+                'help' => ['alphachannel', 'customcertelement_image'],
+            ],
+            // Position controls (rendered once when enabled).
+            'posx' => [],
+            'posy' => [],
+            // Upload image last.
+            'customcertimage' => [
+                'type' => 'filemanager',
+                'label' => get_string('uploadimage', 'customcert'),
+                'options' => $this->filemanageroptions,
+            ],
+        ];
     }
 
     /**
-     * Performs validation on the element values.
+     * Advertise dynamic selects to be populated centrally by the form service.
      *
-     * @param array $data the submitted data
-     * @param array $files the submitted files
-     * @return array the validation errors
+     * @return array
      */
-    public function validate_form_elements($data, $files) {
-        // Array to return the errors.
-        $errors = [];
-
-        // Validate the width.
-        $errors += element_helper::validate_form_element_width($data);
-
-        // Validate the height.
-        $errors += element_helper::validate_form_element_height($data);
-
-        // Validate the position.
-        if (get_config('customcert', 'showposxy')) {
-            $errors += element_helper::validate_form_element_position($data);
-        }
-
-        return $errors;
+    public function get_dynamic_selects(): array {
+        return [
+            'fileid' => [self::class, 'get_images'],
+        ];
     }
 
     /**
-     * Handles saving the form elements created by this element.
-     * Can be overridden if more functionality is needed.
+     * Prepare form defaults and draft areas for the image element.
      *
-     * @param stdClass $data the form data
-     * @return bool true of success, false otherwise.
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function save_form_elements($data) {
+    public function prepare_form(MoodleQuickForm $mform): void {
         global $COURSE, $SITE;
 
-        // Set the context.
-        if ($COURSE->id == $SITE->id) {
-            $context = context_system::instance();
-        } else {
-            $context = context_course::instance($COURSE->id);
+        // If element has an image stored, select it in the dropdown (only when metadata exists).
+        if (!empty($this->get_data())) {
+            $imageinfo = json_decode($this->get_data());
+            if (
+                is_object($imageinfo)
+                && isset(
+                    $imageinfo->contextid,
+                    $imageinfo->filearea,
+                    $imageinfo->itemid,
+                    $imageinfo->filepath,
+                    $imageinfo->filename
+                )
+            ) {
+                if ($file = $this->get_file()) {
+                    $mform->setDefault('fileid', $file->get_id());
+                }
+            }
+
+            // Populate size/alpha fields from stored JSON data if present.
+            if (isset($imageinfo->width)) {
+                $mform->setDefault('width', (int)$imageinfo->width);
+            }
+            if (isset($imageinfo->height)) {
+                $mform->setDefault('height', (int)$imageinfo->height);
+            }
+            if (isset($imageinfo->alphachannel)) {
+                $mform->setDefault('alphachannel', (float)$imageinfo->alphachannel);
+            }
         }
 
-        // Handle file uploads.
-        certificate::upload_files($data->customcertimage, $context->id);
-
-        return parent::save_form_elements($data);
+        // Prepare the draft area for the uploader so previously uploaded files show up.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
+        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
+        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        $mform->getElement('customcertimage')->setValue($draftitemid);
     }
+
 
     /**
      * This will handle how form data will be saved into the data column in the
@@ -171,6 +199,20 @@ class element extends base_element implements element_interface {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
+        global $COURSE, $SITE;
+
+        // Set the context.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
+
+        // Handle file uploads.
+        if (isset($data->customcertimage)) {
+            certificate::upload_files($data->customcertimage, $context->id);
+        }
+
         $arrtostore = [
             'width' => !empty($data->width) ? (int) $data->width : 0,
             'height' => !empty($data->height) ? (int) $data->height : 0,
@@ -196,6 +238,48 @@ class element extends base_element implements element_interface {
 
         return json_encode($arrtostore);
     }
+
+    /**
+     * Returns the configured width for this image element.
+     *
+     * These elements store width/height inside their JSON `data` payload, not in the standard
+     * element `width` column. Override to expose the JSON value to forms and renderers consistently.
+     *
+     * @return int|null Width in mm, or null if not set.
+     */
+    public function get_width(): ?int {
+        $data = $this->get_data();
+
+        if (empty($data)) {
+            return null;
+        }
+
+        $decoded = json_decode($data, false, 512, JSON_THROW_ON_ERROR);
+
+        return isset($decoded->width) && $decoded->width !== ''
+            ? (int) $decoded->width
+            : null;
+    }
+
+    /**
+     * Returns the configured height for this image element from JSON data.
+     *
+     * @return int|null Height in mm, or null if not set.
+     */
+    public function get_height(): ?int {
+        $data = $this->get_data();
+
+        if (empty($data)) {
+            return null;
+        }
+
+        $decoded = json_decode($data);
+
+        return isset($decoded->height) && $decoded->height !== ''
+            ? (int) $decoded->height
+            : null;
+    }
+
 
     /**
      * Handles rendering the element on the pdf.
@@ -322,50 +406,7 @@ class element extends base_element implements element_interface {
      *
      * @param MoodleQuickForm $mform the edit_form instance
      */
-    public function definition_after_data($mform) {
-        global $COURSE, $SITE;
-
-        // Set the image, width, height and alpha channel for this element.
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
-            if (!empty($imageinfo->filename)) {
-                if ($file = $this->get_file()) {
-                    $element = $mform->getElement('fileid');
-                    $element->setValue($file->get_id());
-                }
-            }
-
-            if (isset($imageinfo->width) && $mform->elementExists('width')) {
-                $element = $mform->getElement('width');
-                $element->setValue($imageinfo->width);
-            }
-
-            if (isset($imageinfo->height) && $mform->elementExists('height')) {
-                $element = $mform->getElement('height');
-                $element->setValue($imageinfo->height);
-            }
-
-            if (isset($imageinfo->alphachannel) && $mform->elementExists('alphachannel')) {
-                $element = $mform->getElement('alphachannel');
-                $element->setValue($imageinfo->alphachannel);
-            }
-        }
-
-        // Set the context.
-        if ($COURSE->id == $SITE->id) {
-            $context = context_system::instance();
-        } else {
-            $context = context_course::instance($COURSE->id);
-        }
-
-        // Editing existing instance - copy existing files into draft area.
-        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
-        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
-        $element = $mform->getElement('customcertimage');
-        $element->setValue($draftitemid);
-
-        parent::definition_after_data($mform);
-    }
+    // Deprecated legacy API no longer used by this element.
 
     /**
      * This function is responsible for handling the restoration process of the element.

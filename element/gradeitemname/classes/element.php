@@ -29,6 +29,8 @@ namespace customcertelement_gradeitemname;
 use grade_item;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -43,24 +45,29 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
+    public function get_form_fields(): array {
         global $COURSE;
 
-        $mform->addElement(
-            'select',
-            'gradeitem',
-            get_string('gradeitem', 'customcertelement_gradeitemname'),
-            element_helper::get_grade_items($COURSE)
-        );
-        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_gradeitemname');
-
-        parent::render_form_elements($mform);
+        return [
+            'gradeitem' => [
+                'type' => 'select',
+                'label' => get_string('gradeitem', 'customcertelement_gradeitemname'),
+                'options' => element_helper::get_grade_items($COURSE),
+                'help' => ['gradeitem', 'customcertelement_gradeitemname'],
+            ],
+            // Standard controls expected by tests.
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -76,6 +83,18 @@ class element extends base_element implements element_interface {
         }
 
         return '';
+    }
+
+    /**
+     * Prepare the form by populating the gradeitem field from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        if (!empty($this->get_data())) {
+            $mform->getElement('gradeitem')->setValue($this->get_data());
+        }
     }
 
     /**
@@ -121,18 +140,6 @@ class element extends base_element implements element_interface {
         return '';
     }
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('gradeitem');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
-    }
 
     /**
      * This function is responsible for handling the restoration process of the element.

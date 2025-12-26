@@ -28,6 +28,8 @@ namespace customcertelement_date;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -87,13 +89,13 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform): void {
+    public function get_form_fields(): array {
         global $CFG, $COURSE;
 
         // Get the possible date options.
@@ -111,18 +113,28 @@ class element extends base_element implements element_interface {
         $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
         $dateoptions = $dateoptions + element_helper::get_grade_items($COURSE);
 
-        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
-        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
-
-        $mform->addElement(
-            'select',
-            'dateformat',
-            get_string('dateformat', 'customcertelement_date'),
-            element_helper::get_date_formats()
-        );
-        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
-
-        parent::render_form_elements($mform);
+        return [
+            'dateitem' => [
+                'type' => 'select',
+                'label' => get_string('dateitem', 'customcertelement_date'),
+                'options' => $dateoptions,
+                'help' => ['dateitem', 'customcertelement_date'],
+            ],
+            'dateformat' => [
+                'type' => 'select',
+                'label' => get_string('dateformat', 'customcertelement_date'),
+                'options' => element_helper::get_date_formats(),
+                'help' => ['dateformat', 'customcertelement_date'],
+            ],
+            // Standard controls expected on Date forms.
+            'font' => [],
+            'colour' => [],
+            'posx' => [],
+            'posy' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -290,23 +302,24 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * Sets the data on the form when editing an element.
+     * Prepare the form by populating the dateitem and dateformat fields from stored data.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function definition_after_data($mform) {
+    public function prepare_form(MoodleQuickForm $mform): void {
         // Set the item and format for this element.
         if (!empty($this->get_data())) {
             $dateinfo = json_decode($this->get_data());
 
-            $element = $mform->getElement('dateitem');
-            $element->setValue($dateinfo->dateitem);
+            if (isset($dateinfo->dateitem)) {
+                $mform->getElement('dateitem')->setValue($dateinfo->dateitem);
+            }
 
-            $element = $mform->getElement('dateformat');
-            $element->setValue($dateinfo->dateformat);
+            if (isset($dateinfo->dateformat)) {
+                $mform->getElement('dateformat')->setValue($dateinfo->dateformat);
+            }
         }
-
-        parent::definition_after_data($mform);
     }
 
     /**

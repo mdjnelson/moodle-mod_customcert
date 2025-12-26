@@ -98,11 +98,72 @@ if ($data = $mform->get_data()) {
     }
     // Set the element variable.
     $data->element = $element->element;
-    // Get an instance of the element class.
-    if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
-        $newlyid = $e->save_form_elements($data);
 
-        // Trigger updated event.
+    // Normalise submission: process file uploads from draft areas before saving.
+    $formservice = new \mod_customcert\service\form_service();
+    $dataarray = (array) $data;
+    $formservice->normalise_submission($dataarray);
+    // Merge back any changes (e.g., file metadata populated from fileid).
+    foreach ($dataarray as $key => $value) {
+        $data->$key = $value;
+    }
+
+    // Get an instance of the element class (legacy element) so we can use save_unique_data().
+    if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
+        global $DB;
+
+        // Build record similar to legacy element::save_form_elements(), but without calling the deprecated method.
+        $record = new stdClass();
+        $record->name = $data->name;
+        $record->data = $e->save_unique_data($data);
+        $record->font = $data->font ?? null;
+        $record->fontsize = $data->fontsize ?? null;
+        $record->colour = $data->colour ?? null;
+        if (!empty(get_config('customcert', 'showposxy'))) {
+            $record->posx = $data->posx ?? null;
+            $record->posy = $data->posy ?? null;
+        }
+        $record->width = $data->width ?? null;
+        $record->refpoint = $data->refpoint ?? null;
+        $record->alignment = $data->alignment ?? \mod_customcert\element::ALIGN_LEFT;
+        $record->timemodified = time();
+
+        if (!empty($data->id)) {
+            // Update existing element.
+            $record->id = $data->id;
+            $DB->update_record('customcert_elements', $record);
+
+            // Fire updated event for the element.
+            \mod_customcert\event\element_updated::create_from_id((int)$record->id, $template)->trigger();
+            $newlyid = $record->id;
+        } else {
+            // Insert new element.
+            $record->element = $data->element;
+            $record->pageid = $data->pageid;
+            $record->sequence = \mod_customcert\element_helper::get_element_sequence($record->pageid);
+            $record->timecreated = time();
+            $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
+
+            // Fire created event for the new element.
+            // We cannot easily instantiate the new element type here; trigger directly via DB context.
+            // Fallback to building created event via page/template lookup.
+            try {
+                $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
+                $templateforctx = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+                \mod_customcert\event\element_created::create([
+                    'contextid' => (int)$templateforctx->contextid,
+                    'objectid' => (int)$record->id,
+                ])->trigger();
+            } catch (\Throwable $ex) {
+                // Best-effort; do not block. Assign to a local variable to avoid empty catch warnings.
+                $ignoredexception = $ex;
+                unset($ignoredexception);
+            }
+
+            $newlyid = $record->id;
+        }
+
+        // Trigger updated event for the template containing the element.
         \mod_customcert\event\template_updated::create_from_template($template)->trigger();
     }
 

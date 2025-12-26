@@ -296,7 +296,8 @@ final class events_test extends \advanced_testcase {
         $this->assertInstanceOf('\mod_customcert\event\element_created', $event);
         $this->assertEquals($e->get_id(), $event->objectid);
         $this->assertEquals(\context_system::instance()->id, $event->contextid);
-        $this->assertDebuggingNotCalled();
+        // The method save_form_elements() is deprecated and should trigger debugging().
+        $this->assertDebuggingCalled();
     }
 
     /**
@@ -336,7 +337,8 @@ final class events_test extends \advanced_testcase {
         $this->assertInstanceOf('\mod_customcert\event\element_updated', $event);
         $this->assertEquals($element->get_id(), $event->objectid);
         $this->assertEquals(\context_system::instance()->id, $event->contextid);
-        $this->assertDebuggingNotCalled();
+        // The method save_form_elements() is deprecated and should trigger debugging().
+        $this->assertDebuggingCalled();
     }
 
     /**

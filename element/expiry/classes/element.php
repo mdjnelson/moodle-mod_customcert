@@ -28,6 +28,8 @@ namespace customcertelement_expiry;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -42,7 +44,7 @@ use stdClass;
  * @copyright  2024 Leon Stringer <leon.stringer@ntlworld.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
      * Date - Relative expiry date of 1 year
      */
@@ -78,11 +80,11 @@ class element extends base_element implements element_interface {
     ];
 
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
+    public function get_form_fields(): array {
         global $CFG, $COURSE;
 
         $dateoptions[self::EXPIRY_ONE] = get_string('expirydateone', 'customcertelement_expiry');
@@ -91,22 +93,40 @@ class element extends base_element implements element_interface {
         $dateoptions[self::EXPIRY_FOUR] = get_string('expirydatefour', 'customcertelement_expiry');
         $dateoptions[self::EXPIRY_FIVE] = get_string('expirydatefive', 'customcertelement_expiry');
 
-        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_expiry'), $dateoptions);
-        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_expiry');
-
-        $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_expiry'), self::get_date_formats());
-        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_expiry');
-
         $startdates['award'] = get_string('awarddate', 'customcertelement_expiry');
-
         if ($CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion)) {
             $startdates['coursecomplete'] = get_string('completiondate', 'customcertelement_expiry');
         }
 
-        $mform->addElement('select', 'startfrom', get_string('startfrom', 'customcertelement_expiry'), $startdates);
-        $mform->addHelpButton('startfrom', 'startfrom', 'customcertelement_expiry');
-
-        parent::render_form_elements($mform);
+        return [
+            // Element-specific controls first, as before refactor.
+            'dateitem' => [
+                'type' => 'select',
+                'label' => get_string('dateitem', 'customcertelement_expiry'),
+                'options' => $dateoptions,
+                'help' => ['dateitem', 'customcertelement_expiry'],
+            ],
+            'dateformat' => [
+                'type' => 'select',
+                'label' => get_string('dateformat', 'customcertelement_expiry'),
+                'options' => self::get_date_formats(),
+                'help' => ['dateformat', 'customcertelement_expiry'],
+            ],
+            'startfrom' => [
+                'type' => 'select',
+                'label' => get_string('startfrom', 'customcertelement_expiry'),
+                'options' => $startdates,
+                'help' => ['startfrom', 'customcertelement_expiry'],
+            ],
+            // Standard controls expected on Expiry forms.
+            'font' => [],
+            'colour' => [],
+            'posx' => [],
+            'posy' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -126,6 +146,30 @@ class element extends base_element implements element_interface {
 
         // Encode these variables before saving into the DB.
         return json_encode($arrtostore);
+    }
+
+    /**
+     * Prepare the form by populating the dateitem, dateformat, and startfrom fields from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        if (!empty($this->get_data())) {
+            $dateinfo = json_decode($this->get_data());
+
+            if (isset($dateinfo->dateitem)) {
+                $mform->getElement('dateitem')->setValue($dateinfo->dateitem);
+            }
+
+            if (isset($dateinfo->dateformat)) {
+                $mform->getElement('dateformat')->setValue($dateinfo->dateformat);
+            }
+
+            if (isset($dateinfo->startfrom)) {
+                $mform->getElement('startfrom')->setValue($dateinfo->startfrom);
+            }
+        }
     }
 
     /**
@@ -228,28 +272,6 @@ class element extends base_element implements element_interface {
         return element_helper::render_html_content($this, $content);
     }
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        // Set the item and format for this element.
-        if (!empty($this->get_data())) {
-            $dateinfo = json_decode($this->get_data());
-
-            $element = $mform->getElement('dateitem');
-            $element->setValue($dateinfo->dateitem);
-
-            $element = $mform->getElement('dateformat');
-            $element->setValue($dateinfo->dateformat);
-
-            $element = $mform->getElement('startfrom');
-            $element->setValue($dateinfo->startfrom);
-        }
-
-        parent::definition_after_data($mform);
-    }
 
     /**
      * This function is responsible for handling the restoration process of the element.

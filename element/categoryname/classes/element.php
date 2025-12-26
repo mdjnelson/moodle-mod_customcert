@@ -28,6 +28,7 @@ namespace customcertelement_categoryname;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use pdf;
@@ -40,7 +41,24 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface {
+    /**
+     * Define the configuration fields for this element.
+     * Ensure standard controls like Font and Position are available.
+     *
+     * @return array
+     */
+    public function get_form_fields(): array {
+        return [
+            'font' => [],
+            'colour' => [],
+            'posx' => [],
+            'posy' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
+    }
     /**
      * Handles rendering the element on the pdf.
      *
@@ -50,7 +68,6 @@ class element extends base_element implements element_interface {
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        element_helper::render_content($pdf, $this, $this->get_category_name());
         if ($renderer) {
             $renderer->render_content($this, $this->get_category_name());
         } else {
