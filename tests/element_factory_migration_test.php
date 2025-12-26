@@ -41,7 +41,6 @@ use customcertelement_bgimage\element as bgimage_element;
 use customcertelement_border\element as border_element;
 use customcertelement_categoryname\element as categoryname_element;
 use customcertelement_coursefield\element as coursefield_element;
-use customcertelement_daterange\element as daterange_element;
 use customcertelement_digitalsignature\element as digitalsignature_element;
 use customcertelement_expiry\element as expiry_element;
 use customcertelement_grade\element as grade_element;
@@ -80,7 +79,6 @@ final class element_factory_migration_test extends advanced_testcase {
         $registry->register('border', border_element::class);
         $registry->register('categoryname', categoryname_element::class);
         $registry->register('coursefield', coursefield_element::class);
-        $registry->register('daterange', daterange_element::class);
         $registry->register('digitalsignature', digitalsignature_element::class);
         $registry->register('expiry', expiry_element::class);
         $registry->register('grade', grade_element::class);
@@ -118,7 +116,6 @@ final class element_factory_migration_test extends advanced_testcase {
             'border' => border_element::class,
             'categoryname' => categoryname_element::class,
             'coursefield' => coursefield_element::class,
-            'daterange' => daterange_element::class,
             'digitalsignature' => digitalsignature_element::class,
             'expiry' => expiry_element::class,
             'grade' => grade_element::class,
