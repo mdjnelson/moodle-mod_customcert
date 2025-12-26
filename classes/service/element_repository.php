@@ -26,10 +26,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\dto\config_bag;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\form_capable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element_helper;
+use mod_customcert\event\element_created;
+use mod_customcert\event\element_updated;
 use stdClass;
 
 /**
@@ -107,33 +108,22 @@ class element_repository {
         $record->alignment = $element->get_alignment();
         $record->timemodified = time();
 
-        // If the element is form capable, we should use its save_unique_data method.
-        // For legacy elements, the adapter might need to handle this or we delegate to the inner element.
-        $inner = $element;
-        if ($element instanceof legacy_element_adapter) {
-            $inner = $element->get_inner();
-        }
-
-        if ($inner instanceof form_capable_element_interface) {
-            // Use ConfigBag to manage the JSON data.
-            $data = $inner->get_data();
-            if (is_string($data)) {
-                $bag = config_bag::from_json($data);
-            } else if (is_array($data)) {
-                $bag = config_bag::from_array($data);
-            } else if ($data instanceof stdClass) {
-                $bag = config_bag::from_array((array)$data);
-            } else {
-                $bag = config_bag::empty();
-            }
-
-            // Convert back to object for save_unique_data.
-            $record->data = $inner->save_unique_data((object)$bag->to_array());
-        } else {
-            $record->data = $inner->get_data();
-        }
+        // Persist data exactly as provided by the element implementation.
+        // BC: legacy elements are wrapped via legacy_element_adapter, but their
+        // get_data() remains compatible with DB storage expectations.
+        $record->data = $element->get_data();
 
         $DB->update_record('customcert_elements', $record);
+
+        // Fire updated event for this element in the template context.
+        $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+
+        $data = [
+            'contextid' => (int)$template->contextid,
+            'objectid' => $record->id,
+        ];
+        element_updated::create($data)->trigger();
     }
 
     /**
@@ -181,5 +171,48 @@ class element_repository {
         $transaction->allow_commit();
 
         return $count;
+    }
+
+    /**
+     * Create a new element record and fire the created event.
+     *
+     * This mirrors the legacy behaviour of element::save_form_elements() for inserts.
+     *
+     * @param element_interface $element
+     * @return int Newly created element id
+     */
+    public function create(element_interface $element): int {
+        global $DB;
+
+        $record = new stdClass();
+        $record->pageid = $element->get_pageid();
+        $record->element = $element->get_type();
+        $record->name = $element->get_name();
+        $record->font = $element->get_font();
+        $record->fontsize = $element->get_fontsize();
+        $record->colour = $element->get_colour();
+        $record->posx = $element->get_posx();
+        $record->posy = $element->get_posy();
+        $record->width = $element->get_width();
+        $record->refpoint = $element->get_refpoint();
+        $record->alignment = $element->get_alignment();
+        $record->data = $element->get_data();
+        $record->sequence = element_helper::get_element_sequence($record->pageid);
+        $record->timecreated = time();
+        $record->timemodified = time();
+
+        $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
+
+        // Fire created event for this element in the template context.
+        $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+
+        $data = [
+            'contextid' => (int)$template->contextid,
+            'objectid' => $record->id,
+        ];
+        element_created::create($data)->trigger();
+
+        return $record->id;
     }
 }

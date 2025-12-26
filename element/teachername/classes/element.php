@@ -29,6 +29,8 @@ namespace customcertelement_teachername;
 use context_system;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -42,22 +44,27 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform): void {
-        $mform->addElement(
-            'select',
-            'teacher',
-            get_string('teacher', 'customcertelement_teachername'),
-            $this->get_list_of_teachers()
-        );
-        $mform->addHelpButton('teacher', 'teacher', 'customcertelement_teachername');
-
-        parent::render_form_elements($mform);
+    public function get_form_fields(): array {
+        return [
+            'teacher' => [
+                'type' => 'select',
+                'label' => get_string('teacher', 'customcertelement_teachername'),
+                'options' => $this->get_list_of_teachers(),
+                'help' => ['teacher', 'customcertelement_teachername'],
+            ],
+            // Standard controls expected on Teacher name forms.
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -73,6 +80,19 @@ class element extends base_element implements element_interface {
         }
 
         return '';
+    }
+
+    /**
+     * Ensures the teacher select shows the stored value on edit and options are refreshed each render.
+     *
+     * @param MoodleQuickForm $mform
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        // Preselect stored teacher id if present.
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $mform->getElement('teacher')->setValue((int)$data);
+        }
     }
 
     /**
@@ -142,18 +162,5 @@ class element extends base_element implements element_interface {
         }
 
         return $teachers;
-    }
-
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform): void {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('teacher');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
     }
 }

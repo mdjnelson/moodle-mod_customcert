@@ -27,8 +27,10 @@ declare(strict_types=1);
 namespace customcertelement_bgimage;
 
 use html_writer;
-use mod_customcert\element\element_interface;
 use mod_customcert\service\element_renderer;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\preparable_form_interface;
 use moodle_url;
 use MoodleQuickForm;
 use pdf;
@@ -41,33 +43,137 @@ use stdClass;
  * @copyright  2016 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element implements element_interface {
+class element extends \customcertelement_image\element implements
+    dynamic_selects_interface,
+    form_definable_interface,
+    preparable_form_interface
+{
     /**
-     * This function renders the form elements when adding a customcert element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * Background image covers the whole page; width/height fields are ignored and
+     * always treated as auto-fit. Override getters to prevent stale values.
      */
-    public function render_form_elements($mform) {
-        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
-        $mform->addElement(
-            'filemanager',
-            'customcertimage',
-            get_string('uploadimage', 'customcert'),
-            '',
-            $this->filemanageroptions
-        );
+    public function get_width(): ?int {
+        return 0;
+    }
+    /**
+     * Background image covers the whole page; width/height fields are ignored and
+     * always treated as auto-fit. Override getters to prevent stale values.
+     *
+     * @return int|null
+     */
+    public function get_height(): ?int {
+        return 0;
     }
 
     /**
-     * Performs validation on the element values.
+     * Define the configuration fields for this element in the same order as before the refactor.
      *
-     * @param array $data the submitted data
-     * @param array $files the submitted files
-     * @return array the validation errors
+     * @return array
      */
-    public function validate_form_elements($data, $files) {
-        // Array to return the errors.
-        return [];
+    public function get_form_fields(): array {
+        return [
+            'fileid' => [
+                'type' => 'select',
+                'label' => get_string('image', 'customcertelement_image'),
+            ],
+            'customcertimage' => [
+                'type' => 'filemanager',
+                'label' => get_string('uploadimage', 'customcert'),
+                'options' => $this->filemanageroptions,
+            ],
+        ];
+    }
+
+    /**
+     * Advertise dynamic selects to be populated centrally by the form service.
+     *
+     * @return array
+     */
+    public function get_dynamic_selects(): array {
+        return [
+            'fileid' => [self::class, 'get_images'],
+        ];
+    }
+
+    /**
+     * Prepare form defaults and draft areas for the background image element.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        global $COURSE, $SITE;
+
+        // If element has an image stored, select it in the dropdown.
+        if (!empty($this->get_data())) {
+            $imageinfo = json_decode($this->get_data());
+            // Only attempt get_file() if required metadata is present.
+            if (
+                is_object($imageinfo)
+                && isset(
+                    $imageinfo->contextid,
+                    $imageinfo->filearea,
+                    $imageinfo->itemid,
+                    $imageinfo->filepath,
+                    $imageinfo->filename
+                )
+            ) {
+                if ($file = $this->get_file()) {
+                    $mform->getElement('fileid')->setValue($file->get_id());
+                }
+            }
+        }
+
+        // Prepare the draft area for the uploader so previously uploaded files show up.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
+
+        // Mirror Image element exactly: draft area for component 'mod_customcert', filearea 'image', itemid 0.
+        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
+        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        $mform->getElement('customcertimage')->setValue($draftitemid);
+    }
+
+    /**
+     * Save uploaded files and persist selected file metadata into element data.
+     *
+     * Mirrors the Image element behaviour so the selected/uploaded background remains
+     * visible after Save/Save and continue.
+     *
+     * @param stdClass $data
+     * @return string JSON encoded element data
+     */
+    public function save_unique_data($data) {
+        // Prepare data to store; form service will have populated file metadata when applicable.
+        $arrtostore = [];
+
+        // If a file was selected in the dropdown, persist its metadata so we can resolve it later.
+        if (!empty($data->fileid)) {
+            $fs = get_file_storage();
+            if ($file = $fs->get_file_by_id($data->fileid)) {
+                $arrtostore += [
+                    'contextid' => $file->get_contextid(),
+                    'filearea' => $file->get_filearea(),
+                    'itemid' => $file->get_itemid(),
+                    'filepath' => $file->get_filepath(),
+                    'filename' => $file->get_filename(),
+                ];
+            }
+        } else if (!empty($this->get_data())) {
+            // Preserve existing metadata if no new selection was provided.
+            $existing = json_decode($this->get_data(), true);
+            if (is_array($existing)) {
+                $arrtostore += array_intersect_key(
+                    $existing,
+                    array_flip(['contextid', 'filearea', 'itemid', 'filepath', 'filename'])
+                );
+            }
+        }
+
+        return json_encode($arrtostore);
     }
 
     /**
@@ -145,6 +251,8 @@ class element extends \customcertelement_image\element implements element_interf
             $style = 'width: ' . $page->width . 'mm; height: ' . $page->height . 'mm';
             return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
         }
+
+        return '';
     }
 
     /**

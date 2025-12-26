@@ -161,4 +161,13 @@ final class legacy_element_adapter implements element_interface {
     public function get_alignment(): string {
         return $this->inner->get_alignment();
     }
+
+    /**
+     * Returns the type of the element.
+     *
+     * @return string
+     */
+    public function get_type(): string {
+        return $this->inner->get_type();
+    }
 }

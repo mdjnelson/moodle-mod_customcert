@@ -70,7 +70,7 @@ class external extends external_api {
      * @param int $templateid The template id.
      * @param int $elementid The element id.
      * @param array $values The values to save
-     * @return array
+     * @return bool
      */
     public static function save_element($templateid, $elementid, $values) {
         global $DB;
@@ -106,12 +106,16 @@ class external extends external_api {
             $data->$field = $value['value'];
         }
 
-        // Get an instance of the element class.
-        if ($e = element_factory::get_element_instance($element)) {
-            return $e->save_form_elements($data);
-        }
+        // Update the element record directly to avoid deprecated save_form_elements().
+        // Only update fields provided via $values; preserve existing values for others.
+        $data->timemodified = time();
+        $DB->update_record('customcert_elements', $data);
 
-        return false;
+        // Fire updated event.
+        \mod_customcert\event\element_updated::create_from_id((int)$elementid, $template)->trigger();
+
+        // For compatibility keep a simple truthy result.
+        return true;
     }
 
     /**

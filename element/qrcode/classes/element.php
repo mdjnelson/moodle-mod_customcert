@@ -29,6 +29,8 @@ namespace customcertelement_qrcode;
 use context;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -51,50 +53,25 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * @copyright  2019 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+    /**
+     * Define the configuration fields for this element.
+     *
+     * @return array
+     */
+    public function get_form_fields(): array {
+        // QR code exposes only size controls in the form: Width then Height.
+        return [
+            'width' => [],
+            'height' => [],
+        ];
+    }
+
     /**
      * @var string The barcode type.
      */
     const BARCODETYPE = 'QRCODE';
 
-    /**
-     * This function renders the form elements when adding a customcert element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function render_form_elements($mform) {
-        element_helper::render_form_element_width($mform);
-
-        element_helper::render_form_element_height($mform);
-
-        if ($this->showposxy) {
-            element_helper::render_form_element_position($mform);
-        }
-    }
-
-    /**
-     * Performs validation on the element values.
-     *
-     * @param array $data the submitted data
-     * @param array $files the submitted files
-     * @return array the validation errors
-     */
-    public function validate_form_elements($data, $files) {
-        // Array to return the errors.
-        $errors = [];
-
-        // Validate the width.
-        $errors += element_helper::validate_form_element_width($data, false);
-
-        // Validate the height.
-        $errors += element_helper::validate_form_element_height($data, false);
-
-        if ($this->showposxy) {
-            $errors += element_helper::validate_form_element_position($data);
-        }
-
-        return $errors;
-    }
 
     /**
      * This will handle how form data will be saved into the data column in the
@@ -113,23 +90,26 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * Sets the data on the form when editing an element.
+     * Prepare the form by populating the width and height fields from stored data.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function definition_after_data($mform) {
-        parent::definition_after_data($mform);
-
-        // Set the image, width, height and alpha channel for this element.
+    public function prepare_form(MoodleQuickForm $mform): void {
         if (!empty($this->get_data())) {
             $imageinfo = json_decode($this->get_data());
 
-            if (!empty($imageinfo->height)) {
-                $element = $mform->getElement('height');
-                $element->setValue($imageinfo->height);
+            if (isset($imageinfo->width)) {
+                // Use defaults so the values persist across set_data()/definition_after_data.
+                $mform->setDefault('width', (int)$imageinfo->width);
+            }
+
+            if (isset($imageinfo->height)) {
+                $mform->setDefault('height', (int)$imageinfo->height);
             }
         }
     }
+
 
     /**
      * Handles rendering the element on the pdf.

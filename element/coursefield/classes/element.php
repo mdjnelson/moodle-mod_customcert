@@ -31,6 +31,8 @@ use core_collator;
 use core_course\customfield\course_handler;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -44,24 +46,23 @@ use stdClass;
  * @copyright  2019 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
-        // Get the user profile fields.
+    public function get_form_fields(): array {
+        // Get the course fields.
         $coursefields = [
             'fullname' => get_string('fullnamecourse'),
             'shortname' => get_string('shortnamecourse'),
             'idnumber' => get_string('idnumbercourse'),
         ];
         // Get the course custom fields.
-        $arrcustomfields = [];
         $handler = course_handler::create();
         $customfields = $handler->get_fields();
-
+        $arrcustomfields = [];
         foreach ($customfields as $field) {
             $arrcustomfields[$field->get('id')] = $field->get_formatted_name();
         }
@@ -70,12 +71,21 @@ class element extends base_element implements element_interface {
         $fields = $coursefields + $arrcustomfields;
         core_collator::asort($fields);
 
-        // Create the select box where the user field is selected.
-        $mform->addElement('select', 'coursefield', get_string('coursefield', 'customcertelement_coursefield'), $fields);
-        $mform->setType('coursefield', PARAM_ALPHANUM);
-        $mform->addHelpButton('coursefield', 'coursefield', 'customcertelement_coursefield');
-
-        parent::render_form_elements($mform);
+        return [
+            'coursefield' => [
+                'type' => 'select',
+                'label' => get_string('coursefield', 'customcertelement_coursefield'),
+                'options' => $fields,
+                'help' => ['coursefield', 'customcertelement_coursefield'],
+                'type_param' => PARAM_ALPHANUM,
+            ],
+            // Standard fields expected on this form.
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -129,16 +139,15 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * Sets the data on the form when editing an element.
+     * Prepare the form by populating the coursefield field from stored data.
      *
-     * @param MoodleQuickForm $mform the edit form instance
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function definition_after_data($mform) {
+    public function prepare_form(MoodleQuickForm $mform): void {
         if (!empty($this->get_data())) {
-            $element = $mform->getElement('coursefield');
-            $element->setValue($this->get_data());
+            $mform->getElement('coursefield')->setValue($this->get_data());
         }
-        parent::definition_after_data($mform);
     }
 
     /**

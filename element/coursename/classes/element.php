@@ -28,6 +28,9 @@ namespace customcertelement_coursename;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -41,7 +44,12 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements
+    dynamic_selects_interface,
+    element_interface,
+    form_definable_interface,
+    preparable_form_interface
+{
     /**
      * The course short name.
      */
@@ -53,22 +61,51 @@ class element extends base_element implements element_interface {
     const COURSE_FULL_NAME = 2;
 
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform): void {
-        // The course name display options.
-        $mform->addElement(
-            'select',
-            'coursenamedisplay',
-            get_string('coursenamedisplay', 'customcertelement_coursename'),
-            self::get_course_name_display_options()
-        );
-        $mform->setType('coursenamedisplay', PARAM_INT);
-        $mform->addHelpButton('coursenamedisplay', 'coursenamedisplay', 'customcertelement_coursename');
+    public function get_form_fields(): array {
+        return [
+            'coursenamedisplay' => [
+                'type' => 'select',
+                'label' => get_string('coursenamedisplay', 'customcertelement_coursename'),
+                'help' => ['coursenamedisplay', 'customcertelement_coursename'],
+                'type_param' => PARAM_INT,
+            ],
+            // Standard fields expected on this form (include colour picker etc.).
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
+    }
 
-        parent::render_form_elements($mform);
+    /**
+     * Advertise dynamic selects to be populated centrally by the form service.
+     *
+     * @return array
+     */
+    public function get_dynamic_selects(): array {
+        return [
+            'coursenamedisplay' => [self::class, 'get_course_name_display_options'],
+        ];
+    }
+
+    /**
+     * Ensures the coursenamedisplay select shows the stored value on edit and
+     * options are refreshed each render.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        // Preselect the stored value if present (options populated centrally).
+        $data = $this->get_data();
+        if (!empty($data)) {
+            $mform->getElement('coursenamedisplay')->setValue((int)$data);
+        }
     }
 
     /**
@@ -107,18 +144,6 @@ class element extends base_element implements element_interface {
         return element_helper::render_html_content($this, $this->get_course_name_detail());
     }
 
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform): void {
-        if (!empty($this->get_data())) {
-            $element = $mform->getElement('coursenamedisplay');
-            $element->setValue($this->get_data());
-        }
-        parent::definition_after_data($mform);
-    }
 
     /**
      * Helper function that returns the selected course name detail (i.e. name or short description) for display.

@@ -30,8 +30,9 @@ use context_course;
 use context_system;
 use core_collator;
 use mod_customcert\certificate;
-use mod_customcert\element\element_interface;
-use mod_customcert\element_helper;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -45,7 +46,11 @@ use stored_file;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element implements element_interface {
+class element extends \customcertelement_image\element implements
+    dynamic_selects_interface,
+    form_definable_interface,
+    preparable_form_interface
+{
     /**
      * @var array The file manager options for the certificate.
      */
@@ -69,71 +74,193 @@ class element extends \customcertelement_image\element implements element_interf
     }
 
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element in the same order as before the refactor.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
-        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
+    public function get_form_fields(): array {
+        return [
+            // Image selector first.
+            'fileid' => [
+                'type' => 'select',
+                'label' => get_string('image', 'customcertelement_image'),
+            ],
 
-        $mform->addElement(
-            'select',
-            'signaturefileid',
-            get_string('digitalsignature', 'customcertelement_digitalsignature'),
-            self::get_signatures()
-        );
+            // Existing signature selection.
+            'signaturefileid' => [
+                'type' => 'select',
+                'label' => get_string('digitalsignature', 'customcertelement_digitalsignature'),
+            ],
 
-        $mform->addElement('text', 'signaturename', get_string('signaturename', 'customcertelement_digitalsignature'));
-        $mform->setType('signaturename', PARAM_TEXT);
-        $mform->setDefault('signaturename', '');
+            // Signature metadata fields.
+            'signaturename' => [
+                'type' => 'text',
+                'label' => get_string('signaturename', 'customcertelement_digitalsignature'),
+                'type_param' => PARAM_TEXT,
+                'default' => '',
+            ],
+            'signaturepassword' => [
+                'type' => 'passwordunmask',
+                'label' => get_string('signaturepassword', 'customcertelement_digitalsignature'),
+                'type_param' => PARAM_TEXT,
+                'default' => '',
+            ],
+            'signaturelocation' => [
+                'type' => 'text',
+                'label' => get_string('signaturelocation', 'customcertelement_digitalsignature'),
+                'type_param' => PARAM_TEXT,
+                'default' => '',
+            ],
+            'signaturereason' => [
+                'type' => 'text',
+                'label' => get_string('signaturereason', 'customcertelement_digitalsignature'),
+                'type_param' => PARAM_TEXT,
+                'default' => '',
+            ],
+            'signaturecontactinfo' => [
+                'type' => 'text',
+                'label' => get_string('signaturecontactinfo', 'customcertelement_digitalsignature'),
+                'type_param' => PARAM_TEXT,
+                'default' => '',
+            ],
 
-        $mform->addElement(
-            'passwordunmask',
-            'signaturepassword',
-            get_string('signaturepassword', 'customcertelement_digitalsignature')
-        );
-        $mform->setType('signaturepassword', PARAM_TEXT);
-        $mform->setDefault('signaturepassword', '');
+            // Standard placement controls.
+            'width' => [],
+            'height' => [],
+            'posx' => [],
+            'posy' => [],
 
-        $mform->addElement('text', 'signaturelocation', get_string('signaturelocation', 'customcertelement_digitalsignature'));
-        $mform->setType('signaturelocation', PARAM_TEXT);
-        $mform->setDefault('signaturelocation', '');
+            // Uploaders last.
+            'customcertimage' => [
+                'type' => 'filemanager',
+                'label' => get_string('uploadimage', 'customcert'),
+                'options' => $this->filemanageroptions,
+            ],
+            'digitalsignature' => [
+                'type' => 'filemanager',
+                'label' => get_string('uploaddigitalsignature', 'customcertelement_digitalsignature'),
+                'options' => $this->signaturefilemanageroptions,
+            ],
+        ];
+    }
 
-        $mform->addElement('text', 'signaturereason', get_string('signaturereason', 'customcertelement_digitalsignature'));
-        $mform->setType('signaturereason', PARAM_TEXT);
-        $mform->setDefault('signaturereason', '');
+    /**
+     * Advertise dynamic selects to be populated centrally by the form service.
+     *
+     * @return array
+     */
+    public function get_dynamic_selects(): array {
+        return [
+            'fileid' => [self::class, 'get_images'],
+            'signaturefileid' => [self::class, 'get_signatures'],
+        ];
+    }
 
-        $mform->addElement(
-            'text',
-            'signaturecontactinfo',
-            get_string('signaturecontactinfo', 'customcertelement_digitalsignature')
-        );
-        $mform->setType('signaturecontactinfo', PARAM_TEXT);
-        $mform->setDefault('signaturecontactinfo', '');
+    /**
+     * Prepare form defaults and draft areas for the digital signature element.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        global $COURSE, $SITE;
 
-        element_helper::render_form_element_width($mform);
+        // Populate signature-related fields from stored JSON data when editing.
+        if (!empty($this->get_data())) {
+            $imageinfo = json_decode($this->get_data());
 
-        element_helper::render_form_element_height($mform);
+            if (is_object($imageinfo)) {
+                // Populate signature metadata fields.
+                if (isset($imageinfo->signaturename)) {
+                    $mform->setDefault('signaturename', $imageinfo->signaturename);
+                }
+                if (isset($imageinfo->signaturepassword)) {
+                    $mform->setDefault('signaturepassword', $imageinfo->signaturepassword);
+                }
+                if (isset($imageinfo->signaturelocation)) {
+                    $mform->setDefault('signaturelocation', $imageinfo->signaturelocation);
+                }
+                if (isset($imageinfo->signaturereason)) {
+                    $mform->setDefault('signaturereason', $imageinfo->signaturereason);
+                }
+                if (isset($imageinfo->signaturecontactinfo)) {
+                    $mform->setDefault('signaturecontactinfo', $imageinfo->signaturecontactinfo);
+                }
 
-        if (get_config('customcert', 'showposxy')) {
-            element_helper::render_form_element_position($mform);
+                // Populate signature file select if a signature file is stored.
+                if (!empty($imageinfo->signaturefilename)) {
+                    if ($signaturefile = $this->get_signature_file()) {
+                        $mform->setDefault('signaturefileid', $signaturefile->get_id());
+                    }
+                }
+
+                // Populate image file select if an image file is stored.
+                if (
+                    isset(
+                        $imageinfo->contextid,
+                        $imageinfo->filearea,
+                        $imageinfo->itemid,
+                        $imageinfo->filepath,
+                        $imageinfo->filename
+                    )
+                ) {
+                    if ($file = $this->get_file()) {
+                        $mform->setDefault('fileid', $file->get_id());
+                    }
+                }
+
+                // Populate size controls via defaults so they survive set_data lifecycle.
+                if (isset($imageinfo->width)) {
+                    $mform->setDefault('width', (int)$imageinfo->width);
+                }
+                if (isset($imageinfo->height)) {
+                    $mform->setDefault('height', (int)$imageinfo->height);
+                }
+            }
         }
 
-        $mform->addElement(
-            'filemanager',
-            'customcertimage',
-            get_string('uploadimage', 'customcert'),
-            '',
-            $this->filemanageroptions
-        );
+        // Prepare the draft areas for the uploaders so previously uploaded files show up.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
 
-        $mform->addElement(
-            'filemanager',
-            'digitalsignature',
-            get_string('uploaddigitalsignature', 'customcertelement_digitalsignature'),
-            '',
-            $this->signaturefilemanageroptions
-        );
+        $draftitemid = file_get_submitted_draft_itemid('customcertimage');
+        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'image', 0, $this->filemanageroptions);
+        $mform->getElement('customcertimage')->setValue($draftitemid);
+
+        $draftitemid = file_get_submitted_draft_itemid('digitalsignature');
+        file_prepare_draft_area($draftitemid, $context->id, 'mod_customcert', 'signature', 0, $this->signaturefilemanageroptions);
+        $mform->getElement('digitalsignature')->setValue($draftitemid);
+    }
+
+    /**
+     * Returns the configured width for this element from JSON data.
+     *
+     * @return int|null
+     */
+    public function get_width(): ?int {
+        $data = $this->get_data();
+        if (empty($data)) {
+            return null;
+        }
+        $decoded = json_decode($data);
+        return isset($decoded->width) && $decoded->width !== '' ? (int)$decoded->width : null;
+    }
+
+    /**
+     * Returns the configured height for this element from JSON data.
+     *
+     * @return int|null
+     */
+    public function get_height(): ?int {
+        $data = $this->get_data();
+        if (empty($data)) {
+            return null;
+        }
+        $decoded = json_decode($data);
+        return isset($decoded->height) && $decoded->height !== '' ? (int)$decoded->height : null;
     }
 
     /**
@@ -170,6 +297,25 @@ class element extends \customcertelement_image\element implements element_interf
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
+        global $COURSE, $SITE;
+
+        // Set the context.
+        if ($COURSE->id == $SITE->id) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($COURSE->id);
+        }
+
+        // Handle file uploads.
+        if (isset($data->customcertimage)) {
+            certificate::upload_files($data->customcertimage, $context->id);
+        }
+
+        // Handle file certificate uploads.
+        if (isset($data->digitalsignature)) {
+            certificate::upload_files($data->digitalsignature, $context->id, 'signature');
+        }
+
         $arrtostore = [
             'signaturename' => $data->signaturename,
             'signaturepassword' => $data->signaturepassword,
@@ -260,63 +406,6 @@ class element extends \customcertelement_image\element implements element_interf
             $pdf->setSignature('file://' . $location, '', $imageinfo->signaturepassword, '', 2, $info);
             $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
         }
-    }
-
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform) {
-        global $COURSE, $SITE;
-
-        // Set the context.
-        if ($COURSE->id == $SITE->id) {
-            $context = context_system::instance();
-        } else {
-            $context = context_course::instance($COURSE->id);
-        }
-
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
-
-            $element = $mform->getElement('signaturename');
-            $element->setValue($imageinfo->signaturename);
-
-            $element = $mform->getElement('signaturepassword');
-            $element->setValue($imageinfo->signaturepassword);
-
-            $element = $mform->getElement('signaturelocation');
-            $element->setValue($imageinfo->signaturelocation);
-
-            $element = $mform->getElement('signaturereason');
-            $element->setValue($imageinfo->signaturereason);
-
-            $element = $mform->getElement('signaturecontactinfo');
-            $element->setValue($imageinfo->signaturecontactinfo);
-
-            if (!empty($imageinfo->signaturefilename)) {
-                if ($signaturefile = $this->get_signature_file()) {
-                    $element = $mform->getElement('signaturefileid');
-                    $element->setValue($signaturefile->get_id());
-                }
-            }
-        }
-
-        // Editing existing instance - copy existing files into draft area.
-        $draftitemid = file_get_submitted_draft_itemid('digitalsignature');
-        file_prepare_draft_area(
-            $draftitemid,
-            $context->id,
-            'mod_customcert',
-            'signature',
-            0,
-            $this->signaturefilemanageroptions
-        );
-        $element = $mform->getElement('digitalsignature');
-        $element->setValue($draftitemid);
-
-        parent::definition_after_data($mform);
     }
 
     /**

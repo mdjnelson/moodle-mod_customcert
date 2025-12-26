@@ -29,8 +29,10 @@ namespace customcertelement_grade;
 use grade_item;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
-use mod_customcert\service\element_renderer;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
@@ -38,12 +40,13 @@ use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->libdir . '/gradelib.php');
+
 /**
  * Grade - Course
  */
 define('CUSTOMCERT_GRADE_COURSE', '0');
-
-require_once($CFG->libdir . '/gradelib.php');
 
 /**
  * The customcert element grade's core interaction API.
@@ -52,13 +55,13 @@ require_once($CFG->libdir . '/gradelib.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform) {
+    public function get_form_fields(): array {
         global $COURSE;
 
         // Get the grade items we can display.
@@ -66,21 +69,27 @@ class element extends base_element implements element_interface {
         $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
         $gradeitems = $gradeitems + element_helper::get_grade_items($COURSE);
 
-        // The grade items.
-        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
-        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
-
-        // The grade format.
-        $mform->addElement(
-            'select',
-            'gradeformat',
-            get_string('gradeformat', 'customcertelement_grade'),
-            self::get_grade_format_options()
-        );
-        $mform->setType('gradeformat', PARAM_INT);
-        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
-
-        parent::render_form_elements($mform);
+        return [
+            'gradeitem' => [
+                'type' => 'select',
+                'label' => get_string('gradeitem', 'customcertelement_grade'),
+                'options' => $gradeitems,
+                'help' => ['gradeitem', 'customcertelement_grade'],
+            ],
+            'gradeformat' => [
+                'type' => 'select',
+                'label' => get_string('gradeformat', 'customcertelement_grade'),
+                'options' => self::get_grade_format_options(),
+                'help' => ['gradeformat', 'customcertelement_grade'],
+                'type_param' => PARAM_INT,
+            ],
+            // Standard controls expected on Grade forms.
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
     }
 
     /**
@@ -192,23 +201,24 @@ class element extends base_element implements element_interface {
     }
 
     /**
-     * Sets the data on the form when editing an element.
+     * Prepare the form by populating the gradeitem and gradeformat fields from stored data.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function definition_after_data($mform) {
+    public function prepare_form(MoodleQuickForm $mform): void {
         // Set the item and format for this element.
         if (!empty($this->get_data())) {
             $gradeinfo = json_decode($this->get_data());
 
-            $element = $mform->getElement('gradeitem');
-            $element->setValue($gradeinfo->gradeitem);
+            if (isset($gradeinfo->gradeitem)) {
+                $mform->getElement('gradeitem')->setValue($gradeinfo->gradeitem);
+            }
 
-            $element = $mform->getElement('gradeformat');
-            $element->setValue($gradeinfo->gradeformat);
+            if (isset($gradeinfo->gradeformat)) {
+                $mform->getElement('gradeformat')->setValue($gradeinfo->gradeformat);
+            }
         }
-
-        parent::definition_after_data($mform);
     }
 
     /**

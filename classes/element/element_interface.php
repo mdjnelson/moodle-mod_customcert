@@ -117,4 +117,11 @@ interface element_interface {
      * @return string
      */
     public function get_alignment(): string;
+
+    /**
+     * Returns the type of the element.
+     *
+     * @return string
+     */
+    public function get_type(): string;
 }

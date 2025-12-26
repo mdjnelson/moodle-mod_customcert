@@ -25,10 +25,14 @@
 namespace mod_customcert;
 
 use core_text;
+use mod_customcert\service\form_service;
+use mod_customcert\service\validation_service;
 use moodleform;
 use MoodleQuickForm;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
+global $CFG;
 
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
@@ -71,7 +75,10 @@ class edit_element_form extends moodleform {
 
         $this->element = element_factory::get_element_instance($element);
         $this->element->set_edit_element_form($this);
-        $this->element->render_form_elements($mform);
+
+        $formservice = new form_service();
+        $formservice->build_form($mform, $this->element);
+
         $buttonarray = [];
         $buttonarray[] = $mform->createElement('submit', 'savechanges', get_string('savechanges', 'customcert'));
 
@@ -89,9 +96,32 @@ class edit_element_form extends moodleform {
 
     /**
      * Fill in the current page data for this customcert.
+     *
+     * This method populates standard element fields (name, font, fontsize, colour, position, width,
+     * refpoint, alignment) from the element's getter methods. Element-specific fields are populated
+     * by each element's prepare_form() method via the preparable_form_interface.
      */
     public function definition_after_data() {
-        $this->element->definition_after_data($this->_form);
+        $mform = $this->_form;
+
+        // Populate standard fields from element getters.
+        $properties = [
+            'name' => $this->element->get_name(),
+            'font' => $this->element->get_font(),
+            'fontsize' => $this->element->get_fontsize(),
+            'colour' => $this->element->get_colour(),
+            'posx' => $this->element->get_posx(),
+            'posy' => $this->element->get_posy(),
+            'width' => $this->element->get_width(),
+            'refpoint' => $this->element->get_refpoint(),
+            'alignment' => $this->element->get_alignment(),
+        ];
+
+        foreach ($properties as $property => $value) {
+            if ($value !== null && $mform->elementExists($property)) {
+                $mform->getElement($property)->setValue($value);
+            }
+        }
     }
 
     /**
@@ -104,11 +134,12 @@ class edit_element_form extends moodleform {
     public function validation($data, $files) {
         $errors = [];
 
-        if (core_text::strlen($data['name']) > 255) {
+        if (core_text::strlen($data['name'] ?? '') > 255) {
             $errors['name'] = get_string('nametoolong', 'customcert');
         }
 
-        $errors += $this->element->validate_form_elements($data, $files);
+        $validationservice = new validation_service();
+        $errors += $validationservice->validate($this->element, $data);
 
         return $errors;
     }

@@ -28,6 +28,7 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
+use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
@@ -46,7 +47,7 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element implements renderable_element_interface {
+abstract class element implements form_definable_interface, renderable_element_interface {
     /**
      * @var string The left alignment constant.
      */
@@ -284,6 +285,19 @@ abstract class element implements renderable_element_interface {
     }
 
     /**
+     * Returns the type of the element.
+     *
+     * @return string
+     */
+    public function get_type(): string {
+        $classname = get_class($this);
+        $parts = explode('\\', $classname);
+        $pluginname = reset($parts);
+
+        return str_replace('customcertelement_', '', $pluginname);
+    }
+
+    /**
      * Sets the alignment.
      *
      * @param string $alignment The new alignment.
@@ -300,12 +314,23 @@ abstract class element implements renderable_element_interface {
     }
 
     /**
+     * Define the configuration fields for this element.
+     *
+     * @return array
+     */
+    public function get_form_fields(): array {
+        return [];
+    }
+
+    /**
      * This function renders the form elements when adding a customcert element.
      * Can be overridden if more functionality is needed.
      *
      * @param MoodleQuickForm $mform the edit_form instance.
+     * @deprecated since Moodle 5.2
      */
     public function render_form_elements($mform) {
+        debugging('render_form_elements() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
         // Render the common elements.
         element_helper::render_form_element_font($mform);
         element_helper::render_form_element_colour($mform);
@@ -322,8 +347,10 @@ abstract class element implements renderable_element_interface {
      * Can be overridden if more functionality is needed.
      *
      * @param edit_element_form $mform the edit_form instance
+     * @deprecated since Moodle 5.2
      */
     public function definition_after_data($mform) {
+        debugging('definition_after_data() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
         // Loop through the properties of the element and set the values
         // of the corresponding form element, if it exists.
         $properties = [
@@ -352,8 +379,10 @@ abstract class element implements renderable_element_interface {
      * @param array $data the submitted data
      * @param array $files the submitted files
      * @return array the validation errors
+     * @deprecated since Moodle 5.2
      */
     public function validate_form_elements($data, $files) {
+        debugging('validate_form_elements() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
         // Array to return the errors.
         $errors = [];
 
@@ -373,8 +402,10 @@ abstract class element implements renderable_element_interface {
      *
      * @param stdClass $data the form data
      * @return bool true of success, false otherwise.
+     * @deprecated since Moodle 5.2
      */
     public function save_form_elements($data) {
+        debugging('save_form_elements() is deprecated, please use element_repository instead', DEBUG_DEVELOPER);
         global $DB;
 
         // Get the data from the form.
@@ -505,6 +536,8 @@ abstract class element implements renderable_element_interface {
      * Magic getter for read only access.
      *
      * @param string $name
+     *
+     * @deprecated
      */
     public function __get($name) {
         debugging('Please call the appropriate get_* function instead of relying on magic getters', DEBUG_DEVELOPER);

@@ -30,7 +30,8 @@ use context_user;
 use html_writer;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
-use mod_customcert\element_helper;
+use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\preparable_form_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -44,45 +45,20 @@ use user_picture;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface {
+class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * This function renders the form elements when adding a customcert element.
+     * Define the configuration fields for this element in the same order as before the refactor.
      *
-     * @param MoodleQuickForm $mform the edit_form instance
+     * @return array
      */
-    public function render_form_elements($mform): void {
-        element_helper::render_form_element_width($mform);
-
-        element_helper::render_form_element_height($mform);
-
-        if (get_config('customcert', 'showposxy')) {
-            element_helper::render_form_element_position($mform);
-        }
-    }
-
-    /**
-     * Performs validation on the element values.
-     *
-     * @param array $data the submitted data
-     * @param array $files the submitted files
-     * @return array the validation errors
-     */
-    public function validate_form_elements($data, $files) {
-        // Array to return the errors.
-        $errors = [];
-
-        // Validate the width.
-        $errors += element_helper::validate_form_element_width($data);
-
-        // Validate the height.
-        $errors += element_helper::validate_form_element_height($data);
-
-        // Validate the position.
-        if (get_config('customcert', 'showposxy')) {
-            $errors += element_helper::validate_form_element_position($data);
-        }
-
-        return $errors;
+    public function get_form_fields(): array {
+        // Width, Height, then Position (if enabled).
+        return [
+            'width' => [],
+            'height' => [],
+            'posx' => [],
+            'posy' => [],
+        ];
     }
 
     /**
@@ -100,6 +76,27 @@ class element extends base_element implements element_interface {
         ];
 
         return (string) json_encode($arrtostore);
+    }
+
+    /**
+     * Prepare the form by populating the width and height fields from stored data.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function prepare_form(MoodleQuickForm $mform): void {
+        if (!empty($this->get_data())) {
+            $imageinfo = json_decode($this->get_data());
+
+            if (isset($imageinfo->width)) {
+                // Use defaults so values persist through Moodle's set_data lifecycle.
+                $mform->setDefault('width', (int)$imageinfo->width);
+            }
+
+            if (isset($imageinfo->height)) {
+                $mform->setDefault('height', (int)$imageinfo->height);
+            }
+        }
     }
 
     /**
@@ -197,25 +194,5 @@ class element extends base_element implements element_interface {
         }
 
         return $content;
-    }
-
-    /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    public function definition_after_data($mform): void {
-        // Set the image, width and height for this element.
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
-
-            $element = $mform->getElement('width');
-            $element->setValue($imageinfo->width);
-
-            $element = $mform->getElement('height');
-            $element->setValue($imageinfo->height);
-        }
-
-        parent::definition_after_data($mform);
     }
 }
