@@ -28,6 +28,8 @@ namespace mod_customcert\service;
 
 use mod_customcert\element;
 use mod_customcert\element_helper;
+use mod_customcert\element\validatable_element_interface;
+use Throwable;
 
 /**
  * Service for validating element configurations.
@@ -58,6 +60,19 @@ class validation_service {
         if (array_key_exists('width', $data)) {
             // Allow zero as valid when explicitly provided by elements like Border.
             $errors += element_helper::validate_form_element_width($data, true);
+        }
+
+        // Let elements contribute their own specific validation when they opt-in.
+        if ($element instanceof validatable_element_interface) {
+            try {
+                $errors += (array) $element->validate($data);
+            } catch (Throwable $e) {
+                // Never break the form on custom element validation; attach error to a visible field.
+                $errors['name'] = get_string('invaliddata', 'error');
+                if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                    debugging('Element validation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
         }
 
         return $errors;
