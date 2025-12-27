@@ -53,12 +53,12 @@ class element extends base_element implements
     /**
      * The course short name.
      */
-    const COURSE_SHORT_NAME = 1;
+    public const int COURSE_SHORT_NAME = 1;
 
     /**
      * The course fullname.
      */
-    const COURSE_FULL_NAME = 2;
+    public const int COURSE_FULL_NAME = 2;
 
     /**
      * Define the configuration fields for this element.

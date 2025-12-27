@@ -39,46 +39,6 @@ use mod_customcert\service\element_renderer;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Date - Course grade date
- */
-define('CUSTOMCERT_DATE_COURSE_GRADE', '0');
-
-/**
- * Date - Issue
- */
-define('CUSTOMCERT_DATE_ISSUE', '-1');
-
-/**
- * Date - Completion
- */
-define('CUSTOMCERT_DATE_COMPLETION', '-2');
-
-/**
- * Date - Course start
- */
-define('CUSTOMCERT_DATE_COURSE_START', '-3');
-
-/**
- * Date - Course end
- */
-define('CUSTOMCERT_DATE_COURSE_END', '-4');
-
-/**
- * Date - Current date
- */
-define('CUSTOMCERT_DATE_CURRENT_DATE', '-5');
-
-/**
- * Date - Enrollment start
- */
-define('CUSTOMCERT_DATE_ENROLMENT_START', '-6');
-
-/**
- * Date - Entrollment end
- */
-define('CUSTOMCERT_DATE_ENROLMENT_END', '-7');
-
 global $CFG;
 require_once($CFG->dirroot . '/lib/grade/constants.php');
 
@@ -90,6 +50,30 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+    /** @var string Course grade date identifier. */
+    public const string DATE_COURSE_GRADE = '0';
+
+    /** @var string Issue date identifier. */
+    public const string DATE_ISSUE = '-1';
+
+    /** @var string Completion date identifier. */
+    public const string DATE_COMPLETION = '-2';
+
+    /** @var string Course start date identifier. */
+    public const string DATE_COURSE_START = '-3';
+
+    /** @var string Course end date identifier. */
+    public const string DATE_COURSE_END = '-4';
+
+    /** @var string Current date identifier. */
+    public const string DATE_CURRENT_DATE = '-5';
+
+    /** @var string Enrolment start date identifier. */
+    public const string DATE_ENROLMENT_START = '-6';
+
+    /** @var string Enrolment end date identifier. */
+    public const string DATE_ENROLMENT_END = '-7';
+
     /**
      * Define the configuration fields for this element.
      *
@@ -100,17 +84,17 @@ class element extends base_element implements element_interface, form_definable_
 
         // Get the possible date options.
         $dateoptions = [];
-        $dateoptions[CUSTOMCERT_DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_date');
+        $dateoptions[self::DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
+        $dateoptions[self::DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_date');
         $completionenabled = $CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion);
         if ($completionenabled) {
-            $dateoptions[CUSTOMCERT_DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
+            $dateoptions[self::DATE_COMPLETION] = get_string('completiondate', 'customcertelement_date');
         }
-        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
-        $dateoptions[CUSTOMCERT_DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
+        $dateoptions[self::DATE_ENROLMENT_START] = get_string('enrolmentstartdate', 'customcertelement_date');
+        $dateoptions[self::DATE_ENROLMENT_END] = get_string('enrolmentenddate', 'customcertelement_date');
+        $dateoptions[self::DATE_COURSE_START] = get_string('coursestartdate', 'customcertelement_date');
+        $dateoptions[self::DATE_COURSE_END] = get_string('courseenddate', 'customcertelement_date');
+        $dateoptions[self::DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
         $dateoptions = $dateoptions + element_helper::get_grade_items($COURSE);
 
         return [
@@ -194,11 +178,11 @@ class element extends base_element implements element_interface, form_definable_
                 IGNORE_MULTIPLE
             );
 
-            if ($dateitem == CUSTOMCERT_DATE_ISSUE) {
+            if ($dateitem == self::DATE_ISSUE) {
                 $date = $issue->timecreated;
-            } else if ($dateitem == CUSTOMCERT_DATE_CURRENT_DATE) {
+            } else if ($dateitem == self::DATE_CURRENT_DATE) {
                 $date = time();
-            } else if ($dateitem == CUSTOMCERT_DATE_COMPLETION) {
+            } else if ($dateitem == self::DATE_COMPLETION) {
                 // Get the last completion date.
                 $sql = "SELECT MAX(c.timecompleted) as timecompleted
                           FROM {course_completions} c
@@ -209,7 +193,7 @@ class element extends base_element implements element_interface, form_definable_
                         $date = $timecompleted->timecompleted;
                     }
                 }
-            } else if ($dateitem == CUSTOMCERT_DATE_ENROLMENT_START) {
+            } else if ($dateitem == self::DATE_ENROLMENT_START) {
                 // Get the enrolment start date.
                 $sql = "SELECT ue.timestart FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
@@ -221,7 +205,7 @@ class element extends base_element implements element_interface, form_definable_
                         $date = $timestart->timecreated;
                     }
                 }
-            } else if ($dateitem == CUSTOMCERT_DATE_ENROLMENT_END) {
+            } else if ($dateitem == self::DATE_ENROLMENT_END) {
                 // Get the enrolment end date.
                 $sql = "SELECT ue.timeend FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
@@ -231,12 +215,12 @@ class element extends base_element implements element_interface, form_definable_
                         $date = $timeend->timeend;
                     }
                 }
-            } else if ($dateitem == CUSTOMCERT_DATE_COURSE_START) {
+            } else if ($dateitem == self::DATE_COURSE_START) {
                 $date = $DB->get_field('course', 'startdate', ['id' => $courseid]);
-            } else if ($dateitem == CUSTOMCERT_DATE_COURSE_END) {
+            } else if ($dateitem == self::DATE_COURSE_END) {
                 $date = $DB->get_field('course', 'enddate', ['id' => $courseid]);
             } else {
-                if ($dateitem == CUSTOMCERT_DATE_COURSE_GRADE) {
+                if ($dateitem == self::DATE_COURSE_GRADE) {
                     $grade = element_helper::get_course_grade_info(
                         $courseid,
                         GRADE_DISPLAY_TYPE_DEFAULT,
