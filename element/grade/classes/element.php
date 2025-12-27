@@ -43,10 +43,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir . '/gradelib.php');
 
-/**
- * Grade - Course
- */
-define('CUSTOMCERT_GRADE_COURSE', '0');
+// Legacy grade identifier was a global define; migrate to class constant below.
 
 /**
  * The customcert element grade's core interaction API.
@@ -56,6 +53,8 @@ define('CUSTOMCERT_GRADE_COURSE', '0');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+    /** @var string Course grade identifier. */
+    public const GRADE_COURSE = '0';
     /**
      * Define the configuration fields for this element.
      *
@@ -66,7 +65,7 @@ class element extends base_element implements element_interface, form_definable_
 
         // Get the grade items we can display.
         $gradeitems = [];
-        $gradeitems[CUSTOMCERT_GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
+        $gradeitems[self::GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
         $gradeitems = $gradeitems + element_helper::get_grade_items($COURSE);
 
         return [
@@ -136,7 +135,7 @@ class element extends base_element implements element_interface, form_definable_
             $courseitem = grade_item::fetch_course_item($courseid);
             $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeinfo->gradeformat);
         } else {
-            if ($gradeitem == CUSTOMCERT_GRADE_COURSE) {
+            if ($gradeitem == self::GRADE_COURSE) {
                 $grade = element_helper::get_course_grade_info(
                     $courseid,
                     $gradeformat,
