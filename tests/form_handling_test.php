@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\service\element_factory;
 use mod_customcert\service\validation_service;
 
 /**

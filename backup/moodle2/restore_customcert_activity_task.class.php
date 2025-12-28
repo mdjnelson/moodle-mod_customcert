@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\service\element_factory;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_stepslib.php');
@@ -110,7 +112,7 @@ class restore_customcert_activity_task extends restore_activity_task {
             // Go through the elements for the certificate.
             foreach ($elements as $e) {
                 // Get an instance of the element class.
-                if ($e = \mod_customcert\element_factory::get_element_instance($e)) {
+                if ($e = element_factory::get_element_instance($e)) {
                     $e->after_restore($this);
                 }
             }

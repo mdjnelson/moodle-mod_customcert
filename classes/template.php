@@ -31,6 +31,7 @@ use mod_customcert\event\template_created;
 use mod_customcert\event\template_deleted;
 use mod_customcert\event\template_updated;
 use mod_customcert\local\preview_renderer;
+use mod_customcert\service\element_factory;
 use pdf;
 use stdClass;
 
@@ -505,7 +506,7 @@ class template {
                         // Ok, now we want to insert this into the database.
                         $element->id = $DB->insert_record('customcert_elements', $element);
                         // Load any other information the element may need to for the template.
-                        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+                        if ($e = element_factory::get_element_instance($element)) {
                             if (!$e->copy_element($templateelement)) {
                                 // Failed to copy - delete the element.
                                 $e->delete();

@@ -32,6 +32,7 @@ use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
 use mod_customcert\event\issue_deleted;
+use mod_customcert\service\element_factory;
 use stdClass;
 use Throwable;
 
