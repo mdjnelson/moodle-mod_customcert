@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_coursename;
 
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -68,7 +69,7 @@ class element extends base_element implements
     public function get_form_fields(): array {
         return [
             'coursenamedisplay' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('coursenamedisplay', 'customcertelement_coursename'),
                 'help' => ['coursenamedisplay', 'customcertelement_coursename'],
                 'type_param' => PARAM_INT,

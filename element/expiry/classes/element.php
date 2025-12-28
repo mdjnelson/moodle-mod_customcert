@@ -29,6 +29,7 @@ namespace customcertelement_expiry;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\field_type;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -101,19 +102,19 @@ class element extends base_element implements element_interface, form_definable_
         return [
             // Element-specific controls first, as before refactor.
             'dateitem' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('dateitem', 'customcertelement_expiry'),
                 'options' => $dateoptions,
                 'help' => ['dateitem', 'customcertelement_expiry'],
             ],
             'dateformat' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('dateformat', 'customcertelement_expiry'),
                 'options' => self::get_date_formats(),
                 'help' => ['dateformat', 'customcertelement_expiry'],
             ],
             'startfrom' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('startfrom', 'customcertelement_expiry'),
                 'options' => $startdates,
                 'help' => ['startfrom', 'customcertelement_expiry'],
