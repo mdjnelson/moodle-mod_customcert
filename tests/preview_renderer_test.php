@@ -110,9 +110,14 @@ final class preview_renderer_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object) [
             'pageid' => $pageid,
             'element' => 'text',
-            'font' => 'times',
             'name' => 'Test Text',
-            'data' => 'Hello World',
+            'data' => json_encode([
+                'value' => 'Hello World',
+                'font' => 'times',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 0,
+            ]),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),

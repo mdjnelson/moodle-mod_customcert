@@ -27,11 +27,13 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 /**
- * Core element contract (scaffolding only; not wired yet).
+ * Interface element_interface
  *
- * This interface describes the minimal identity and configuration access
- * that any Custom Certificate element should expose. It mirrors existing
- * getter methods from the legacy system to preserve forward compatibility.
+ * Defines the contract for an element, providing functions related to its metadata,
+ * positioning, and fundamental attributes. This interface is focused on the
+ * minimal set of attributes useful across various element types without coupling
+ * to specific implementations or rendering requirements. Styling and other
+ * content-specific data should be part of the element's editable payload.
  */
 interface element_interface {
     /**
@@ -62,26 +64,11 @@ interface element_interface {
      */
     public function get_data(): mixed;
 
-    /**
-     * Returns the font identifier, if configured.
-     *
-     * @return string|null
-     */
-    public function get_font(): ?string;
-
-    /**
-     * Returns the font size, if configured.
-     *
-     * @return int|null
-     */
-    public function get_fontsize(): ?int;
-
-    /**
-     * Returns the colour string (hex or named), if configured.
-     *
-     * @return string|null
-     */
-    public function get_colour(): ?string;
+    // Presentation-related styling such as font, fontsize, and colour are
+    // no longer part of the base element contract. These values should be
+    // stored in the element's data payload and consumed by renderers or
+    // element-specific helpers. If shared styling contracts are needed,
+    // prefer dedicated opt-in interfaces.
 
     /**
      * Returns the X coordinate used for positioning.
@@ -97,12 +84,8 @@ interface element_interface {
      */
     public function get_posy(): ?int;
 
-    /**
-     * Returns the width value used by this element.
-     *
-     * @return int|null
-     */
-    public function get_width(): ?int;
+    // Width is persisted inside the element data payload and is not part of
+    // the base contract to avoid coupling to specific element types.
 
     /**
      * Returns the reference point constant used for positioning.

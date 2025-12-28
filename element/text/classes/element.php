@@ -74,10 +74,19 @@ class element extends base_element implements element_interface, form_definable_
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Text stores raw HTML/text in the data column.
-        $data = $this->get_data();
-        if ($data !== null && $data !== '') {
-            $mform->getElement('text')->setValue($data);
+        // Text content is stored in JSON data under the 'value' key once visuals are merged.
+        $raw = $this->get_data();
+        if ($raw === null || $raw === '') {
+            return;
+        }
+        if (is_string($raw)) {
+            $decoded = json_decode($raw);
+            if (is_object($decoded) && property_exists($decoded, 'value')) {
+                $mform->getElement('text')->setValue((string)$decoded->value);
+                return;
+            }
+            // Fallback for plain string storage (before visuals were merged).
+            $mform->getElement('text')->setValue($raw);
         }
     }
 
@@ -133,6 +142,16 @@ class element extends base_element implements element_interface, form_definable_
      */
     protected function get_text(): string {
         $context = element_helper::get_context($this->get_id());
-        return format_text($this->get_data(), FORMAT_HTML, ['context' => $context]);
+        $raw = $this->get_data();
+        $content = '';
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw);
+            if (is_object($decoded) && property_exists($decoded, 'value')) {
+                $content = (string)$decoded->value;
+            } else {
+                $content = $raw;
+            }
+        }
+        return format_text($content, FORMAT_HTML, ['context' => $context]);
     }
 }

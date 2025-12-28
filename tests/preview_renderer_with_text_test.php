@@ -67,18 +67,20 @@ final class preview_renderer_with_text_test extends advanced_testcase {
         ];
         $page->id = $DB->insert_record('customcert_pages', $page, true);
 
-        // Create a Text element record.
+        // Create a Text element record using JSON data for content/visuals.
         $element = (object) [
             'element' => 'text',
             'pageid' => $page->id,
             'name' => 'Text',
-            'data' => 'Hello world',
-            'font' => 'times',
-            'fontsize' => 12,
-            'colour' => '#000000',
+            'data' => json_encode([
+                'value' => 'Hello world',
+                'font' => 'times',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 0,
+            ]),
             'posx' => 10,
             'posy' => 10,
-            'width' => 0,
             'refpoint' => 1,
             'alignment' => 'L',
             'sequence' => 1,

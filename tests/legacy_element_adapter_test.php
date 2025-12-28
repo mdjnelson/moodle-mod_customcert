@@ -61,13 +61,20 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'id' => 42,
             'pageid' => 7,
             'name' => 'Legacy Text',
-            'data' => 'hello',
-            'font' => 'helvetica',
-            'fontsize' => 12,
-            'colour' => '#112233',
+            // New source of truth is JSON data; include expected values here.
+            'data' => json_encode([
+                'value' => 'hello',
+                'font' => 'helvetica',
+                'fontsize' => 12,
+                'colour' => '#112233',
+                'width' => 100,
+            ]),
+            'font' => 'helvetica', // Ignored by getters now; kept for legacy shape only.
+            'fontsize' => 12, // Ignored by getters.
+            'colour' => '#112233', // Ignored by getters.
             'posx' => 10,
             'posy' => 20,
-            'width' => 100,
+            'width' => 100, // Ignored by getters; width comes from JSON.
             'refpoint' => 0,
             'alignment' => 'L',
         ];
@@ -78,7 +85,11 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertSame(42, $adapter->get_id());
         $this->assertSame(7, $adapter->get_pageid());
         $this->assertSame('Legacy Text', $adapter->get_name());
-        $this->assertSame('hello', $adapter->get_data());
+        // Get_data() on the legacy adapter delegates to the legacy element, whose
+        // data now stores JSON; extract the value to compare with the original scalar.
+        $decoded = json_decode((string)$adapter->get_data(), true);
+        $this->assertIsArray($decoded);
+        $this->assertSame('hello', (string)$decoded['value']);
         $this->assertSame('helvetica', $adapter->get_font());
         $this->assertSame(12, $adapter->get_fontsize());
         $this->assertSame('#112233', $adapter->get_colour());

@@ -139,6 +139,36 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 
+        // Legacy backups may contain a separate 'width' field. Since width is now
+        // stored inside the JSON 'data', merge it here before inserting.
+        $legacywidth = null;
+        if (property_exists($data, 'width')) {
+            // Note: width can legitimately be 0 (auto). Only treat NULL as no-op.
+            if ($data->width !== null && $data->width !== '') {
+                $legacywidth = (int) $data->width;
+            }
+            // Do not try to insert an unknown field into DB.
+            unset($data->width);
+        }
+
+        // Merge legacy visual fields into JSON data when present in older backups.
+        $legacyfont = property_exists($data, 'font') ? $data->font : null;
+        $legacyfontsize = property_exists($data, 'fontsize') ? $data->fontsize : null;
+        $legacycolour = property_exists($data, 'colour') ? $data->colour : null;
+
+        if ($legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null) {
+            $data->data = \mod_customcert\local\upgrade\row_migrator::migrate_row(
+                $data->data ?? null,
+                $legacywidth,
+                $legacyfont,
+                $legacyfontsize,
+                $legacycolour
+            );
+        }
+
+        // Unset legacy fields so they are not inserted as separate columns.
+        unset($data->font, $data->fontsize, $data->colour);
+
         $newitemid = $DB->insert_record('customcert_elements', $data);
         $this->set_mapping('customcert_element', $oldid, $newitemid);
     }

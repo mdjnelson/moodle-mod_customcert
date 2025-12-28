@@ -100,15 +100,13 @@ class element extends base_element implements element_interface, form_definable_
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // Array of data we will be storing in the database.
-        $arrtostore = [
-            'gradeitem' => $data->gradeitem,
-            'gradeformat' => $data->gradeformat,
-        ];
-
-        // Encode these variables before saving into the DB.
-        return json_encode($arrtostore);
+        // Persist the selected grade item id and grade format as strings in JSON.
+        return json_encode([
+            'gradeitem' => (string)$data->gradeitem,
+            'gradeformat' => (string)($data->gradeformat ?? ''),
+        ]);
     }
+
 
     /**
      * Handles rendering the element on the pdf.
@@ -126,17 +124,20 @@ class element extends base_element implements element_interface, form_definable_
 
         $courseid = element_helper::get_courseid($this->id);
 
-        // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->get_data());
-        $gradeitem = $gradeinfo->gradeitem;
-        $gradeformat = $gradeinfo->gradeformat;
+        // Decode the information stored in the database (JSON only post-migration).
+        $decoded = json_decode((string)$this->get_data());
+        if (!is_object($decoded) || !isset($decoded->gradeitem)) {
+            return; // Nothing to render if not configured.
+        }
+        $gradeitem = (string)$decoded->gradeitem;
+        $gradeformat = isset($decoded->gradeformat) ? (int)$decoded->gradeformat : GRADE_DISPLAY_TYPE_REAL;
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
             $courseitem = grade_item::fetch_course_item($courseid);
-            $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeinfo->gradeformat);
+            $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeformat);
         } else {
-            if ($gradeitem == self::GRADE_COURSE) {
+            if ($gradeitem === self::GRADE_COURSE) {
                 $grade = element_helper::get_course_grade_info(
                     $courseid,
                     $gradeformat,
@@ -186,12 +187,13 @@ class element extends base_element implements element_interface, form_definable_
             return '';
         }
 
-        // Decode the information stored in the database.
-        $gradeinfo = json_decode($this->get_data());
+        // Decode the information stored in the database (JSON only post-migration).
+        $decoded = json_decode((string)$this->get_data());
+        $gradeformat = (is_object($decoded) && isset($decoded->gradeformat)) ? (int)$decoded->gradeformat : GRADE_DISPLAY_TYPE_REAL;
 
         $courseitem = grade_item::fetch_course_item($COURSE->id);
 
-        $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeinfo->gradeformat);
+        $grade = grade_format_gradevalue(100.0, $courseitem, true, $gradeformat);
 
         if ($renderer) {
             return (string) $renderer->render_content($this, $grade);
@@ -207,17 +209,28 @@ class element extends base_element implements element_interface, form_definable_
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Set the item and format for this element.
-        if (!empty($this->get_data())) {
-            $gradeinfo = json_decode($this->get_data());
-
-            if (isset($gradeinfo->gradeitem)) {
-                $mform->getElement('gradeitem')->setValue($gradeinfo->gradeitem);
+        // Set the item and format for this element from stored data (scalar or JSON).
+        $raw = $this->get_data();
+        if ($raw === null || $raw === '') {
+            return;
+        }
+        $gradeitem = null;
+        $gradeformat = null;
+        if (is_string($raw)) {
+            $decoded = json_decode($raw);
+            if (is_object($decoded)) {
+                $gradeitem = $decoded->gradeitem ?? ($decoded->value ?? null);
+                $gradeformat = $decoded->gradeformat ?? null;
+            } else if (ctype_digit(trim($raw))) {
+                // Legacy scalar id stored directly in data.
+                $gradeitem = $raw;
             }
-
-            if (isset($gradeinfo->gradeformat)) {
-                $mform->getElement('gradeformat')->setValue($gradeinfo->gradeformat);
-            }
+        }
+        if ($gradeitem !== null && $mform->elementExists('gradeitem')) {
+            $mform->getElement('gradeitem')->setValue((string)$gradeitem);
+        }
+        if ($gradeformat !== null && $mform->elementExists('gradeformat')) {
+            $mform->getElement('gradeformat')->setValue((int)$gradeformat);
         }
     }
 

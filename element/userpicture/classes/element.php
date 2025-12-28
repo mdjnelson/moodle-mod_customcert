@@ -68,7 +68,7 @@ class element extends base_element implements element_interface, form_definable_
      * @param stdClass $data the form data
      * @return string the json encoded array
      */
-    public function save_unique_data($data): string {
+    public function save_unique_data($data) {
         // Array of data we will be storing in the database.
         $arrtostore = [
             'width' => (int) $data->width,
