@@ -4,6 +4,162 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.2.0] - 2026-XX-YY
+
+### Added
+- Element System v2 (interfaces + services) to improve stability and long-term extensibility of Custom Certificate elements.
+- New element capability interfaces:
+  - `mod_customcert\element\form_definable_interface`
+  - `mod_customcert\element\persistable_element_interface`
+  - `mod_customcert\element\validatable_element_interface`
+  - `mod_customcert\element\preparable_form_interface`
+  - `mod_customcert\element\dynamic_selects_interface`
+  - (Scaffolding) `renderable_element_interface`, `restorable_element_interface`
+- New persistence + migration helpers:
+  - JSON payload utilities (`get_payload()`, `get_value()`, safe decode/encode with `json_validate()`).
+  - Restore row migration helper to merge legacy backup fields into the JSON payload during restore.
+- New/expanded automated tests covering Element System v2 behavior and data migration paths.
+
+### Changed (Breaking)
+#### Requirements
+- Minimum supported version is Moodle 5.2 (PHP 8.3+).
+
+#### Element storage
+- `customcert_elements` no longer has `font`, `fontsize`, `colour`, or `width` columns.
+- These values are now stored inside the JSON payload in `customcert_elements.data`.
+
+Migration impact for element plugins:
+- Do NOT read/write `$element->font`, `$element->fontsize`, `$element->colour`, `$element->width` from DB fields.
+- Use element getters (`get_font()`, `get_fontsize()`, `get_colour()`, `get_width()`) which now read from the JSON data payload.
+
+#### Data format is now JSON
+- `customcert_elements.data` is now treated as a JSON payload.
+- Legacy scalar values are migrated into a JSON envelope, e.g. legacy `"Hello"` → `{ "value": "Hello" }`.
+- Upgrade and restore routines automatically migrate existing data.
+
+#### Editing + persistence flow
+- Element edit handlers now normalize element-specific data into a JSON payload and merge standard visual fields (font/fontsize/colour/width) into the same payload.
+- Element plugins should return only element-specific keys from `persistable_element_interface::normalise_data()`; standard visual fields are handled centrally.
+
+#### Element construction contract
+- Factory now prefers `constructable_element_interface::from_record(stdClass $record)` when present on the element class.
+- Legacy constructors remain supported as a fallback (`new Class($record)`), but third‑party elements are encouraged to provide `from_record()` for forward compatibility and clearer errors.
+
+#### Element rendering signatures
+- Element render methods are now typed and accept an optional renderer:
+
+  Before (legacy):
+  ```php
+  public function render($pdf, $preview, $user) { /* ... */ }
+  public function render_html() { /* ... */ }
+  ```
+
+  After (5.2+):
+  ```php
+  use mod_customcert\service\element_renderer;
+  public function render(pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {}
+  public function render_html(?element_renderer $renderer = null): string {}
+  ```
+
+- `element_helper::render_content()` remains unchanged for backward compatibility, but element plugins must update their method signatures as shown above.
+
+#### Restores from older backups
+- Restoring backups created on older versions is supported: legacy font/fontsize/colour/width values are merged into the JSON payload during restore.
+- Backups created on 5.2+ store visual fields inside JSON and are not guaranteed to restore correctly on older plugin versions.
+
+### Fixed
+- Improved robustness of upgrade/restore migrations:
+  - Better handling of missing/partial legacy fields.
+  - Safer normalisation of element payloads during restore.
+
+### Deprecated
+Legacy element APIs are still supported but deprecated as of 5.2:
+- `element::render_form_elements()` → implement `form_definable_interface::get_form_fields()`
+- `element::definition_after_data()` → implement `preparable_form_interface::prepare_form()`
+- `element::validate_form_elements()` → implement `validatable_element_interface::validate()`
+- `element::save_form_elements()` / `element::save_unique_data()` → implement `persistable_element_interface::normalise_data()`
+- `element::after_restore()` → implement `restorable_element_interface::after_restore_from_backup()`
+
+Deprecation notes:
+- Deprecated APIs will continue to work during the 5.2 line, but new development should use Element System v2 interfaces.
+- New element plugins should not rely on `customcert_elements` legacy columns or legacy element hooks.
+
+### Migration Guide (Third-party element developers)
+#### Option A (Recommended): Adopt Element System v2
+Update your element class to implement interfaces as needed:
+
+```
+class element extends \mod_customcert\element implements
+    \mod_customcert\element\form_definable_interface,
+    \mod_customcert\element\persistable_element_interface,
+    \mod_customcert\element\validatable_element_interface,
+    \mod_customcert\element\preparable_form_interface {
+
+    public function get_form_fields(): array {
+        return [
+            'myfield' => [
+                'type' => \mod_customcert\element\field_type::text,
+                'label' => get_string('myfield', 'customcertelement_myplugin'),
+            ],
+            // Standard fields may be requested by name:
+            'font' => [],
+            'colour' => [],
+            'width' => [],
+            'posx' => [],
+            'posy' => [],
+            'refpoint' => [],
+            'alignment' => [],
+        ];
+    }
+
+    public function normalise_data(\stdClass $formdata): array {
+        return [
+            'value' => (string)($formdata->myfield ?? ''),
+            // NOTE: width/font/colour/fontsize are merged into JSON by the edit handler.
+        ];
+    }
+
+    public function validate(array $data): array {
+        $errors = [];
+        if (empty($data['myfield'])) {
+            $errors['myfield'] = get_string('required');
+        }
+        return $errors;
+    }
+
+    public function prepare_form(\MoodleQuickForm $mform): void {
+        // Example: populate form values by reading from JSON.
+        $payload = $this->get_payload();
+        if (is_array($payload) && array_key_exists('value', $payload)) {
+            $mform->getElement('myfield')->setValue((string)$payload['value']);
+        }
+    }
+}
+```
+
+#### Option B: Keep legacy APIs temporarily (not recommended for new plugins)
+Existing element plugins may continue using legacy hooks in 5.2, but must be updated to tolerate JSON data and the removal of DB columns:
+- Treat `get_data()` as JSON and read your values from the decoded payload (`get_payload()`).
+- If you previously depended on DB columns for font/fontsize/colour/width, switch to getters (`get_font()`, `get_fontsize()`, `get_colour()`, `get_width()`).
+
+#### Common pitfalls
+- Do not assume `get_data()` returns a scalar string; it may be JSON with multiple keys.
+- Do not overwrite the whole JSON payload with a single scalar; always normalise to an array/object payload via the Element System v2 interfaces.
+- Do not store standard visual fields (font/fontsize/colour/width) in custom keys; rely on the core merge behavior.
+
+### Removed
+DB columns removed from `customcert_elements`:
+- `font`
+- `fontsize`
+- `colour`
+- `width`
+
+- Element removed:
+  - `daterange`
+
+### Notes for maintainers
+If you maintain a third-party element plugin, update it to Element System v2 as soon as practical to avoid future breakage when legacy hooks are removed.
+
 ## [5.0.2] - 2025-12-18
 
 ### Fixed
