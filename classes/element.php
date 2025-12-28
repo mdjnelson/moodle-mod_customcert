@@ -28,8 +28,6 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
-use mod_customcert\element\form_definable_interface;
-use mod_customcert\element\renderable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
@@ -47,7 +45,7 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element implements form_definable_interface, renderable_element_interface {
+abstract class element {
     /**
      * @var string The left alignment constant.
      */

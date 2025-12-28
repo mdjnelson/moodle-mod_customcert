@@ -34,6 +34,7 @@ use mod_customcert\element\field_type;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -50,7 +51,8 @@ use stored_file;
 class element extends \customcertelement_image\element implements
     dynamic_selects_interface,
     form_definable_interface,
-    preparable_form_interface
+    preparable_form_interface,
+    renderable_element_interface
 {
     /**
      * @var array The file manager options for the certificate.
@@ -72,6 +74,19 @@ class element extends \customcertelement_image\element implements
         ];
 
         parent::__construct($element);
+    }
+
+    /**
+     * Render the element in html for preview positioning.
+     *
+     * @param element_renderer|null $renderer
+     * @return string
+     */
+    public function render_html(?element_renderer $renderer = null): string {
+        if ($renderer) {
+            return (string)$renderer->render_content($this, '');
+        }
+        return '';
     }
 
     /**

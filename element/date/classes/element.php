@@ -31,6 +31,7 @@ use mod_customcert\element\element_interface;
 use mod_customcert\element\field_type;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
@@ -50,7 +51,12 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+class element extends base_element implements
+    element_interface,
+    form_definable_interface,
+    preparable_form_interface,
+    renderable_element_interface
+{
     /** @var string Course grade date identifier. */
     public const string DATE_COURSE_GRADE = '0';
 
