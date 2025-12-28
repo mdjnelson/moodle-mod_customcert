@@ -89,21 +89,6 @@ abstract class element implements form_definable_interface, renderable_element_i
     protected $data;
 
     /**
-     * @var string The font name.
-     */
-    protected $font;
-
-    /**
-     * @var int The font size.
-     */
-    protected $fontsize;
-
-    /**
-     * @var string The font colour.
-     */
-    protected $colour;
-
-    /**
      * @var int The position x.
      */
     protected $posx;
@@ -112,11 +97,6 @@ abstract class element implements form_definable_interface, renderable_element_i
      * @var int The position y.
      */
     protected $posy;
-
-    /**
-     * @var int The width.
-     */
-    protected $width;
 
     /**
      * @var int The refpoint.
@@ -164,12 +144,8 @@ abstract class element implements form_definable_interface, renderable_element_i
         $this->data = $element->data ?? null;
 
         // Optional fields (preserve NULL when unset or empty string).
-        $this->font = $optional($element->font ?? null, 'strval');
-        $this->fontsize = $optional($element->fontsize ?? null, 'intval');
-        $this->colour = $optional($element->colour ?? null, 'strval');
         $this->posx = $optional($element->posx ?? null, 'intval');
         $this->posy = $optional($element->posy ?? null, 'intval');
-        $this->width = $optional($element->width ?? null, 'intval');
         $this->refpoint = $optional($element->refpoint ?? null, 'intval');
 
         $this->showposxy = (bool) ($showposxy ?? false);
@@ -215,34 +191,34 @@ abstract class element implements form_definable_interface, renderable_element_i
     /**
      * Returns the font name.
      *
-     * @return string
+     * @return string|null
      */
     public function get_font(): ?string {
-        return $this->font ?? null;
+        return $this->get_string_from_data_key('font');
     }
 
     /**
      * Returns the font size.
      *
-     * @return int
+     * @return int|null
      */
     public function get_fontsize(): ?int {
-        return $this->fontsize ?? null;
+        return $this->get_int_from_data_key('fontsize');
     }
 
     /**
      * Returns the font colour.
      *
-     * @return string
+     * @return string|null
      */
     public function get_colour(): ?string {
-        return $this->colour ?? null;
+        return $this->get_string_from_data_key('colour');
     }
 
     /**
      * Returns the position x.
      *
-     * @return int
+     * @return int|null
      */
     public function get_posx(): ?int {
         return $this->posx ?? null;
@@ -251,7 +227,7 @@ abstract class element implements form_definable_interface, renderable_element_i
     /**
      * Returns the position y.
      *
-     * @return int
+     * @return int|null
      */
     public function get_posy(): ?int {
         return $this->posy ?? null;
@@ -260,10 +236,10 @@ abstract class element implements form_definable_interface, renderable_element_i
     /**
      * Returns the width.
      *
-     * @return int
+     * @return int|null
      */
     public function get_width(): ?int {
-        return $this->width ?? null;
+        return $this->get_int_from_data_key('width');
     }
 
     /**
@@ -314,6 +290,44 @@ abstract class element implements form_definable_interface, renderable_element_i
     }
 
     /**
+     * Helper to extract an integer value from the JSON-encoded data by key.
+     * Returns null when the key is missing or empty; preserves 0 as meaningful.
+     *
+     * @param string $key
+     * @return int|null
+     */
+    private function get_int_from_data_key(string $key): ?int {
+        $raw = $this->get_data();
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw);
+            if (is_object($decoded) && property_exists($decoded, $key)) {
+                $value = $decoded->{$key};
+                return ($value === '' || $value === null) ? null : (int) $value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Helper to extract a string value from the JSON-encoded data by key.
+     * Returns null when the key is missing or empty.
+     *
+     * @param string $key
+     * @return string|null
+     */
+    private function get_string_from_data_key(string $key): ?string {
+        $raw = $this->get_data();
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw);
+            if (is_object($decoded) && property_exists($decoded, $key)) {
+                $value = $decoded->{$key};
+                return ($value === '' || $value === null) ? null : (string) $value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Define the configuration fields for this element.
      *
      * @return array
@@ -355,12 +369,12 @@ abstract class element implements form_definable_interface, renderable_element_i
         // of the corresponding form element, if it exists.
         $properties = [
             'name' => $this->name,
-            'font' => $this->font,
-            'fontsize' => $this->fontsize,
-            'colour' => $this->colour,
+            'font' => $this->get_font(),
+            'fontsize' => $this->get_fontsize(),
+            'colour' => $this->get_colour(),
             'posx' => $this->posx,
             'posy' => $this->posy,
-            'width' => $this->width,
+            'width' => $this->get_width(),
             'refpoint' => $this->refpoint,
             'alignment' => $this->get_alignment(),
         ];
@@ -412,14 +426,32 @@ abstract class element implements form_definable_interface, renderable_element_i
         $element = new stdClass();
         $element->name = $data->name;
         $element->data = $this->save_unique_data($data);
-        $element->font = $data->font ?? null;
-        $element->fontsize = $data->fontsize ?? null;
-        $element->colour = $data->colour ?? null;
+        // Visual attributes are stored within JSON 'data', not as separate columns.
         if ($this->showposxy) {
             $element->posx = $data->posx ?? null;
             $element->posy = $data->posy ?? null;
         }
-        $element->width = $data->width ?? null;
+        // Merge width into JSON data rather than a (now removed) DB column.
+        if (isset($data->width) && $data->width !== '') {
+            $current = $element->data;
+            $merged = null;
+            if ($current === null || $current === '') {
+                $merged = json_encode(['width' => (int)$data->width]);
+            } else {
+                $decoded = json_decode($current, true);
+                if (is_array($decoded)) {
+                    $decoded['width'] = (int)$data->width;
+                    $merged = json_encode($decoded);
+                } else if (ctype_digit(trim((string)$current))) {
+                    // Historical case: scalar width stored as string in data.
+                    $merged = json_encode(['width' => (int)$data->width]);
+                } else {
+                    // Non-JSON text – start a JSON envelope with width only.
+                    $merged = json_encode(['width' => (int)$data->width]);
+                }
+            }
+            $element->data = $merged;
+        }
         $element->refpoint = $data->refpoint ?? null;
         $element->alignment = $data->alignment ?? self::ALIGN_LEFT;
         $element->timemodified = time();

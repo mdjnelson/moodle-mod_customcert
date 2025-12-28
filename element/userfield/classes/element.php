@@ -104,8 +104,9 @@ class element extends base_element implements element_interface, form_definable_
      * @param stdClass $data the form data
      * @return string the text
      */
-    public function save_unique_data($data): string {
-        return (string) $data->userfield;
+    public function save_unique_data($data) {
+        // Persist the selected user field identifier in JSON under the key 'userfield'.
+        return json_encode(['userfield' => (string)$data->userfield]);
     }
 
     /**
@@ -115,8 +116,9 @@ class element extends base_element implements element_interface, form_definable_
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        if (!empty($this->get_data())) {
-            $mform->getElement('userfield')->setValue($this->get_data());
+        $data = json_decode((string)$this->get_data());
+        if (is_object($data) && isset($data->userfield)) {
+            $mform->getElement('userfield')->setValue((string)$data->userfield);
         }
     }
 
@@ -169,7 +171,8 @@ class element extends base_element implements element_interface, form_definable_
         global $CFG, $DB;
 
         // The user field to display.
-        $field = $this->get_data();
+        $raw = json_decode((string)$this->get_data());
+        $field = is_object($raw) && isset($raw->userfield) ? $raw->userfield : '';
         // The value to display - we always want to show a value here so it can be repositioned.
         if ($preview) {
             $value = $field;

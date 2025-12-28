@@ -46,27 +46,6 @@ use TCPDF_COLORS;
  */
 class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
     /**
-     * Returns the configured border width for this element.
-     *
-     * The Border element stores its stroke width directly in the element 'data'
-     * column (as a scalar), not in the standard 'width' column. Override the
-     * getter so edit forms populated via edit_element_form pick up the saved
-     * value correctly when editing.
-     *
-     * @return int|null Width in mm, or null if not set.
-     */
-    public function get_width(): ?int {
-        $data = $this->get_data();
-
-        if ($data === null || $data === '') {
-            return null;
-        }
-
-        // Data is stored as a scalar (the width value directly), not JSON.
-        return (int) $data;
-    }
-
-    /**
      * Define the configuration fields for this element in the same order as before the refactor.
      *
      * @return array
@@ -86,10 +65,10 @@ class element extends base_element implements element_interface, form_definable_
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Border stores width as a scalar in the data column.
-        $data = $this->get_data();
-        if (!empty($data)) {
-            $mform->getElement('width')->setValue((int)$data);
+        // Populate width from JSON via the getter.
+        $width = $this->get_width();
+        if ($width !== null && $mform->elementExists('width')) {
+            $mform->getElement('width')->setValue($width);
         }
     }
 
@@ -135,7 +114,8 @@ class element extends base_element implements element_interface, form_definable_
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // Persist a plain scalar width in the data column for compatibility with pre-refactor behaviour.
-        return isset($data->width) ? (int)$data->width : 0;
+        // Border has no unique JSON payload beyond visuals; let edit_element.php
+        // merge width/colour into the JSON envelope.
+        return '';
     }
 }

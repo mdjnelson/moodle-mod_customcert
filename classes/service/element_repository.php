@@ -98,12 +98,9 @@ class element_repository {
         $record->id = $element->get_id();
         $record->pageid = $element->get_pageid();
         $record->name = $element->get_name();
-        $record->font = $element->get_font();
-        $record->fontsize = $element->get_fontsize();
-        $record->colour = $element->get_colour();
         $record->posx = $element->get_posx();
         $record->posy = $element->get_posy();
-        $record->width = $element->get_width();
+        // Width is stored inside the JSON data; no DB column write.
         $record->refpoint = $element->get_refpoint();
         $record->alignment = $element->get_alignment();
         $record->timemodified = time();
@@ -193,7 +190,7 @@ class element_repository {
         $record->colour = $element->get_colour();
         $record->posx = $element->get_posx();
         $record->posy = $element->get_posy();
-        $record->width = $element->get_width();
+        // Width is stored inside the JSON data; no DB column write.
         $record->refpoint = $element->get_refpoint();
         $record->alignment = $element->get_alignment();
         $record->data = $element->get_data();

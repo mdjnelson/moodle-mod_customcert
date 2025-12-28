@@ -55,9 +55,9 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
             'sequence', 'timecreated', 'timemodified']);
 
         // The elements.
+        // Note: Legacy columns 'width', 'font', 'fontsize' and 'colour' were removed. Values live in JSON 'data'.
         $element = new backup_nested_element('element', ['id'], [
-            'pageid', 'name', 'element', 'data', 'font', 'fontsize',
-            'colour', 'posx', 'posy', 'width', 'refpoint', 'sequence',
+            'pageid', 'name', 'element', 'data', 'posx', 'posy', 'refpoint', 'sequence',
             'alignment', 'timecreated', 'timemodified']);
 
         // The issues.

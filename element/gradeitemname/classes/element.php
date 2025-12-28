@@ -79,11 +79,7 @@ class element extends base_element implements element_interface, form_definable_
      * @return string the text
      */
     public function save_unique_data($data) {
-        if (!empty($data->gradeitem)) {
-            return $data->gradeitem;
-        }
-
-        return '';
+        return json_encode(['gradeitem' => (string)$data->gradeitem]);
     }
 
     /**
@@ -93,8 +89,9 @@ class element extends base_element implements element_interface, form_definable_
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        if (!empty($this->get_data())) {
-            $mform->getElement('gradeitem')->setValue($this->get_data());
+        $data = json_decode((string)$this->get_data());
+        if (is_object($data) && isset($data->gradeitem)) {
+            $mform->getElement('gradeitem')->setValue((string)$data->gradeitem);
         }
     }
 
@@ -153,24 +150,22 @@ class element extends base_element implements element_interface, form_definable_
     public function after_restore($restore) {
         global $DB;
 
-        $gradeinfo = $this->get_data();
+        $data = json_decode((string)$this->get_data(), true);
+        if (!is_array($data) || empty($data['gradeitem'])) {
+            return;
+        }
 
         $isgradeitem = false;
-        $oldid = $gradeinfo;
-        if (str_starts_with($gradeinfo, 'gradeitem:')) {
+        $oldid = $data['gradeitem'];
+        if (str_starts_with($data['gradeitem'], 'gradeitem:')) {
             $isgradeitem = true;
-            $oldid = str_replace('gradeitem:', '', $gradeinfo);
+            $oldid = str_replace('gradeitem:', '', $data['gradeitem']);
         }
 
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
         if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
-            $gradeinfo = new stdClass();
-            $gradeinfo->gradeitem = '';
-            if ($isgradeitem) {
-                $gradeinfo->gradeitem = 'gradeitem:';
-            }
-            $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($gradeinfo), ['id' => $this->get_id()]);
+            $payload = ['gradeitem' => ($isgradeitem ? 'gradeitem:' : '') . $newitem->newitemid];
+            $DB->set_field('customcert_elements', 'data', json_encode($payload), ['id' => $this->get_id()]);
         }
     }
 
@@ -182,8 +177,12 @@ class element extends base_element implements element_interface, form_definable_
     protected function get_grade_item_name(): string {
         global $DB;
 
-        $gradeitem = $this->get_data();
+        $data = json_decode((string)$this->get_data(), true);
+        if (!is_array($data) || empty($data['gradeitem'])) {
+            return '';
+        }
 
+        $gradeitem = $data['gradeitem'];
         if (strpos($gradeitem, 'gradeitem:') === 0) {
             $gradeitemid = substr($gradeitem, 10);
             $gradeitem = grade_item::fetch(['id' => $gradeitemid]);

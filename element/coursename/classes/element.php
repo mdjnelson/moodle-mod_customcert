@@ -103,9 +103,9 @@ class element extends base_element implements
      */
     public function prepare_form(MoodleQuickForm $mform): void {
         // Preselect the stored value if present (options populated centrally).
-        $data = $this->get_data();
-        if (!empty($data)) {
-            $mform->getElement('coursenamedisplay')->setValue((int)$data);
+        $value = $this->get_selected_display_field();
+        if ($value !== null && $mform->elementExists('coursenamedisplay')) {
+            $mform->getElement('coursenamedisplay')->setValue($value);
         }
     }
 
@@ -116,7 +116,7 @@ class element extends base_element implements
      * @param stdClass $data the form data
      * @return string the text
      */
-    public function save_unique_data($data): string {
+    public function save_unique_data($data) {
         return $data->coursenamedisplay;
     }
 
@@ -157,7 +157,7 @@ class element extends base_element implements
         $context = element_helper::get_context($this->get_id());
 
         // The name field to display.
-        $field = $this->get_data();
+        $field = $this->get_selected_display_field() ?? self::COURSE_FULL_NAME;
         // The name value to display.
         $value = $course->fullname;
         if ($field == self::COURSE_SHORT_NAME) {
@@ -177,5 +177,31 @@ class element extends base_element implements
             self::COURSE_FULL_NAME => get_string('coursefullname', 'customcertelement_coursename'),
             self::COURSE_SHORT_NAME => get_string('courseshortname', 'customcertelement_coursename'),
         ];
+    }
+
+    /**
+     * Resolve the selected display field from stored data, handling JSON-wrapped scalars.
+     *
+     * @return int|null One of COURSE_FULL_NAME or COURSE_SHORT_NAME, or null if not set.
+     */
+    private function get_selected_display_field(): ?int {
+        $raw = $this->get_data();
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && array_key_exists('value', $decoded)) {
+                return (int)$decoded['value'];
+            }
+            if (ctype_digit(trim($raw))) {
+                return (int)$raw;
+            }
+        }
+        // Already numeric.
+        if (is_int($raw)) {
+            return $raw;
+        }
+        return null;
     }
 }

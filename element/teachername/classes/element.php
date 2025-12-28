@@ -75,12 +75,9 @@ class element extends base_element implements element_interface, form_definable_
      * @param stdClass $data the form data
      * @return string the text
      */
-    public function save_unique_data($data): string {
-        if (!empty($data->teacher)) {
-            return (string) $data->teacher;
-        }
-
-        return '';
+    public function save_unique_data($data) {
+        // Persist the selected teacher user id in JSON under the key 'teacher'.
+        return json_encode(['teacher' => (string)$data->teacher]);
     }
 
     /**
@@ -89,10 +86,10 @@ class element extends base_element implements element_interface, form_definable_
      * @param MoodleQuickForm $mform
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Preselect stored teacher id if present.
-        $data = $this->get_data();
-        if (!empty($data)) {
-            $mform->getElement('teacher')->setValue((int)$data);
+        // Preselect stored teacher id if present (JSON only).
+        $data = json_decode((string)$this->get_data());
+        if (is_object($data) && isset($data->teacher)) {
+            $mform->getElement('teacher')->setValue((int)$data->teacher);
         }
     }
 
@@ -107,7 +104,11 @@ class element extends base_element implements element_interface, form_definable_
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
-        $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
+        $decoded = json_decode((string)$this->get_data());
+        if (!is_object($decoded) || !isset($decoded->teacher)) {
+            return;
+        }
+        $teacher = $DB->get_record('user', ['id' => (int)$decoded->teacher]);
         $teachername = fullname($teacher);
 
         if ($renderer) {
@@ -129,7 +130,11 @@ class element extends base_element implements element_interface, form_definable_
     public function render_html(?element_renderer $renderer = null): string {
         global $DB;
 
-        $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
+        $decoded = json_decode((string)$this->get_data());
+        if (!is_object($decoded) || !isset($decoded->teacher)) {
+            return '';
+        }
+        $teacher = $DB->get_record('user', ['id' => (int)$decoded->teacher]);
         $teachername = fullname($teacher);
 
         if ($renderer) {
