@@ -28,12 +28,14 @@ namespace mod_customcert\service;
 
 use mod_customcert\certificate;
 use mod_customcert\element;
+use mod_customcert\element\field_type;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use moodleform;
 use MoodleQuickForm;
+use ValueError;
 
 /**
  * Service for handling element forms.
@@ -87,8 +89,12 @@ class form_service {
                     continue;
                 }
 
-                // Non-standard: render by type (default text).
-                $this->render_by_type($mform, $field['type'] ?? 'text', $name, $field);
+                // Non-standard: render by type (default text). Support enum values.
+                $type = $field['type'] ?? 'text';
+                if ($type instanceof field_type) {
+                    $type = $type->value;
+                }
+                $this->render_by_type($mform, (string)$type, $name, $field);
 
                 // Apply common settings.
                 if (isset($field['help'])) {
@@ -168,18 +174,34 @@ class form_service {
     /**
      * Render a form element by type with sensible defaults.
      *
+     * Prefer enum-driven rendering to avoid magic strings. Falls back to the raw
+     * string $type for unknown/custom elements.
+     *
      * @param MoodleQuickForm $mform
-     * @param string $type
+     * @param field_type|string $type Enum case or MoodleQuickForm element type string.
      * @param string $name
      * @param array $field
      * @return void
      */
-    private function render_by_type(MoodleQuickForm $mform, string $type, string $name, array $field): void {
-        switch ($type) {
-            case 'select':
+    private function render_by_type(MoodleQuickForm $mform, field_type|string $type, string $name, array $field): void {
+        // Normalise to enum when possible.
+        if ($type instanceof field_type) {
+            $etype = $type;
+        } else {
+            // Try to map known strings to enum; ignore failures (custom types allowed).
+            try {
+                $etype = field_type::from($type ?: 'text');
+            } catch (ValueError $e) {
+                $etype = null;
+            }
+        }
+
+        switch ($etype) {
+            case field_type::select:
                 $mform->addElement('select', $name, $field['label'] ?? '', $field['options'] ?? [], $field['attributes'] ?? []);
                 break;
-            case 'advcheckbox':
+
+            case field_type::advcheckbox:
                 $mform->addElement(
                     'advcheckbox',
                     $name,
@@ -189,23 +211,31 @@ class form_service {
                     $field['options'] ?? []
                 );
                 break;
-            case 'filemanager':
+
+            case field_type::filemanager:
                 $mform->addElement('filemanager', $name, $field['label'] ?? '', null, $field['options'] ?? []);
                 break;
-            case 'editor':
+
+            case field_type::editor:
                 $mform->addElement('editor', $name, $field['label'] ?? '', null, $field['options'] ?? []);
                 break;
-            case 'header':
+
+            case field_type::header:
                 $mform->addElement('header', $name, $field['label'] ?? '');
                 break;
-            case 'date_selector':
+
+            case field_type::date_selector:
                 $mform->addElement('date_selector', $name, $field['label'] ?? '', $field['attributes'] ?? []);
                 break;
-            case 'static':
+
+            case field_type::static_text:
                 $mform->addElement('static', $name, $field['label'] ?? '', $field['text'] ?? '');
                 break;
+
             default:
-                $mform->addElement($type ?: 'text', $name, $field['label'] ?? '', $field['attributes'] ?? []);
+                // Fallback: use enum value if available, otherwise the raw type string (or 'text').
+                $elementtype = $etype?->value ?? ($type ?: 'text');
+                $mform->addElement($elementtype, $name, $field['label'] ?? '', $field['attributes'] ?? []);
         }
     }
 }

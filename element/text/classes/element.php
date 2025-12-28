@@ -24,6 +24,7 @@
 
 namespace customcertelement_text;
 
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -50,7 +51,7 @@ class element extends base_element implements element_interface, form_definable_
     public function get_form_fields(): array {
         return [
             'text' => [
-                'type' => 'textarea',
+                'type' => field_type::textarea,
                 'label' => get_string('text', 'customcertelement_text'),
                 'help' => ['text', 'customcertelement_text'],
                 'type_param' => PARAM_RAW,

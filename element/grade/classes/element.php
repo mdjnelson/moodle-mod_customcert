@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_grade;
 
 use grade_item;
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -70,13 +71,13 @@ class element extends base_element implements element_interface, form_definable_
 
         return [
             'gradeitem' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('gradeitem', 'customcertelement_grade'),
                 'options' => $gradeitems,
                 'help' => ['gradeitem', 'customcertelement_grade'],
             ],
             'gradeformat' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('gradeformat', 'customcertelement_grade'),
                 'options' => self::get_grade_format_options(),
                 'help' => ['gradeformat', 'customcertelement_grade'],

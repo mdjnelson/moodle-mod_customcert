@@ -28,6 +28,7 @@ namespace customcertelement_date;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\field_type;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -99,13 +100,13 @@ class element extends base_element implements element_interface, form_definable_
 
         return [
             'dateitem' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('dateitem', 'customcertelement_date'),
                 'options' => $dateoptions,
                 'help' => ['dateitem', 'customcertelement_date'],
             ],
             'dateformat' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('dateformat', 'customcertelement_date'),
                 'options' => element_helper::get_date_formats(),
                 'help' => ['dateformat', 'customcertelement_date'],

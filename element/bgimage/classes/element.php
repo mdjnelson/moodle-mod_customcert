@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_bgimage;
 
 use html_writer;
+use mod_customcert\element\field_type;
 use mod_customcert\service\element_renderer;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
@@ -73,11 +74,11 @@ class element extends \customcertelement_image\element implements
     public function get_form_fields(): array {
         return [
             'fileid' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('image', 'customcertelement_image'),
             ],
             'customcertimage' => [
-                'type' => 'filemanager',
+                'type' => field_type::filemanager,
                 'label' => get_string('uploadimage', 'customcert'),
                 'options' => $this->filemanageroptions,
             ],

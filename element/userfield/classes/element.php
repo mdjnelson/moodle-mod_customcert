@@ -29,6 +29,7 @@ namespace customcertelement_userfield;
 use availability_profile\condition;
 use core_collator;
 use core_user\fields;
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -81,7 +82,7 @@ class element extends base_element implements element_interface, form_definable_
 
         return [
             'userfield' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('userfield', 'customcertelement_userfield'),
                 'options' => $fields,
                 'help' => ['userfield', 'customcertelement_userfield'],

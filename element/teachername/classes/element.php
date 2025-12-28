@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_teachername;
 
 use context_system;
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -53,7 +54,7 @@ class element extends base_element implements element_interface, form_definable_
     public function get_form_fields(): array {
         return [
             'teacher' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('teacher', 'customcertelement_teachername'),
                 'options' => $this->get_list_of_teachers(),
                 'help' => ['teacher', 'customcertelement_teachername'],

@@ -30,6 +30,7 @@ use context_course;
 use context_system;
 use core_collator;
 use mod_customcert\certificate;
+use mod_customcert\element\field_type;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
@@ -82,43 +83,43 @@ class element extends \customcertelement_image\element implements
         return [
             // Image selector first.
             'fileid' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('image', 'customcertelement_image'),
             ],
 
             // Existing signature selection.
             'signaturefileid' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('digitalsignature', 'customcertelement_digitalsignature'),
             ],
 
             // Signature metadata fields.
             'signaturename' => [
-                'type' => 'text',
+                'type' => field_type::text,
                 'label' => get_string('signaturename', 'customcertelement_digitalsignature'),
                 'type_param' => PARAM_TEXT,
                 'default' => '',
             ],
             'signaturepassword' => [
-                'type' => 'passwordunmask',
+                'type' => field_type::passwordunmask,
                 'label' => get_string('signaturepassword', 'customcertelement_digitalsignature'),
                 'type_param' => PARAM_TEXT,
                 'default' => '',
             ],
             'signaturelocation' => [
-                'type' => 'text',
+                'type' => field_type::text,
                 'label' => get_string('signaturelocation', 'customcertelement_digitalsignature'),
                 'type_param' => PARAM_TEXT,
                 'default' => '',
             ],
             'signaturereason' => [
-                'type' => 'text',
+                'type' => field_type::text,
                 'label' => get_string('signaturereason', 'customcertelement_digitalsignature'),
                 'type_param' => PARAM_TEXT,
                 'default' => '',
             ],
             'signaturecontactinfo' => [
-                'type' => 'text',
+                'type' => field_type::text,
                 'label' => get_string('signaturecontactinfo', 'customcertelement_digitalsignature'),
                 'type_param' => PARAM_TEXT,
                 'default' => '',
@@ -132,12 +133,12 @@ class element extends \customcertelement_image\element implements
 
             // Uploaders last.
             'customcertimage' => [
-                'type' => 'filemanager',
+                'type' => field_type::filemanager,
                 'label' => get_string('uploadimage', 'customcert'),
                 'options' => $this->filemanageroptions,
             ],
             'digitalsignature' => [
-                'type' => 'filemanager',
+                'type' => field_type::filemanager,
                 'label' => get_string('uploaddigitalsignature', 'customcertelement_digitalsignature'),
                 'options' => $this->signaturefilemanageroptions,
             ],

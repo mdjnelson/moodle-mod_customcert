@@ -31,6 +31,7 @@ use context_system;
 use core_collator;
 use html_writer;
 use mod_customcert\certificate;
+use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
@@ -103,14 +104,14 @@ class element extends base_element implements
 
         return [
             'fileid' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('image', 'customcertelement_image'),
             ],
             // Standard fields in the expected order.
             'width' => [],
             'height' => [],
             'alphachannel' => [
-                'type' => 'select',
+                'type' => field_type::select,
                 'label' => get_string('alphachannel', 'customcertelement_image'),
                 'options' => $alphachannelvalues,
                 'type_param' => PARAM_FLOAT,
@@ -122,7 +123,7 @@ class element extends base_element implements
             'posy' => [],
             // Upload image last.
             'customcertimage' => [
-                'type' => 'filemanager',
+                'type' => field_type::filemanager,
                 'label' => get_string('uploadimage', 'customcert'),
                 'options' => $this->filemanageroptions,
             ],
