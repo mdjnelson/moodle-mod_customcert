@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\event\issue_deleted;
+
 /**
  * Add customcert instance.
  *
@@ -92,7 +94,7 @@ function customcert_delete_instance($id) {
     // Trigger issue_deleted events for each issue.
     $issues = $DB->get_records('customcert_issues', ['customcertid' => $id]);
     foreach ($issues as $issue) {
-        $event = \mod_customcert\event\issue_deleted::create([
+        $event = issue_deleted::create([
             'objectid' => $issue->id,
             'context' => $context,
             'relateduserid' => $issue->userid,

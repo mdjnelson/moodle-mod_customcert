@@ -22,7 +22,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\edit_element_form;
+use mod_customcert\element;
+use mod_customcert\element_helper;
+use mod_customcert\event\element_created;
+use mod_customcert\event\element_updated;
+use mod_customcert\event\template_updated;
+use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\form_service;
+use mod_customcert\template;
 
 require_once('../../config.php');
 
@@ -32,7 +41,7 @@ $action = required_param('action', PARAM_ALPHA);
 $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
 
 // Set the template object.
-$template = new \mod_customcert\template($template);
+$template = new template($template);
 
 // Perform checks.
 if ($cm = $template->get_cm()) {
@@ -65,7 +74,7 @@ if ($action == 'edit') {
 }
 
 // Set up the page.
-\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
+page_helper::page_setup($pageurl, $template->get_context(), $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
@@ -82,7 +91,7 @@ $PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url(
 ));
 $PAGE->navbar->add(get_string('editelement', 'customcert'));
 
-$mform = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
+$mform = new edit_element_form($pageurl, ['element' => $element]);
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
@@ -102,7 +111,7 @@ if ($data = $mform->get_data()) {
     $data->element = $element->element;
 
     // Normalise submission: process file uploads from draft areas before saving.
-    $formservice = new \mod_customcert\service\form_service();
+    $formservice = new form_service();
     $dataarray = (array) $data;
     $formservice->normalise_submission($dataarray);
     // Merge back any changes (e.g., file metadata populated from fileid).
@@ -125,7 +134,7 @@ if ($data = $mform->get_data()) {
         }
         $record->width = $data->width ?? null;
         $record->refpoint = $data->refpoint ?? null;
-        $record->alignment = $data->alignment ?? \mod_customcert\element::ALIGN_LEFT;
+        $record->alignment = $data->alignment ?? element::ALIGN_LEFT;
         $record->timemodified = time();
 
         if (!empty($data->id)) {
@@ -134,13 +143,13 @@ if ($data = $mform->get_data()) {
             $DB->update_record('customcert_elements', $record);
 
             // Fire updated event for the element.
-            \mod_customcert\event\element_updated::create_from_id((int)$record->id, $template)->trigger();
+            element_updated::create_from_id((int)$record->id, $template)->trigger();
             $newlyid = $record->id;
         } else {
             // Insert new element.
             $record->element = $data->element;
             $record->pageid = $data->pageid;
-            $record->sequence = \mod_customcert\element_helper::get_element_sequence($record->pageid);
+            $record->sequence = element_helper::get_element_sequence($record->pageid);
             $record->timecreated = time();
             $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
@@ -150,7 +159,7 @@ if ($data = $mform->get_data()) {
             try {
                 $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
                 $templateforctx = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
-                \mod_customcert\event\element_created::create([
+                element_created::create([
                     'contextid' => (int)$templateforctx->contextid,
                     'objectid' => (int)$record->id,
                 ])->trigger();
@@ -164,7 +173,7 @@ if ($data = $mform->get_data()) {
         }
 
         // Trigger updated event for the template containing the element.
-        \mod_customcert\event\template_updated::create_from_template($template)->trigger();
+        template_updated::create_from_template($template)->trigger();
     }
 
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);

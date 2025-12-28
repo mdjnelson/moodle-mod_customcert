@@ -91,11 +91,11 @@ class element_factory {
     /**
      * Backwards-compatible helper: return legacy element instance for given record.
      *
-     * This mirrors the old static API `\mod_customcert\element_factory::get_element_instance($element)`
+     * This mirrors the old static API `mod_customcert\\element_factory::get_element_instance($element)`
      * so existing call sites can be updated to reference this class without changing behavior.
      *
      * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
-     * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
+     * @return object|false Legacy element instance (customcertelement_*\\element) or false if not found.
      */
     public static function get_element_instance(stdClass $element) {
         // Compose legacy class name like: \customcertelement_{type}\element.

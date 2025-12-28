@@ -23,7 +23,9 @@
  */
 namespace mod_customcert\task;
 
+use core\task\manager;
 use core\task\scheduled_task;
+use mod_customcert\certificate;
 
 /**
  * A scheduled task for issuing certificates that have requested someone get emailed.
@@ -166,7 +168,7 @@ class issue_certificates_task extends scheduled_task {
                 // Check required time (if any).
                 if (!empty($customcert->requiredtime)) {
                     if (
-                        \mod_customcert\certificate::get_course_time(
+                        certificate::get_course_time(
                             $customcert->courseid,
                             $filtereduser->id
                         ) < ($customcert->requiredtime * 60)
@@ -188,17 +190,17 @@ class issue_certificates_task extends scheduled_task {
                     $issueid = (int)$issue->id;
                     $emailed = (int)$issue->emailed;
                 } else {
-                    $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
+                    $issueid = certificate::issue_certificate($customcert->id, $filtereduser->id);
                     $emailed = 0;
                 }
 
                 // If we have an issue and it has not been emailed yet, send it now.
                 if (!empty($issueid) && $emailed === 0) {
-                    $task = new \mod_customcert\task\email_certificate_task();
+                    $task = new email_certificate_task();
                     $task->set_custom_data(['issueid' => $issueid, 'customcertid' => $customcert->id]);
                     $useadhoc = get_config('customcert', 'useadhoc');
                     if ($useadhoc) {
-                        \core\task\manager::queue_adhoc_task($task);
+                        manager::queue_adhoc_task($task);
                     } else {
                         $task->execute();
                     }

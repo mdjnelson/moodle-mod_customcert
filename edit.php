@@ -23,6 +23,7 @@
  */
 
 
+use mod_customcert\certificate;
 use mod_customcert\edit_form;
 use mod_customcert\load_template_form;
 use mod_customcert\local\preview_renderer;
@@ -257,7 +258,7 @@ if ($data = $mform->get_data()) {
         // Compute preview filename using the same rules as generate_pdf().
         $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]);
         $pdffilename = $template->compute_filename_for_user($USER, $customcert);
-        $pdf->Output($pdffilename, \mod_customcert\certificate::DELIVERY_OPTION_INLINE);
+        $pdf->Output($pdffilename, certificate::DELIVERY_OPTION_INLINE);
         exit();
     }
 

@@ -24,6 +24,7 @@
 
 namespace mod_customcert;
 
+use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
 use mod_customcert\event\page_deleted;
 use mod_customcert\event\page_updated;
@@ -511,7 +512,7 @@ class template {
                                 // Failed to copy - delete the element.
                                 $e->delete();
                             } else {
-                                \mod_customcert\event\element_created::create_from_element($e)->trigger();
+                                element_created::create_from_element($e)->trigger();
                             }
                         }
                     }
