@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * element_factory (scaffolding only; not wired yet).
+ * The element_factory - Registry-based factory for creating elements by type.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -86,5 +86,40 @@ class element_factory {
      */
     public function wrap_legacy(legacy_base $legacy): legacy_element_adapter {
         return new legacy_element_adapter($legacy);
+    }
+
+    /**
+     * Backwards-compatible helper: return legacy element instance for given record.
+     *
+     * This mirrors the old static API `\mod_customcert\element_factory::get_element_instance($element)`
+     * so existing call sites can be updated to reference this class without changing behavior.
+     *
+     * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
+     * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
+     */
+    public static function get_element_instance(stdClass $element) {
+        // Compose legacy class name like: \customcertelement_{type}\element.
+        $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';
+
+        $data = new stdClass();
+        $data->id = $element->id ?? null;
+        $data->pageid = $element->pageid ?? null;
+        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . ($element->element ?? ''));
+        $data->element = $element->element ?? null;
+        $data->data = $element->data ?? null;
+        $data->font = $element->font ?? null;
+        $data->fontsize = $element->fontsize ?? null;
+        $data->colour = $element->colour ?? null;
+        $data->posx = $element->posx ?? null;
+        $data->posy = $element->posy ?? null;
+        $data->width = $element->width ?? null;
+        $data->refpoint = $element->refpoint ?? null;
+        $data->alignment = $element->alignment ?? null;
+
+        if (class_exists($classname)) {
+            return new $classname($data);
+        }
+
+        return false;
     }
 }

@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\service\element_factory;
+
 require_once('../../config.php');
 
 // The page of the customcert we are editing.
@@ -116,7 +118,7 @@ if ($page->leftmargin) {
 if ($elements) {
     foreach ($elements as $element) {
         // Get an instance of the element class.
-        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+        if ($e = element_factory::get_element_instance($element)) {
             switch ($element->refpoint) {
                 case \mod_customcert\element_helper::CUSTOMCERT_REF_POINT_TOPRIGHT:
                     $class = 'element refpoint-right';

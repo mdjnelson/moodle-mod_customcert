@@ -24,6 +24,8 @@
 
 namespace mod_customcert\event;
 
+use mod_customcert\service\element_factory;
+
 /**
  * Contains the event tests for the module customcert.
  *
@@ -285,7 +287,7 @@ final class events_test extends \advanced_testcase {
         $data->text = 'Some text';
 
         $sink = $this->redirectEvents();
-        $e = \mod_customcert\element_factory::get_element_instance($data);
+        $e = element_factory::get_element_instance($data);
         $e->save_form_elements($data);
         $events = $sink->get_events();
         $this->assertCount(1, $events);

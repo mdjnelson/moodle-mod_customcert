@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\service\element_factory;
+
 require_once('../../config.php');
 
 $tid = required_param('tid', PARAM_INT);
@@ -109,9 +111,7 @@ if ($data = $mform->get_data()) {
     }
 
     // Get an instance of the element class (legacy element) so we can use save_unique_data().
-    if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
-        global $DB;
-
+    if ($e = element_factory::get_element_instance($data)) {
         // Build record similar to legacy element::save_form_elements(), but without calling the deprecated method.
         $record = new stdClass();
         $record->name = $data->name;

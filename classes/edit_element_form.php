@@ -25,6 +25,7 @@
 namespace mod_customcert;
 
 use core_text;
+use mod_customcert\service\element_factory;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
 use moodleform;
