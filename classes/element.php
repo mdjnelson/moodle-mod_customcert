@@ -549,7 +549,7 @@ abstract class element implements form_definable_interface, renderable_element_i
     /**
      * Set edit form instance for the custom cert element.
      *
-     * @param \mod_customcert\edit_element_form $editelementform
+     * @param edit_element_form $editelementform
      */
     public function set_edit_element_form(edit_element_form $editelementform) {
         $this->editelementform = $editelementform;
@@ -558,7 +558,7 @@ abstract class element implements form_definable_interface, renderable_element_i
     /**
      * Get edit form instance for the custom cert element.
      *
-     * @return \mod_customcert\edit_element_form
+     * @return edit_element_form
      */
     public function get_edit_element_form() {
         if (empty($this->editelementform)) {

@@ -24,7 +24,10 @@
 namespace mod_customcert\task;
 
 use core\task\adhoc_task;
+use core_shutdown_manager;
 use mod_customcert\helper;
+use mod_customcert\output\email_certificate;
+use mod_customcert\template;
 
 /**
  * An adhoc task for emailing certificates per issue.
@@ -123,7 +126,7 @@ class email_certificate_task extends adhoc_task {
         $template->id = $customcert->templateid;
         $template->name = $customcert->templatename;
         $template->contextid = $customcert->contextid;
-        $template = new \mod_customcert\template($template);
+        $template = new template($template);
         $filecontents = $template->generate_pdf(false, $user->id, true);
 
         // Set the name of the file we are going to send.
@@ -143,10 +146,10 @@ class email_certificate_task extends adhoc_task {
             if ($switched) {
                 // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
                 // Preventing a user from getting trapped with the wrong language.
-                \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+                core_shutdown_manager::register_function('force_current_language', [$originallang]);
             }
 
-            $renderable = new \mod_customcert\output\email_certificate(
+            $renderable = new email_certificate(
                 true,
                 $userfullname,
                 $courseshortname,
@@ -176,7 +179,7 @@ class email_certificate_task extends adhoc_task {
         if ($customcert->emailteachers) {
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
-            $renderable = new \mod_customcert\output\email_certificate(
+            $renderable = new email_certificate(
                 false,
                 $userfullname,
                 $courseshortname,
@@ -191,7 +194,7 @@ class email_certificate_task extends adhoc_task {
                 if ($switched) {
                     // This is a failsafe -- if an exception triggers during the template rendering, this should still execute.
                     // Preventing a user from getting trapped with the wrong language.
-                    \core_shutdown_manager::register_function('force_current_language', [$originallang]);
+                    core_shutdown_manager::register_function('force_current_language', [$originallang]);
                 }
 
                 $subject = get_string('emailnonstudentsubject', 'customcert', $info);
@@ -218,7 +221,7 @@ class email_certificate_task extends adhoc_task {
             foreach ($others as $email) {
                 $email = trim($email);
                 if (validate_email($email)) {
-                    $renderable = new \mod_customcert\output\email_certificate(
+                    $renderable = new email_certificate(
                         false,
                         $userfullname,
                         $courseshortname,

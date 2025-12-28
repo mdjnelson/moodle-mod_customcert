@@ -151,7 +151,7 @@ class element_helper {
      * @param MoodleQuickForm $mform the edit_form instance.
      */
     public static function render_form_element_font($mform) {
-        $mform->addElement('select', 'font', get_string('font', 'customcert'), \mod_customcert\certificate::get_fonts());
+        $mform->addElement('select', 'font', get_string('font', 'customcert'), certificate::get_fonts());
         $mform->setType('font', PARAM_TEXT);
         $mform->setDefault('font', 'times');
         $mform->addHelpButton('font', 'font', 'customcert');
@@ -159,7 +159,7 @@ class element_helper {
             'select',
             'fontsize',
             get_string('fontsize', 'customcert'),
-            \mod_customcert\certificate::get_font_sizes()
+            certificate::get_font_sizes()
         );
         $mform->setType('fontsize', PARAM_INT);
         $mform->setDefault('fontsize', 12);

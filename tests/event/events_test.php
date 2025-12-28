@@ -25,6 +25,7 @@
 namespace mod_customcert\event;
 
 use mod_customcert\service\element_factory;
+use mod_customcert\template;
 
 /**
  * Contains the event tests for the module customcert.
@@ -48,7 +49,7 @@ final class events_test extends \advanced_testcase {
     public function test_creating_a_template(): void {
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $events = $sink->get_events();
         $this->assertCount(1, $events);
 
@@ -66,7 +67,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::add_page
      */
     public function test_creating_a_page(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
 
         $sink = $this->redirectEvents();
         $page = $template->add_page();
@@ -94,7 +95,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::move_item
      */
     public function test_moving_item(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
         $template->add_page();
 
@@ -116,7 +117,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::save
      */
     public function test_updating_a_template(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
 
         // Date we are updating to.
         $data = new \stdClass();
@@ -144,7 +145,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::save
      */
     public function test_updating_a_template_no_change(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
 
         $data = new \stdClass();
         $data->id = $template->get_id();
@@ -167,7 +168,7 @@ final class events_test extends \advanced_testcase {
     public function test_deleting_a_template(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
 
         $data = new \stdClass();
         $data->name = $template->get_name();
@@ -213,7 +214,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::delete_page
      */
     public function test_deleting_a_page(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         $sink = $this->redirectEvents();
@@ -242,7 +243,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\template::save_page
      */
     public function test_updating_a_page(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $pageid = $template->add_page();
 
         $width = 'pagewidth_' . $pageid;
@@ -277,7 +278,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\element::save_form_elements
      */
     public function test_save_form_elements_insert(): void {
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         $data = new \stdClass();
@@ -310,7 +311,7 @@ final class events_test extends \advanced_testcase {
     public function test_save_form_elements_update(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         // Add an element to the page.
@@ -351,7 +352,7 @@ final class events_test extends \advanced_testcase {
     public function test_copy_to_template(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         // Add an element to the page.
@@ -363,7 +364,7 @@ final class events_test extends \advanced_testcase {
         $element->id = $DB->insert_record('customcert_elements', $element);
 
         // Add another template.
-        $template2 = \mod_customcert\template::create('Test name 2', \context_system::instance()->id);
+        $template2 = template::create('Test name 2', \context_system::instance()->id);
 
         $sink = $this->redirectEvents();
         $template->copy_to_template($template2);
@@ -392,7 +393,7 @@ final class events_test extends \advanced_testcase {
     public function test_load_template(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         // Add an element to the page.
@@ -406,7 +407,7 @@ final class events_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $activity = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $contextid = \context_module::instance($activity->cmid)->id;
-        $template2 = \mod_customcert\template::create($activity->name, $contextid);
+        $template2 = template::create($activity->name, $contextid);
 
         $sink = $this->redirectEvents();
         $template->copy_to_template($template2);
@@ -439,7 +440,7 @@ final class events_test extends \advanced_testcase {
     public function test_deleting_an_element(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', \context_system::instance()->id);
         $page1id = $template->add_page();
 
         // Add an element to the page.

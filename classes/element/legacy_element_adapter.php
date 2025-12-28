@@ -30,7 +30,7 @@ namespace mod_customcert\element;
 use mod_customcert\element as legacy_base;
 
 /**
- * Adapts a legacy element (extending \mod_customcert\element) to element_interface.
+ * Adapts a legacy element (extending mod_customcert\element) to element_interface.
  */
 final class legacy_element_adapter implements element_interface {
     /** @var legacy_base The wrapped legacy element instance. */

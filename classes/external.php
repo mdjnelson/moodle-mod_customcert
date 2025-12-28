@@ -31,6 +31,7 @@ use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
+use mod_customcert\event\element_updated;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
 use stdClass;
@@ -113,7 +114,7 @@ class external extends external_api {
         $DB->update_record('customcert_elements', $data);
 
         // Fire updated event.
-        \mod_customcert\event\element_updated::create_from_id((int)$elementid, $template)->trigger();
+        element_updated::create_from_id((int)$elementid, $template)->trigger();
 
         // For compatibility keep a simple truthy result.
         return true;
