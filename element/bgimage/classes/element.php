@@ -28,6 +28,7 @@ namespace customcertelement_bgimage;
 
 use html_writer;
 use mod_customcert\element\field_type;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
@@ -47,7 +48,8 @@ use stdClass;
 class element extends \customcertelement_image\element implements
     dynamic_selects_interface,
     form_definable_interface,
-    preparable_form_interface
+    preparable_form_interface,
+    renderable_element_interface
 {
     /**
      * Background image covers the whole page; width/height fields are ignored and

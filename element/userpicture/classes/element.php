@@ -30,6 +30,7 @@ use context_user;
 use html_writer;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\service\element_renderer;
@@ -45,7 +46,12 @@ use user_picture;
  * @copyright  2017 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+class element extends base_element implements
+    element_interface,
+    form_definable_interface,
+    preparable_form_interface,
+    renderable_element_interface
+{
     /**
      * Define the configuration fields for this element in the same order as before the refactor.
      *

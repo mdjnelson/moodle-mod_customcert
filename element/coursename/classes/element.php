@@ -29,6 +29,7 @@ namespace customcertelement_coursename;
 use mod_customcert\element\field_type;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
@@ -49,7 +50,8 @@ class element extends base_element implements
     dynamic_selects_interface,
     element_interface,
     form_definable_interface,
-    preparable_form_interface
+    preparable_form_interface,
+    renderable_element_interface
 {
     /**
      * The course short name.
