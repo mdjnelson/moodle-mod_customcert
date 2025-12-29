@@ -62,11 +62,6 @@ abstract class element {
     const ALIGN_RIGHT = 'R';
 
     /**
-     * @var stdClass $element The data for the element we are adding - do not use, kept for legacy reasons.
-     */
-    protected $element;
-
-    /**
      * @var int The id.
      */
     protected $id;
@@ -123,9 +118,6 @@ abstract class element {
      */
     public function __construct($element) {
         $showposxy = get_config('customcert', 'showposxy');
-
-        // Keeping this for legacy reasons so we do not break third-party elements.
-        $this->element = clone($element);
 
         // Normalise types defensively — DB/fixtures may provide strings for numeric fields.
         // Helper: return null if unset or empty string, otherwise cast.
@@ -560,20 +552,6 @@ abstract class element {
      * @param \restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
-    }
-
-    /**
-     * Magic getter for read only access.
-     *
-     * @param string $name
-     *
-     * @deprecated
-     */
-    public function __get($name) {
-        debugging('Please call the appropriate get_* function instead of relying on magic getters', DEBUG_DEVELOPER);
-        if (property_exists($this->element, $name)) {
-            return $this->element->$name;
-        }
     }
 
     /**
