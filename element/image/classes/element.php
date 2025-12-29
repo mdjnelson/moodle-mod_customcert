@@ -32,6 +32,7 @@ use core_collator;
 use html_writer;
 use mod_customcert\certificate;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -59,6 +60,7 @@ class element extends base_element implements
     dynamic_selects_interface,
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     restorable_element_interface
@@ -195,15 +197,13 @@ class element extends base_element implements
         $mform->getElement('customcertimage')->setValue($draftitemid);
     }
 
-
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise user picture element data.
      *
-     * @param stdClass $data the form data
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
+    public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
         // Set the context.
@@ -214,23 +214,23 @@ class element extends base_element implements
         }
 
         // Handle file uploads.
-        if (isset($data->customcertimage)) {
-            certificate::upload_files($data->customcertimage, $context->id);
+        if (isset($formdata->customcertimage)) {
+            certificate::upload_files($formdata->customcertimage, $context->id);
         }
 
         $arrtostore = [
-            'width' => !empty($data->width) ? (int) $data->width : 0,
-            'height' => !empty($data->height) ? (int) $data->height : 0,
+            'width' => !empty($formdata->width) ? (int) $formdata->width : 0,
+            'height' => !empty($formdata->height) ? (int) $formdata->height : 0,
         ];
 
-        if (isset($data->alphachannel)) {
-            $arrtostore['alphachannel'] = (float) $data->alphachannel;
+        if (isset($formdata->alphachannel)) {
+            $arrtostore['alphachannel'] = (float) $formdata->alphachannel;
         }
 
-        if (!empty($data->fileid)) {
+        if (!empty($formdata->fileid)) {
             // Array of data we will be storing in the database.
             $fs = get_file_storage();
-            if ($file = $fs->get_file_by_id($data->fileid)) {
+            if ($file = $fs->get_file_by_id($formdata->fileid)) {
                 $arrtostore += [
                     'contextid' => $file->get_contextid(),
                     'filearea' => $file->get_filearea(),
@@ -241,7 +241,7 @@ class element extends base_element implements
             }
         }
 
-        return json_encode($arrtostore);
+        return $arrtostore;
     }
 
     /**
@@ -542,7 +542,13 @@ class element extends base_element implements
 
             // Set the image to the copied file in the course.
             $imagedata->fileid = $coursefile->get_id();
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($imagedata), ['id' => $this->get_id()]);
+            $jsondata = json_encode($this->normalise_data($imagedata));
+            $DB->set_field(
+                'customcert_elements',
+                'data',
+                $jsondata,
+                ['id' => $this->get_id()]
+            );
         }
 
         return true;

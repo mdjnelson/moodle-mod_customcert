@@ -28,6 +28,7 @@ namespace customcertelement_bgimage;
 
 use html_writer;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use mod_customcert\element\form_definable_interface;
@@ -48,6 +49,7 @@ use stdClass;
 class element extends \customcertelement_image\element implements
     dynamic_selects_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface
 {
@@ -141,22 +143,19 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * Save uploaded files and persist selected file metadata into element data.
+     * Normalise background image element data.
      *
-     * Mirrors the Image element behaviour so the selected/uploaded background remains
-     * visible after Save/Save and continue.
-     *
-     * @param stdClass $data
-     * @return string JSON encoded element data
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
+    public function normalise_data(stdClass $formdata): array {
         // Prepare data to store; form service will have populated file metadata when applicable.
         $arrtostore = [];
 
         // If a file was selected in the dropdown, persist its metadata so we can resolve it later.
-        if (!empty($data->fileid)) {
+        if (!empty($formdata->fileid)) {
             $fs = get_file_storage();
-            if ($file = $fs->get_file_by_id($data->fileid)) {
+            if ($file = $fs->get_file_by_id($formdata->fileid)) {
                 $arrtostore += [
                     'contextid' => $file->get_contextid(),
                     'filearea' => $file->get_filearea(),
@@ -176,7 +175,7 @@ class element extends \customcertelement_image\element implements
             }
         }
 
-        return json_encode($arrtostore);
+        return $arrtostore;
     }
 
     /**

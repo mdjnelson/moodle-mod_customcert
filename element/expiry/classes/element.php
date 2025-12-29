@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_expiry;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -50,6 +51,7 @@ use mod_customcert\element\restorable_element_interface;
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     restorable_element_interface
@@ -139,22 +141,17 @@ class element extends base_element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise expiry element data.
      *
-     * @param stdClass $data the form data
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        // Array of data we will be storing in the database.
-        $arrtostore = [
-            'dateitem' => $data->dateitem,
-            'dateformat' => $data->dateformat,
-            'startfrom' => $data->startfrom,
+    public function normalise_data(stdClass $formdata): array {
+        return [
+            'dateitem' => $formdata->dateitem ?? '',
+            'dateformat' => $formdata->dateformat ?? '',
+            'startfrom' => $formdata->startfrom ?? '',
         ];
-
-        // Encode these variables before saving into the DB.
-        return json_encode($arrtostore);
     }
 
     /**
@@ -309,7 +306,7 @@ class element extends base_element implements
                 $dateinfo->dateitem = 'gradeitem:';
             }
             $dateinfo->dateitem = $dateinfo->dateitem . $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($dateinfo), ['id' => $this->get_id()]);
+            $DB->set_field('customcert_elements', 'data', json_encode($dateinfo), ['id' => $this->get_id()]);
         }
     }
 

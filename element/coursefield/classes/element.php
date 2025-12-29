@@ -30,6 +30,7 @@ namespace customcertelement_coursefield;
 use core_collator;
 use core_course\customfield\course_handler;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -51,6 +52,7 @@ use stdClass;
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface
 {
@@ -96,15 +98,13 @@ class element extends base_element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise course field element data.
      *
-     * @param stdClass $data the form data
-     * @return string the text
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        // Persist the selected course field identifier in JSON under the key 'coursefield'.
-        return json_encode(['coursefield' => (string)$data->coursefield]);
+    public function normalise_data(stdClass $formdata): array {
+        return ['coursefield' => (string)($formdata->coursefield ?? '')];
     }
 
     /**
