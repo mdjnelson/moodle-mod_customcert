@@ -24,7 +24,6 @@
 
 use mod_customcert\edit_element_form;
 use mod_customcert\element;
-use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
@@ -32,6 +31,7 @@ use mod_customcert\event\template_updated;
 use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\form_service;
+use mod_customcert\service\persistence_helper;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -125,30 +125,8 @@ if ($data = $mform->get_data()) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();
         $record->name = $data->name;
-        // Prefer typed normalisation when the element opts in; fall back to legacy method for 3rd-party elements.
-        if ($e instanceof persistable_element_interface) {
-            $normalised = $e->normalise_data($data);
-            $record->data = is_array($normalised) ? json_encode($normalised) : (string)$normalised;
-        } else {
-            // Legacy path: ensure data is always JSON-encoded string.
-            $legacy = $e->save_unique_data($data);
-            if (is_array($legacy)) {
-                $record->data = json_encode($legacy);
-            } else if (is_string($legacy)) {
-                // If it's already a JSON string, keep as-is; otherwise wrap in a simple envelope.
-                $trim = trim($legacy);
-                if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {
-                    $record->data = $legacy;
-                } else {
-                    $record->data = json_encode(['value' => $legacy]);
-                }
-            } else if (is_null($legacy)) {
-                $record->data = json_encode(new stdClass());
-            } else {
-                // Scalars (int/float/bool) or objects -> encode to JSON.
-                $record->data = json_encode($legacy);
-            }
-        }
+        // Persist JSON using helper (supports persistable and legacy elements).
+        $record->data = persistence_helper::to_json_data($e, $data);
         // Merge font-related fields into JSON 'data' rather than separate DB columns.
         $rawjson = $record->data;
         $decoded = is_string($rawjson) && $rawjson !== '' ? json_decode($rawjson, true) : null;

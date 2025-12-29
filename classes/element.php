@@ -28,11 +28,11 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
-use mod_customcert\element\persistable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
 use mod_customcert\service\element_renderer;
+use mod_customcert\service\persistence_helper;
 use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
@@ -417,29 +417,8 @@ abstract class element {
         // Get the data from the form.
         $element = new stdClass();
         $element->name = $data->name;
-        // Prefer typed normalisation for core and v2-ready elements.
-        if ($this instanceof persistable_element_interface) {
-            $normalised = $this->normalise_data($data);
-            // Encode arrays to JSON; allow string passthrough for rare cases.
-            $element->data = is_array($normalised) ? json_encode($normalised) : (string)$normalised;
-        } else {
-            // Legacy path for third-party elements: ensure JSON string is always stored.
-            $legacy = $this->save_unique_data($data);
-            if (is_array($legacy)) {
-                $element->data = json_encode($legacy);
-            } else if (is_string($legacy)) {
-                $trim = trim($legacy);
-                if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {
-                    $element->data = $legacy;
-                } else {
-                    $element->data = json_encode(['value' => $legacy]);
-                }
-            } else if (is_null($legacy)) {
-                $element->data = json_encode(new stdClass());
-            } else {
-                $element->data = json_encode($legacy);
-            }
-        }
+        // Persist element data as JSON using a single helper policy.
+        $element->data = persistence_helper::to_json_data($this, $data);
         // Visual attributes are stored within JSON 'data', not as separate columns.
         if ($this->showposxy) {
             $element->posx = $data->posx ?? null;
