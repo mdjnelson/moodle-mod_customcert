@@ -280,32 +280,6 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * Handles saving the form elements created by this element.
-     * Can be overridden if more functionality is needed.
-     *
-     * @param stdClass $data the form data
-     * @return bool true of success, false otherwise.
-     */
-    public function save_form_elements($data) {
-        global $COURSE, $SITE;
-
-        // Set the context.
-        if ($COURSE->id == $SITE->id) {
-            $context = context_system::instance();
-        } else {
-            $context = context_course::instance($COURSE->id);
-        }
-
-        // Handle file uploads.
-        certificate::upload_files($data->customcertimage, $context->id);
-
-        // Handle file certificate uploads.
-        certificate::upload_files($data->digitalsignature, $context->id, 'signature');
-
-        return parent::save_form_elements($data);
-    }
-
-    /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
      *
