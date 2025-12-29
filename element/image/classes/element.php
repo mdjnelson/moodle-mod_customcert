@@ -39,6 +39,7 @@ use mod_customcert\element_helper;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
@@ -59,7 +60,8 @@ class element extends base_element implements
     element_interface,
     form_definable_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    restorable_element_interface
 {
     /**
      * @var array The file manager options.
@@ -418,7 +420,7 @@ class element extends base_element implements
      *
      * @param restore_customcert_activity_task $restore
      */
-    public function after_restore($restore) {
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
         // Get the current data we have stored for this element.

@@ -23,6 +23,7 @@
  */
 
 use mod_customcert\service\element_factory;
+use mod_customcert\element\restorable_element_interface;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -113,7 +114,12 @@ class restore_customcert_activity_task extends restore_activity_task {
             foreach ($elements as $e) {
                 // Get an instance of the element class.
                 if ($e = element_factory::get_element_instance($e)) {
-                    $e->after_restore($this);
+                    // Prefer the new typed restore hook when implemented; otherwise fall back to legacy method.
+                    if ($e instanceof restorable_element_interface) {
+                        $e->after_restore_from_backup($this);
+                    } else if (method_exists($e, 'after_restore')) {
+                        $e->after_restore($this);
+                    }
                 }
             }
         }
