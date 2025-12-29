@@ -28,6 +28,7 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
@@ -416,7 +417,29 @@ abstract class element {
         // Get the data from the form.
         $element = new stdClass();
         $element->name = $data->name;
-        $element->data = $this->save_unique_data($data);
+        // Prefer typed normalisation for core and v2-ready elements.
+        if ($this instanceof persistable_element_interface) {
+            $normalised = $this->normalise_data($data);
+            // Encode arrays to JSON; allow string passthrough for rare cases.
+            $element->data = is_array($normalised) ? json_encode($normalised) : (string)$normalised;
+        } else {
+            // Legacy path for third-party elements: ensure JSON string is always stored.
+            $legacy = $this->save_unique_data($data);
+            if (is_array($legacy)) {
+                $element->data = json_encode($legacy);
+            } else if (is_string($legacy)) {
+                $trim = trim($legacy);
+                if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {
+                    $element->data = $legacy;
+                } else {
+                    $element->data = json_encode(['value' => $legacy]);
+                }
+            } else if (is_null($legacy)) {
+                $element->data = json_encode(new stdClass());
+            } else {
+                $element->data = json_encode($legacy);
+            }
+        }
         // Visual attributes are stored within JSON 'data', not as separate columns.
         if ($this->showposxy) {
             $element->posx = $data->posx ?? null;
@@ -472,12 +495,19 @@ abstract class element {
     /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
+     *
      * Can be overridden if more functionality is needed.
      *
      * @param stdClass $data the form data
      * @return string the unique data to save
+     * @deprecated since Moodle 5.2
      */
     public function save_unique_data($data) {
+        debugging(
+            'save_unique_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() instead.',
+            DEBUG_DEVELOPER
+        );
         return '';
     }
 

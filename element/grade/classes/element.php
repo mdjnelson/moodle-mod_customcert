@@ -28,6 +28,7 @@ namespace customcertelement_grade;
 
 use grade_item;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -58,6 +59,7 @@ require_once($CFG->libdir . '/gradelib.php');
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     restorable_element_interface
@@ -101,18 +103,16 @@ class element extends base_element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise grade element data.
      *
-     * @param stdClass $data the form data.
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        // Persist the selected grade item id and grade format as strings in JSON.
-        return json_encode([
-            'gradeitem' => (string)$data->gradeitem,
-            'gradeformat' => (string)($data->gradeformat ?? ''),
-        ]);
+    public function normalise_data(stdClass $formdata): array {
+        return [
+            'gradeitem' => (string)($formdata->gradeitem ?? ''),
+            'gradeformat' => isset($formdata->gradeformat) ? (string)$formdata->gradeformat : '',
+        ];
     }
 
 
@@ -269,7 +269,7 @@ class element extends base_element implements
                 $gradeinfo->gradeitem = 'gradeitem:';
             }
             $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', $this->save_unique_data($gradeinfo), ['id' => $this->get_id()]);
+            $DB->set_field('customcert_elements', 'data', json_encode($gradeinfo), ['id' => $this->get_id()]);
         }
     }
 

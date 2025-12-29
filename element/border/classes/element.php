@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_border;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -47,6 +48,7 @@ use TCPDF_COLORS;
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface
 {
@@ -112,15 +114,13 @@ class element extends base_element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise border element data.
      *
-     * @param stdClass $data the form data
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        // Border has no unique JSON payload beyond visuals; let edit_element.php
-        // merge width/colour into the JSON envelope.
-        return '';
+    public function normalise_data(stdClass $formdata): array {
+        // No unique payload beyond the common visual properties handled elsewhere.
+        return [];
     }
 }

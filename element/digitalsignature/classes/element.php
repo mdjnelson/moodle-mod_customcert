@@ -31,6 +31,7 @@ use context_system;
 use core_collator;
 use mod_customcert\certificate;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
@@ -51,6 +52,7 @@ use stored_file;
 class element extends \customcertelement_image\element implements
     dynamic_selects_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface
 {
@@ -280,13 +282,12 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise digital signature element data.
      *
-     * @param stdClass $data the form data
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
+    public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
         // Set the context.
@@ -297,30 +298,30 @@ class element extends \customcertelement_image\element implements
         }
 
         // Handle file uploads.
-        if (isset($data->customcertimage)) {
-            certificate::upload_files($data->customcertimage, $context->id);
+        if (isset($formdata->customcertimage)) {
+            certificate::upload_files($formdata->customcertimage, $context->id);
         }
 
         // Handle file certificate uploads.
-        if (isset($data->digitalsignature)) {
-            certificate::upload_files($data->digitalsignature, $context->id, 'signature');
+        if (isset($formdata->digitalsignature)) {
+            certificate::upload_files($formdata->digitalsignature, $context->id, 'signature');
         }
 
         $arrtostore = [
-            'signaturename' => $data->signaturename,
-            'signaturepassword' => $data->signaturepassword,
-            'signaturelocation' => $data->signaturelocation,
-            'signaturereason' => $data->signaturereason,
-            'signaturecontactinfo' => $data->signaturecontactinfo,
-            'width' => !empty($data->width) ? (int) $data->width : 0,
-            'height' => !empty($data->height) ? (int) $data->height : 0,
+            'signaturename' => $formdata->signaturename ?? '',
+            'signaturepassword' => $formdata->signaturepassword ?? '',
+            'signaturelocation' => $formdata->signaturelocation ?? '',
+            'signaturereason' => $formdata->signaturereason ?? '',
+            'signaturecontactinfo' => $formdata->signaturecontactinfo ?? '',
+            'width' => !empty($formdata->width) ? (int) $formdata->width : 0,
+            'height' => !empty($formdata->height) ? (int) $formdata->height : 0,
         ];
 
         // Array of data we will be storing in the database.
         $fs = get_file_storage();
 
-        if (!empty($data->fileid)) {
-            if ($file = $fs->get_file_by_id($data->fileid)) {
+        if (!empty($formdata->fileid)) {
+            if ($file = $fs->get_file_by_id($formdata->fileid)) {
                 $arrtostore += [
                     'contextid' => $file->get_contextid(),
                     'filearea' => $file->get_filearea(),
@@ -331,8 +332,8 @@ class element extends \customcertelement_image\element implements
             }
         }
 
-        if (!empty($data->signaturefileid)) {
-            if ($signaturefile = $fs->get_file_by_id($data->signaturefileid)) {
+        if (!empty($formdata->signaturefileid)) {
+            if ($signaturefile = $fs->get_file_by_id($formdata->signaturefileid)) {
                 $arrtostore += [
                     'signaturecontextid' => $signaturefile->get_contextid(),
                     'signaturefilearea' => $signaturefile->get_filearea(),
@@ -343,7 +344,7 @@ class element extends \customcertelement_image\element implements
             }
         }
 
-        return json_encode($arrtostore);
+        return $arrtostore;
     }
 
     /**

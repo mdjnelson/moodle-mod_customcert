@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_qrcode;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -56,6 +57,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface
 {
@@ -77,21 +79,17 @@ class element extends base_element implements
      */
     const BARCODETYPE = 'QRCODE';
 
-
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise QR code element data.
      *
-     * @param stdClass $data the form data
-     * @return string the json encoded array
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        $arrtostore = [
-            'width' => !empty($data->width) ? (int)$data->width : 0,
-            'height' => !empty($data->height) ? (int)$data->height : 0,
+    public function normalise_data(stdClass $formdata): array {
+        return [
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+            'height' => isset($formdata->height) ? (int)$formdata->height : 0,
         ];
-
-        return json_encode($arrtostore);
     }
 
     /**

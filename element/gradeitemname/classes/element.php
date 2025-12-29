@@ -28,6 +28,7 @@ namespace customcertelement_gradeitemname;
 
 use grade_item;
 use mod_customcert\element\field_type;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_definable_interface;
@@ -50,6 +51,7 @@ use mod_customcert\element\restorable_element_interface;
 class element extends base_element implements
     element_interface,
     form_definable_interface,
+    persistable_element_interface,
     preparable_form_interface,
     restorable_element_interface
 {
@@ -78,14 +80,13 @@ class element extends base_element implements
     }
 
     /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
+     * Normalise grade item name element data.
      *
-     * @param stdClass $data the form data
-     * @return string the text
+     * @param stdClass $formdata Form submission data
+     * @return array JSON-serialisable payload
      */
-    public function save_unique_data($data) {
-        return json_encode(['gradeitem' => (string)$data->gradeitem]);
+    public function normalise_data(stdClass $formdata): array {
+        return ['gradeitem' => (string)($formdata->gradeitem ?? '')];
     }
 
     /**
