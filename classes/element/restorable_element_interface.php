@@ -39,5 +39,5 @@ interface restorable_element_interface {
      *
      * @param restore_customcert_activity_task $restore
      */
-    public function after_restore(restore_customcert_activity_task $restore): void;
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void;
 }

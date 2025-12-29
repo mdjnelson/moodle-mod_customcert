@@ -38,6 +38,7 @@ use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
 use stdClass;
+use mod_customcert\element\restorable_element_interface;
 
 /**
  * The customcert element gradeitemname's core interaction API.
@@ -46,7 +47,12 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends base_element implements element_interface, form_definable_interface, preparable_form_interface {
+class element extends base_element implements
+    element_interface,
+    form_definable_interface,
+    preparable_form_interface,
+    restorable_element_interface
+{
     /**
      * Define the configuration fields for this element.
      *
@@ -147,7 +153,7 @@ class element extends base_element implements element_interface, form_definable_
      *
      * @param restore_customcert_activity_task $restore
      */
-    public function after_restore($restore) {
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
         $data = json_decode((string)$this->get_data(), true);

@@ -39,6 +39,7 @@ use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
 use stdClass;
+use mod_customcert\element\restorable_element_interface;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -58,7 +59,8 @@ class element extends base_element implements
     element_interface,
     form_definable_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    restorable_element_interface
 {
     /** @var string Course grade identifier. */
     public const GRADE_COURSE = '0';
@@ -248,7 +250,7 @@ class element extends base_element implements
      *
      * @param restore_customcert_activity_task $restore
      */
-    public function after_restore($restore) {
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
         $gradeinfo = json_decode($this->get_data());
