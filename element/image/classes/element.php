@@ -407,13 +407,6 @@ class element extends base_element implements
     }
 
     /**
-     * Sets the data on the form when editing an element.
-     *
-     * @param MoodleQuickForm $mform the edit_form instance
-     */
-    // Deprecated legacy API no longer used by this element.
-
-    /**
      * This function is responsible for handling the restoration process of the element.
      *
      * We will want to update the file's pathname hash.
