@@ -34,6 +34,7 @@ use mod_customcert\event\element_updated;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
+use restore_customcert_activity_task;
 use stdClass;
 
 /**
@@ -49,74 +50,74 @@ abstract class element {
     /**
      * @var string The left alignment constant.
      */
-    const ALIGN_LEFT = 'L';
+    public const string ALIGN_LEFT = 'L';
 
     /**
      * @var string The centered alignment constant.
      */
-    const ALIGN_CENTER = 'C';
+    public const string ALIGN_CENTER = 'C';
 
     /**
      * @var string The right alignment constant.
      */
-    const ALIGN_RIGHT = 'R';
+    public const string ALIGN_RIGHT = 'R';
 
     /**
      * @var int The id.
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @var int The page id.
      */
-    protected $pageid;
+    protected int $pageid;
 
     /**
      * @var string The name.
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var mixed The data.
      */
-    protected $data;
+    protected mixed $data;
 
     /**
      * @var int The position x.
      */
-    protected $posx;
+    protected ?int $posx;
 
     /**
      * @var int The position y.
      */
-    protected $posy;
+    protected ?int $posy;
 
     /**
      * @var int The refpoint.
      */
-    protected $refpoint;
+    protected ?int $refpoint;
 
     /**
      * @var string The alignment.
      */
-    protected $alignment;
+    protected string $alignment;
 
     /**
      * @var bool $showposxy Show position XY form elements?
      */
-    protected $showposxy;
+    protected bool $showposxy;
 
     /**
      * @var edit_element_form Element edit form instance.
      */
-    private $editelementform;
+    private ?edit_element_form $editelementform = null;
 
     /**
      * Constructor.
      *
      * @param stdClass $element the element data
      */
-    public function __construct($element) {
+    public function __construct(stdClass $element) {
         $showposxy = get_config('customcert', 'showposxy');
 
         // Normalise types defensively — DB/fixtures may provide strings for numeric fields.
@@ -270,7 +271,7 @@ abstract class element {
      *
      * @throws InvalidArgumentException if the provided new alignment is not valid.
      */
-    protected function set_alignment(string $alignment) {
+    protected function set_alignment(string $alignment): void {
         $validvalues = [self::ALIGN_LEFT, self::ALIGN_CENTER, self::ALIGN_RIGHT];
         if (!in_array($alignment, $validvalues)) {
             throw new InvalidArgumentException("'$alignment' is not a valid alignment value. It has to be one of " .
@@ -405,7 +406,7 @@ abstract class element {
      * Can be overridden if more functionality is needed.
      *
      * @param stdClass $data the form data
-     * @return bool true of success, false otherwise.
+     * @return int|bool true if updated was a success, id of the new element otherwise.
      * @deprecated since Moodle 5.2
      */
     public function save_form_elements($data) {
@@ -549,7 +550,7 @@ abstract class element {
      * data will need to be updated if we are restoring the course as the course module id will
      * be different in the new course.
      *
-     * @param \restore_customcert_activity_task $restore
+     * @param restore_customcert_activity_task $restore
      */
     public function after_restore($restore) {
     }
