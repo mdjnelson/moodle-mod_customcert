@@ -388,7 +388,8 @@ abstract class element {
      * @deprecated since Moodle 5.2
      */
     public function validate_form_elements($data, $files) {
-        debugging('validate_form_elements() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
+        debugging('validate_form_elements() is deprecated,
+            please implement validatable_element_interface::validate()', DEBUG_DEVELOPER);
         // Array to return the errors.
         $errors = [];
 
