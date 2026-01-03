@@ -32,6 +32,7 @@ use core_collator;
 use mod_customcert\certificate;
 use mod_customcert\element\field_type;
 use mod_customcert\element\persistable_element_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
@@ -54,7 +55,8 @@ class element extends \customcertelement_image\element implements
     form_definable_interface,
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    validatable_element_interface
 {
     /**
      * @var array The file manager options for the certificate.
@@ -279,6 +281,17 @@ class element extends \customcertelement_image\element implements
         }
         $decoded = json_decode($data);
         return isset($decoded->height) && $decoded->height !== '' ? (int)$decoded->height : null;
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 
     /**

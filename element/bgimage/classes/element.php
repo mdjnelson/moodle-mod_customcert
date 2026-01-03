@@ -30,6 +30,7 @@ use html_writer;
 use mod_customcert\element\field_type;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
 use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
@@ -51,7 +52,8 @@ class element extends \customcertelement_image\element implements
     form_definable_interface,
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    validatable_element_interface
 {
     /**
      * Background image covers the whole page; width/height fields are ignored and
@@ -68,6 +70,17 @@ class element extends \customcertelement_image\element implements
      */
     public function get_height(): ?int {
         return 0;
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 
     /**

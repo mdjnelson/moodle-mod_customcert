@@ -31,6 +31,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -50,7 +51,8 @@ class element extends base_element implements
     form_definable_interface,
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    validatable_element_interface
 {
     /**
      * Define the configuration fields for this element in the same order as before the refactor.
@@ -121,6 +123,17 @@ class element extends base_element implements
      */
     public function normalise_data(stdClass $formdata): array {
         // No unique payload beyond the common visual properties handled elsewhere.
+        return [];
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
         return [];
     }
 }

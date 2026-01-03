@@ -32,6 +32,7 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -53,7 +54,8 @@ class element extends base_element implements
     form_definable_interface,
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    validatable_element_interface
 {
     /**
      * The course short name.
@@ -114,6 +116,17 @@ class element extends base_element implements
     }
 
     /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
+    }
+
+    /**
      * Normalise coursename element data.
      *
      * @param stdClass $formdata Form submission data
@@ -148,7 +161,6 @@ class element extends base_element implements
     public function render_html(?element_renderer $renderer = null): string {
         return element_helper::render_html_content($this, $this->get_course_name_detail());
     }
-
 
     /**
      * Helper function that returns the selected course name detail (i.e. name or short description) for display.
