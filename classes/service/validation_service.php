@@ -73,6 +73,18 @@ class validation_service {
                     debugging('Element validation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
+        } else {
+            // Back-compat: If the element does not implement the new interface,
+            // call the deprecated element::validate_form_elements().
+            try {
+                // The variable $files is not used by core validations; provide empty array.
+                $errors += (array) $element->validate_form_elements($data, []);
+            } catch (Throwable $e) {
+                $errors['name'] = get_string('invaliddata', 'error');
+                if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                    debugging('Deprecated element validation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            }
         }
 
         return $errors;
