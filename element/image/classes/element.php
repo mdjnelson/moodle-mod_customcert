@@ -41,6 +41,7 @@ use mod_customcert\element\form_definable_interface;
 use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
@@ -63,7 +64,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /**
      * @var array The file manager options.
@@ -552,6 +554,17 @@ class element extends base_element implements
         }
 
         return true;
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 
     /**

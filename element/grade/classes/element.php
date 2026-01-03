@@ -33,6 +33,7 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -62,7 +63,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /** @var string Course grade identifier. */
     public const GRADE_COURSE = '0';
@@ -113,6 +115,17 @@ class element extends base_element implements
             'gradeitem' => (string)($formdata->gradeitem ?? ''),
             'gradeformat' => isset($formdata->gradeformat) ? (string)$formdata->gradeformat : '',
         ];
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 
 
