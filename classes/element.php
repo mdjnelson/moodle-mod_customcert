@@ -374,7 +374,11 @@ abstract class element {
      * @deprecated since Moodle 5.2
      */
     public function render_form_elements($mform) {
-        debugging('render_form_elements() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
+        debugging(
+            'render_form_elements() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\form_definable_interface::get_form_fields() instead.',
+            DEBUG_DEVELOPER
+        );
         // Render the common elements.
         element_helper::render_form_element_font($mform);
         element_helper::render_form_element_colour($mform);
@@ -394,7 +398,11 @@ abstract class element {
      * @deprecated since Moodle 5.2
      */
     public function definition_after_data($mform) {
-        debugging('definition_after_data() is deprecated, please use form_definable_interface instead', DEBUG_DEVELOPER);
+        debugging(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
+            DEBUG_DEVELOPER
+        );
         // Loop through the properties of the element and set the values
         // of the corresponding form element, if it exists.
         $properties = [
@@ -426,8 +434,11 @@ abstract class element {
      * @deprecated since Moodle 5.2
      */
     public function validate_form_elements($data, $files) {
-        debugging('validate_form_elements() is deprecated,
-            please implement validatable_element_interface::validate()', DEBUG_DEVELOPER);
+        debugging(
+            'validate_form_elements() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\validatable_element_interface::validate() instead.',
+            DEBUG_DEVELOPER
+        );
         // Array to return the errors.
         $errors = [];
 
@@ -450,7 +461,12 @@ abstract class element {
      * @deprecated since Moodle 5.2
      */
     public function save_form_elements($data) {
-        debugging('save_form_elements() is deprecated, please use element_repository instead', DEBUG_DEVELOPER);
+        debugging(
+            'save_form_elements() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() and '
+            . 'use element_repository for persistence.',
+            DEBUG_DEVELOPER
+        );
         global $DB;
 
         // Get the data from the form.
