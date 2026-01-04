@@ -57,8 +57,8 @@ final class persistence_helper {
                 return json_encode($legacy);
             }
             if (is_string($legacy)) {
-                $trim = trim($legacy);
-                if ($trim !== '' && ($trim[0] === '{' || $trim[0] === '[')) {
+                // Accept only valid JSON; otherwise wrap as a scalar string value.
+                if ($legacy !== '' && json_validate($legacy)) {
                     return $legacy;
                 }
                 return json_encode(['value' => $legacy]);
