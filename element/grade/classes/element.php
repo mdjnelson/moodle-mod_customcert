@@ -232,16 +232,16 @@ class element extends base_element implements
     public function prepare_form(MoodleQuickForm $mform): void {
         // Set the item and format for this element from stored data.
         $payload = $this->get_payload();
-        if (isset($payload['gradeitem']) && $mform->elementExists('gradeitem')) {
+        if (isset($payload['gradeitem'])) {
             $mform->getElement('gradeitem')->setValue((string)$payload['gradeitem']);
         } else {
             // Legacy scalar in data.
             $value = $this->get_value();
-            if ($value !== null && ctype_digit(trim($value)) && $mform->elementExists('gradeitem')) {
+            if ($value !== null && ctype_digit(trim($value))) {
                 $mform->getElement('gradeitem')->setValue((string)$value);
             }
         }
-        if (isset($payload['gradeformat']) && $mform->elementExists('gradeformat')) {
+        if (isset($payload['gradeformat'])) {
             $mform->getElement('gradeformat')->setValue((int)$payload['gradeformat']);
         }
     }

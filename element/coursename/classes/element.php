@@ -110,7 +110,7 @@ class element extends base_element implements
     public function prepare_form(MoodleQuickForm $mform): void {
         // Preselect the stored value if present (options populated centrally).
         $value = $this->get_selected_display_field();
-        if ($value !== null && $mform->elementExists('coursenamedisplay')) {
+        if ($value !== null) {
             $mform->getElement('coursenamedisplay')->setValue($value);
         }
     }
