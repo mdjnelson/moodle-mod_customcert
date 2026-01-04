@@ -98,7 +98,12 @@ final class persistence_json_test extends advanced_testcase {
         ];
         $el = new text_element($legacyrecord);
 
+        // This path intentionally exercises the legacy save_form_elements() in the base class,
+        // which emits a deprecation debugging() notice. Assert it explicitly so the test output
+        // documents the intent and CI does not treat it as an unexpected notice.
         $newid = $el->save_form_elements($form);
+        // Assert the deprecation was triggered. The message may include guidance text; match by substring.
+        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
         $this->assertIsNumeric($newid);
 
         $row = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
@@ -174,7 +179,11 @@ final class persistence_json_test extends advanced_testcase {
             'alignment' => 'L',
         ];
 
+        // This anonymous legacy element uses the legacy save path which emits a deprecation
+        // debugging() message. Assert it to make the expectation explicit in the test.
         $newid = $legacy->save_form_elements($form);
+        // Assert the deprecation was triggered on the legacy path as well.
+        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
         $this->assertIsNumeric($newid);
 
         $row = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
