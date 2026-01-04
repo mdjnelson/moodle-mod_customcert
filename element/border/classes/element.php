@@ -76,7 +76,7 @@ class element extends base_element implements
     public function prepare_form(MoodleQuickForm $mform): void {
         // Populate width from JSON via the getter.
         $width = $this->get_width();
-        if ($width !== null && $mform->elementExists('width')) {
+        if ($width !== null) {
             $mform->getElement('width')->setValue($width);
         }
     }
