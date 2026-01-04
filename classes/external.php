@@ -108,6 +108,33 @@ class external extends external_api {
             $data->$field = $value['value'];
         }
 
+        // Normalise JSON-backed visual attributes (font, fontsize, colour, width): merge into data JSON.
+        $jsonpayload = [];
+        // Start from existing element JSON if present.
+        if (!empty($element->data)) {
+            $decoded = json_decode((string)$element->data, true);
+            if (is_array($decoded)) {
+                $jsonpayload = $decoded;
+            }
+        }
+        // If caller provided a 'data' JSON string, merge it first.
+        if (property_exists($data, 'data') && is_string($data->data) && $data->data !== '') {
+            $incoming = json_decode($data->data, true);
+            if (is_array($incoming)) {
+                $jsonpayload = array_merge($jsonpayload, $incoming);
+            }
+            unset($data->data);
+        }
+        // Merge scalar visual attributes into JSON payload and remove them from the DB update payload.
+        foreach (['font', 'fontsize', 'colour', 'width'] as $jk) {
+            if (property_exists($data, $jk) && $data->$jk !== '' && $data->$jk !== null) {
+                $jsonpayload[$jk] = in_array($jk, ['fontsize', 'width'], true) ? (int)$data->$jk : (string)$data->$jk;
+                unset($data->$jk);
+            }
+        }
+        // Persist the merged JSON payload.
+        $data->data = json_encode($jsonpayload);
+
         // Update the element record directly to avoid deprecated save_form_elements().
         // Only update fields provided via $values; preserve existing values for others.
         $data->timemodified = time();

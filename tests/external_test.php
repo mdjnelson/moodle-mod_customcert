@@ -47,6 +47,80 @@ final class external_test extends advanced_testcase {
     }
 
     /**
+     * Test that save_element merges visual fields into JSON data and avoids writing removed columns.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_merges_visuals_into_json(): void {
+        global $DB;
+
+        $this->setAdminUser();
+
+        // Create a minimal template + page in system context.
+        $template = (object) [
+            'name' => 'WS Save Template',
+            'contextid' => \context_system::instance()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
+
+        $page = (object) [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
+
+        // Insert an element with some existing JSON data.
+        $element = (object) [
+            'pageid' => $page->id,
+            'element' => 'text',
+            'name' => 'Text',
+            'posx' => 10,
+            'posy' => 20,
+            'refpoint' => 1,
+            'alignment' => 'L',
+            'data' => json_encode(['foo' => 'bar']),
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
+
+        // Call the WS with visual scalars and an incoming data JSON to ensure merge and type handling.
+        $values = [
+            ['name' => 'width', 'value' => '25'],
+            ['name' => 'font', 'value' => 'helvetica'],
+            ['name' => 'fontsize', 'value' => '12'],
+            ['name' => 'colour', 'value' => '#112233'],
+            ['name' => 'data', 'value' => json_encode(['baz' => 'qux'])],
+        ];
+
+        $result = external::save_element($template->id, $element->id, $values);
+        // Simulate WS return value cleaning.
+        external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertTrue($result);
+
+        // Verify DB JSON was merged and numeric types are handled.
+        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
+        $this->assertIsString($row->data);
+        $decoded = json_decode($row->data, true);
+        $this->assertIsArray($decoded);
+        $this->assertSame('bar', $decoded['foo'] ?? null, 'Existing JSON should be preserved');
+        $this->assertSame('qux', $decoded['baz'] ?? null, 'Incoming data JSON should be merged');
+        $this->assertSame(25, $decoded['width'] ?? null, 'Width should be merged as int');
+        $this->assertSame(12, $decoded['fontsize'] ?? null, 'Font size should be merged as int');
+        $this->assertSame('helvetica', $decoded['font'] ?? null);
+        $this->assertSame('#112233', $decoded['colour'] ?? null);
+    }
+
+    /**
      * Test the delete_issue web service.
      *
      * @covers \external::delete_issue
