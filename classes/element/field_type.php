@@ -18,7 +18,7 @@
  * Enum of supported MoodleQuickForm element types used by customcert element forms.
  *
  * @package    mod_customcert
- * @copyright  2025
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
