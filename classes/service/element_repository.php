@@ -59,11 +59,24 @@ class element_repository {
 
         $records = $DB->get_records('customcert_elements', ['pageid' => $pageid], 'sequence ASC');
         $elements = [];
+        $warnedtypes = [];
         foreach ($records as $record) {
             if (empty($record->element)) {
                 continue;
             }
-            $elements[] = $this->factory->create($record->element, $record);
+            try {
+                $elements[] = $this->factory->create($record->element, $record);
+            } catch (\Throwable $e) {
+                // Skip unknown or broken element types but do not take down rendering.
+                $type = (string)$record->element;
+                if (!isset($warnedtypes[$type])) {
+                    $warnedtypes[$type] = true;
+                    if (!defined('BEHAT_SITE_RUNNING')) {
+                        debugging("Unknown or invalid element type '{$type}', skipping.", DEBUG_DEVELOPER);
+                    }
+                }
+                continue;
+            }
         }
         return $elements;
     }
