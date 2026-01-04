@@ -75,6 +75,8 @@ class element_repository {
                         debugging("Unknown or invalid element type '{$type}', skipping.", DEBUG_DEVELOPER);
                     }
                 }
+                // Return an HTML placeholder element for preview/admin. It renders nothing in PDF.
+                $elements[] = new \mod_customcert\element\unknown_element($record, $type);
                 continue;
             }
         }

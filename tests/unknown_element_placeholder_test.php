@@ -26,26 +26,28 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 
 /**
- * Ensure unknown element types do not break loading and are skipped with a developer warning.
+ * Tests that unknown element types produce HTML placeholders instead of being silently skipped.
  *
- * @category   test
  * @package    mod_customcert
- * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
+ * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
-final class unknown_element_handling_test extends advanced_testcase {
-    public function setUp(): void {
+final class unknown_element_placeholder_test extends advanced_testcase {
+    protected function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();
     }
 
-    public function test_unknown_type_is_skipped_with_debugging(): void {
+    public function test_unknown_type_returns_placeholder_element(): void {
         global $DB;
+
+        $this->setAdminUser();
 
         // Minimal template + page.
         $template = (object) [
-            'name' => 'Unknown type template',
+            'name' => 'Unknown placeholder template',
             'contextid' => \context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
@@ -68,9 +70,9 @@ final class unknown_element_handling_test extends advanced_testcase {
         $element = (object) [
             'pageid' => $page->id,
             'element' => 'idontexist',
-            'name' => 'Bad',
-            'posx' => 0,
-            'posy' => 0,
+            'name' => 'Removed element',
+            'posx' => 5,
+            'posy' => 10,
             'refpoint' => 0,
             'alignment' => 'L',
             'data' => null,
@@ -84,13 +86,17 @@ final class unknown_element_handling_test extends advanced_testcase {
         element_bootstrap::register_defaults($registry);
         $repository = new element_repository(new element_factory($registry));
 
-        // Expect a developer debugging message once, but no exception.
+        // Expect a single developer debugging message for the unknown type.
         $this->assertDebuggingNotCalled();
         $loaded = $repository->load_by_page_id($page->id);
-        $this->assertIsArray($loaded);
-        // Now we return a placeholder element rather than skipping.
-        $this->assertCount(1, $loaded, 'Unknown element should return a placeholder');
-        $this->assertInstanceOf(unknown_element::class, $loaded[0]);
+        $this->assertCount(1, $loaded);
+        $placeholder = $loaded[0];
+        $this->assertInstanceOf(unknown_element::class, $placeholder);
+
+        // HTML should include the unknown type name; PDF rendering should be a no-op.
+        $html = $placeholder->render_html();
+        $this->assertIsString($html);
+        $this->assertStringContainsString('idontexist', $html);
         $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
     }
 }

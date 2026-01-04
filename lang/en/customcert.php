@@ -234,6 +234,7 @@ $string['topcenter'] = 'Center';
 $string['topleft'] = 'Top left';
 $string['topright'] = 'Top right';
 $string['type'] = 'Type';
+$string['unknownelementtype'] = 'Unknown element type';
 $string['uploadimage'] = 'Upload image';
 $string['uploadimagedesc'] = 'This link will take you to a new screen where you will be able to upload images. Images uploaded using
 this method will be available throughout your site to all users who are able to create a certificate.';
