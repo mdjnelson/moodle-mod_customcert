@@ -94,10 +94,10 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Preselect stored teacher id if present (JSON only).
-        $data = json_decode((string)$this->get_data());
-        if (is_object($data) && isset($data->teacher)) {
-            $mform->getElement('teacher')->setValue((int)$data->teacher);
+        // Preselect stored teacher id if present.
+        $payload = $this->get_payload();
+        if (isset($payload['teacher'])) {
+            $mform->getElement('teacher')->setValue((int)$payload['teacher']);
         }
     }
 
@@ -112,11 +112,11 @@ class element extends base_element implements
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
-        $decoded = json_decode((string)$this->get_data());
-        if (!is_object($decoded) || !isset($decoded->teacher)) {
+        $payload = $this->get_payload();
+        if (!isset($payload['teacher'])) {
             return;
         }
-        $teacher = $DB->get_record('user', ['id' => (int)$decoded->teacher]);
+        $teacher = $DB->get_record('user', ['id' => (int)$payload['teacher']]);
         $teachername = fullname($teacher);
 
         if ($renderer) {
@@ -138,11 +138,11 @@ class element extends base_element implements
     public function render_html(?element_renderer $renderer = null): string {
         global $DB;
 
-        $decoded = json_decode((string)$this->get_data());
-        if (!is_object($decoded) || !isset($decoded->teacher)) {
+        $payload = $this->get_payload();
+        if (!isset($payload['teacher'])) {
             return '';
         }
-        $teacher = $DB->get_record('user', ['id' => (int)$decoded->teacher]);
+        $teacher = $DB->get_record('user', ['id' => (int)$payload['teacher']]);
         $teachername = fullname($teacher);
 
         if ($renderer) {

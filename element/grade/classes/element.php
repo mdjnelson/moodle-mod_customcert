@@ -145,13 +145,13 @@ class element extends base_element implements
 
         $courseid = element_helper::get_courseid($this->id);
 
-        // Decode the information stored in the database (JSON only post-migration).
-        $decoded = json_decode((string)$this->get_data());
-        if (!is_object($decoded) || !isset($decoded->gradeitem)) {
+        // Read the information stored in the database.
+        $payload = $this->get_payload();
+        if (empty($payload) || !isset($payload['gradeitem'])) {
             return; // Nothing to render if not configured.
         }
-        $gradeitem = (string)$decoded->gradeitem;
-        $gradeformat = isset($decoded->gradeformat) ? (int)$decoded->gradeformat : GRADE_DISPLAY_TYPE_REAL;
+        $gradeitem = (string)$payload['gradeitem'];
+        $gradeformat = isset($payload['gradeformat']) ? (int)$payload['gradeformat'] : GRADE_DISPLAY_TYPE_REAL;
 
         // If we are previewing this certificate then just show a demonstration grade.
         if ($preview) {
@@ -208,9 +208,9 @@ class element extends base_element implements
             return '';
         }
 
-        // Decode the information stored in the database (JSON only post-migration).
-        $decoded = json_decode((string)$this->get_data());
-        $gradeformat = (is_object($decoded) && isset($decoded->gradeformat)) ? (int)$decoded->gradeformat : GRADE_DISPLAY_TYPE_REAL;
+        // Read the information stored in the database.
+        $payload = $this->get_payload();
+        $gradeformat = isset($payload['gradeformat']) ? (int)$payload['gradeformat'] : GRADE_DISPLAY_TYPE_REAL;
 
         $courseitem = grade_item::fetch_course_item($COURSE->id);
 
@@ -230,28 +230,19 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Set the item and format for this element from stored data (scalar or JSON).
-        $raw = $this->get_data();
-        if ($raw === null || $raw === '') {
-            return;
-        }
-        $gradeitem = null;
-        $gradeformat = null;
-        if (is_string($raw)) {
-            $decoded = json_decode($raw);
-            if (is_object($decoded)) {
-                $gradeitem = $decoded->gradeitem ?? ($decoded->value ?? null);
-                $gradeformat = $decoded->gradeformat ?? null;
-            } else if (ctype_digit(trim($raw))) {
-                // Legacy scalar id stored directly in data.
-                $gradeitem = $raw;
+        // Set the item and format for this element from stored data.
+        $payload = $this->get_payload();
+        if (isset($payload['gradeitem']) && $mform->elementExists('gradeitem')) {
+            $mform->getElement('gradeitem')->setValue((string)$payload['gradeitem']);
+        } else {
+            // Legacy scalar in data.
+            $value = $this->get_value();
+            if ($value !== null && ctype_digit(trim($value)) && $mform->elementExists('gradeitem')) {
+                $mform->getElement('gradeitem')->setValue((string)$value);
             }
         }
-        if ($gradeitem !== null && $mform->elementExists('gradeitem')) {
-            $mform->getElement('gradeitem')->setValue((string)$gradeitem);
-        }
-        if ($gradeformat !== null && $mform->elementExists('gradeformat')) {
-            $mform->getElement('gradeformat')->setValue((int)$gradeformat);
+        if (isset($payload['gradeformat']) && $mform->elementExists('gradeformat')) {
+            $mform->getElement('gradeformat')->setValue((int)$payload['gradeformat']);
         }
     }
 
@@ -266,25 +257,24 @@ class element extends base_element implements
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
-        $gradeinfo = json_decode($this->get_data());
+        $data = $this->get_payload();
+        if (empty($data) || empty($data['gradeitem'])) {
+            return;
+        }
 
         $isgradeitem = false;
-        $oldid = $gradeinfo->gradeitem;
-        if (str_starts_with($gradeinfo->gradeitem, 'gradeitem:')) {
+        $oldid = $data['gradeitem'];
+        if (str_starts_with($data['gradeitem'], 'gradeitem:')) {
             $isgradeitem = true;
-            $oldid = str_replace('gradeitem:', '', $gradeinfo->gradeitem);
+            $oldid = str_replace('gradeitem:', '', $data['gradeitem']);
         }
 
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
         // Use the restore task mapping API instead of restore_dbops to allow unit testing without temp tables.
         $newid = $restore->get_mappingid($itemname, (int)$oldid);
         if ($newid) {
-            $gradeinfo->gradeitem = '';
-            if ($isgradeitem) {
-                $gradeinfo->gradeitem = 'gradeitem:';
-            }
-            $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newid;
-            $DB->set_field('customcert_elements', 'data', json_encode($gradeinfo), ['id' => $this->get_id()]);
+            $data['gradeitem'] = ($isgradeitem ? 'gradeitem:' : '') . $newid;
+            $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
         }
     }
 

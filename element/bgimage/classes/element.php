@@ -124,16 +124,15 @@ class element extends \customcertelement_image\element implements
 
         // If element has an image stored, select it in the dropdown.
         if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
+            $payload = $this->get_payload();
             // Only attempt get_file() if required metadata is present.
             if (
-                is_object($imageinfo)
-                && isset(
-                    $imageinfo->contextid,
-                    $imageinfo->filearea,
-                    $imageinfo->itemid,
-                    $imageinfo->filepath,
-                    $imageinfo->filename
+                isset(
+                    $payload['contextid'],
+                    $payload['filearea'],
+                    $payload['itemid'],
+                    $payload['filepath'],
+                    $payload['filename']
                 )
             ) {
                 if ($file = $this->get_file()) {
@@ -205,10 +204,10 @@ class element extends \customcertelement_image\element implements
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // If there is no file, we have nothing to display.
-        if (empty($imageinfo->filename)) {
+        if (empty($payload['filename'])) {
             return;
         }
 
