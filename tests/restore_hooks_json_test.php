@@ -21,8 +21,15 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\service\element_factory;
 use restore_customcert_activity_task;
-use stdClass;
+
+defined('MOODLE_INTERNAL') || die;
+
+// Ensure the restore base classes and task class are loaded in PHPUnit context.
+global $CFG;
+require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
+require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_activity_task.class.php');
 
 /**
  * Tests that after_restore_from_backup() preserves JSON and updates IDs.
@@ -124,6 +131,8 @@ final class restore_hooks_json_test extends advanced_testcase {
             private string $rid;
             /** @var int */
             private int $cid;
+            /** @var array<string,array<int,int>> In-memory mapping store */
+            private array $map = [];
 
             /** Constructor for the anonymous restore task.
              *
@@ -199,6 +208,32 @@ final class restore_hooks_json_test extends advanced_testcase {
             public function get_courseid() {
                 return $this->cid;
             }
+
+            /**
+             * Set a mapping without touching restore_dbops/temp tables.
+             *
+             * @param string $itemname Mapping item name (e.g., 'course_module', 'grade_item')
+             * @param int $oldid Source id in backup
+             * @param int $newid Target id in site
+             * @return void
+             */
+            public function set_mapping(string $itemname, int $oldid, int $newid): void {
+                if (!isset($this->map[$itemname])) {
+                    $this->map[$itemname] = [];
+                }
+                $this->map[$itemname][$oldid] = $newid;
+            }
+
+            /**
+             * Override to avoid restore_dbops. Return mapped id or false if not found.
+             *
+             * @param string $itemname
+             * @param int $oldid
+             * @return int|false
+             */
+            public function get_mappingid($itemname, $oldid) {
+                return $this->map[$itemname][$oldid] ?? false;
+            }
         };
     }
 
@@ -214,14 +249,14 @@ final class restore_hooks_json_test extends advanced_testcase {
 
         // Instantiate element object and interface.
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = \mod_customcert\service\element_factory::get_element_instance($legacy);
+        $obj = element_factory::get_element_instance($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         // Create a fake restore mapping: map old cm id 456 -> new 999.
         $restoreid = 'rid-' . uniqid();
         $task = $this->make_restore_task($restoreid, 0);
-        // Insert mapping into backup_ids_temp table via API.
-        \restore_dbops::set_backup_ids_record($restoreid, 'course_module', 456, 999);
+        // Provide mapping without using restore_dbops/temp tables.
+        $task->set_mapping('course_module', 456, 999);
 
         // Call the hook.
         $obj->after_restore_from_backup($task);
@@ -246,13 +281,13 @@ final class restore_hooks_json_test extends advanced_testcase {
         ]);
 
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = \mod_customcert\service\element_factory::get_element_instance($legacy);
+        $obj = element_factory::get_element_instance($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         $restoreid = 'rid-' . uniqid();
         $task = $this->make_restore_task($restoreid, 0);
-        // Map old grade_item 321 -> 777.
-        \restore_dbops::set_backup_ids_record($restoreid, 'grade_item', 321, 777);
+        // Map old grade_item 321 -> 777 without touching temp tables.
+        $task->set_mapping('grade_item', 321, 777);
 
         $obj->after_restore_from_backup($task);
 

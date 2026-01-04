@@ -276,12 +276,14 @@ class element extends base_element implements
         }
 
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
-        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
+        // Use the restore task mapping API instead of restore_dbops to allow unit testing without temp tables.
+        $newid = $restore->get_mappingid($itemname, (int)$oldid);
+        if ($newid) {
             $gradeinfo->gradeitem = '';
             if ($isgradeitem) {
                 $gradeinfo->gradeitem = 'gradeitem:';
             }
-            $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newitem->newitemid;
+            $gradeinfo->gradeitem = $gradeinfo->gradeitem . $newid;
             $DB->set_field('customcert_elements', 'data', json_encode($gradeinfo), ['id' => $this->get_id()]);
         }
     }

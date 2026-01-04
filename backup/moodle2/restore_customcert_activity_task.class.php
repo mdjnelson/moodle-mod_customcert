@@ -27,6 +27,7 @@ use mod_customcert\element\restorable_element_interface;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
+global $CFG;
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_stepslib.php');
 
 /**
