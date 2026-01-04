@@ -208,6 +208,50 @@ abstract class element {
     }
 
     /**
+     * Return the decoded JSON payload stored in 'data' or an empty array when not valid JSON.
+     *
+     * This helper is intended for element implementations that store structured data
+     * in the JSON 'data' column. It never throws; invalid or non-JSON values produce [].
+     *
+     * @return array<string,mixed>
+     */
+    public function get_payload(): array {
+        $raw = $this->get_data();
+        if (is_string($raw)) {
+            if (json_validate($raw)) {
+                $decoded = json_decode($raw, true);
+                return is_array($decoded) ? $decoded : [];
+            }
+        }
+        return [];
+    }
+
+    /**
+     * Return a best-effort scalar value for legacy/simple elements.
+     *
+     * For historical elements that stored a plain scalar in 'data', this returns the raw string.
+     * For JSON payloads containing {"value": <scalar>}, this returns that scalar cast to string.
+     * For structured payloads without a single 'value', returns null.
+     *
+     * @return string|null The scalar value or null if not applicable.
+     */
+    public function get_value(): ?string {
+        $raw = $this->get_data();
+        if (is_string($raw)) {
+            if (json_validate($raw)) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && array_key_exists('value', $decoded)) {
+                    return is_scalar($decoded['value']) ? (string)$decoded['value'] : null;
+                }
+                return null;
+            }
+            // Historical scalar storage.
+            return $raw;
+        }
+        return null;
+    }
+
+    /**
      * Returns the position x.
      *
      * @return int|null
