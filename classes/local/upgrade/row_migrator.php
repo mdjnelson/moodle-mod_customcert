@@ -83,9 +83,7 @@ final class row_migrator {
             if ($rawdata === null || $rawdata === '') {
                 return $rawdata; // Keep null/empty as-is.
             }
-            if (is_string($rawdata) && ctype_digit(trim($rawdata))) {
-                return json_encode(['value' => (int)$rawdata]);
-            }
+            // Preserve string identity to avoid stripping leading zeros.
             $decoded = json_decode($rawdata, true);
             if (is_array($decoded)) {
                 return $rawdata; // Already JSON – leave unchanged.
@@ -100,8 +98,9 @@ final class row_migrator {
             return !empty($payload) ? json_encode($payload) : $rawdata;
         }
 
-        if (is_string($rawdata) && ctype_digit(trim($rawdata))) {
-            $payload = ['value' => (int)$rawdata];
+        // Preserve string identity for numeric-looking strings.
+        if (is_string($rawdata) && json_decode($rawdata, true) === null) {
+            $payload = ['value' => (string)$rawdata];
             $payload = self::merge_visuals($payload, $width, $font, $fontsize, $colour);
             return json_encode($payload);
         }
