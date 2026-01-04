@@ -155,9 +155,9 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        $data = json_decode((string)$this->get_data());
-        if (is_object($data) && isset($data->coursefield)) {
-            $mform->getElement('coursefield')->setValue((string)$data->coursefield);
+        $payload = $this->get_payload();
+        if (isset($payload['coursefield'])) {
+            $mform->getElement('coursefield')->setValue((string)$payload['coursefield']);
         }
     }
 
@@ -181,8 +181,8 @@ class element extends base_element implements
      */
     protected function get_course_field_value(stdClass $course, bool $preview): string {
         // The user field to display.
-        $raw = json_decode((string)$this->get_data());
-        $field = is_object($raw) && isset($raw->coursefield) ? $raw->coursefield : '';
+        $payload = $this->get_payload();
+        $field = isset($payload['coursefield']) ? $payload['coursefield'] : '';
         // The value to display - we always want to show a value here so it can be repositioned.
         if ($preview) {
             $value = $field;

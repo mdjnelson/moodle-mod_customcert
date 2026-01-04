@@ -125,9 +125,9 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        $data = json_decode((string)$this->get_data());
-        if (is_object($data) && isset($data->userfield)) {
-            $mform->getElement('userfield')->setValue((string)$data->userfield);
+        $payload = $this->get_payload();
+        if (isset($payload['userfield'])) {
+            $mform->getElement('userfield')->setValue((string)$payload['userfield']);
         }
     }
 
@@ -180,8 +180,8 @@ class element extends base_element implements
         global $CFG, $DB;
 
         // The user field to display.
-        $raw = json_decode((string)$this->get_data());
-        $field = is_object($raw) && isset($raw->userfield) ? $raw->userfield : '';
+        $payload = $this->get_payload();
+        $field = isset($payload['userfield']) ? $payload['userfield'] : '';
         // The value to display - we always want to show a value here so it can be repositioned.
         if ($preview) {
             $value = $field;

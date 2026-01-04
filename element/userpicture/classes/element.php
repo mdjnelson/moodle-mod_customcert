@@ -91,17 +91,13 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
-
-            if (isset($imageinfo->width)) {
-                // Use defaults so values persist through Moodle's set_data lifecycle.
-                $mform->setDefault('width', (int)$imageinfo->width);
-            }
-
-            if (isset($imageinfo->height)) {
-                $mform->setDefault('height', (int)$imageinfo->height);
-            }
+        $payload = $this->get_payload();
+        if (isset($payload['width'])) {
+            // Use defaults so values persist through Moodle's set_data lifecycle.
+            $mform->setDefault('width', (int)$payload['width']);
+        }
+        if (isset($payload['height'])) {
+            $mform->setDefault('height', (int)$payload['height']);
         }
     }
 
@@ -124,7 +120,7 @@ class element extends base_element implements
                 return;
             }
 
-            $imageinfo = json_decode($this->get_data());
+            $payload = $this->get_payload();
 
             $context = context_user::instance($user->id);
 
@@ -145,10 +141,10 @@ class element extends base_element implements
             if ($file) {
                 $location = make_request_directory() . '/target';
                 $file->copy_content_to($location);
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
             } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
                 $location = $CFG->dirroot . '/pix/u/f1.png';
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
             }
         }
     }
@@ -170,7 +166,7 @@ class element extends base_element implements
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // Get the image.
         $userpicture = new user_picture($USER);
@@ -179,18 +175,18 @@ class element extends base_element implements
 
         // The size of the images to use in the CSS style.
         $style = '';
-        if ($imageinfo->width === 0 && $imageinfo->height === 0) {
+        if ((int)($payload['width'] ?? 0) === 0 && (int)($payload['height'] ?? 0) === 0) {
             // Put this in so code checker doesn't complain.
             $style .= '';
-        } else if ($imageinfo->width === 0) { // Then the height must be set.
-            $style .= 'width: ' . $imageinfo->height . 'mm; ';
-            $style .= 'height: ' . $imageinfo->height . 'mm';
-        } else if ($imageinfo->height === 0) { // Then the width must be set.
-            $style .= 'width: ' . $imageinfo->width . 'mm; ';
-            $style .= 'height: ' . $imageinfo->width . 'mm';
+        } else if ((int)($payload['width'] ?? 0) === 0) { // Then the height must be set.
+            $style .= 'width: ' . (int)$payload['height'] . 'mm; ';
+            $style .= 'height: ' . (int)$payload['height'] . 'mm';
+        } else if ((int)($payload['height'] ?? 0) === 0) { // Then the width must be set.
+            $style .= 'width: ' . (int)$payload['width'] . 'mm; ';
+            $style .= 'height: ' . (int)$payload['width'] . 'mm';
         } else { // Must both be set.
-            $style .= 'width: ' . $imageinfo->width . 'mm; ';
-            $style .= 'height: ' . $imageinfo->height . 'mm';
+            $style .= 'width: ' . (int)$payload['width'] . 'mm; ';
+            $style .= 'height: ' . (int)$payload['height'] . 'mm';
         }
 
         $content = html_writer::tag('img', '', ['src' => $url, 'style' => $style]);

@@ -101,17 +101,13 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
-
-            if (isset($imageinfo->width)) {
-                // Use defaults so the values persist across set_data()/definition_after_data.
-                $mform->setDefault('width', (int)$imageinfo->width);
-            }
-
-            if (isset($imageinfo->height)) {
-                $mform->setDefault('height', (int)$imageinfo->height);
-            }
+        $payload = $this->get_payload();
+        if (isset($payload['width'])) {
+            // Use defaults so the values persist across set_data()/definition_after_data.
+            $mform->setDefault('width', (int)$payload['width']);
+        }
+        if (isset($payload['height'])) {
+            $mform->setDefault('height', (int)$payload['height']);
         }
     }
 
@@ -132,7 +128,7 @@ class element extends base_element implements
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         if ($preview) {
             // Generate the URL to verify this.
@@ -189,12 +185,12 @@ class element extends base_element implements
         } else {
             try {
                 $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-                $image = $barcode->getBarcodePngData($imageinfo->width, $imageinfo->height);
+                $image = $barcode->getBarcodePngData((int)$payload['width'], (int)$payload['height']);
 
                 $location = make_request_directory() . '/target';
                 file_put_contents($location, $image);
 
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
             } catch (Throwable $e) {
                 if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                     debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
@@ -220,14 +216,14 @@ class element extends base_element implements
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         $qrcodeurl = new moodle_url('/');
         $qrcodeurl = $qrcodeurl->out(false);
 
         try {
             $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-            $content = $barcode->getBarcodeHTML($imageinfo->width / 10, $imageinfo->height / 10);
+            $content = $barcode->getBarcodeHTML(((int)$payload['width']) / 10, ((int)$payload['height']) / 10);
 
             if ($renderer) {
                 return (string) $renderer->render_content($this, $content);

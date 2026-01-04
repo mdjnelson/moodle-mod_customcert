@@ -164,18 +164,15 @@ class element extends base_element implements
      */
     public function prepare_form(MoodleQuickForm $mform): void {
         if (!empty($this->get_data())) {
-            $dateinfo = json_decode($this->get_data());
-
-            if (isset($dateinfo->dateitem)) {
-                $mform->getElement('dateitem')->setValue($dateinfo->dateitem);
+            $payload = $this->get_payload();
+            if (isset($payload['dateitem'])) {
+                $mform->getElement('dateitem')->setValue($payload['dateitem']);
             }
-
-            if (isset($dateinfo->dateformat)) {
-                $mform->getElement('dateformat')->setValue($dateinfo->dateformat);
+            if (isset($payload['dateformat'])) {
+                $mform->getElement('dateformat')->setValue($payload['dateformat']);
             }
-
-            if (isset($dateinfo->startfrom)) {
-                $mform->getElement('startfrom')->setValue($dateinfo->startfrom);
+            if (isset($payload['startfrom'])) {
+                $mform->getElement('startfrom')->setValue($payload['startfrom']);
             }
         }
     }
@@ -195,9 +192,9 @@ class element extends base_element implements
         }
 
         $courseid = element_helper::get_courseid($this->id);
-        $dateinfo = json_decode($this->get_data());
-        $dateformat = $dateinfo->dateformat;
-        $dateitem = $dateinfo->dateitem;
+        $payload = $this->get_payload();
+        $dateformat = $payload['dateformat'] ?? '';
+        $dateitem = $payload['dateitem'] ?? '';
         $date = $this->expiry($user->id, $preview);
 
         // Ensure that a date has been set.
@@ -244,10 +241,10 @@ class element extends base_element implements
             return '';
         }
 
-        // Decode the information stored in the database.
-        $dateinfo = json_decode($this->get_data());
-        $dateformat = $dateinfo->dateformat;
-        $dateitem = $dateinfo->dateitem;
+        // Read the information stored in the database.
+        $payload = $this->get_payload();
+        $dateformat = $payload['dateformat'] ?? '';
+        $dateitem = $payload['dateitem'] ?? '';
 
         $content = '';
         if ($dateformat == 'validfor') {
@@ -292,23 +289,15 @@ class element extends base_element implements
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
-        $dateinfo = json_decode($this->get_data());
-
-        $isgradeitem = false;
-        $oldid = $dateinfo->dateitem;
-        if (strpos($dateinfo->dateitem, 'gradeitem:') === 0) {
-            $isgradeitem = true;
-            $oldid = str_replace('gradeitem:', '', $dateinfo->dateitem);
-        }
-
-        $itemname = $isgradeitem ? 'grade_item' : 'course_module';
-        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
-            $dateinfo->dateitem = '';
-            if ($isgradeitem) {
-                $dateinfo->dateitem = 'gradeitem:';
+        $data = $this->get_payload();
+        // Expiry element typically uses relative constants; keep legacy mapping logic if present.
+        if (!empty($data['dateitem']) && strpos((string)$data['dateitem'], 'gradeitem:') === 0) {
+            $oldid = str_replace('gradeitem:', '', (string)$data['dateitem']);
+            $newid = $restore->get_mappingid('grade_item', (int)$oldid);
+            if ($newid) {
+                $data['dateitem'] = 'gradeitem:' . $newid;
+                $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
             }
-            $dateinfo->dateitem = $dateinfo->dateitem . $newitem->newitemid;
-            $DB->set_field('customcert_elements', 'data', json_encode($dateinfo), ['id' => $this->get_id()]);
         }
     }
 
@@ -346,9 +335,9 @@ class element extends base_element implements
     private function expiry($userid, $preview = false) {
         global $DB;
 
-        $dateinfo = json_decode($this->get_data());
-        $dateitem = $dateinfo->dateitem;
-        $startfrom = $dateinfo->startfrom;
+        $payload = $this->get_payload();
+        $dateitem = $payload['dateitem'] ?? '';
+        $startfrom = $payload['startfrom'] ?? '';
         $starttime = null;
 
         if ($preview) {

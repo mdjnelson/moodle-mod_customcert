@@ -187,55 +187,53 @@ class element extends \customcertelement_image\element implements
 
         // Populate signature-related fields from stored JSON data when editing.
         if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
+            $payload = $this->get_payload();
 
-            if (is_object($imageinfo)) {
-                // Populate signature metadata fields.
-                if (isset($imageinfo->signaturename)) {
-                    $mform->setDefault('signaturename', $imageinfo->signaturename);
-                }
-                if (isset($imageinfo->signaturepassword)) {
-                    $mform->setDefault('signaturepassword', $imageinfo->signaturepassword);
-                }
-                if (isset($imageinfo->signaturelocation)) {
-                    $mform->setDefault('signaturelocation', $imageinfo->signaturelocation);
-                }
-                if (isset($imageinfo->signaturereason)) {
-                    $mform->setDefault('signaturereason', $imageinfo->signaturereason);
-                }
-                if (isset($imageinfo->signaturecontactinfo)) {
-                    $mform->setDefault('signaturecontactinfo', $imageinfo->signaturecontactinfo);
-                }
+            // Populate signature metadata fields.
+            if (isset($payload['signaturename'])) {
+                $mform->setDefault('signaturename', (string)$payload['signaturename']);
+            }
+            if (isset($payload['signaturepassword'])) {
+                $mform->setDefault('signaturepassword', (string)$payload['signaturepassword']);
+            }
+            if (isset($payload['signaturelocation'])) {
+                $mform->setDefault('signaturelocation', (string)$payload['signaturelocation']);
+            }
+            if (isset($payload['signaturereason'])) {
+                $mform->setDefault('signaturereason', (string)$payload['signaturereason']);
+            }
+            if (isset($payload['signaturecontactinfo'])) {
+                $mform->setDefault('signaturecontactinfo', (string)$payload['signaturecontactinfo']);
+            }
 
-                // Populate signature file select if a signature file is stored.
-                if (!empty($imageinfo->signaturefilename)) {
-                    if ($signaturefile = $this->get_signature_file()) {
-                        $mform->setDefault('signaturefileid', $signaturefile->get_id());
-                    }
+            // Populate signature file select if a signature file is stored.
+            if (!empty($payload['signaturefilename'])) {
+                if ($signaturefile = $this->get_signature_file()) {
+                    $mform->setDefault('signaturefileid', $signaturefile->get_id());
                 }
+            }
 
-                // Populate image file select if an image file is stored.
-                if (
-                    isset(
-                        $imageinfo->contextid,
-                        $imageinfo->filearea,
-                        $imageinfo->itemid,
-                        $imageinfo->filepath,
-                        $imageinfo->filename
-                    )
-                ) {
-                    if ($file = $this->get_file()) {
-                        $mform->setDefault('fileid', $file->get_id());
-                    }
+            // Populate image file select if an image file is stored.
+            if (
+                isset(
+                    $payload['contextid'],
+                    $payload['filearea'],
+                    $payload['itemid'],
+                    $payload['filepath'],
+                    $payload['filename']
+                )
+            ) {
+                if ($file = $this->get_file()) {
+                    $mform->setDefault('fileid', $file->get_id());
                 }
+            }
 
-                // Populate size controls via defaults so they survive set_data lifecycle.
-                if (isset($imageinfo->width)) {
-                    $mform->setDefault('width', (int)$imageinfo->width);
-                }
-                if (isset($imageinfo->height)) {
-                    $mform->setDefault('height', (int)$imageinfo->height);
-                }
+            // Populate size controls via defaults so they survive set_data lifecycle.
+            if (isset($payload['width'])) {
+                $mform->setDefault('width', (int)$payload['width']);
+            }
+            if (isset($payload['height'])) {
+                $mform->setDefault('height', (int)$payload['height']);
             }
         }
 
@@ -261,12 +259,11 @@ class element extends \customcertelement_image\element implements
      * @return int|null
      */
     public function get_width(): ?int {
-        $data = $this->get_data();
-        if (empty($data)) {
+        $payload = $this->get_payload();
+        if (empty($payload)) {
             return null;
         }
-        $decoded = json_decode($data);
-        return isset($decoded->width) && $decoded->width !== '' ? (int)$decoded->width : null;
+        return isset($payload['width']) && $payload['width'] !== '' ? (int)$payload['width'] : null;
     }
 
     /**
@@ -275,12 +272,11 @@ class element extends \customcertelement_image\element implements
      * @return int|null
      */
     public function get_height(): ?int {
-        $data = $this->get_data();
-        if (empty($data)) {
+        $payload = $this->get_payload();
+        if (empty($payload)) {
             return null;
         }
-        $decoded = json_decode($data);
-        return isset($decoded->height) && $decoded->height !== '' ? (int)$decoded->height : null;
+        return isset($payload['height']) && $payload['height'] !== '' ? (int)$payload['height'] : null;
     }
 
     /**
@@ -374,15 +370,15 @@ class element extends \customcertelement_image\element implements
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // If there is no file, we have nothing to display.
-        if (empty($imageinfo->filename)) {
+        if (empty($payload['filename'])) {
             return;
         }
 
         // If there is no signature file, we have nothing to display.
-        if (empty($imageinfo->signaturefilename)) {
+        if (empty($payload['signaturefilename'])) {
             return;
         }
 
@@ -392,9 +388,9 @@ class element extends \customcertelement_image\element implements
 
             $mimetype = $file->get_mimetype();
             if ($mimetype == 'image/svg+xml') {
-                $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
             } else {
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
             }
         }
 
@@ -402,13 +398,13 @@ class element extends \customcertelement_image\element implements
             $location = make_request_directory() . '/target';
             $signaturefile->copy_content_to($location);
             $info = [
-                'Name' => $imageinfo->signaturename,
-                'Location' => $imageinfo->signaturelocation,
-                'Reason' => $imageinfo->signaturereason,
-                'ContactInfo' => $imageinfo->signaturecontactinfo,
+                'Name' => (string)($payload['signaturename'] ?? ''),
+                'Location' => (string)($payload['signaturelocation'] ?? ''),
+                'Reason' => (string)($payload['signaturereason'] ?? ''),
+                'ContactInfo' => (string)($payload['signaturecontactinfo'] ?? ''),
             ];
-            $pdf->setSignature('file://' . $location, '', $imageinfo->signaturepassword, '', 2, $info);
-            $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+            $pdf->setSignature('file://' . $location, '', (string)($payload['signaturepassword'] ?? ''), '', 2, $info);
+            $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
         }
     }
 
@@ -468,17 +464,17 @@ class element extends \customcertelement_image\element implements
      * @return stored_file|bool stored_file instance if exists, false if not
      */
     public function get_signature_file() {
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         $fs = get_file_storage();
 
         return $fs->get_file(
-            $imageinfo->signaturecontextid,
+            (int)$payload['signaturecontextid'],
             'mod_customcert',
-            $imageinfo->signaturefilearea,
-            $imageinfo->signatureitemid,
-            $imageinfo->signaturefilepath,
-            $imageinfo->signaturefilename
+            (string)$payload['signaturefilearea'],
+            (int)$payload['signatureitemid'],
+            (string)$payload['signaturefilepath'],
+            (string)$payload['signaturefilename']
         );
     }
 
