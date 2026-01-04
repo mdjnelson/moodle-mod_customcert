@@ -185,9 +185,6 @@ class element_repository {
         $record->pageid = $element->get_pageid();
         $record->element = $element->get_type();
         $record->name = $element->get_name();
-        $record->font = $element->get_font();
-        $record->fontsize = $element->get_fontsize();
-        $record->colour = $element->get_colour();
         $record->posx = $element->get_posx();
         $record->posy = $element->get_posy();
         // Width is stored inside the JSON data; no DB column write.
