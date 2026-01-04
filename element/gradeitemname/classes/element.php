@@ -98,9 +98,9 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        $data = json_decode((string)$this->get_data());
-        if (is_object($data) && isset($data->gradeitem)) {
-            $mform->getElement('gradeitem')->setValue((string)$data->gradeitem);
+        $payload = $this->get_payload();
+        if (isset($payload['gradeitem'])) {
+            $mform->getElement('gradeitem')->setValue((string)$payload['gradeitem']);
         }
     }
 
@@ -170,8 +170,8 @@ class element extends base_element implements
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
-        $data = json_decode((string)$this->get_data(), true);
-        if (!is_array($data) || empty($data['gradeitem'])) {
+        $data = $this->get_payload();
+        if (empty($data) || empty($data['gradeitem'])) {
             return;
         }
 
@@ -197,8 +197,8 @@ class element extends base_element implements
     protected function get_grade_item_name(): string {
         global $DB;
 
-        $data = json_decode((string)$this->get_data(), true);
-        if (!is_array($data) || empty($data['gradeitem'])) {
+        $data = $this->get_payload();
+        if (empty($data) || empty($data['gradeitem'])) {
             return '';
         }
 

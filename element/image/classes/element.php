@@ -160,15 +160,14 @@ class element extends base_element implements
 
         // If element has an image stored, select it in the dropdown (only when metadata exists).
         if (!empty($this->get_data())) {
-            $imageinfo = json_decode($this->get_data());
+            $payload = $this->get_payload();
             if (
-                is_object($imageinfo)
-                && isset(
-                    $imageinfo->contextid,
-                    $imageinfo->filearea,
-                    $imageinfo->itemid,
-                    $imageinfo->filepath,
-                    $imageinfo->filename
+                isset(
+                    $payload['contextid'],
+                    $payload['filearea'],
+                    $payload['itemid'],
+                    $payload['filepath'],
+                    $payload['filename']
                 )
             ) {
                 if ($file = $this->get_file()) {
@@ -177,14 +176,14 @@ class element extends base_element implements
             }
 
             // Populate size/alpha fields from stored JSON data if present.
-            if (isset($imageinfo->width)) {
-                $mform->setDefault('width', (int)$imageinfo->width);
+            if (isset($payload['width'])) {
+                $mform->setDefault('width', (int)$payload['width']);
             }
-            if (isset($imageinfo->height)) {
-                $mform->setDefault('height', (int)$imageinfo->height);
+            if (isset($payload['height'])) {
+                $mform->setDefault('height', (int)$payload['height']);
             }
-            if (isset($imageinfo->alphachannel)) {
-                $mform->setDefault('alphachannel', (float)$imageinfo->alphachannel);
+            if (isset($payload['alphachannel'])) {
+                $mform->setDefault('alphachannel', (float)$payload['alphachannel']);
             }
         }
 
@@ -274,16 +273,12 @@ class element extends base_element implements
      * @return int|null Height in mm, or null if not set.
      */
     public function get_height(): ?int {
-        $data = $this->get_data();
-
-        if (empty($data)) {
+        $payload = $this->get_payload();
+        if (empty($payload)) {
             return null;
         }
-
-        $decoded = json_decode($data);
-
-        return isset($decoded->height) && $decoded->height !== ''
-            ? (int) $decoded->height
+        return isset($payload['height']) && $payload['height'] !== ''
+            ? (int)$payload['height']
             : null;
     }
 
@@ -302,10 +297,10 @@ class element extends base_element implements
             return;
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // If there is no file, we have nothing to display.
-        if (empty($imageinfo->filename)) {
+        if (empty($payload['filename'])) {
             return;
         }
 
@@ -317,15 +312,27 @@ class element extends base_element implements
                 $file->copy_content_to($location);
 
                 // Check if the alpha channel is set, if it is, use it.
-                if (isset($imageinfo->alphachannel)) {
-                    $pdf->SetAlpha($imageinfo->alphachannel);
+                if (isset($payload['alphachannel'])) {
+                    $pdf->SetAlpha((float)$payload['alphachannel']);
                 }
 
                 $mimetype = $file->get_mimetype();
                 if ($mimetype == 'image/svg+xml') {
-                    $pdf->ImageSVG($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                    $pdf->ImageSVG(
+                        $location,
+                        $this->get_posx(),
+                        $this->get_posy(),
+                        (int)($payload['width'] ?? 0),
+                        (int)($payload['height'] ?? 0)
+                    );
                 } else {
-                    $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
+                    $pdf->Image(
+                        $location,
+                        $this->get_posx(),
+                        $this->get_posy(),
+                        (int)($payload['width'] ?? 0),
+                        (int)($payload['height'] ?? 0)
+                    );
                 }
 
                 // Restore to full opacity.
@@ -349,10 +356,10 @@ class element extends base_element implements
             return '';
         }
 
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // If there is no file, we have nothing to display.
-        if (empty($imageinfo->filename)) {
+        if (empty($payload['filename'])) {
             return '';
         }
 
@@ -360,12 +367,12 @@ class element extends base_element implements
         $fs = get_file_storage();
         if (
             $file = $fs->get_file(
-                $imageinfo->contextid,
+                (int)$payload['contextid'],
                 'mod_customcert',
-                $imageinfo->filearea,
-                $imageinfo->itemid,
-                $imageinfo->filepath,
-                $imageinfo->filename
+                (string)$payload['filearea'],
+                (int)$payload['itemid'],
+                (string)$payload['filepath'],
+                (string)$payload['filename']
             )
         ) {
             $url = moodle_url::make_pluginfile_url(
@@ -380,20 +387,22 @@ class element extends base_element implements
             $whratio = $fileimageinfo['width'] / $fileimageinfo['height'];
             // The size of the images to use in the CSS style.
             $style = '';
-            if ($imageinfo->width === 0 && $imageinfo->height === 0) {
+            $w = (int)($payload['width'] ?? 0);
+            $h = (int)($payload['height'] ?? 0);
+            if ($w === 0 && $h === 0) {
                 $style .= 'width: ' . $fileimageinfo['width'] . 'px; ';
                 $style .= 'height: ' . $fileimageinfo['height'] . 'px';
-            } else if ($imageinfo->width === 0) { // Then the height must be set.
+            } else if ($w === 0) { // Then the height must be set.
                 // We must get the width based on the height to keep the ratio.
-                $style .= 'width: ' . ($imageinfo->height * $whratio) . 'mm; ';
-                $style .= 'height: ' . $imageinfo->height . 'mm';
-            } else if ($imageinfo->height === 0) { // Then the width must be set.
-                $style .= 'width: ' . $imageinfo->width . 'mm; ';
+                $style .= 'width: ' . ($h * $whratio) . 'mm; ';
+                $style .= 'height: ' . $h . 'mm';
+            } else if ($h === 0) { // Then the width must be set.
+                $style .= 'width: ' . $w . 'mm; ';
                 // We must get the height based on the width to keep the ratio.
-                $style .= 'height: ' . ($imageinfo->width / $whratio) . 'mm';
+                $style .= 'height: ' . ($w / $whratio) . 'mm';
             } else { // Must both be set.
-                $style .= 'width: ' . $imageinfo->width . 'mm; ';
-                $style .= 'height: ' . $imageinfo->height . 'mm';
+                $style .= 'width: ' . $w . 'mm; ';
+                $style .= 'height: ' . $h . 'mm';
             }
 
             $content = html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
@@ -419,13 +428,13 @@ class element extends base_element implements
         global $DB;
 
         // Get the current data we have stored for this element.
-        $elementinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         // Update the context.
-        $elementinfo->contextid = context_course::instance($restore->get_courseid())->id;
+        $payload['contextid'] = context_course::instance($restore->get_courseid())->id;
 
         // Encode again before saving.
-        $elementinfo = json_encode($elementinfo);
+        $elementinfo = json_encode($payload);
 
         // Perform the update.
         $DB->set_field('customcert_elements', 'data', $elementinfo, ['id' => $this->get_id()]);
@@ -437,17 +446,17 @@ class element extends base_element implements
      * @return stored_file|bool stored_file instance if exists, false if not
      */
     public function get_file() {
-        $imageinfo = json_decode($this->get_data());
+        $payload = $this->get_payload();
 
         $fs = get_file_storage();
 
         return $fs->get_file(
-            $imageinfo->contextid,
+            (int)$payload['contextid'],
             'mod_customcert',
-            $imageinfo->filearea,
-            $imageinfo->itemid,
-            $imageinfo->filepath,
-            $imageinfo->filename
+            (string)$payload['filearea'],
+            (int)$payload['itemid'],
+            (string)$payload['filepath'],
+            (string)$payload['filename']
         );
     }
 

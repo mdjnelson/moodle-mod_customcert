@@ -84,19 +84,10 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Text content is stored in JSON data under the 'value' key once visuals are merged.
-        $raw = $this->get_data();
-        if ($raw === null || $raw === '') {
-            return;
-        }
-        if (is_string($raw)) {
-            $decoded = json_decode($raw);
-            if (is_object($decoded) && property_exists($decoded, 'value')) {
-                $mform->getElement('text')->setValue((string)$decoded->value);
-                return;
-            }
-            // Fallback for plain string storage (before visuals were merged).
-            $mform->getElement('text')->setValue($raw);
+        // Text content is stored as a scalar 'value' in JSON or as a historical plain string.
+        $value = $this->get_value();
+        if ($value !== null) {
+            $mform->getElement('text')->setValue($value);
         }
     }
 
@@ -164,16 +155,7 @@ class element extends base_element implements
      */
     protected function get_text(): string {
         $context = element_helper::get_context($this->get_id());
-        $raw = $this->get_data();
-        $content = '';
-        if (is_string($raw) && $raw !== '') {
-            $decoded = json_decode($raw);
-            if (is_object($decoded) && property_exists($decoded, 'value')) {
-                $content = (string)$decoded->value;
-            } else {
-                $content = $raw;
-            }
-        }
+        $content = (string)($this->get_value() ?? '');
         return format_text($content, FORMAT_HTML, ['context' => $context]);
     }
 }

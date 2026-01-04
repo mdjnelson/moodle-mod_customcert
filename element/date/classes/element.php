@@ -292,9 +292,9 @@ class element extends base_element implements
             return '';
         }
 
-        // Decode the information stored in the database.
-        $dateinfo = json_decode($this->get_data());
-        $dateformat = $dateinfo->dateformat;
+        // Read the information stored in the database.
+        $payload = $this->get_payload();
+        $dateformat = $payload['dateformat'] ?? '';
 
         $content = element_helper::get_date_format_string(time(), $dateformat);
         if ($renderer) {
@@ -313,14 +313,14 @@ class element extends base_element implements
     public function prepare_form(MoodleQuickForm $mform): void {
         // Set the item and format for this element.
         if (!empty($this->get_data())) {
-            $dateinfo = json_decode($this->get_data());
+            $payload = $this->get_payload();
 
-            if (isset($dateinfo->dateitem)) {
-                $mform->getElement('dateitem')->setValue($dateinfo->dateitem);
+            if (isset($payload['dateitem'])) {
+                $mform->getElement('dateitem')->setValue($payload['dateitem']);
             }
 
-            if (isset($dateinfo->dateformat)) {
-                $mform->getElement('dateformat')->setValue($dateinfo->dateformat);
+            if (isset($payload['dateformat'])) {
+                $mform->getElement('dateformat')->setValue($payload['dateformat']);
             }
         }
     }
@@ -336,25 +336,24 @@ class element extends base_element implements
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
-        $dateinfo = json_decode($this->get_data());
+        $data = $this->get_payload();
+        if (empty($data) || empty($data['dateitem'])) {
+            return;
+        }
 
         $isgradeitem = false;
-        $oldid = $dateinfo->dateitem;
-        if (str_starts_with($dateinfo->dateitem, 'gradeitem:')) {
+        $oldid = $data['dateitem'];
+        if (str_starts_with($data['dateitem'], 'gradeitem:')) {
             $isgradeitem = true;
-            $oldid = str_replace('gradeitem:', '', $dateinfo->dateitem);
+            $oldid = str_replace('gradeitem:', '', $data['dateitem']);
         }
 
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
         // Use the restore task mapping API instead of restore_dbops to allow unit testing without temp tables.
         $newid = $restore->get_mappingid($itemname, (int)$oldid);
         if ($newid) {
-            $dateinfo->dateitem = '';
-            if ($isgradeitem) {
-                $dateinfo->dateitem = 'gradeitem:';
-            }
-            $dateinfo->dateitem = $dateinfo->dateitem . $newid;
-            $DB->set_field('customcert_elements', 'data', json_encode($dateinfo), ['id' => $this->get_id()]);
+            $data['dateitem'] = ($isgradeitem ? 'gradeitem:' : '') . $newid;
+            $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
         }
     }
 

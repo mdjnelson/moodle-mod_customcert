@@ -333,13 +333,10 @@ abstract class element {
      * @return int|null
      */
     private function get_int_from_data_key(string $key): ?int {
-        $raw = $this->get_data();
-        if (is_string($raw) && $raw !== '') {
-            $decoded = json_decode($raw);
-            if (is_object($decoded) && property_exists($decoded, $key)) {
-                $value = $decoded->{$key};
-                return ($value === '' || $value === null) ? null : (int) $value;
-            }
+        $payload = $this->get_payload();
+        if (array_key_exists($key, $payload)) {
+            $value = $payload[$key];
+            return ($value === '' || $value === null) ? null : (int)$value;
         }
         return null;
     }
@@ -352,13 +349,10 @@ abstract class element {
      * @return string|null
      */
     private function get_string_from_data_key(string $key): ?string {
-        $raw = $this->get_data();
-        if (is_string($raw) && $raw !== '') {
-            $decoded = json_decode($raw);
-            if (is_object($decoded) && property_exists($decoded, $key)) {
-                $value = $decoded->{$key};
-                return ($value === '' || $value === null) ? null : (string) $value;
-            }
+        $payload = $this->get_payload();
+        if (array_key_exists($key, $payload)) {
+            $value = $payload[$key];
+            return ($value === '' || $value === null) ? null : (string)$value;
         }
         return null;
     }
