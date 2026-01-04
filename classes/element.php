@@ -599,8 +599,15 @@ abstract class element {
      * be different in the new course.
      *
      * @param restore_customcert_activity_task $restore
+     * @deprecated since Moodle 5.2 — implement
+     *   mod_customcert\element\restorable_element_interface::after_restore_from_backup() instead.
      */
     public function after_restore($restore) {
+        debugging(
+            'after_restore() is deprecated since Moodle 5.2. Implement ' .
+            'mod_customcert\element\restorable_element_interface::after_restore_from_backup() instead.',
+            DEBUG_DEVELOPER
+        );
     }
 
     /**
