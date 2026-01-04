@@ -28,7 +28,6 @@ namespace mod_customcert\element;
 
 use mod_customcert\service\element_registry;
 use mod_customcert\element\provider\plugin_provider;
-use mod_customcert\element\provider\core_plugin_provider;
 use customcertelement_text\element as text_element;
 use customcertelement_image\element as image_element;
 use customcertelement_date\element as date_element;
@@ -85,29 +84,36 @@ final class element_bootstrap {
 
         // Auto-discover third-party customcertelement_* plugins and register them.
         // This preserves explicit core registrations while enabling ecosystem compatibility.
+        // Discovery with simple in-request memoization to avoid repeated scanning.
+        static $discovered = null; // Can be an array<string,string> or null.
         try {
             $provider = $provider ?? new provider\core_plugin_provider();
-            $plugins = $provider->get_plugins();
-            foreach ($plugins as $name => $unused) {
-                $type = (string)$name; // E.g., 'foobar' for customcertelement_foobar.
-                if ($registry->has($type)) {
-                    continue; // Already registered explicitly above.
-                }
-                $classname = "\\customcertelement_{$type}\\element";
-                if (class_exists($classname)) {
-                    try {
-                        $registry->register($type, $classname);
-                    } catch (\Throwable $e) {
-                        // Always surface real registration failures to developers.
-                        debugging("Failed to register customcertelement '{$type}': {$e->getMessage()}", DEBUG_DEVELOPER);
-                    }
-                } else {
-                    // Provide a hint in developer mode when a plugin is found but its element class is missing.
-                    if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+            if ($discovered === null) {
+                $discovered = [];
+                $plugins = $provider->get_plugins();
+                foreach ($plugins as $name => $unused) {
+                    $type = (string)$name; // E.g., 'foobar' for customcertelement_foobar.
+                    $classname = "\\customcertelement_{$type}\\element";
+                    if (class_exists($classname)) {
+                        $discovered[$type] = $classname;
+                    } else if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                         $missingclass = "\\customcertelement_{$type}\\element";
-                        $msg = "Found plugin 'customcertelement_{$type}' but missing element class {$missingclass}.";
-                        debugging($msg, DEBUG_DEVELOPER);
+                        debugging(
+                            "Found plugin 'customcertelement_{$type}' but missing element class {$missingclass}.",
+                            DEBUG_DEVELOPER
+                        );
                     }
+                }
+            }
+            // Register discovered classes that aren't already in the registry.
+            foreach ($discovered as $type => $classname) {
+                if ($registry->has($type)) {
+                    continue;
+                }
+                try {
+                    $registry->register($type, $classname);
+                } catch (\Throwable $e) {
+                    debugging("Failed to register customcertelement '{$type}': {$e->getMessage()}", DEBUG_DEVELOPER);
                 }
             }
         } catch (\Throwable $e) {
