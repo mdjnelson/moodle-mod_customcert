@@ -22,7 +22,7 @@ namespace mod_customcert\element\provider;
  * Default provider that uses Moodle's core component system.
  *
  * @package    mod_customcert
- * @copyright  2025
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class core_plugin_provider implements plugin_provider {

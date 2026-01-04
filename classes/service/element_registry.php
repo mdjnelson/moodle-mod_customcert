@@ -18,15 +18,13 @@
  * Element type registry for mapping keys to element classes.
  *
  * @package    mod_customcert
- * @copyright  2025
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 declare(strict_types=1);
 
 namespace mod_customcert\service;
-
-use mod_customcert\element\element_interface;
 
 /**
  * Simple in-memory registry of element types to class names.
