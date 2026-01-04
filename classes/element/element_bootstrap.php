@@ -27,6 +27,8 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 use mod_customcert\service\element_registry;
+use mod_customcert\element\provider\plugin_provider;
+use mod_customcert\element\provider\core_plugin_provider;
 use customcertelement_text\element as text_element;
 use customcertelement_image\element as image_element;
 use customcertelement_date\element as date_element;
@@ -47,7 +49,7 @@ use customcertelement_userfield\element as userfield_element;
 use customcertelement_userpicture\element as userpicture_element;
 
 /**
- * Bootstrap helper to register bundled element types.
+ * Bootstrap helper to register bundled and discovered element types.
  */
 final class element_bootstrap {
     /**
@@ -56,10 +58,11 @@ final class element_bootstrap {
      * Note: This does not wire any runtime path; callers should invoke this
      * method explicitly (e.g., in tests or during controlled initialization).
      *
-     * @param element_registry $registry
+     * @param element_registry $registry Element registry to receive registrations.
+     * @param plugin_provider|null $provider Optional provider for customcertelement plugin discovery.
      * @return void
      */
-    public static function register_defaults(element_registry $registry): void {
+    public static function register_defaults(element_registry $registry, ?plugin_provider $provider = null): void {
         // Core/bundled elements shipped with mod_customcert.
         $registry->register('text', text_element::class);
         $registry->register('image', image_element::class);
@@ -79,5 +82,38 @@ final class element_bootstrap {
         $registry->register('teachername', teachername_element::class);
         $registry->register('userfield', userfield_element::class);
         $registry->register('userpicture', userpicture_element::class);
+
+        // Auto-discover third-party customcertelement_* plugins and register them.
+        // This preserves explicit core registrations while enabling ecosystem compatibility.
+        try {
+            $provider = $provider ?? new provider\core_plugin_provider();
+            $plugins = $provider->get_plugins();
+            foreach ($plugins as $name => $unused) {
+                $type = (string)$name; // E.g., 'foobar' for customcertelement_foobar.
+                if ($registry->has($type)) {
+                    continue; // Already registered explicitly above.
+                }
+                $classname = "\\customcertelement_{$type}\\element";
+                if (class_exists($classname)) {
+                    try {
+                        $registry->register($type, $classname);
+                    } catch (\Throwable $e) {
+                        // Always surface real registration failures to developers.
+                        debugging("Failed to register customcertelement '{$type}': {$e->getMessage()}", DEBUG_DEVELOPER);
+                    }
+                } else {
+                    // Provide a hint in developer mode when a plugin is found but its element class is missing.
+                    if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                        $missingclass = "\\customcertelement_{$type}\\element";
+                        $msg = "Found plugin 'customcertelement_{$type}' but missing element class {$missingclass}.";
+                        debugging($msg, DEBUG_DEVELOPER);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                debugging('Element discovery failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
     }
 }
