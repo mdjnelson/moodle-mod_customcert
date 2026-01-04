@@ -52,10 +52,10 @@ final class upgrade_width_migration_test extends \advanced_testcase {
                 ['width' => 23, 'font' => 'Helvetica', 'fontsize' => 12, 'colour' => '#333333'],
             ],
 
-            // B: scalar data normalised to JSON {"value": 19}.
+            // B: scalar data normalised to JSON {"value": "19"} (preserve string identity).
             'scalar string becomes value' => [
                 '19', null, null, null, null,
-                ['value' => 19],
+                ['value' => '19'],
             ],
 
             // C: width key added as 7.
@@ -82,10 +82,10 @@ final class upgrade_width_migration_test extends \advanced_testcase {
                 ['value' => 'address', 'width' => 23],
             ],
 
-            // G: scalar int preserved as value with width merged.
+            // G: numeric-looking string preserved as string 'value' with width merged.
             'numeric string preserved as value with width' => [
                 '42', 17, null, null, null,
-                ['value' => 42, 'width' => 17],
+                ['value' => '42', 'width' => 17],
             ],
         ];
     }
