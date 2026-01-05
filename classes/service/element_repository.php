@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * element_repository (scaffolding only; not wired yet).
+ * Repository for loading, saving and copying element records.
+ *
+ * Coordinates database access for elements and delegates instance creation to
+ * {@see element_factory}. It also provides helper methods to copy elements
+ * between pages/templates while preserving ordering.
  *
  * @package    mod_customcert
  * @copyright  Mark Nelson <mdjnelson@gmail.com>
@@ -34,7 +38,7 @@ use mod_customcert\event\element_updated;
 use stdClass;
 
 /**
- * Contract and minimal stub for loading/saving/copying elements.
+ * DB-backed repository for element instances.
  */
 class element_repository {
     /** @var element_factory */

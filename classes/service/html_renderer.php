@@ -15,7 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Simple HTML renderer (scaffolding only; not wired yet).
+ * HTML renderer for the element designer preview.
+ *
+ * Implements {@see element_renderer} to render elements to HTML used by the
+ * drag-and-drop designer UI. Elements that implement
+ * {@see mod_customcert\element\renderable_element_interface} can delegate to
+ * this renderer via their {@see render_html()} method. Legacy elements are
+ * supported through the {@see mod_customcert\element\legacy_element_adapter}.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -34,7 +40,7 @@ use pdf;
 use stdClass;
 
 /**
- * Simple HTML renderer.
+ * HTML renderer implementation.
  */
 final class html_renderer implements element_renderer {
     /**

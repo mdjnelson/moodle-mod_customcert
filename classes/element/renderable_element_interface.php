@@ -15,7 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides helper functionality.
+ * Rendering capability contract for element implementations.
+ *
+ * Elements implementing this interface can render themselves to two outputs:
+ * - PDF output for issuance and preview (via {@see render()})
+ * - HTML output for the drag-and-drop designer (via {@see render_html()})
+ *
+ * Implementations may optionally accept an {@see mod_customcert\service\element_renderer}
+ * to delegate common rendering concerns while keeping the element logic focused.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -31,7 +38,7 @@ use pdf;
 use stdClass;
 
 /**
- * Render-capable element contract (scaffolding only; not wired yet).
+ * Contract for elements that can render to PDF and HTML.
  *
  * Separates rendering concerns for PDF and HTML preview.
  */
