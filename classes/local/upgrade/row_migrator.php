@@ -30,6 +30,74 @@ namespace mod_customcert\local\upgrade;
  */
 final class row_migrator {
     /**
+     * JSON encoding flags used consistently across this class.
+     *
+     * - JSON_THROW_ON_ERROR to avoid silently returning false
+     * - JSON_INVALID_UTF8_SUBSTITUTE to handle legacy bytes
+     * - JSON_UNESCAPED_UNICODE for readability
+     */
+    private const int ENCODE_FLAGS =
+        JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE;
+
+    /**
+     * Determine if a raw JSON string represents a JSON object (as opposed to a list/array or scalar).
+     *
+     * Uses the first non-whitespace character for accurate classification, ensuring that
+     * empty objects "{}" (which decode to [] in PHP) are still treated as JSON objects.
+     *
+     * @param string $raw Raw JSON string to check.
+     * @return bool True if the string represents a JSON object, false otherwise.
+     */
+    private static function is_json_object_string(string $raw): bool {
+        $raw = ltrim($raw);
+        // Strip UTF-8 BOM if present before checking the first character.
+        $raw = preg_replace('/^\xEF\xBB\xBF/', '', $raw);
+        return $raw !== '' && $raw[0] === '{';
+    }
+
+    /**
+     * Strip an optional UTF-8 BOM after trimming leading whitespace.
+     *
+     * @param string $raw
+     * @return string Cleaned string without BOM at the start.
+     */
+    private static function strip_utf8_bom(string $raw): string {
+        $raw = ltrim($raw);
+        // Use preg to safely drop a leading BOM if present.
+        $clean = preg_replace('/^\xEF\xBB\xBF/', '', $raw);
+        return is_string($clean) ? $clean : $raw;
+    }
+
+    /**
+     * Encode payload to JSON using safe flags and controlled fallback.
+     *
+     * Flags:
+     * - JSON_THROW_ON_ERROR to avoid silently returning false
+     * - JSON_INVALID_UTF8_SUBSTITUTE to handle legacy bytes
+     * - JSON_UNESCAPED_UNICODE for readability
+     *
+     * If encoding still fails (very rare), we fall back to a minimal payload
+     * using the original raw string when provided.
+     *
+     * @param array $payload The associative array to encode.
+     * @param string|null $fallbackraw The original raw string to use on failure.
+     * @return string JSON-encoded string.
+     */
+    private static function encode_payload(array $payload, ?string $fallbackraw): string {
+        try {
+            return json_encode($payload, self::ENCODE_FLAGS);
+        } catch (\JsonException $e) {
+            // Best-effort fallback: prefer preserving original raw string to avoid data loss.
+            $fallback = $fallbackraw !== null ? ['value' => $fallbackraw] : $payload;
+            try {
+                return json_encode($fallback, self::ENCODE_FLAGS);
+            } catch (\JsonException $e2) {
+                // Last resort: minimal safe JSON to satisfy strict return type contracts.
+                return '{"value":""}';
+            }
+        }
+    }
+    /**
      * Merge visual attributes into the provided payload array.
      *
      * @param array $payload Existing associative array payload to augment.
@@ -59,14 +127,17 @@ final class row_migrator {
      * Migrate a single row's data payload to the consolidated JSON format.
      *
      * Rules:
-     * - If no visuals are provided, normalise non-JSON scalars to JSON {"value": ...}.
+     * - If no visuals are provided, normalise any non-object JSON (scalars/JSON lists) and non-JSON to {"value": ...}.
      *   - NULL/empty stays as-is.
-     *   - Existing JSON stays unchanged.
+     *   - Existing JSON object payloads stay unchanged (only associative objects, not JSON lists).
+     *   - Object vs list classification is based on the first non-whitespace character of the raw string:
+     *     '{' => object, '[' => list.
+     *   - JSON scalars, JSON lists, and JSON null are stored as native decoded types in the "value" field.
      * - If any visual is provided, always return JSON:
      *   - NULL/empty -> JSON with provided visuals.
-     *   - Scalar int string -> {"value": <int>, ...visuals...}.
-     *   - Existing JSON -> merge/overwrite provided visuals.
-     *   - Non-JSON string -> {"value": "...", ...visuals...}.
+     *   - Existing JSON object -> merge/overwrite provided visuals.
+     *   - JSON scalar/list -> {"value": <decoded native>, ...visuals...}.
+     *   - Invalid JSON string -> {"value": "...original string...", ...visuals...}.
      *
      * @param string|null $rawdata Original data field as stored (may be NULL, '', scalar, or JSON string).
      * @param int|null $width
@@ -78,41 +149,53 @@ final class row_migrator {
     public static function migrate_row(?string $rawdata, ?int $width, ?string $font, ?int $fontsize, ?string $colour): ?string {
         $novisuals = ($width === null && $font === null && $fontsize === null && $colour === null);
 
-        // Nothing to migrate (no visuals): normalise scalars to JSON for consistency.
+        // Nothing to migrate (no visuals): normalise scalars/JSON non-objects to JSON for consistency.
         if ($novisuals) {
             if ($rawdata === null || $rawdata === '') {
                 return $rawdata; // Keep null/empty as-is.
             }
-            // Preserve string identity to avoid stripping leading zeros.
-            $decoded = json_decode($rawdata, true);
-            if (is_array($decoded)) {
-                return $rawdata; // Already JSON – leave unchanged.
+            // Decode once and treat ONLY JSON objects as existing JSON payloads.
+            $clean = self::strip_utf8_bom($rawdata);
+            $decoded = json_decode($clean, true);
+            $jsonok = (json_last_error() === JSON_ERROR_NONE);
+            if ($jsonok && self::is_json_object_string($clean)) {
+                return $rawdata; // Already JSON object – leave unchanged (even for {}).
             }
-            return json_encode(['value' => (string)$rawdata]);
+            // For valid JSON scalars, lists, and null, keep native decoded value; else preserve original string.
+            if ($jsonok) {
+                $value = ($decoded === null || is_scalar($decoded) || (is_array($decoded) && array_is_list($decoded)))
+                    ? $decoded
+                    : $rawdata;
+                return self::encode_payload(['value' => $value], $rawdata);
+            }
+            return self::encode_payload(['value' => (string)$rawdata], $rawdata);
         }
 
         // Visuals provided – always output JSON.
         if ($rawdata === null || $rawdata === '') {
             $payload = [];
             $payload = self::merge_visuals($payload, $width, $font, $fontsize, $colour);
-            return !empty($payload) ? json_encode($payload) : $rawdata;
+            return !empty($payload) ? self::encode_payload($payload, $rawdata) : $rawdata;
         }
 
-        // Preserve string identity for numeric-looking strings.
-        if (is_string($rawdata) && json_decode($rawdata, true) === null) {
-            $payload = ['value' => (string)$rawdata];
+        // Decode once and decide handling: only JSON objects are treated as JSON payloads.
+        $clean = self::strip_utf8_bom($rawdata);
+        $decoded = json_decode($clean, true);
+        $jsonok = (json_last_error() === JSON_ERROR_NONE);
+        if ($jsonok && self::is_json_object_string($clean)) {
+            $payload = is_array($decoded) ? $decoded : [];
             $payload = self::merge_visuals($payload, $width, $font, $fontsize, $colour);
-            return json_encode($payload);
+            return self::encode_payload($payload, $rawdata);
         }
 
-        $decoded = json_decode($rawdata, true);
-        if (is_array($decoded)) {
-            $decoded = self::merge_visuals($decoded, $width, $font, $fontsize, $colour);
-            return json_encode($decoded);
+        // For JSON scalars, JSON lists, or JSON null build a payload with correctly typed value.
+        if ($jsonok && ($decoded === null || is_scalar($decoded) || (is_array($decoded) && array_is_list($decoded)))) {
+            $payload = ['value' => $decoded];
+        } else {
+            // Preserve the original string (not decoded) to avoid numeric coercion and keep leading zeros, etc.
+            $payload = ['value' => (string)$rawdata];
         }
-
-        $payload = ['value' => (string)$rawdata];
         $payload = self::merge_visuals($payload, $width, $font, $fontsize, $colour);
-        return json_encode($payload);
+        return self::encode_payload($payload, $rawdata);
     }
 }
