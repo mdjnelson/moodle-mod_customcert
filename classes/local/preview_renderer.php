@@ -123,8 +123,6 @@ final class preview_renderer {
      * @throws coding_exception
      */
     public function render_html_page(int $pageid): string {
-        global $DB;
-
         $html = '';
         $elements = $this->repository->load_by_page_id($pageid);
         foreach ($elements as $element) {
