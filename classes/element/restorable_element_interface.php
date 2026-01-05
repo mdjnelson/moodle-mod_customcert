@@ -15,7 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides helper functionality.
+ * Restore lifecycle hook for element implementations.
+ *
+ * Elements that store references to other records (e.g., course modules or files)
+ * can implement this interface to adjust those references after a backup is
+ * restored into a new site or course.
+ *
+ * This is the v2 replacement for the legacy method on the base element class.
+ * See {@see mod_customcert\element\restorable_element_interface::after_restore_from_backup()}.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -29,7 +36,7 @@ namespace mod_customcert\element;
 use restore_customcert_activity_task;
 
 /**
- * Restore-capable element contract (scaffolding only; not wired yet).
+ * Contract for elements that need to adjust data during restore.
  *
  * Provides a hook for backup/restore processes to adjust stored references.
  */
