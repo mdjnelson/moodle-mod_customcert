@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace customcertelement_qrcode;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -56,6 +57,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
+    constructable_element_interface,
     element_interface,
     form_definable_interface,
     persistable_element_interface,
@@ -92,6 +94,16 @@ class element extends base_element implements
             'width' => isset($formdata->width) ? (int)$formdata->width : 0,
             'height' => isset($formdata->height) ? (int)$formdata->height : 0,
         ];
+    }
+
+    /**
+     * Build an element instance from a DB record.
+     *
+     * @param stdClass $record Raw DB row from customcert_elements.
+     * @return static
+     */
+    public static function from_record(stdClass $record): static {
+        return new static($record);
     }
 
     /**
