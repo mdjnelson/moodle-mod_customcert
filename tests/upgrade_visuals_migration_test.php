@@ -38,7 +38,7 @@ use mod_customcert\service\element_renderer;
  * @category  test
  * @covers    \mod_customcert\local\upgrade\row_migrator::migrate_row
  */
-final class upgrade_width_migration_test extends \advanced_testcase {
+final class upgrade_visuals_migration_test extends \advanced_testcase {
     /**
      * Data provider for migrate_row cases.
      *
@@ -52,10 +52,10 @@ final class upgrade_width_migration_test extends \advanced_testcase {
                 ['width' => 23, 'font' => 'Helvetica', 'fontsize' => 12, 'colour' => '#333333'],
             ],
 
-            // B: scalar data normalised to JSON {"value": "19"} (preserve string identity).
+            // B: valid JSON number string normalised to typed value: {"value": 19}.
             'scalar string becomes value' => [
                 '19', null, null, null, null,
-                ['value' => '19'],
+                ['value' => 19],
             ],
 
             // C: width key added as 7.
@@ -82,10 +82,72 @@ final class upgrade_width_migration_test extends \advanced_testcase {
                 ['value' => 'address', 'width' => 23],
             ],
 
-            // G: numeric-looking string preserved as string 'value' with width merged.
+            // G: valid JSON number string is typed as number with width merged.
             'numeric string preserved as value with width' => [
                 '42', 17, null, null, null,
-                ['value' => '42', 'width' => 17],
+                ['value' => 42, 'width' => 17],
+            ],
+
+            // H: valid JSON scalar string remains string typed value.
+            'json scalar string value' => [
+                '"foo"', null, null, null, null,
+                ['value' => 'foo'],
+            ],
+
+            // I: valid JSON booleans become typed values.
+            'json boolean true' => [
+                'true', null, null, null, null,
+                ['value' => true],
+            ],
+            'json boolean false' => [
+                'false', null, null, null, null,
+                ['value' => false],
+            ],
+
+            // J: valid JSON null becomes typed null in value.
+            'json null becomes typed null' => [
+                'null', null, null, null, null,
+                ['value' => null],
+            ],
+
+            // K: valid JSON list becomes typed array value.
+            'json list becomes typed array' => [
+                '[1,2]', null, null, null, null,
+                ['value' => [1, 2]],
+            ],
+            'json empty list becomes typed empty array' => [
+                '[]', null, null, null, null,
+                ['value' => []],
+            ],
+
+            // L: invalid JSON numeric-looking string preserves original string.
+            'invalid numeric-like string preserved' => [
+                '00123', null, null, null, null,
+                ['value' => '00123'],
+            ],
+
+            // M: existing JSON empty object remains unchanged without visuals (decodes to empty array).
+            'empty json object unchanged no visuals' => [
+                '{}', null, null, null, null,
+                [],
+            ],
+
+            // N: existing JSON object with numeric key treated as object; with visuals, visuals merged.
+            'json object numeric string key merges width' => [
+                '{"0":"a"}', 5, null, null, null,
+                [0 => 'a', 'width' => 5],
+            ],
+
+            // O: UTF-8 BOM + object JSON should be recognised as object and merge visuals.
+            'utf8 bom object merges visuals' => [
+                "\xEF\xBB\xBF{\"a\":1}", 5, null, null, null,
+                ['a' => 1, 'width' => 5],
+            ],
+
+            // P: JSON null with visuals: ensure value is null and visuals merged.
+            'json null with visuals merges visuals' => [
+                'null', 8, 'Arial', 10, '#000',
+                ['value' => null, 'width' => 8, 'font' => 'Arial', 'fontsize' => 10, 'colour' => '#000'],
             ],
         ];
     }
@@ -110,7 +172,8 @@ final class upgrade_width_migration_test extends \advanced_testcase {
         ?string $colour,
         array $expected
     ): void {
-        $json = (string) row_migrator::migrate_row($data, $width, $font, $fontsize, $colour);
+        $json = row_migrator::migrate_row($data, $width, $font, $fontsize, $colour);
+        $this->assertNotNull($json, 'Expected a JSON string, got null. If null is expected, add a dedicated test case.');
         $arr = $this->decode_json_to_array($json);
 
         $this->assert_array_contains_expected($expected, $arr);
@@ -165,10 +228,11 @@ final class upgrade_width_migration_test extends \advanced_testcase {
     /**
      * Decode a JSON string into an array with helpful failure output.
      *
-     * @param string $json
+     * @param string|null $json
      * @return array
      */
-    private function decode_json_to_array(string $json): array {
+    private function decode_json_to_array(?string $json): array {
+        $this->assertNotNull($json, 'Expected non-null JSON string.');
         $this->assertNotSame('', $json, 'Expected non-empty JSON string.');
         $this->assertJson($json, 'Expected valid JSON, got: ' . $json);
 
@@ -200,6 +264,12 @@ final class upgrade_width_migration_test extends \advanced_testcase {
             // Otherwise compare strictly.
             $this->assertSame($value, $actual[$key], 'Mismatch for key: ' . $key);
         }
+        // Ensure no unexpected keys have slipped in.
+        $this->assertCount(
+            count($expected),
+            $actual,
+            'Unexpected keys present: ' . json_encode(array_keys($actual))
+        );
     }
 
     /**
