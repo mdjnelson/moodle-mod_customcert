@@ -15,7 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Simple PDF renderer (scaffolding only; not wired yet).
+ * PDF renderer for element issuance and previews.
+ *
+ * Implements {@see element_renderer} to render elements into a TCPDF context.
+ * Elements that implement {@see mod_customcert\element\renderable_element_interface}
+ * can delegate their PDF rendering via {@see render()}, while legacy elements
+ * are supported through the {@see mod_customcert\element\legacy_element_adapter}.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -34,7 +39,7 @@ use pdf;
 use stdClass;
 
 /**
- * Simple PDF renderer.
+ * PDF renderer implementation.
  */
 final class pdf_renderer implements element_renderer {
     /** @var pdf|null */

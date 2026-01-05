@@ -15,7 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The element_renderer contract (scaffolding only; not wired yet).
+ * Element rendering contract used by the v2 element pipeline.
+ *
+ * Implementations provide two rendering surfaces for elements:
+ * - PDF rendering for runtime issuance and preview (see pdf_renderer)
+ * - HTML rendering for the drag-and-drop designer preview (see html_renderer)
+ *
+ * The interface also exposes a small helper, {@see element_renderer::render_content()},
+ * which element implementations can use to delegate common content rendering to
+ * shared helpers without coupling to a specific renderer implementation.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -31,7 +39,7 @@ use pdf;
 use stdClass;
 
 /**
- * The element_renderer contract (scaffolding only; not wired yet).
+ * Rendering surface abstraction for elements.
  */
 interface element_renderer {
     /**
