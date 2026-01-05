@@ -25,6 +25,7 @@
 namespace customcertelement_text;
 
 use mod_customcert\element\field_type;
+use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
@@ -46,6 +47,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
+    constructable_element_interface,
     element_interface,
     form_definable_interface,
     persistable_element_interface,
@@ -157,5 +159,18 @@ class element extends base_element implements
         $context = element_helper::get_context($this->get_id());
         $content = (string)($this->get_value() ?? '');
         return format_text($content, FORMAT_HTML, ['context' => $context]);
+    }
+
+    /**
+     * Build an element instance from a DB record.
+     *
+     * This provides an explicit construction contract for the v2 factory
+     * without changing the constructor semantics.
+     *
+     * @param stdClass $record Raw DB row from customcert_elements.
+     * @return static
+     */
+    public static function from_record(stdClass $record): static {
+        return new static($record);
     }
 }
