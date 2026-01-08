@@ -21,40 +21,24 @@ namespace mod_customcert\service;
 use context;
 use dml_exception;
 use mod_customcert\element\element_bootstrap;
-use mod_customcert\event\page_created;
-use mod_customcert\event\template_duplicated;
+use mod_customcert\event\template_updated;
 use mod_customcert\template;
 
 /**
- * Transactional template duplication service.
- *
- * Copies a template row plus all pages and elements, preserving ordering and
- * firing relevant events. Naming is delegated to {@see template_repository::duplicate()}.
+ * Service to replace an existing template's pages/elements with another template's content.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class template_duplication_service {
-    /**
-     * Template repository.
-     *
-     * @var template_repository
-     */
+final class template_load_service {
+    /** @var template_repository */
     private template_repository $templates;
 
-    /**
-     * Page repository.
-     *
-     * @var page_repository
-     */
+    /** @var page_repository */
     private page_repository $pages;
 
-    /**
-     * Element repository.
-     *
-     * @var element_repository
-     */
+    /** @var element_repository */
     private element_repository $elements;
 
     /**
@@ -71,7 +55,6 @@ final class template_duplication_service {
     ) {
         $this->templates = $templates ?? new template_repository();
         $this->pages = $pages ?? new page_repository();
-
         $this->elements = $elements ?? $this->build_element_repository();
     }
 
@@ -88,29 +71,38 @@ final class template_duplication_service {
     }
 
     /**
-     * Duplicate a template, its pages, and elements in a single transaction.
+     * Replace the contents of a target template with a source template's pages and elements.
      *
-     * @param int $sourceid
-     * @param string|null $newname Optional explicit name; otherwise repository default naming is used.
-     * @return int New template id
+     * All existing pages/elements on the target are removed, then source pages/elements are
+     * copied preserving sequence. A template_updated event is fired for non-system contexts.
+     *
+     * @param int $targetid Existing template to overwrite
+     * @param int $sourceid Template to copy from
+     * @return void
      * @throws dml_exception For database errors.
      */
-    public function duplicate(int $sourceid, ?string $newname = null): int {
+    public function replace(int $targetid, int $sourceid): void {
         global $DB;
 
+        $target = $this->templates->get_by_id_or_fail($targetid);
         $source = $this->templates->get_by_id_or_fail($sourceid);
-        $context = context::instance_by_id($source->contextid);
+
+        $context = context::instance_by_id($target->contextid);
         require_capability('mod/customcert:manage', $context);
 
-        $now = time();
         $transaction = $DB->start_delegated_transaction();
 
-        $targetid = $this->templates->duplicate($sourceid, $newname);
-        $target = $this->templates->get_by_id_or_fail($targetid);
-        $targettemplate = new template($target);
+        // Remove existing pages/elements on target.
+        $existingpages = $this->pages->list_by_template($targetid);
+        foreach ($existingpages as $page) {
+            $DB->delete_records('customcert_elements', ['pageid' => $page->id]);
+            $DB->delete_records('customcert_pages', ['id' => $page->id]);
+        }
 
-        $pages = $this->pages->list_by_template($sourceid);
-        foreach ($pages as $page) {
+        // Copy pages and elements from source to target.
+        $now = time();
+        $sourcepages = $this->pages->list_by_template($sourceid);
+        foreach ($sourcepages as $page) {
             $newpageid = $this->pages->create((object) [
                 'templateid' => $targetid,
                 'width' => $page->width,
@@ -122,28 +114,14 @@ final class template_duplication_service {
                 'timemodified' => $now,
             ]);
 
-            $newpage = (object) [
-                'id' => $newpageid,
-                'templateid' => $targetid,
-                'width' => $page->width,
-                'height' => $page->height,
-                'leftmargin' => $page->leftmargin,
-                'rightmargin' => $page->rightmargin,
-                'sequence' => $page->sequence,
-            ];
-            page_created::create_from_page($newpage, $targettemplate)->trigger();
-
             $this->elements->copy_page((int) $page->id, $newpageid, false);
         }
 
         $transaction->allow_commit();
 
-        template_duplicated::create([
-            'contextid' => $target->contextid,
-            'objectid' => $targetid,
-            'other' => ['sourceid' => $sourceid],
-        ])->trigger();
-
-        return $targetid;
+        $targettemplate = new template($target);
+        if ($targettemplate->get_context()->contextlevel !== CONTEXT_SYSTEM) {
+            template_updated::create_from_template($targettemplate)->trigger();
+        }
     }
 }
