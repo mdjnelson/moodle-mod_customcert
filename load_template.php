@@ -50,15 +50,8 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 
 // Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
-    // First, remove all the existing elements and pages.
-    if ($pages = $DB->get_records('customcert_pages', ['templateid' => $template->get_id()])) {
-        foreach ($pages as $page) {
-            $template->delete_page($page->id, false);
-        }
-    }
-
-    // Copy the items across.
-    $loadtemplate->copy_to_template($template);
+    $service = new \mod_customcert\service\template_load_service();
+    $service->replace($template->get_id(), $loadtemplate->get_id());
 
     // Redirect.
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);

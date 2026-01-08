@@ -125,6 +125,7 @@ $string['eventpagedeleted'] = 'Custom certificate page deleted';
 $string['eventpageupdated'] = 'Custom certificate page updated';
 $string['eventtemplatecreated'] = 'Custom certificate template created';
 $string['eventtemplatedeleted'] = 'Custom certificate template deleted';
+$string['eventtemplateduplicated'] = 'Custom certificate template duplicated';
 $string['eventtemplateupdated'] = 'Custom certificate template updated';
 $string['exampledatawarning'] = 'Some of these values may just be an example to ensure positioning of the elements is possible.';
 $string['font'] = 'Font';

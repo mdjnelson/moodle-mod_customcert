@@ -28,9 +28,11 @@ use context_system;
 use html_writer;
 use moodle_url;
 use moodleform;
+use mod_customcert\service\template_repository;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
+global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
 /**
@@ -45,13 +47,13 @@ class load_template_form extends moodleform {
      * Form definition.
      */
     public function definition() {
-        global $DB;
-
         $mform =& $this->_form;
 
         // Get the context.
         $context = $this->_customdata['context'];
         $syscontext = context_system::instance();
+
+        $templatesrepo = new template_repository();
 
         $mform->addElement('header', 'loadtemplateheader', get_string('loadtemplate', 'customcert'));
 
@@ -64,11 +66,11 @@ class load_template_form extends moodleform {
             $mform->addElement('static', 'managetemplates', '', $link);
         }
 
-        $arrtemplates = $DB->get_records_menu('customcert_templates', ['contextid' => $syscontext->id], 'name ASC', 'id, name');
-        if ($arrtemplates) {
+        $records = $templatesrepo->list_by_context((int)$syscontext->id);
+        if ($records) {
             $templates = [];
-            foreach ($arrtemplates as $key => $template) {
-                $templates[$key] = format_string($template, true, ['context' => $context]);
+            foreach ($records as $record) {
+                $templates[$record->id] = format_string($record->name, true, ['context' => $context]);
             }
             $group = [];
             $group[] = $mform->createElement('select', 'ltid', '', $templates);
