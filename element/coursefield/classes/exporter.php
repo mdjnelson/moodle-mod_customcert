@@ -19,11 +19,32 @@ namespace customcertelement_coursefield;
 use core_course\customfield\course_handler;
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of course field elements for custom certificates.
+ *
+ * This exporter processes course-related fields, including predefined ones like
+ * fullname, shortname, and idnumber, as well as custom fields. It verifies the
+ * existence of the field during import and serializes its identifier.
+ *
+ * @package    customcertelement_coursefield
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates the provided course field name during import.
+     *
+     * Accepts predefined fields and checks against existing course custom fields.
+     * Logs a warning and skips the element if the field is not found.
+     *
+     * @param array $data Input data containing 'customfieldname'.
+     * @return array|false The original data if valid, or false if invalid.
+     */
     public function validate(array $data): array|false {
         $customfieldname = $data['customfieldname'];
 
-        if (in_array($customfieldname,  ['fullname', 'shortname', 'idnumber'])) {
+        if (in_array($customfieldname, ['fullname', 'shortname', 'idnumber'])) {
             return $data;
         }
 
@@ -41,10 +62,23 @@ class exporter extends subplugin_exportable {
         return false;
     }
 
+    /**
+     * Converts validated data into a storable format by returning the field name.
+     *
+     * @param array $data Validated data array.
+     * @return string|null The field name to store, or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
         return $data['customfieldname'];
     }
 
+    /**
+     * Reconstructs the export structure for the course field element.
+     *
+     * @param int $elementid The ID of the element.
+     * @param string $customdata Stored course field name.
+     * @return array Associative array containing 'customfieldname'.
+     */
     public function export(int $elementid, string $customdata): array {
         $arrtosave = [];
         $arrtosave['customfieldname'] = $customdata;

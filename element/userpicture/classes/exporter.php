@@ -18,9 +18,21 @@ namespace customcertelement_userpicture;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of user picture elements for custom certificates.
+ *
+ * @package    customcertelement_userpicture
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
-
-
+    /**
+     * Converts user picture element settings into a storable JSON string.
+     *
+     * @param array $data Array containing 'width' and 'height'.
+     * @return string|null JSON-encoded width/height settings or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
         $arrtostore = [
             'width' => (int) $data["width"],
@@ -29,6 +41,13 @@ class exporter extends subplugin_exportable {
         return json_encode($arrtostore);
     }
 
+    /**
+     * Reconstructs the element's configuration as an associative array for export.
+     *
+     * @param int $elementid ID of the user picture element.
+     * @param string $customdata JSON-encoded element settings.
+     * @return array Decoded width and height values.
+     */
     public function export(int $elementid, string $customdata): array {
         return (array) json_decode($customdata);
     }

@@ -18,7 +18,21 @@ namespace customcertelement_qrcode;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of QR code elements for custom certificates.
+ *
+ * @package    customcertelement_qrcode
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates QR code dimensions and logs warnings for invalid values.
+     *
+     * @param array $data Input data with QR code settings.
+     * @return array|false Sanitized data array or false on failure.
+     */
     public function validate(array $data): array|false {
         $width = $data['width'] ?? null;
         $height = $data['height'] ?? null;
@@ -39,10 +53,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Converts validated QR code settings into a JSON-encoded string for storage.
+     *
+     * @param array $data Validated width and height values.
+     * @return string|null JSON string or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
         return json_encode($data);
     }
 
+    /**
+     * Reconstructs QR code settings from stored JSON data for export.
+     *
+     * @param int $elementid ID of the QR code element.
+     * @param string $customdata Stored JSON data.
+     * @return array Associative array with width and height.
+     */
     public function export(int $elementid, string $customdata): array {
         return (array) json_decode($customdata);
     }

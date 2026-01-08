@@ -18,12 +18,34 @@ namespace customcertelement_gradeitemname;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of grade item name elements for custom certificates.
+ *
+ * @package    customcertelement_gradeitemname
+ * @autor      Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Logs an informational message and returns an empty string,
+     * indicating that grade item references are not imported.
+     *
+     * @param array $data Input data containing grade reference.
+     * @return string Empty string to store as placeholder.
+     */
     public function convert_for_import(array $data): ?string {
         $this->logger->info("There is a grade reference, that will not be imported");
         return '';
     }
 
+    /**
+     * Returns an empty structure for export as no data is preserved.
+     *
+     * @param int $elementid ID of the grade item name element.
+     * @param string $customdata Ignored.
+     * @return array Always returns an empty array.
+     */
     public function export(int $elementid, string $customdata): array {
         return [];
     }

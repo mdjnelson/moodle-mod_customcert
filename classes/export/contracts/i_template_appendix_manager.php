@@ -46,10 +46,20 @@ interface i_template_appendix_manager {
     /**
      * Finds and returns a stored file based on a given identifier.
      *
-     * @param mixed $identifier The unique identifier for the file.
+     * @param string $identifier The unique identifier for the file.
      * @return stored_file|false The found file or false if not found.
      */
-    public function find($identifier): stored_file|false;
+    public function find(string $identifier): stored_file|false;
+
+    /**
+     * Finds and returns a stored file based on a given identifier
+     * and returns its reference data.
+     *
+     * @param string $identifier The unique identifier for the file.
+     * @param string $filename Name put before each value, in the reference array.
+     * @return array Data array to reference the found file, empty if not found.
+     */
+    public function get_file_reference(string $identifier, string $filename = ''): array;
 
     /**
      * Returns a unique identifier for a given stored file.

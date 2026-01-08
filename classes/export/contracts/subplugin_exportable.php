@@ -82,4 +82,26 @@ abstract class subplugin_exportable {
     public function get_used_files(int $id, string $customdata): array {
         return [];
     }
+
+    /**
+     * Retrieves the stored file instance associated with this element.
+     *
+     * @param int $id The element ID.
+     * @param string $customdata JSON-encoded data with file metadata.
+     * @param string $dbprename Filename stands before each reference value of the file
+     * @return stored_file The resolved image file.
+     */
+    protected function get_file_from_customdata(string $customdata, string $dbprename = ''): stored_file {
+        $imagedata = (array) json_decode($customdata);
+
+        $fs = get_file_storage();
+        return $fs->get_file(
+            (int) $imagedata["{$dbprename}contextid"],
+            'mod_customcert',
+            $imagedata["{$dbprename}filearea"],
+            (int) $imagedata["{$dbprename}itemid"],
+            $imagedata["{$dbprename}filepath"],
+            $imagedata["{$dbprename}filename"]
+        );
+    }
 }

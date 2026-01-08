@@ -18,7 +18,24 @@ namespace customcertelement_image;
 
 use customcertelement_bgimage\exporter as bgimage_exporter;
 
+/**
+ * Handles import and export of image elements for custom certificates.
+ *
+ * @package    customcertelement_image
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends bgimage_exporter {
+    /**
+     * Validates and prepares data for an image element.
+     *
+     * Inherits base file validation from background image exporter and supplements it
+     * with integer conversion for width and height fields.
+     *
+     * @param array $data The image element configuration.
+     * @return array|false Validated data structure or false on failure.
+     */
     public function validate(array $data): array|false {
         $valid = parent::validate($data);
         if (!$valid) {

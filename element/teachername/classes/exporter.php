@@ -20,7 +20,21 @@ use core\di;
 use mod_customcert\export\contracts\subplugin_exportable;
 use moodle_database;
 
+/**
+ * Handles import and export of teacher name elements for custom certificates.
+ *
+ * @package    customcertelement_teachername
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates that the teacher exists and the full name matches the backup.
+     *
+     * @param array $data Associative array with 'userid' and 'fullname'.
+     * @return array|false Validated data or empty array if invalid.
+     */
     public function validate(array $data): array|false {
         if (empty($data)) {
             return [];
@@ -44,6 +58,12 @@ class exporter extends subplugin_exportable {
         return $data;
     }
 
+    /**
+     * Converts the teacher data to a storable format (user ID).
+     *
+     * @param array $data Validated input data.
+     * @return string|null The teacher's user ID or null if no data.
+     */
     public function convert_for_import(array $data): ?string {
         if (empty($data)) {
             return null;
@@ -52,6 +72,13 @@ class exporter extends subplugin_exportable {
         return $data['userid'];
     }
 
+    /**
+     * Exports the teacher name element data with both ID and full name.
+     *
+     * @param int $elementid The element's ID (not used).
+     * @param string $customdata User ID of the teacher.
+     * @return array Associative array with 'userid' and 'fullname', or empty if not found.
+     */
     public function export(int $elementid, string $customdata): array {
         $db = di::get(moodle_database::class);
         $teacher = $db->get_record('user', ['id' => intval($customdata)]);

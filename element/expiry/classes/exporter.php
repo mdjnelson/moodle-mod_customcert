@@ -18,7 +18,28 @@ namespace customcertelement_expiry;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of expiry elements for custom certificates.
+ *
+ * This exporter ensures expiry configuration is valid, including the date type,
+ * format, and calculation base (award or course completion). Defaults are used for
+ * unknown or invalid input, with warnings logged accordingly.
+ *
+ * @package    customcertelement_expiry
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates expiry date settings including date item, format, and base start.
+     *
+     * Ensures all input values are from predefined valid sets. If any value is invalid,
+     * a default is used and a warning is logged.
+     *
+     * @param array $data Element data to validate.
+     * @return array|false Cleaned and valid data array or false on total failure.
+     */
     public function validate(array $data): array|false {
         $dateitem = $data["dateitem"];
         $validdateitems = $this->get_dateitems();
@@ -48,6 +69,13 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Returns the list of valid custom expiry date item constants.
+     *
+     * These are typically internally reserved identifiers specific to expiry logic.
+     *
+     * @return array List of accepted date item strings.
+     */
     private function get_dateitems(): array {
         return [
             '-8',
@@ -58,10 +86,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Converts the validated expiry configuration into a JSON string for storage.
+     *
+     * @param array $data Cleaned input data.
+     * @return string|null JSON-encoded data or null if invalid.
+     */
     public function convert_for_import(array $data): ?string {
         return json_encode($data);
     }
 
+    /**
+     * Reconstructs the expiry element data from stored JSON for export.
+     *
+     * @param int $elementid ID of the expiry element.
+     * @param string $customdata Stored JSON-encoded data.
+     * @return array Associative array with keys: dateitem, dateformat, startfrom.
+     */
     public function export(int $elementid, string $customdata): array {
         $data = json_decode($customdata);
 

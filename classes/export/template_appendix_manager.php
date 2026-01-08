@@ -180,9 +180,30 @@ class template_appendix_manager implements i_template_appendix_manager {
      * @param string $identifier The content hash of the file.
      * @return stored_file|false The matched file or false if not found.
      */
-    public function find($identifier): stored_file|false {
-        $identifier = (string)$identifier;
+    public function find(string $identifier): stored_file|false {
         return $this->index[$identifier] ?? false;
+    }
+
+    /**
+     * Finds and returns a stored file based on a given identifier
+     * and returns its reference data.
+     *
+     * @param string $identifier The unique identifier for the file.
+     * @param string $filename Name put before each value, in the reference array.
+     * @return array Data array to reference the found file, empty if not found.
+     */
+    public function get_file_reference(string $identifier, string $filename = ''): array {
+        if (!$file = $this->find($identifier)) {
+            return [];
+        }
+
+        return [
+            "{$filename}contextid" => $file->get_contextid(),
+            "{$filename}filearea" => $file->get_filearea(),
+            "{$filename}itemid" => $file->get_itemid(),
+            "{$filename}filepath" => $file->get_filepath(),
+            "{$filename}filename" => $file->get_filename(),
+        ];
     }
 
     /**

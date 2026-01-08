@@ -22,15 +22,44 @@ use mod_customcert\export\contracts\i_template_appendix_manager;
 use mod_customcert\export\contracts\subplugin_exportable;
 use stored_file;
 
+/**
+ * Handles import and export of background image elements for custom certificates.
+ *
+ * This exporter deals with serialization and deserialization of image references and properties.
+ * It ensures referenced images are available, correctly mapped, and included in import/export
+ * operations using the appendix manager service.
+ *
+ * @package    customcertelement_bgimage
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * @var i_template_appendix_manager Reference to the template appendix manager used for file lookup and identification.
+     */
     private i_template_appendix_manager $filemng;
+    /**
+     * @var string Database table associated with custom certificate elements.
+     */
     protected $dbtable = 'customcert_elements';
 
+    /**
+     * Constructor.
+     */
     public function __construct() {
         $this->filemng = di::get(i_template_appendix_manager::class);
         parent::__construct();
     }
 
+    /**
+     * Validates that the referenced image file exists during import.
+     *
+     * Logs a warning if the referenced image cannot be found and cancels import for the element.
+     *
+     * @param array $data The image element data to validate.
+     * @return array|false The validated data, or false if the import should be canceled.
+     */
     public function validate(array $data): array|false {
         $file = $this->filemng->find($data['imageref']);
         if (!$file) {
@@ -41,26 +70,36 @@ class exporter extends subplugin_exportable {
         return $data;
     }
 
+    /**
+     * Converts validated data to a JSON string with detailed file metadata for storage.
+     *
+     * @param array $data The validated import data.
+     * @return string|null The JSON-encoded storage string or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
-        $file = $this->filemng->find($data['imageref']);
-
         $arrtostore = [
             'width' => $data['width'],
             'height' => $data['height'],
             'alphachannel' => $data['alphachannel'],
-            'contextid' => $file->get_contextid(),
-            'filearea' => $file->get_filearea(),
-            'itemid' => $file->get_itemid(),
-            'filepath' => $file->get_filepath(),
-            'filename' => $file->get_filename(),
         ];
+        $arrtostore += $this->filemng->get_file_reference($data['imageref']);
+
         return json_encode($arrtostore);
     }
 
+    /**
+     * Extracts element data and adds a file identifier for export.
+     *
+     * Looks up the associated image and returns the export structure with an image reference.
+     *
+     * @param int $elementid ID of the element being exported.
+     * @param string $customdata JSON string containing the element's settings.
+     * @return array Associative array for export.
+     */
     public function export(int $elementid, string $customdata): array {
         $data = json_decode($customdata);
 
-        $file = $this->get_image($elementid, $customdata);
+        $file = $this->get_file_from_customdata($customdata);
         $fileid = $this->filemng->get_identifier($file);
 
         $arrtostore = [
@@ -72,29 +111,15 @@ class exporter extends subplugin_exportable {
         return $arrtostore;
     }
 
-    private function get_image(int $id, string $customdata): stored_file {
-        $imagedata = json_decode($customdata);
-
-        $fs = get_file_storage();
-
-        if ($file = $fs->get_file(
-            (int) $imagedata->contextid,
-            'mod_customcert',
-            $imagedata->filearea,
-            (int) $imagedata->itemid,
-            $imagedata->filepath,
-            $imagedata->filename
-        )) {
-            return $file;
-        }
-
-        throw new Exception("File not found");
-    }
-
+    /**
+     * Returns the image file associated with this element for inclusion in export bundles.
+     *
+     * @param int $id The element ID.
+     * @param string $customdata JSON-encoded data for the element.
+     * @return stored_file[] An array containing the stored file, or empty if not found.
+     */
     public function get_used_files(int $id, string $customdata): array {
-        $coursefile = $this->get_image($id, $customdata);
-
-        if (!$coursefile) {
+        if (!$coursefile = $this->get_file_from_customdata($customdata)) {
             return [];
         }
 

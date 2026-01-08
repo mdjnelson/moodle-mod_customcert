@@ -18,7 +18,26 @@ namespace customcertelement_daterange;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of date range elements for custom certificates.
+ *
+ * @package    customcertelement_daterange
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates date range configuration including type, intervals, and recurrence.
+     *
+     * Checks:
+     * - The date item is a known type.
+     * - The 'dateranges' key is an array.
+     * - Each range has a non-empty string, valid timestamps, and recurrence limits.
+     *
+     * @param array $data The input data for the date range element.
+     * @return array|false Validated array or false if any checks fail.
+     */
     public function validate(array $data): array|false {
         $dateitem = $data['dateitem'];
         $validdateitems = $this->get_valid_dateitems();
@@ -62,16 +81,11 @@ class exporter extends subplugin_exportable {
         return $data;
     }
 
-    private function is_one_range_set($repeats, $rangedeletes): bool {
-        for ($i = 0; $i < $repeats; $i++) {
-            if (empty($rangedeletes[$i])) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    /**
+     * Returns the list of valid date item constants allowed for range-based configuration.
+     *
+     * @return array List of valid date item constants.
+     */
     private function get_valid_dateitems() {
         return [
             element::DATE_ISSUE,
@@ -83,10 +97,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Converts validated date range data into JSON for storage.
+     *
+     * @param array $data The input configuration.
+     * @return string|null JSON-encoded string or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
         return json_encode($data);
     }
 
+    /**
+     * Reconstructs the export structure from stored custom data.
+     *
+     * @param int $elementid The ID of the element.
+     * @param string $customdata JSON-encoded date range data.
+     * @return array Decoded export structure.
+     */
     public function export(int $elementid, string $customdata): array {
         return (array) json_decode($customdata);
     }

@@ -18,7 +18,23 @@ namespace customcertelement_border;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of border elements for custom certificates.
+ *
+ * @package    customcertelement_border
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates the width of the border element during import.
+     *
+     * Issues a warning and sets width to 0 if it is not a valid integer.
+     *
+     * @param array $data Element data containing width.
+     * @return array|false Validated data array or false if validation fails.
+     */
     public function validate(array $data): array|false {
         $width = $data['width'];
 
@@ -32,10 +48,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Converts validated border data to a string format for storage.
+     *
+     * @param array $data Validated data array with 'width'.
+     * @return string|null The width value as string or null on failure.
+     */
     public function convert_for_import(array $data): ?string {
         return $data['width'];
     }
 
+    /**
+     * Prepares the stored border width for export as an associative array.
+     *
+     * @param int $elementid ID of the border element.
+     * @param string $customdata Stored width as string.
+     * @return array Associative array with the width value.
+     */
     public function export(int $elementid, string $customdata): array {
         $data = [];
         $data['width'] = $customdata;

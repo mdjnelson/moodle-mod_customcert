@@ -18,7 +18,28 @@ namespace customcertelement_text;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of static text elements for custom certificates.
+ *
+ * This exporter deals with plain text input used in certificates, allowing
+ * serialization of the content and logging informational messages for empty fields.
+ *
+ * @package    customcertelement_text
+ * @extends    subplugin_exportable
+ * @implements mod_customcert\export\contracts\subplugin_exportable
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates the static text element's content.
+     *
+     * If empty, logs an informational message. Returns sanitized data structure.
+     *
+     * @param array $data The element input data.
+     * @return array|false Sanitized data or false on failure.
+     */
     public function validate(array $data): array|false {
         $text = $data['text'] ?? "";
 
@@ -31,10 +52,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Returns the validated text for direct database storage.
+     *
+     * @param array $data Validated element data.
+     * @return string|null The text to be stored or null.
+     */
     public function convert_for_import(array $data): ?string {
         return $data['text'];
     }
 
+    /**
+     * Wraps the stored text value in an array for export.
+     *
+     * @param int $elementid The ID of the text element.
+     * @param string $customdata The stored text value.
+     * @return array Exportable structure containing the text.
+     */
     public function export(int $elementid, string $customdata): array {
         $data = [];
         $data['text'] = $customdata;

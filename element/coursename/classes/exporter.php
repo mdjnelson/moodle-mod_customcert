@@ -18,7 +18,25 @@ namespace customcertelement_coursename;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles import and export of course name elements for custom certificates.
+ *
+ * This exporter validates and serializes the display format for course names,
+ * supporting short or full name formats. Invalid formats fall back to a default
+ * with a warning.
+ *
+ * @package    customcertelement_coursename
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_exportable {
+    /**
+     * Validates the selected course name display format.
+     *
+     * @param array $data Input data with 'coursenamedisplay'.
+     * @return array|false Validated or corrected data.
+     */
     public function validate(array $data): array|false {
         $coursenamedisplay = $data['coursenamedisplay'];
 
@@ -35,10 +53,23 @@ class exporter extends subplugin_exportable {
         ];
     }
 
+    /**
+     * Returns the validated display format as a string for storage.
+     *
+     * @param array $data Validated data array.
+     * @return string|null The display format to store.
+     */
     public function convert_for_import(array $data): ?string {
         return $data['coursenamedisplay'];
     }
 
+    /**
+     * Reconstructs export data from stored course name format.
+     *
+     * @param int $elementid ID of the course name element.
+     * @param string $customdata Stored display format.
+     * @return array Associative array for export.
+     */
     public function export(int $elementid, string $customdata): array {
         $arrtostore = [];
         $arrtostore['coursenamedisplay'] = $customdata;
