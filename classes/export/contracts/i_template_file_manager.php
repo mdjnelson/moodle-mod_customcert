@@ -16,46 +16,30 @@
 
 namespace mod_customcert\export\contracts;
 
-defined('MOODLE_INTERNAL') || die();
-require_once("$CFG->libdir/formslib.php");
-
-use moodleform;
-
 /**
- * Defines the form for importing custom certificate backup files.
+ * Handles the import and export of custom certificate templates.
  *
  * @package    mod_customcert
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class import_form extends moodleform {
+interface i_template_file_manager {
     /**
-     * Builds the import form UI elements.
+     * Exports as a zip file contains infos about a custom certificate template.
      *
-     * Adds a file picker for uploading a .zip backup file and a hidden field for
-     * passing the context ID where the import will occur.
+     * Call this export function to download the zip.
+     *
+     * @param int $templateid The ID of the certificate template to export.
      */
-    protected function definition() {
-        $mform = $this->_form;
+    public function export(int $templateid): void;
 
-        $mform->addElement(
-            'filepicker',
-            'backup',
-            get_string('file'),
-            null,
-            [
-                'accepted_types' => '.zip',
-            ]
-        );
-
-        $mform->addElement(
-            'hidden',
-            'context_id',
-            required_param('context_id', PARAM_INT),
-        );
-        $mform->setType('context_id', PARAM_INT);
-
-        $this->add_action_buttons();
-    }
+    /**
+     * Imports certificate template files into a context from a temporary directory.
+     *
+     * @param int $contextid The context ID where the template files will be imported.
+     * @param string $tempdir The path to the temporary directory containing the template file.
+     *                        Must be a zip named import.zip
+     */
+    public function import(int $contextid, string $tempdir): void;
 }

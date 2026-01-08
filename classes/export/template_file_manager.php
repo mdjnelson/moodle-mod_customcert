@@ -16,17 +16,44 @@
 
 namespace mod_customcert\export;
 use coding_exception;
-use mod_customcert\export\contracts\i_backup_manager;
-use mod_customcert\export\contracts\i_file_manager;
+use mod_customcert\export\contracts\i_template_file_manager;
+use mod_customcert\export\contracts\i_template_appendix_manager;
 use moodle_exception;
 use zip_packer;
 
-class backup_manager implements i_backup_manager {
+/**
+ * Manages the export and import of custom certificate template files.
+ *
+ * This class handles the full process of creating a `.zip` file from a template,
+ * including JSON data and appendix files, and supports importing the same structure
+ * back into the system. It integrates with file and appendix managers to provide
+ * complete backup and restore functionality.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class template_file_manager implements i_template_file_manager {
+    /**
+     * Constructor.
+     *
+     * @param i_template_appendix_manager $filemng The manager for appendix file operations.
+     */
     public function __construct(
-        private i_file_manager $filemng
+        private i_template_appendix_manager $filemng
     ) {
     }
 
+    /**
+     * Exports a template and its files into a ZIP archive and initiates download.
+     *
+     * Encodes the template data as JSON, saves it to a temporary directory,
+     * includes appendix files, and archives everything into a downloadable ZIP file.
+     *
+     * @param int $templateid The ID of the template to export.
+     * @throws coding_exception If JSON encoding fails.
+     */
     public function export(int $templateid): void {
         $jsondata = (new template())->export($templateid);
 
@@ -57,6 +84,16 @@ class backup_manager implements i_backup_manager {
         send_temp_file($zipfile, "certificate-template-$templateid.zip");
     }
 
+    /**
+     * Imports a template and its files from a ZIP archive located in a temporary directory.
+     *
+     * Extracts the archive, validates its contents, loads the JSON structure,
+     * and invokes the import logic for both template data and appendix files.
+     *
+     * @param int $contextid The context ID into which the template will be imported.
+     * @param string $tempdir The directory containing the uploaded ZIP archive.
+     * @throws coding_exception|moodle_exception If extraction fails or required files are missing.
+     */
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
             throw new coding_exception('ZIP packer not available');
@@ -73,7 +110,7 @@ class backup_manager implements i_backup_manager {
         if (!file_exists($jsonpath)) {
             throw new \moodle_exception('filenotfound', 'error', '', 'template.json');
         }
-        
+
         $this->filemng->import($contextid, $unpackdir);
 
         $json = file_get_contents($jsonpath);

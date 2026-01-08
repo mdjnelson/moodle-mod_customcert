@@ -19,13 +19,33 @@ namespace mod_customcert\export;
 use core\di;
 use moodle_database;
 
+/**
+ * Exports database records from a specified table by ID and selected fields.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class table_exporter {
+    /**
+     * Constructor.
+     *
+     * @param string $tablename The name of the table to export from.
+     */
     public function __construct(
         public string $tablename
     ) {
         $this->db = di::get(moodle_database::class);
     }
 
+    /**
+     * Retrieves a record from the table using the given ID and fields.
+     *
+     * @param int $id The primary key ID of the record to fetch.
+     * @param array $fields List of fields to retrieve.
+     * @return array Associative array of the retrieved record data.
+     */
     public function export(int $id, array $fields): array {
         $data = (array) $this->db->get_record(
             $this->tablename,

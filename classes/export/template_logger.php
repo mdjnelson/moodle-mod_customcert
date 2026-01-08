@@ -17,12 +17,31 @@
 namespace mod_customcert\export;
 
 use core\notification;
-use mod_customcert\export\contracts\i_backup_logger;
+use mod_customcert\export\contracts\i_template_import_logger;
 
-class recovering_logger implements i_backup_logger {
+/**
+ * Collects and outputs info and warning messages during template import.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class template_logger implements i_template_import_logger {
+    /**
+     * @var array Stores warning messages collected during the import process.
+     */
     private array $warnings = [];
+    /**
+     * @var array Stores informational messages collected during the import process.
+     */
     private array $infos = [];
 
+    /**
+     * Logs a warning message, outputting to CLI or storing for later web display.
+     *
+     * @param string $message The warning message.
+     */
     public function warning($message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
@@ -32,6 +51,11 @@ class recovering_logger implements i_backup_logger {
         $this->warnings[] = $message;
     }
 
+    /**
+     * Logs an informational message, outputting to CLI or storing for later web display.
+     *
+     * @param string $message The informational message.
+     */
     public function info($message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
@@ -41,6 +65,9 @@ class recovering_logger implements i_backup_logger {
         $this->infos[] = $message;
     }
 
+    /**
+     * Outputs all stored warning and info messages using Moodle’s notification system.
+     */
     public function print_notification(): void {
         foreach ($this->warnings as $message) {
             notification::warning($message);

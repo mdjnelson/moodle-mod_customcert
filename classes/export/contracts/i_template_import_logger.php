@@ -16,8 +16,33 @@
 
 namespace mod_customcert\export\contracts;
 
-interface i_backup_logger {
+/**
+ * Defines logging capabilities for custom certificate template import feature.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+interface i_template_import_logger {
+    /**
+     * Logs a warning message to the import process logger.
+     *
+     * @param string $message The warning message to log.
+     */
     public function warning($message): void;
+
+    /**
+     * Logs an informational message during the import process.
+     *
+     * @param string $message The info message to log.
+     */
     public function info($message): void;
+
+    /**
+     * Outputs or displays the collected log notifications.
+     *
+     * This method should be called after import operations to show relevant messages.
+     */
     public function print_notification(): void;
 }

@@ -17,19 +17,68 @@
 namespace mod_customcert\export\contracts;
 
 use core\di;
+use stored_file;
 
+/**
+ * Provides a base structure for exportable custom certificate subplugins. *
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 abstract class subplugin_exportable {
-    protected i_backup_logger $logger;
+    /**
+     * @var i_template_import_logger Logger instance used for reporting import issues and notices.
+     */
+    protected i_template_import_logger $logger;
 
+    /**
+     * Constructor.
+     */
     public function __construct() {
-        $this->logger = di::get(i_backup_logger::class);
+        $this->logger = di::get(i_template_import_logger::class);
     }
 
+    /**
+     * Validates the provided data before import.
+     *
+     * @param array $data The data to validate.
+     * @return array|false Returns the corrected data if recoverable
+     *                     or false on validation failure.
+     */
     public function validate(array $data): array|false {
         return $data;
     }
-    public abstract function convert_for_import(array $data): ?string;
-    public abstract function export(int $elementid, string $customdata): array;
+
+    /**
+     * Converts raw import data to a string format suitable for subplugin storage.
+     *
+     * Will only be called if validation was successful.
+     *
+     * @param array $data The data to convert.
+     * @return string|null Converted string.
+     */
+    abstract public function convert_for_import(array $data): ?string;
+
+    /**
+     * Exports subplugin data.
+     *
+     * The exported structure will later be passed to convert_for_import again.
+     *
+     * @param int $elementid The ID of the customcert element.
+     * @param string $customdata Subplugin custom data.
+     * @return array Exported data in array format.
+     */
+    abstract public function export(int $elementid, string $customdata): array;
+
+    /**
+     * Retrieves file references used by the subplugin element.
+     *
+     * @param int $id The ID of the element.
+     * @param string $customdata Subplugin custom data.
+     * @return stored_file[] Stored files, defaulting to an empty array.
+     */
     public function get_used_files(int $id, string $customdata): array {
         return [];
     }

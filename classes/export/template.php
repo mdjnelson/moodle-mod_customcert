@@ -21,17 +21,55 @@ use core\di;
 use mod_customcert\export\contracts\import_exception;
 use moodle_database;
 
+/**
+ * Handles the import and export of custom certificate templates.
+ *
+ * This class manages top-level certificate template data including its pages
+ * and their associated elements. It supports transactional imports and structured
+ * exports using nested component classes.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class template {
+    /**
+     * @var clock Clock service for generating consistent timestamps.
+     */
     private clock $clock;
+    /**
+     * @var table_exporter Table exporter for retrieving template-level data.
+     */
     private table_exporter $exporter;
+    /**
+     * @var string Name of the database table for certificate templates.
+     */
     protected static string $dbtable = 'customcert_templates';
+    /**
+     * @var array List of fields to be exported from the template table.
+     */
     protected array $fields = ['name'];
 
+    /**
+     * Constructor.
+     */
     public function __construct() {
         $this->exporter = new table_exporter(self::$dbtable);
         $this->clock = di::get(clock::class);
     }
 
+    /**
+     * Imports a full certificate template, including pages and elements.
+     *
+     * Validates the structure, inserts template metadata into the database,
+     * and initiates recursive import of page data. Uses a delegated DB transaction
+     * to ensure consistency.
+     *
+     * @param int $contextid The context in which the template is being imported.
+     * @param array $templatedata The structured data for the template.
+     * @throws import_exception If required template fields are missing.
+     */
     public function import(int $contextid, array $templatedata): void {
         if (($templatedata['name'] ?? null) == null) {
             throw new import_exception('Certificate missing the attribute name');
@@ -55,6 +93,14 @@ class template {
         $transaction->allow_commit();
     }
 
+    /**
+     * Exports a full certificate template including all pages and elements.
+     *
+     * Retrieves the template metadata and assembles the full structure recursively.
+     *
+     * @param int $templateid The ID of the template to export.
+     * @return array The structured export of the template.
+     */
     public function export(int $templateid): array {
         $data = $this->exporter->export($templateid, $this->fields);
 

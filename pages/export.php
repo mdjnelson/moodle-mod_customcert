@@ -14,31 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Triggers the export of a custom certificate template as a downloadable ZIP file.
+ *
+ * This script is executed via HTTP, requiring a logged-in user and a template ID (`tid`)
+ * as a parameter. It retrieves the template export service from Moodle's DI container
+ * and initiates the export and download.
+ *
+ * @package    mod_customcert
+ * @copyright  2025, oncampus GmbH
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once(__DIR__ . '/../../../config.php');
 
 use core\di;
-use mod_customcert\export\contracts\i_backup_manager;
+use mod_customcert\export\contracts\i_template_file_manager;
 
 require_login();
 
 $tid = required_param("tid", PARAM_INT);
 
-$exporter = di::get(i_backup_manager::class);
+$exporter = di::get(i_template_file_manager::class);
 $exporter->export($tid);
-
-/*
-$template = new template(0);
-$json = json_encode($template->export($tid), JSON_PRETTY_PRINT);
-
-@ob_clean();
-
-$filename = "customcert-template-{$tid}.json";
-
-header('Content-Type: application/json; charset=utf-8');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Content-Length: ' . strlen($json));
-header('Cache-Control: no-store, no-cache, must-revalidate');
-header('Pragma: no-cache');*/
-
-//echo $json;
-exit;

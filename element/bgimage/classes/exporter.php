@@ -18,16 +18,16 @@ namespace customcertelement_bgimage;
 
 use core\di;
 use Exception;
-use mod_customcert\export\contracts\i_file_manager;
+use mod_customcert\export\contracts\i_template_appendix_manager;
 use mod_customcert\export\contracts\subplugin_exportable;
 use stored_file;
 
 class exporter extends subplugin_exportable {
-    private i_file_manager $filemng;
+    private i_template_appendix_manager $filemng;
     protected $dbtable = 'customcert_elements';
 
     public function __construct() {
-        $this->filemng = di::get(i_file_manager::class);
+        $this->filemng = di::get(i_template_appendix_manager::class);
         parent::__construct();
     }
 

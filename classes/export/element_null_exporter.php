@@ -18,20 +18,48 @@ namespace mod_customcert\export;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
+/**
+ * Handles unsupported or unrecognized subplugin types during export and import.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class element_null_exporter extends subplugin_exportable {
+    /**
+     * Initializes the null exporter with the name of the unrecognized plugin.
+     *
+     * @param string $pluginname The name of the unknown or unsupported plugin.
+     */
     public function __construct(
         private string $pluginname
     ) {
+        parent::__construct();
     }
 
+    /**
+     * Logs a warning that import for the given plugin type is not supported.
+     *
+     * @param array $data The data intended for import.
+     * @return string|null Always returns null as the conversion is not possible.
+     */
     public function convert_for_import(array $data): ?string {
-        mtrace('Couldn\'t import element from plugin ' . $this->pluginname);
+        $this->logger->warning('Couldn\'t import element of type ' . $this->pluginname);
         return null;
     }
 
+    /**
+     * Logs a message to CLI that export for the given plugin type is not supported.
+     *
+     * @param int $elementid ID of the customcert element.
+     * @param string|null $customdata Custom data associated with the element.
+     * @return array Always returns an empty array since export is not supported.
+     */
     public function export(int $elementid, ?string $customdata): array {
-        die('Couldn\'t export element from plugin ' . $this->pluginname);
-        mtrace('Couldn\'t export element from plugin ' . $this->pluginname);
+        if (CLI_SCRIPT) {
+            mtrace('Couldn\'t export element from plugin ' . $this->pluginname);
+        }
         return [];
     }
 }
