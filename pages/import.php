@@ -47,9 +47,7 @@ $PAGE->set_heading(get_string('import'));
 
 $mform = new import_form();
 
-if ($mform->is_cancelled()) {
-
-} else if ($fromform = $mform->get_data()) {
+if ($fromform = $mform->get_data()) {
     $zipstring = $mform->get_file_content('backup');
     $tempdir = make_temp_directory('customcert_import/' . uniqid(more_entropy: true));
     $zippath = "$tempdir/import.zip";

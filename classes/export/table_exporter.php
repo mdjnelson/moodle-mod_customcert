@@ -32,6 +32,8 @@ class table_exporter {
      * @var moodle_database Database connection
      */
     private moodle_database $db;
+    /** @var string The name of the table to export from. */
+    public readonly string $tablename;
 
     /**
      * Constructor.
@@ -39,8 +41,9 @@ class table_exporter {
      * @param string $tablename The name of the table to export from.
      */
     public function __construct(
-        public string $tablename
+        string $tablename
     ) {
+        $this->tablename = $tablename;
         $this->db = di::get(moodle_database::class);
     }
 

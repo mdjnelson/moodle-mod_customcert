@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace customcertelement_text;
+namespace customcertelement_studentname;
 
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
  * Empty custom data exporter.
  *
- * @package    customcertelement_text
+ * @package    customcertelement_studentname
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

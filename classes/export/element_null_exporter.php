@@ -27,14 +27,18 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element_null_exporter extends subplugin_exportable {
+    /** @var string The name of the unknown or unsupported plugin */
+    private readonly string $pluginname;
+
     /**
      * Initializes the null exporter with the name of the unrecognized plugin.
      *
      * @param string $pluginname The name of the unknown or unsupported plugin.
      */
     public function __construct(
-        private readonly string $pluginname
+        string $pluginname
     ) {
+        $this->pluginname = $pluginname;
         parent::__construct();
     }
 

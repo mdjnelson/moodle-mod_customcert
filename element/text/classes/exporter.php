@@ -21,12 +21,7 @@ use mod_customcert\export\contracts\subplugin_exportable;
 /**
  * Handles import and export of static text elements for custom certificates.
  *
- * This exporter deals with plain text input used in certificates, allowing
- * serialization of the content and logging informational messages for empty fields.
- *
  * @package    customcertelement_text
- * @extends    subplugin_exportable
- * @implements mod_customcert\export\contracts\subplugin_exportable
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

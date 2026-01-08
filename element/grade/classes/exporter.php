@@ -22,7 +22,7 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * Handles import and export of grade elements for custom certificates.
  *
  * @package    customcertelement_grade
- * @autor      Konrad Ebel <konrad.ebel@oncampus.de>
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

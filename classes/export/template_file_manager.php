@@ -36,14 +36,18 @@ use zip_packer;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_file_manager implements i_template_file_manager {
+    /** @var i_template_appendix_manager The manager for appendix file operations. */
+    private readonly i_template_appendix_manager $filemng;
+
     /**
      * Constructor.
      *
      * @param i_template_appendix_manager $filemng The manager for appendix file operations.
      */
     public function __construct(
-        private readonly i_template_appendix_manager $filemng
+        i_template_appendix_manager $filemng
     ) {
+        $this->filemng = $filemng;
     }
 
     /**

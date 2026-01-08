@@ -87,10 +87,10 @@ abstract class subplugin_exportable {
      * Retrieves the stored file instance associated with this element.
      *
      * @param string $customdata JSON-encoded data with file metadata.
-     * @param string $dbprename Filename stands before each reference value of the file
-     * @return stored_file The resolved image file.
+     * @param string $dbprename Optional database field prefix for file reference keys
+     * @return stored_file|false The resolved image file or false if not found.
      */
-    protected function get_file_from_customdata(string $customdata, string $dbprename = ''): stored_file {
+    protected function get_file_from_customdata(string $customdata, string $dbprename = ''): stored_file|false {
         $imagedata = (array) json_decode($customdata);
 
         $fs = get_file_storage();
