@@ -32,17 +32,22 @@ use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\form_service;
 use mod_customcert\service\persistence_helper;
+use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 use mod_customcert\template;
 
 require_once('../../config.php');
 
+$templaterepo = new template_repository();
+$pagerepo = new page_repository();
+
 $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
+$templaterow = $templaterepo->get_by_id_or_fail((int)$tid);
 
 // Set the template object.
-$template = new template($template);
+$template = new template($templaterow);
 
 // Perform checks.
 if ($cm = $template->get_cm()) {
@@ -177,8 +182,8 @@ if ($data = $mform->get_data()) {
             // We cannot easily instantiate the new element type here; trigger directly via DB context.
             // Fallback to building created event via page/template lookup.
             try {
-                $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
-                $templateforctx = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+                $page = $pagerepo->get_by_id_or_fail((int)$record->pageid);
+                $templateforctx = $templaterepo->get_by_id_or_fail((int)$page->templateid);
                 element_created::create([
                     'contextid' => (int)$templateforctx->contextid,
                     'objectid' => (int)$record->id,
