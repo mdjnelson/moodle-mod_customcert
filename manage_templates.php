@@ -103,12 +103,10 @@ if ($tid) {
                 exit();
             }
 
-            // Create another template to copy the data to.
+            // Duplicate via the service to copy template, pages, and elements transactionally.
+            $service = new \mod_customcert\service\template_duplication_service();
             $name = $template->get_name() . ' (' . strtolower(get_string('duplicate', 'customcert')) . ')';
-            $newtemplate = \mod_customcert\template::create($name, $template->get_contextid());
-
-            // Copy the data to the new template.
-            $template->copy_to_template($newtemplate);
+            $service->duplicate($template->get_id(), $name);
 
             // Redirect back to the manage templates page.
             redirect(new moodle_url('/mod/customcert/manage_templates.php'));
