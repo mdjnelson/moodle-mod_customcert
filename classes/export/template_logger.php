@@ -42,7 +42,7 @@ class template_logger implements i_template_import_logger {
      *
      * @param string $message The warning message.
      */
-    public function warning($message): void {
+    public function warning(string $message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
             return;
@@ -56,7 +56,7 @@ class template_logger implements i_template_import_logger {
      *
      * @param string $message The informational message.
      */
-    public function info($message): void {
+    public function info(string $message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
             return;

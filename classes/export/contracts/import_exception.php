@@ -16,7 +16,17 @@
 
 namespace mod_customcert\export\contracts;
 
-use Exception;
+use moodle_exception;
 
-class import_exception extends Exception {
+/**
+ * Fatal exception during template import.
+ *
+ * All db changes will be removed.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class import_exception extends moodle_exception {
 }

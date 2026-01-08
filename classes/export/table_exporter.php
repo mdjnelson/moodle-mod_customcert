@@ -29,6 +29,11 @@ use moodle_database;
  */
 class table_exporter {
     /**
+     * @var moodle_database Database connection
+     */
+    private moodle_database $db;
+
+    /**
      * Constructor.
      *
      * @param string $tablename The name of the table to export from.

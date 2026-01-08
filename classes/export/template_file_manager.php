@@ -15,10 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace mod_customcert\export;
+
 use coding_exception;
+use mod_customcert\export\contracts\import_exception;
 use mod_customcert\export\contracts\i_template_file_manager;
 use mod_customcert\export\contracts\i_template_appendix_manager;
-use moodle_exception;
 use zip_packer;
 
 /**
@@ -41,7 +42,7 @@ class template_file_manager implements i_template_file_manager {
      * @param i_template_appendix_manager $filemng The manager for appendix file operations.
      */
     public function __construct(
-        private i_template_appendix_manager $filemng
+        private readonly i_template_appendix_manager $filemng
     ) {
     }
 
@@ -92,23 +93,23 @@ class template_file_manager implements i_template_file_manager {
      *
      * @param int $contextid The context ID into which the template will be imported.
      * @param string $tempdir The directory containing the uploaded ZIP archive.
-     * @throws coding_exception|moodle_exception If extraction fails or required files are missing.
+     * @throws import_exception If extraction fails or required files are missing.
      */
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
-            throw new coding_exception('ZIP packer not available');
+            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
         }
 
         $unpackdir = "$tempdir/unzipped";
         check_dir_exists($unpackdir);
 
         if (!$packer->extract_to_pathname("$tempdir/import.zip", $unpackdir)) {
-            throw new moodle_exception('errorunzippingfile', 'error');
+            throw new import_exception('errorunzippingfile', 'error');
         }
 
         $jsonpath = $unpackdir . '/template.json';
         if (!file_exists($jsonpath)) {
-            throw new \moodle_exception('filenotfound', 'error', '', 'template.json');
+            throw new import_exception('filenotfound', 'error', '', 'template.json');
         }
 
         $this->filemng->import($contextid, $unpackdir);
@@ -116,7 +117,7 @@ class template_file_manager implements i_template_file_manager {
         $json = file_get_contents($jsonpath);
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            throw new \coding_exception('Invalid template.json (not valid JSON)');
+            throw new import_exception('Invalid template.json (not valid JSON)');
         }
         (new template())->import($contextid, $data);
     }

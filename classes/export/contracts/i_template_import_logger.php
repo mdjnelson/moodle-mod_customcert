@@ -30,14 +30,14 @@ interface i_template_import_logger {
      *
      * @param string $message The warning message to log.
      */
-    public function warning($message): void;
+    public function warning(string $message): void;
 
     /**
      * Logs an informational message during the import process.
      *
      * @param string $message The info message to log.
      */
-    public function info($message): void;
+    public function info(string $message): void;
 
     /**
      * Outputs or displays the collected log notifications.

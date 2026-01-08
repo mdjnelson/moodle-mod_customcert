@@ -86,7 +86,6 @@ abstract class subplugin_exportable {
     /**
      * Retrieves the stored file instance associated with this element.
      *
-     * @param int $id The element ID.
      * @param string $customdata JSON-encoded data with file metadata.
      * @param string $dbprename Filename stands before each reference value of the file
      * @return stored_file The resolved image file.

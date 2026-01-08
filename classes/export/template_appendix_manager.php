@@ -233,7 +233,7 @@ class template_appendix_manager implements i_template_appendix_manager {
      * @param string $imagename The name (hash) of the image.
      * @return string Full file path.
      */
-    private function get_imagepath(string $tempdir, string $imagename) {
+    private function get_imagepath(string $tempdir, string $imagename): string {
         return $this->get_filepath($tempdir) . DIRECTORY_SEPARATOR . $imagename;
     }
 

@@ -36,7 +36,7 @@ class import_form extends moodleform {
      * Adds a file picker for uploading a .zip backup file and a hidden field for
      * passing the context ID where the import will occur.
      */
-    protected function definition() {
+    protected function definition(): void {
         $mform = $this->_form;
 
         $mform->addElement(

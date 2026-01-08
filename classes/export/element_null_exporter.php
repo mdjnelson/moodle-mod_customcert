@@ -33,7 +33,7 @@ class element_null_exporter extends subplugin_exportable {
      * @param string $pluginname The name of the unknown or unsupported plugin.
      */
     public function __construct(
-        private string $pluginname
+        private readonly string $pluginname
     ) {
         parent::__construct();
     }
