@@ -28,9 +28,14 @@ use mod_customcert\edit_form;
 use mod_customcert\load_template_form;
 use mod_customcert\local\preview_renderer;
 use mod_customcert\page_helper;
+use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 use mod_customcert\template;
 
 require_once('../../config.php');
+
+$templaterepo = new template_repository();
+$pagerepo = new page_repository();
 
 $tid = optional_param('tid', 0, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -42,8 +47,8 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Edit an existing template.
 if ($tid) {
     // Create the template object.
-    $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
-    $template = new template($template);
+    $templaterow = $templaterepo->get_by_id_or_fail((int)$tid);
+    $template = new template($templaterow);
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.
@@ -249,10 +254,9 @@ if ($data = $mform->get_data()) {
         $pdf = $template->create_preview_pdf($USER);
 
         // Render each page of this template in sequence.
-        if ($pages = $DB->get_records('customcert_pages', ['templateid' => $template->get_id()], 'sequence ASC')) {
-            foreach ($pages as $page) {
-                $preview->render_pdf_page((int)$page->id, $pdf, $USER);
-            }
+        $pages = $pagerepo->list_by_template($template->get_id());
+        foreach ($pages as $page) {
+            $preview->render_pdf_page((int)$page->id, $pdf, $USER);
         }
 
         // Compute preview filename using the same rules as generate_pdf().

@@ -22,7 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\service\template_repository;
+
 require_once('../../config.php');
+
+$templaterepo = new template_repository();
 
 $contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -37,7 +41,7 @@ if ($action) {
 }
 
 if ($tid) {
-    $template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
+    $template = $templaterepo->get_by_id_or_fail((int)$tid);
     $template = new \mod_customcert\template($template);
 }
 

@@ -25,6 +25,7 @@
 use mod_customcert\template;
 use mod_customcert\event\element_updated;
 use mod_customcert\event\template_updated;
+use mod_customcert\service\template_repository;
 
 require_once(__DIR__ . '/../../config.php');
 
@@ -37,7 +38,8 @@ $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
 // Make sure the template exists.
-$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
+$trepo = new template_repository();
+$template = $trepo->get_by_id_or_fail($tid);
 
 // Set the template.
 $template = new template($template);
