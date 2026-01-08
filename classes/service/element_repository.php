@@ -165,9 +165,10 @@ class element_repository {
      *
      * @param int $frompageid
      * @param int $topageid
+     * @param bool $transactional Whether to wrap in a transaction
      * @return int Number of elements copied
      */
-    public function copy_page(int $frompageid, int $topageid): int {
+    public function copy_page(int $frompageid, int $topageid, bool $transactional = true): int {
         global $DB;
 
         $count = 0;
@@ -176,7 +177,10 @@ class element_repository {
             return 0;
         }
 
-        $transaction = $DB->start_delegated_transaction();
+        $transaction = null;
+        if ($transactional) {
+            $transaction = $DB->start_delegated_transaction();
+        }
 
         foreach ($elements as $e) {
             $newelement = clone($e);
@@ -202,7 +206,9 @@ class element_repository {
             $count++;
         }
 
-        $transaction->allow_commit();
+        if ($transaction) {
+            $transaction->allow_commit();
+        }
 
         return $count;
     }
