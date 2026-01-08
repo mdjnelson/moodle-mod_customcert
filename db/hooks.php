@@ -17,7 +17,7 @@
 /**
  * Plugin hooks.
  *
- * @package    customcertelement_date
+ * @package    mod_customcert
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
