@@ -57,9 +57,10 @@ class template_file_manager implements i_template_file_manager {
      * includes appendix files, and archives everything into a downloadable ZIP file.
      *
      * @param int $templateid The ID of the template to export.
+     * @return string The exported file path
      * @throws coding_exception If JSON encoding fails.
      */
-    public function export(int $templateid): void {
+    public function export(int $templateid): string {
         $jsondata = (new template())->export($templateid);
 
         $json = json_encode($jsondata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
@@ -84,9 +85,7 @@ class template_file_manager implements i_template_file_manager {
             $files,
             $zipfile
         );
-
-        @ob_clean();
-        send_temp_file($zipfile, "certificate-template-$templateid.zip");
+        return $zipfile;
     }
 
     /**

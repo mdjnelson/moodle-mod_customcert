@@ -37,4 +37,7 @@ require_login();
 $tid = required_param("tid", PARAM_INT);
 
 $exporter = di::get(i_template_file_manager::class);
-$exporter->export($tid);
+$zippath = $exporter->export($tid);
+
+@ob_clean();
+send_temp_file($zippath, basename($zippath));
