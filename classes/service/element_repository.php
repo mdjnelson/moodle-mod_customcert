@@ -22,7 +22,7 @@
  * between pages/templates while preserving ordering.
  *
  * @package    mod_customcert
- * @copyright  Mark Nelson <mdjnelson@gmail.com>
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,6 +33,7 @@ namespace mod_customcert\service;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
+use mod_customcert\local\ordering;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
 use stdClass;
@@ -52,6 +53,25 @@ class element_repository {
     public function __construct(element_factory $factory) {
         $this->factory = $factory;
     }
+
+    /**
+     * List raw element records for a given page with standard ordering.
+     *
+     * @param int $pageid
+     * @param ordering|null $order Defaults to sequence ASC, id ASC
+     * @return array<int, stdClass>
+     */
+    public function list_by_page(int $pageid, ?ordering $order = null): array {
+        global $DB;
+
+        $order = $order ?? new ordering([
+            'sequence' => 'ASC',
+            'id' => 'ASC',
+        ]);
+
+        return $DB->get_records('customcert_elements', ['pageid' => $pageid], $order->to_sql()) ?: [];
+    }
+
     /**
      * Load elements for a given page id.
      *
@@ -59,9 +79,7 @@ class element_repository {
      * @return element_interface[]
      */
     public function load_by_page_id(int $pageid): array {
-        global $DB;
-
-        $records = $DB->get_records('customcert_elements', ['pageid' => $pageid], 'sequence ASC');
+        $records = $this->list_by_page($pageid);
         $elements = [];
         $warnedtypes = [];
         foreach ($records as $record) {

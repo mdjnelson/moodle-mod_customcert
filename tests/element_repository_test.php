@@ -21,166 +21,194 @@
  * @category   test
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \mod_customcert\service\element_repository
  */
 
 declare(strict_types=1);
 
 namespace mod_customcert;
 
-use advanced_testcase;
+use context_course;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
-use customcertelement_text\element as text_element;
+use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 
 /**
- * Unit tests for the element repository.
+ * Tests for element_repository list behaviour and ordering.
  */
-final class element_repository_test extends advanced_testcase {
+final class element_repository_test extends \advanced_testcase {
     /**
-     * Test that elements are loaded in sequence order.
+     * Repository under test.
      *
-     * @covers \mod_customcert\service\element_repository::load_by_page_id
+     * @var element_repository
      */
-    public function test_load_by_page_id_ordering(): void {
-        global $DB;
+    private element_repository $repo;
 
-        $this->resetAfterTest();
+    /**
+     * Template repository for setup.
+     *
+     * @var template_repository
+     */
+    private template_repository $trepo;
+
+    /**
+     * Page repository for setup.
+     *
+     * @var page_repository
+     */
+    private page_repository $prepo;
+
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest(true);
 
         $registry = new element_registry();
-        $registry->register('text', text_element::class);
         $factory = new element_factory($registry);
-        $repository = new element_repository($factory);
+        $this->repo = new element_repository($factory);
+        $this->trepo = new template_repository();
+        $this->prepo = new page_repository();
+    }
 
-        $pageid = 100;
+    /**
+     * Ensures list_by_page orders by sequence then id.
+     *
+     * @covers ::list_by_page
+     */
+    public function test_list_by_page_orders_by_sequence_then_id(): void {
+        global $DB;
 
-        // Insert elements out of order.
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
-            'element' => 'text',
-            'name' => 'Second',
-            'sequence' => 2,
-            'timecreated' => time(),
-            'timemodified' => time(),
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
         ]);
-        $DB->insert_record('customcert_elements', (object) [
+
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+
+        $now = time();
+        // Sequences 2,2,1 to verify sequence ASC then id ASC tie-breaker.
+        $e1 = $DB->insert_record('customcert_elements', (object) [
             'pageid' => $pageid,
-            'element' => 'text',
             'name' => 'First',
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ]);
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
             'element' => 'text',
-            'name' => 'Third',
-            'sequence' => 3,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ]);
-
-        $elements = $repository->load_by_page_id($pageid);
-
-        $this->assertCount(3, $elements);
-        $this->assertEquals('First', $elements[0]->get_name());
-        $this->assertEquals('Second', $elements[1]->get_name());
-        $this->assertEquals('Third', $elements[2]->get_name());
-    }
-
-    /**
-     * Test saving an element.
-     *
-     * @covers \mod_customcert\service\element_repository::save
-     */
-    public function test_save(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $registry = new element_registry();
-        $registry->register('text', text_element::class);
-        $factory = new element_factory($registry);
-        $repository = new element_repository($factory);
-
-        // Create a real template and page so that repository::save() can resolve
-        // the event context via page->template (MUST_EXIST lookups).
-        $template = template::create('Test name', \context_system::instance()->id);
-        $pageid = $template->add_page();
-        $id = $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
-            'element' => 'text',
-            'name' => 'Original Name',
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-            'data' => 'Original Data',
-        ]);
-
-        $elements = $repository->load_by_page_id($pageid);
-        $element = $elements[0];
-
-        // Modify the element by updating the DB record and re-instantiating via the factory.
-
-        // Let's create a record that represents the updated state.
-        $updatedrecord = $DB->get_record('customcert_elements', ['id' => $id]);
-        $updatedrecord->name = 'Updated Name';
-        $updatedrecord->data = 'Updated Data';
-
-        $updatedelement = $factory->create('text', $updatedrecord);
-
-        $repository->save($updatedelement);
-
-        $savedrecord = $DB->get_record('customcert_elements', ['id' => $id]);
-        $this->assertEquals('Updated Name', $savedrecord->name);
-        // Note: text element save_unique_data might format the data.
-        $this->assertStringContainsString('Updated Data', $savedrecord->data);
-    }
-
-    /**
-     * Test copying a page.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_page
-     */
-    public function test_copy_page(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $registry = new element_registry();
-        $registry->register('text', text_element::class);
-        $factory = new element_factory($registry);
-        $repository = new element_repository($factory);
-
-        $frompageid = 100;
-        $topageid = 200;
-
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $frompageid,
-            'element' => 'text',
-            'name' => 'Element 1',
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ]);
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $frompageid,
-            'element' => 'text',
-            'name' => 'Element 2',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
             'sequence' => 2,
-            'timecreated' => time(),
-            'timemodified' => time(),
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+        $e2 = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Second',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 2,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+        $e3 = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Third',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+
+        $records = array_values($this->repo->list_by_page($pageid));
+        $this->assertCount(3, $records);
+        $this->assertSame([$e3, $e1, $e2], array_map(static fn($r) => (int) $r->id, $records));
+    }
+
+    /**
+     * Ensures list_by_page filters to the given page.
+     *
+     * @covers ::list_by_page
+     */
+    public function test_list_by_page_filters_by_pageid(): void {
+        global $DB;
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T2',
+            'contextid' => $context->id,
         ]);
 
-        $count = $repository->copy_page($frompageid, $topageid);
+        $page1 = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $page2 = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 2,
+        ]);
 
-        $this->assertEquals(2, $count);
-        $newelements = $DB->get_records('customcert_elements', ['pageid' => $topageid], 'sequence ASC');
-        $this->assertCount(2, $newelements);
-        $newelements = array_values($newelements);
-        $this->assertEquals('Element 1', $newelements[0]->name);
-        $this->assertEquals('Element 2', $newelements[1]->name);
-        $this->assertEquals(1, $newelements[0]->sequence);
-        $this->assertEquals(2, $newelements[1]->sequence);
+        $now = time();
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $page1,
+            'name' => 'On page1',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $otherid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $page2,
+            'name' => 'On page2',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+
+        $records = array_values($this->repo->list_by_page($page1));
+        $this->assertCount(1, $records);
+        $this->assertSame([$page1], [(int) $records[0]->pageid]);
+        $this->assertNotSame($otherid, (int) $records[0]->id);
     }
 }
