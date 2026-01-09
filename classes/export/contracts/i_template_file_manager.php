@@ -31,8 +31,9 @@ interface i_template_file_manager {
      * Call this export function to download the zip.
      *
      * @param int $templateid The ID of the certificate template to export.
+     * @return string The exported file path
      */
-    public function export(int $templateid): void;
+    public function export(int $templateid): string;
 
     /**
      * Imports certificate template files into a context from a temporary directory.
