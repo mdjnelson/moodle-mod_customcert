@@ -26,8 +26,9 @@
 /**
  * Makes a filepath absolute by using the current working directory
  *
- * @param string $path
- * @param string $defaultfilename
+ * @param string $path Relative or absolute path, with or without filename
+ * @param string $defaultfilename Default name of the file
+ * @param string $cwd Current working directory of the user (must be got before moodle config call)
  * @return string
  */
 function make_filepath_absolute(string $path, string $defaultfilename, string $cwd): string {
@@ -51,8 +52,8 @@ function make_filepath_absolute(string $path, string $defaultfilename, string $c
 /**
  * Checks if the path is absolute
  *
- * @param string $path
- * @return bool
+ * @param string $path Path
+ * @return bool True if the path is absolute
  */
 function is_absolute_path(string $path): bool {
     // Unix: /path.

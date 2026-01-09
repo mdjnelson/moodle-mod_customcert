@@ -1,4 +1,4 @@
-<?php /** @noinspection PhpCSValidationInspection */
+<?php
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -27,9 +27,9 @@ use core\di;
 use core\session\manager;
 use mod_customcert\export\contracts\i_template_file_manager;
 
-$cwd = getcwd();
-
+define('WORKING_DIR', getcwd());
 define('CLI_SCRIPT', true);
+
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once(__DIR__ . '/pathlib.php');
@@ -74,7 +74,7 @@ if (empty($input)) {
     cli_error("Missing --input", 2);
 }
 
-$input = make_filepath_absolute($input, '', $cwd);
+$input = make_filepath_absolute($input, '', WORKING_DIR);
 
 if (!is_readable($input) || !is_file($input)) {
     cli_error("Input file not found or not readable: {$input}", 2);

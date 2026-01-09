@@ -1,4 +1,4 @@
-<?php  /** @noinspection PhpCSValidationInspection */
+<?php
 // This file is part of the customcert module for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -26,9 +26,9 @@
 use core\di;
 use mod_customcert\export\contracts\i_template_file_manager;
 
-$cwd = getcwd();
-
+define('WORKING_DIR', getcwd());
 define('CLI_SCRIPT', true);
+
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once(__DIR__ . '/pathlib.php');
@@ -42,6 +42,7 @@ $usage = "
 
  Options:
      -h --help                     Print this help.
+     -t --template                 Template id.
      -o --output=<savepath>        Path to save the zip file.
  ";
 
@@ -78,7 +79,7 @@ if ($tid < 1) {
 $exporter = di::get(i_template_file_manager::class);
 $zippath = $exporter->export($tid);
 $filename = basename($zippath);
-$exportpath = make_filepath_absolute($options['output'], $filename, $cwd);
+$exportpath = make_filepath_absolute($options['output'], $filename, WORKING_DIR);
 
 $destdir = dirname($exportpath);
 if (!is_dir($destdir)) {
