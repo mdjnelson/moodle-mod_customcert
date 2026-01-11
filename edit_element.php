@@ -48,10 +48,8 @@ $elementrepo = new element_repository($factory);
 $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-$templaterow = $templaterepo->get_by_id_or_fail((int)$tid);
-
 // Set the template object.
-$template = new template($templaterow);
+$template = template::load((int)$tid);
 
 // Perform checks.
 if ($cm = $template->get_cm()) {

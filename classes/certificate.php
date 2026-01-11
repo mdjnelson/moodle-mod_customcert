@@ -25,11 +25,11 @@
 namespace mod_customcert;
 
 use context_module;
-use context_system;
 use core\log\sql_internal_table_reader;
 use core_user\fields;
 use logstore_legacy\log\store;
 use mod_customcert\event\issue_created;
+use mod_customcert\service\template_service;
 use pdf;
 use stdClass;
 use TCPDF_FONTS;
@@ -285,7 +285,8 @@ class certificate {
             foreach ($issues as $issue) {
                 $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
                 $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
-                $filecontents = $template->generate_pdf(false, $issue->id, true);
+                $service = new template_service();
+                $filecontents = $service->generate_pdf($template, false, $issue->id, true);
                 $ziparchive->add_file_from_string($pdfname, $filecontents);
             }
             $ziparchive->close();
@@ -325,16 +326,13 @@ class certificate {
             $ziparchive = new zip_archive();
             if ($ziparchive->open($zipfullpath)) {
                 foreach ($issues as $issue) {
-                    $template = new stdClass();
-                    $template->id = $issue->templateid;
-                    $template->name = $issue->templatename;
-                    $template->contextid = $issue->contextid;
-                    $template = new template($template);
+                    $template = template::load((int)$issue->templateid);
 
                     $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
                     $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
                     $pdfname = $userfullname . DIRECTORY_SEPARATOR . $ctname . '_' . 'certificate.pdf';
-                    $filecontents = $template->generate_pdf(false, $issue->userid, true);
+                    $service = $service ?? new template_service();
+                    $filecontents = $service->generate_pdf($template, false, $issue->userid, true);
                     $ziparchive->add_file_from_string($pdfname, $filecontents);
                 }
                 $ziparchive->close();

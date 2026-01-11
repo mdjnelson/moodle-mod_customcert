@@ -25,11 +25,10 @@
 use mod_customcert\manage_templates_table;
 use mod_customcert\page_helper;
 use mod_customcert\service\template_duplication_service;
-use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
+use mod_customcert\template;
 
 require_once('../../config.php');
-
-$templaterepo = new template_repository();
 
 $contextid = optional_param('contextid', context_system::instance()->id, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -44,8 +43,7 @@ if ($action) {
 }
 
 if ($tid) {
-    $template = $templaterepo->get_by_id_or_fail((int)$tid);
-    $template = new \mod_customcert\template($template);
+    $template = template::load((int)$tid);
 }
 
 $context = context::instance_by_id($contextid);
@@ -95,7 +93,8 @@ if ($tid) {
             }
 
             // Delete the template.
-            $template->delete();
+            $templateservice = new template_service();
+            $templateservice->delete($template);
 
             // Redirect back to the manage templates page.
             redirect(new moodle_url('/mod/customcert/manage_templates.php'));

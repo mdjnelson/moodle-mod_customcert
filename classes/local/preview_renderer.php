@@ -35,6 +35,7 @@ use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\html_renderer;
 use mod_customcert\service\pdf_renderer;
+use mod_customcert\service\page_repository;
 use pdf;
 use stdClass;
 
@@ -57,13 +58,21 @@ final class preview_renderer {
     /** @var element_repository */
     private element_repository $repository;
 
+    /** @var page_repository */
+    private page_repository $pages;
+
     /**
      * Constructor with optional DI for factory.
      *
      * @param element_factory|null $factory Optional injected factory (useful for tests)
      * @param element_repository|null $repository Optional injected factory (useful for tests)
+     * @param page_repository|null $pages Optional injected factory (useful for tests)
      */
-    public function __construct(?element_factory $factory = null, ?element_repository $repository = null) {
+    public function __construct(
+        ?element_factory $factory = null,
+        ?element_repository $repository = null,
+        ?page_repository $pages = null,
+    ) {
         if ($factory) {
             $this->factory = $factory;
         } else {
@@ -72,6 +81,7 @@ final class preview_renderer {
             $this->factory = new element_factory($registry);
         }
         $this->repository = $repository ?? new element_repository($this->factory);
+        $this->pages = $pages ?? new page_repository();
         $this->pdfrenderer = new pdf_renderer();
         $this->htmlrenderer = new html_renderer();
     }
@@ -88,10 +98,8 @@ final class preview_renderer {
      * @throws coding_exception
      */
     public function render_pdf_page(int $pageid, pdf $pdf, stdClass $user, bool $preview = true): void {
-        global $DB;
-
         // Load the page record.
-        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
+        $page = $this->pages->get_by_id_or_fail($pageid);
 
         // Determine orientation.
         $orientation = ($page->width > $page->height) ? 'L' : 'P';

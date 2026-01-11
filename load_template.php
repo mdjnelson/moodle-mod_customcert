@@ -22,17 +22,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\page_helper;
+use mod_customcert\service\template_load_service;
+use mod_customcert\template;
+
 require_once('../../config.php');
 
 $tid = required_param('tid', PARAM_INT);
 $ltid = required_param('ltid', PARAM_INT); // The template to load.
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
-$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
-$template = new \mod_customcert\template($template);
-
-$loadtemplate = $DB->get_record('customcert_templates', ['id' => $ltid], '*', MUST_EXIST);
-$loadtemplate = new \mod_customcert\template($loadtemplate);
+$template = template::load((int)$tid);
+$loadtemplate = template::load((int)$ltid);
 
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);
@@ -50,7 +51,7 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 
 // Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
-    $service = new \mod_customcert\service\template_load_service();
+    $service = new template_load_service();
     $service->replace($template->get_id(), $loadtemplate->get_id());
 
     // Redirect.
@@ -66,7 +67,7 @@ $yesurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid,
                                                                     'sesskey' => sesskey()]);
 
 $pageurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid, 'ltid' => $ltid]);
-\mod_customcert\page_helper::page_setup($pageurl, $template->get_context(), $title);
+page_helper::page_setup($pageurl, $template->get_context(), $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 

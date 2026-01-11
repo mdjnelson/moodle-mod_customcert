@@ -27,6 +27,7 @@ use core\task\adhoc_task;
 use core_shutdown_manager;
 use mod_customcert\helper;
 use mod_customcert\output\email_certificate;
+use mod_customcert\service\template_service;
 use mod_customcert\template;
 
 /**
@@ -122,12 +123,9 @@ class email_certificate_task extends adhoc_task {
         $originallang = current_language();
 
         // Now, get the PDF.
-        $template = new \stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = $customcert->templatename;
-        $template->contextid = $customcert->contextid;
-        $template = new template($template);
-        $filecontents = $template->generate_pdf(false, $user->id, true);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $filecontents = $templateservice->generate_pdf($template, false, (int)$user->id, true);
 
         // Set the name of the file we are going to send.
         $filename = $courseshortname . '_' . $certificatename;

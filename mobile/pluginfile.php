@@ -25,6 +25,10 @@
 /**
  * AJAX_SCRIPT - exception will be converted into JSON.
  */
+
+use mod_customcert\service\template_service;
+use mod_customcert\template;
+
 define('AJAX_SCRIPT', true);
 
 /**
@@ -33,6 +37,7 @@ define('AJAX_SCRIPT', true);
 define('NO_MOODLE_COOKIES', true);
 
 require_once('../../../config.php');
+
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/webservice/lib.php');
@@ -58,7 +63,6 @@ if (empty($enabledfiledownload)) {
 $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', ['id' => $certificate->templateid], '*', MUST_EXIST);
 
 // Capabilities check.
 require_capability('mod/customcert:view', \context_module::instance($cm->id));
@@ -90,6 +94,7 @@ if (!$issue) {
 }
 
 // Now we want to generate the PDF.
-$template = new \mod_customcert\template($template);
-$template->generate_pdf(false, $userid);
+$template = template::load((int)$certificate->templateid);
+$service = new template_service();
+$service->generate_pdf($template, false, (int)$userid);
 exit();
