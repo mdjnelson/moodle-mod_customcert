@@ -24,12 +24,12 @@
 
 use mod_customcert\edit_element_form;
 use mod_customcert\element;
-use mod_customcert\element_helper;
-use mod_customcert\event\element_created;
-use mod_customcert\event\element_updated;
 use mod_customcert\event\template_updated;
 use mod_customcert\page_helper;
+use mod_customcert\element\element_bootstrap;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_registry;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
 use mod_customcert\service\persistence_helper;
 use mod_customcert\service\page_repository;
@@ -40,6 +40,10 @@ require_once('../../config.php');
 
 $templaterepo = new template_repository();
 $pagerepo = new page_repository();
+$registry = new element_registry();
+element_bootstrap::register_defaults($registry);
+$factory = new element_factory($registry);
+$elementrepo = new element_repository($factory);
 
 $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
@@ -68,7 +72,7 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
-    $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+    $element = $elementrepo->get_by_id_or_fail($id);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['id' => $id, 'tid' => $tid, 'action' => $action]);
 } else { // Must be adding an element.
     // We need to supply what element we want added to what page.
@@ -126,12 +130,24 @@ if ($data = $mform->get_data()) {
     }
 
     // Get an instance of the element class.
-    if ($e = element_factory::get_element_instance($data)) {
+    $elementinstance = element_factory::get_element_instance($data);
+    if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();
+        $record->pageid = (int)$data->pageid;
+        $record->element = (string)$data->element;
         $record->name = $data->name;
+
+        if (!empty($data->id)) {
+            $record->id = (int)$data->id;
+            // Preserve existing positional fields when not provided in the form.
+            $record->posx = $element->posx ?? null;
+            $record->posy = $element->posy ?? null;
+            $record->refpoint = $element->refpoint ?? null;
+            $record->alignment = $element->alignment ?? element::ALIGN_LEFT;
+        }
         // Persist JSON using helper (supports persistable and legacy elements).
-        $record->data = persistence_helper::to_json_data($e, $data);
+        $record->data = persistence_helper::to_json_data($elementinstance, $data);
         // Merge font-related fields into JSON 'data' rather than separate DB columns.
         $rawjson = $record->data;
         $decoded = is_string($rawjson) && $rawjson !== '' ? json_decode($rawjson, true) : null;
@@ -158,43 +174,16 @@ if ($data = $mform->get_data()) {
         }
         // Persist the merged JSON payload.
         $record->data = json_encode($decoded);
-        $record->refpoint = $data->refpoint ?? null;
-        $record->alignment = $data->alignment ?? element::ALIGN_LEFT;
-        $record->timemodified = time();
+        $record->refpoint = $data->refpoint ?? $record->refpoint ?? null;
+        $record->alignment = $data->alignment ?? $record->alignment ?? element::ALIGN_LEFT;
 
-        if (!empty($data->id)) {
-            // Update existing element.
-            $record->id = $data->id;
-            $DB->update_record('customcert_elements', $record);
+        $instance = $factory->create($record->element, $record);
 
-            // Fire updated event for the element.
-            element_updated::create_from_id((int)$record->id, $template)->trigger();
+        if (!empty($record->id)) {
+            $elementrepo->save($instance);
             $newlyid = $record->id;
         } else {
-            // Insert new element.
-            $record->element = $data->element;
-            $record->pageid = $data->pageid;
-            $record->sequence = element_helper::get_element_sequence($record->pageid);
-            $record->timecreated = time();
-            $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
-
-            // Fire created event for the new element.
-            // We cannot easily instantiate the new element type here; trigger directly via DB context.
-            // Fallback to building created event via page/template lookup.
-            try {
-                $page = $pagerepo->get_by_id_or_fail((int)$record->pageid);
-                $templateforctx = $templaterepo->get_by_id_or_fail((int)$page->templateid);
-                element_created::create([
-                    'contextid' => (int)$templateforctx->contextid,
-                    'objectid' => (int)$record->id,
-                ])->trigger();
-            } catch (\Throwable $ex) {
-                // Best-effort; do not block. Assign to a local variable to avoid empty catch warnings.
-                $ignoredexception = $ex;
-                unset($ignoredexception);
-            }
-
-            $newlyid = $record->id;
+            $newlyid = $elementrepo->create($instance);
         }
 
         // Trigger updated event for the template containing the element.

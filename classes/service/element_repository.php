@@ -73,6 +73,20 @@ class element_repository {
     }
 
     /**
+     * Load a single element record by id or throw if missing.
+     *
+     * @param int $id
+     * @return stdClass
+     * @throws \dml_missing_record_exception When the record doesn't exist.
+     * @throws \dml_exception For database errors.
+     */
+    public function get_by_id_or_fail(int $id): stdClass {
+        global $DB;
+
+        return $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+    }
+
+    /**
      * Load elements for a given page id.
      *
      * @param int $pageid
