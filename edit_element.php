@@ -99,7 +99,7 @@ $PAGE->navbar->add(get_string('editcustomcert', 'customcert'), new moodle_url(
 ));
 $PAGE->navbar->add(get_string('editelement', 'customcert'));
 
-$mform = new edit_element_form($pageurl, ['element' => $element]);
+$mform = new edit_element_form($pageurl, ['element' => $element, 'factory' => $factory]);
 
 // Check if they cancelled.
 if ($mform->is_cancelled()) {
@@ -128,7 +128,7 @@ if ($data = $mform->get_data()) {
     }
 
     // Get an instance of the element class.
-    $elementinstance = element_factory::get_element_instance($data);
+    $elementinstance = $factory->create_from_legacy_record($data);
     if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();

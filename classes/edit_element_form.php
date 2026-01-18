@@ -74,7 +74,11 @@ class edit_element_form extends moodleform {
         $mform->addRule('name', get_string('required'), 'required', null, 'client');
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
-        $this->element = element_factory::get_element_instance($element);
+        $factory = $this->_customdata['factory'] ?? element_factory::build_with_defaults();
+        $this->element = $factory->create_from_legacy_record($element);
+        if (!$this->element) {
+            throw new \moodle_exception('invalidrecord', 'error');
+        }
         $this->element->set_edit_element_form($this);
 
         $formservice = new form_service();

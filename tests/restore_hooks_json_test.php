@@ -248,8 +248,9 @@ final class restore_hooks_json_test extends advanced_testcase {
         ]);
 
         // Instantiate element object and interface.
+        $factory = element_factory::build_with_defaults();
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = element_factory::get_element_instance($legacy);
+        $obj = $factory->create_from_legacy_record($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         // Create a fake restore mapping: map old cm id 456 -> new 999.
@@ -280,8 +281,9 @@ final class restore_hooks_json_test extends advanced_testcase {
             'gradeformat' => '1',
         ]);
 
+        $factory = element_factory::build_with_defaults();
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = element_factory::get_element_instance($legacy);
+        $obj = $factory->create_from_legacy_record($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         $restoreid = 'rid-' . uniqid();
