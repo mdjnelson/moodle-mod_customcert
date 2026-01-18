@@ -29,6 +29,7 @@ namespace mod_customcert\service;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\element_bootstrap;
 use mod_customcert\element as legacy_base;
 use stdClass;
 
@@ -62,6 +63,17 @@ class element_factory {
     }
 
     /**
+     * Build a factory with the default registry wiring and plugin discovery.
+     *
+     * @return self
+     */
+    public static function build_with_defaults(): self {
+        $registry = new element_registry();
+        element_bootstrap::register_defaults($registry);
+        return new self($registry);
+    }
+
+    /**
      * Create an element instance from a record and type.
      *
      * @param string $type
@@ -91,6 +103,48 @@ class element_factory {
             return $instance;
         }
         return new legacy_element_adapter($instance);
+    }
+
+    /**
+     * Create an element from a legacy record structure, falling back to the shim when required.
+     *
+     * @param stdClass $record
+     * @return element_interface|null
+     */
+    public function create_from_legacy_record(stdClass $record): ?element_interface {
+        $type = (string)($record->element ?? '');
+        if ($type === '') {
+            return null;
+        }
+
+        // Preserve legacy behaviour: default the name when not provided so forms/tests relying on
+        // legacy construction still see a sensible value (pluginname).
+        if (!property_exists($record, 'name') || $record->name === null || $record->name === '') {
+            $record->name = get_string('pluginname', 'customcertelement_' . $type);
+        }
+
+        try {
+            return $this->create($type, $record);
+        } catch (\Throwable $e) {
+            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                debugging(
+                    "Element factory failed for type '{$type}': " . $e->getMessage(),
+                    DEBUG_DEVELOPER
+                );
+            }
+        }
+
+        try {
+            $legacy = self::get_element_instance($record);
+        } catch (\Throwable $unused) {
+            return null;
+        }
+
+        if ($legacy instanceof element_interface) {
+            return $legacy;
+        }
+
+        return $legacy ? new legacy_element_adapter($legacy) : null;
     }
 
     /**

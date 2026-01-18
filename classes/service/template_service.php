@@ -22,6 +22,8 @@ use dml_exception;
 use invalid_parameter_exception;
 use mod_customcert\certificate;
 use mod_customcert\element\element_bootstrap;
+use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
 use mod_customcert\event\page_deleted;
@@ -63,6 +65,7 @@ final class template_service {
      * @param template_repository|null $templates
      * @param page_repository|null $pages
      * @param element_repository|null $elements
+     * @param element_factory|null $factory
      */
     public function __construct(
         /** @var template_repository|null $templates Repository for template records. */
@@ -71,9 +74,15 @@ final class template_service {
         private ?page_repository $pages = null,
         /** @var element_repository|null $elements Repository for element records. */
         private ?element_repository $elements = null,
+        /** @var element_factory|null $factory Element factory shared across operations. */
+        private ?element_factory $factory = null,
     ) {
         $this->templates ??= new template_repository();
         $this->pages ??= new page_repository();
+        if ($this->elements !== null) {
+            $this->factory ??= $this->elements->get_factory();
+        }
+        $this->factory ??= $this->build_element_factory();
         $this->elements ??= $this->build_element_repository();
     }
 
@@ -83,10 +92,42 @@ final class template_service {
      * @return element_repository
      */
     private function build_element_repository(): element_repository {
-        $registry = new element_registry();
-        element_bootstrap::register_defaults($registry);
-        $factory = new element_factory($registry);
-        return new element_repository($factory);
+        $this->factory ??= $this->build_element_factory();
+        return new element_repository($this->factory);
+    }
+
+    /**
+     * Build the element factory with default wiring.
+     *
+     * @return element_factory
+     */
+    private function build_element_factory(): element_factory {
+        return element_factory::build_with_defaults();
+    }
+
+    /**
+     * Create an element instance from a database record using the shared factory.
+     *
+     * @param stdClass $record
+     * @return element_interface|null
+     */
+    private function create_element_from_record(stdClass $record): ?element_interface {
+        $this->factory ??= $this->build_element_factory();
+        return $this->factory->create_from_legacy_record($record);
+    }
+
+    /**
+     * Unwrap legacy adapters to their inner instance when required.
+     *
+     * @param element_interface $element
+     * @return object
+     */
+    private function unwrap_element(element_interface $element): object {
+        if ($element instanceof legacy_element_adapter) {
+            return $element->get_inner();
+        }
+
+        return $element;
     }
 
     /**
@@ -257,11 +298,13 @@ final class template_service {
         if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
             foreach ($elements as $element) {
                 // Use the element instance so plugin-specific delete hooks execute; repository deletion would skip them.
-                if ($e = element_factory::get_element_instance($element)) {
-                    $e->delete();
-                } else {
-                    $DB->delete_records('customcert_elements', ['id' => $element->id]);
+                $instance = $this->create_element_from_record($element);
+                if ($instance) {
+                    $instance->delete();
+                    continue;
                 }
+
+                $DB->delete_records('customcert_elements', ['id' => $element->id]);
             }
         }
 
@@ -295,8 +338,9 @@ final class template_service {
             throw new invalid_parameter_exception('Element does not belong to template');
         }
 
-        if ($e = element_factory::get_element_instance($element)) {
-            $e->delete();
+        $instance = $this->create_element_from_record($element);
+        if ($instance) {
+            $instance->delete();
         } else {
             $DB->delete_records('customcert_elements', ['id' => $elementid]);
         }
@@ -350,11 +394,12 @@ final class template_service {
                     $element->timemodified = $element->timecreated;
                     $element->id = $DB->insert_record('customcert_elements', $element);
 
-                    if ($e = element_factory::get_element_instance($element)) {
-                        if (method_exists($e, 'copy_element') && !$e->copy_element($templateelement)) {
-                            $e->delete();
+                    if ($instance = $this->create_element_from_record($element)) {
+                        $inner = $this->unwrap_element($instance);
+                        if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
+                            $instance->delete();
                         } else {
-                            element_created::create_from_element($e)->trigger();
+                            element_created::create_from_element($instance)->trigger();
                         }
                     }
                 }
