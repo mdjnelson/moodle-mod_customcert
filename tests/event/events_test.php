@@ -284,8 +284,9 @@ final class events_test extends \advanced_testcase {
         $data->element = 'text';
         $data->text = 'Some text';
 
+        $factory = element_factory::build_with_defaults();
         $sink = $this->redirectEvents();
-        $e = element_factory::get_element_instance($data);
+        $e = $factory->create_from_legacy_record($data);
         $e->save_form_elements($data);
         $events = $sink->get_events();
         $this->assertCount(1, $events);

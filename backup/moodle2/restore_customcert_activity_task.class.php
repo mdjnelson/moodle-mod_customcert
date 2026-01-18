@@ -39,6 +39,24 @@ require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_
  */
 class restore_customcert_activity_task extends restore_activity_task {
     /**
+     * @var element_factory|null Element factory for constructing element instances.
+     */
+    private ?element_factory $factory = null;
+
+    /**
+     * Build or return the shared element factory for this restore task.
+     *
+     * @return element_factory
+     */
+    protected function get_element_factory(): element_factory {
+        if ($this->factory === null) {
+            $this->factory = element_factory::build_with_defaults();
+        }
+
+        return $this->factory;
+    }
+
+    /**
      * Define  particular settings this activity can have.
      */
     protected function define_my_settings() {
@@ -112,14 +130,15 @@ class restore_customcert_activity_task extends restore_activity_task {
                  WHERE c.id = :customcertid";
         if ($elements = $DB->get_records_sql($sql, ['customcertid' => $this->get_activityid()])) {
             // Go through the elements for the certificate.
-            foreach ($elements as $e) {
+            $factory = $this->get_element_factory();
+            foreach ($elements as $element) {
                 // Get an instance of the element class.
-                if ($e = element_factory::get_element_instance($e)) {
+                if ($instance = $factory->create_from_legacy_record($element)) {
                     // Prefer the new typed restore hook when implemented; otherwise fall back to legacy method.
-                    if ($e instanceof restorable_element_interface) {
-                        $e->after_restore_from_backup($this);
-                    } else if (method_exists($e, 'after_restore')) {
-                        $e->after_restore($this);
+                    if ($instance instanceof restorable_element_interface) {
+                        $instance->after_restore_from_backup($this);
+                    } else if (method_exists($instance, 'after_restore')) {
+                        $instance->after_restore($this);
                     }
                 }
             }

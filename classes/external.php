@@ -199,7 +199,8 @@ class external extends external_api {
         }
 
         // Get an instance of the element class.
-        if ($e = element_factory::get_element_instance($element)) {
+        $factory = element_factory::build_with_defaults();
+        if ($e = $factory->create_from_legacy_record($element)) {
             return $e->render_html();
         }
 
