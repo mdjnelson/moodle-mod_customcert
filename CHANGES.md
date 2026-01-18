@@ -21,6 +21,20 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - New/expanded automated tests covering Element System v2 behavior and data migration paths.
 
 ### Changed (Breaking)
+#### Template/page/element orchestration
+- New service-layer APIs for template/page/element CRUD and PDF generation live in `mod_customcert\service\template_service` (and repositories/DTOs such as `page_update`). Use these services instead of direct DB access.
+- `mod_customcert\template::load(int $id)` is the supported entry point for instantiating templates; production code should no longer call `new template($record)`.
+
+Deprecated template methods (now shims that emit developer debugging):
+- `template::save()` → use `template_service::update()`
+- `template::add_page()` / `template::save_page()` → use `template_service::add_page()` / `template_service::save_pages()`
+- `template::delete()` / `template::delete_page()` / `template::delete_element()` → use `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
+- `template::copy_to_template()` → use `template_service::copy_to_template()`
+- `template::move_item()` → use `template_service::move_item()` (service constants for item/direction are available but raw strings remain supported)
+- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → use the corresponding `template_service` methods
+
+Third-party developers should swap legacy calls for the service methods above; the shims will be removed in a future release.
+
 #### Requirements
 - Minimum supported version is Moodle 5.2 (PHP 8.3+).
 
