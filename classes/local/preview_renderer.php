@@ -82,11 +82,12 @@ final class preview_renderer {
      * @param int $pageid
      * @param pdf $pdf
      * @param stdClass $user
+     * @param bool $preview When true, renders elements in preview mode (non-persistent)
      * @return void
      * @throws dml_exception
      * @throws coding_exception
      */
-    public function render_pdf_page(int $pageid, pdf $pdf, stdClass $user): void {
+    public function render_pdf_page(int $pageid, pdf $pdf, stdClass $user, bool $preview = true): void {
         global $DB;
 
         // Load the page record.
@@ -110,7 +111,7 @@ final class preview_renderer {
             $this->pdfrenderer->set_pdf($pdf);
         }
         foreach ($elements as $element) {
-            $this->pdfrenderer->render_pdf($element, $pdf, true, $user);
+            $this->pdfrenderer->render_pdf($element, $pdf, $preview, $user);
         }
     }
 

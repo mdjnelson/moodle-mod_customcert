@@ -320,7 +320,7 @@ class template {
             // Loop through the pages and display their content.
             $previewrenderer = new preview_renderer();
             foreach ($pages as $page) {
-                $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user);
+                $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user, $preview);
             }
 
             // Restore original language if we changed it.
