@@ -78,6 +78,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm that we did not send any emails because the certificate has no elements.
         $this->assertCount(0, $emails);
@@ -130,6 +131,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm that we did not send any emails.
         $this->assertCount(0, $emails);
@@ -191,6 +193,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Get the issues from the issues table now.
         $issues = $DB->get_records('customcert_issues');
@@ -217,6 +220,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         $issues = $DB->get_records('customcert_issues');
 
@@ -272,6 +276,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Get the issues from the issues table now.
         $issues = $DB->get_records('customcert_issues');
@@ -297,6 +302,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         $issues = $DB->get_records('customcert_issues');
 
@@ -354,6 +360,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm that we only sent out 2 emails, both emails to the teacher for the two students.
         $this->assertCount(2, $emails);
@@ -410,6 +417,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm that we only sent out 2 emails, both emails to the other address that was valid for the two students.
         $this->assertCount(2, $emails);
@@ -467,6 +475,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm there are no issues as the user did not have permissions to view it.
         $issues = $DB->get_records('customcert_issues');
@@ -523,6 +532,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm there are no issues as the user did not meet the required time.
         $issues = $DB->get_records('customcert_issues');
@@ -605,6 +615,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm there are no issues as the user can not view the certificate.
         $issues = $DB->get_records('customcert_issues');
@@ -691,6 +702,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Confirm there is an issue as the user can view the certificate.
         $issues = $DB->get_records('customcert_issues');
@@ -758,6 +770,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Get the issues from the issues table now.
         $issues = $DB->get_records('customcert_issues');
@@ -770,6 +783,7 @@ final class email_certificate_task_test extends advanced_testcase {
         }
 
         // Now we send emails to the two users using the adhoc method.
+        $sink = $this->redirectEmails();
         $this->assertCount(0, $emails);
         $issues = array_values($issues);
         $task = new email_certificate_task();
@@ -778,6 +792,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task->set_custom_data((object)['issueid' => $issues[1]->id, 'customcertid' => $customcert->id]);
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Get the issues from the issues table now.
         $issues = $DB->get_records('customcert_issues');
@@ -801,6 +816,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         $issues = $DB->get_records('customcert_issues');
 
@@ -872,8 +888,10 @@ final class email_certificate_task_test extends advanced_testcase {
             'The certificate issue should be marked as emailed.'
         );
 
-        // Verify that an email was sent to the student.
         $emails = $sink->get_messages();
+        $sink->close();
+
+        // Verify that an email was sent to the student.
         $this->assertCount(1, $emails, 'An email should have been sent to the student.');
         $this->assertEquals($CFG->noreplyaddress, $emails[0]->from, 'Email sender is incorrect.');
         $this->assertEquals($student->email, $emails[0]->to, 'Email recipient is incorrect.');
@@ -895,6 +913,7 @@ final class email_certificate_task_test extends advanced_testcase {
         // Should not throw; should not send any email.
         $emails = $sink->get_messages();
         $this->assertCount(0, $emails);
+        $sink->close();
     }
 
     /**
@@ -913,6 +932,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $emails = $sink->get_messages();
         $this->assertCount(0, $emails);
+        $sink->close();
     }
 
     /**
@@ -946,6 +966,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $emails = $sink->get_messages();
         $this->assertCount(0, $emails);
+        $sink->close();
     }
 
     /**
@@ -999,6 +1020,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Fetch issues.
         $issues = $DB->get_records('customcert_issues');
@@ -1087,6 +1109,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $task = new \mod_customcert\task\issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
+        $sink->close();
 
         // Issues table assertions.
         $issues = $DB->get_records('customcert_issues');
