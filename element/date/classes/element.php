@@ -30,8 +30,7 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\field_type;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -58,7 +57,7 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -90,11 +89,12 @@ class element extends base_element implements
     public const string DATE_ENROLMENT_END = '-7';
 
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         global $CFG, $COURSE;
 
         // Get the possible date options.
@@ -112,28 +112,18 @@ class element extends base_element implements
         $dateoptions[self::DATE_COURSE_GRADE] = get_string('coursegradedate', 'customcertelement_date');
         $dateoptions = $dateoptions + element_helper::get_grade_items($COURSE);
 
-        return [
-            'dateitem' => [
-                'type' => field_type::select,
-                'label' => get_string('dateitem', 'customcertelement_date'),
-                'options' => $dateoptions,
-                'help' => ['dateitem', 'customcertelement_date'],
-            ],
-            'dateformat' => [
-                'type' => field_type::select,
-                'label' => get_string('dateformat', 'customcertelement_date'),
-                'options' => element_helper::get_date_formats(),
-                'help' => ['dateformat', 'customcertelement_date'],
-            ],
-            // Standard controls expected on Date forms.
-            'font' => [],
-            'colour' => [],
-            'posx' => [],
-            'posy' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_date'), $dateoptions);
+        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_date');
+
+        $mform->addElement(
+            'select',
+            'dateformat',
+            get_string('dateformat', 'customcertelement_date'),
+            element_helper::get_date_formats()
+        );
+        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_date');
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

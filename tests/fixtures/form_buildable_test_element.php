@@ -19,36 +19,67 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\service\element_renderer;
+use MoodleQuickForm;
 use pdf;
 use stdClass;
 
 /**
- * Fixture element class used for discovery tests via class_alias.
+ * Form buildable element fixture for form_service tests.
  *
  * @package    mod_customcert
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class fake_element_fixture extends element {
+class form_buildable_test_element extends element implements form_buildable_interface {
     /**
-     * Render the element to PDF (no-op in fixture).
+     * Flag to track whether build_form was called.
      *
-     * @param pdf $pdf The PDF instance
-     * @param bool $preview Preview mode flag
-     * @param stdClass $user The user record
-     * @param element_renderer|null $renderer Optional renderer
+     * @var bool
+     */
+    public bool $called = false;
+
+    /**
+     * Build the form for this element.
+     *
+     * @param MoodleQuickForm $mform
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function build_form(MoodleQuickForm $mform): void {
+        $this->called = true;
+        $mform->addElement('text', 'customfield', 'Custom field', []);
     }
 
     /**
-     * Render the element to HTML (empty in fixture).
+     * Normalise form data (no-op for fixture).
      *
-     * @param element_renderer|null $renderer Optional renderer
-     * @return string HTML
+     * @param stdClass $formdata
+     * @return array
+     */
+    public function normalise_data(stdClass $formdata): array {
+        return [];
+    }
+
+    /**
+     * Render to PDF (not required for this fixture).
+     *
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+        // No-op for fixture.
+    }
+
+    /**
+     * Render HTML (not required for this fixture).
+     *
+     * @param element_renderer|null $renderer
+     * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
         return '';

@@ -30,13 +30,12 @@ use context_course;
 use context_system;
 use core_collator;
 use mod_customcert\certificate;
-use mod_customcert\element\field_type;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\element\form_definable_interface;
-use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
+use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -51,8 +50,7 @@ use stored_file;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \customcertelement_image\element implements
-    dynamic_selects_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -94,86 +92,77 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * Define the configuration fields for this element in the same order as before the refactor.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
-        return [
-            // Image selector first.
-            'fileid' => [
-                'type' => field_type::select,
-                'label' => get_string('image', 'customcertelement_image'),
-            ],
+    public function build_form(MoodleQuickForm $mform): void {
+        // Image selector first.
+        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
 
-            // Existing signature selection.
-            'signaturefileid' => [
-                'type' => field_type::select,
-                'label' => get_string('digitalsignature', 'customcertelement_digitalsignature'),
-            ],
+        // Existing signature selection.
+        $mform->addElement(
+            'select',
+            'signaturefileid',
+            get_string('digitalsignature', 'customcertelement_digitalsignature'),
+            self::get_signatures()
+        );
 
-            // Signature metadata fields.
-            'signaturename' => [
-                'type' => field_type::text,
-                'label' => get_string('signaturename', 'customcertelement_digitalsignature'),
-                'type_param' => PARAM_TEXT,
-                'default' => '',
-            ],
-            'signaturepassword' => [
-                'type' => field_type::passwordunmask,
-                'label' => get_string('signaturepassword', 'customcertelement_digitalsignature'),
-                'type_param' => PARAM_TEXT,
-                'default' => '',
-            ],
-            'signaturelocation' => [
-                'type' => field_type::text,
-                'label' => get_string('signaturelocation', 'customcertelement_digitalsignature'),
-                'type_param' => PARAM_TEXT,
-                'default' => '',
-            ],
-            'signaturereason' => [
-                'type' => field_type::text,
-                'label' => get_string('signaturereason', 'customcertelement_digitalsignature'),
-                'type_param' => PARAM_TEXT,
-                'default' => '',
-            ],
-            'signaturecontactinfo' => [
-                'type' => field_type::text,
-                'label' => get_string('signaturecontactinfo', 'customcertelement_digitalsignature'),
-                'type_param' => PARAM_TEXT,
-                'default' => '',
-            ],
+        // Signature metadata fields.
+        $mform->addElement('text', 'signaturename', get_string('signaturename', 'customcertelement_digitalsignature'));
+        $mform->setType('signaturename', PARAM_TEXT);
+        $mform->setDefault('signaturename', '');
 
-            // Standard placement controls.
-            'width' => [],
-            'height' => [],
-            'posx' => [],
-            'posy' => [],
+        $mform->addElement(
+            'passwordunmask',
+            'signaturepassword',
+            get_string('signaturepassword', 'customcertelement_digitalsignature')
+        );
+        $mform->setType('signaturepassword', PARAM_TEXT);
+        $mform->setDefault('signaturepassword', '');
 
-            // Uploaders last.
-            'customcertimage' => [
-                'type' => field_type::filemanager,
-                'label' => get_string('uploadimage', 'customcert'),
-                'options' => $this->filemanageroptions,
-            ],
-            'digitalsignature' => [
-                'type' => field_type::filemanager,
-                'label' => get_string('uploaddigitalsignature', 'customcertelement_digitalsignature'),
-                'options' => $this->signaturefilemanageroptions,
-            ],
-        ];
-    }
+        $mform->addElement('text', 'signaturelocation', get_string('signaturelocation', 'customcertelement_digitalsignature'));
+        $mform->setType('signaturelocation', PARAM_TEXT);
+        $mform->setDefault('signaturelocation', '');
 
-    /**
-     * Advertise dynamic selects to be populated centrally by the form service.
-     *
-     * @return array
-     */
-    public function get_dynamic_selects(): array {
-        return [
-            'fileid' => [self::class, 'get_images'],
-            'signaturefileid' => [self::class, 'get_signatures'],
-        ];
+        $mform->addElement('text', 'signaturereason', get_string('signaturereason', 'customcertelement_digitalsignature'));
+        $mform->setType('signaturereason', PARAM_TEXT);
+        $mform->setDefault('signaturereason', '');
+
+        $mform->addElement(
+            'text',
+            'signaturecontactinfo',
+            get_string('signaturecontactinfo', 'customcertelement_digitalsignature')
+        );
+        $mform->setType('signaturecontactinfo', PARAM_TEXT);
+        $mform->setDefault('signaturecontactinfo', '');
+
+        // Width and height fields.
+        element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_height($mform);
+
+        // Position fields (if enabled).
+        if (get_config('customcert', 'showposxy')) {
+            element_helper::render_form_element_position($mform);
+        }
+
+        // Uploaders last.
+        $mform->addElement(
+            'filemanager',
+            'customcertimage',
+            get_string('uploadimage', 'customcert'),
+            '',
+            $this->filemanageroptions
+        );
+
+        $mform->addElement(
+            'filemanager',
+            'digitalsignature',
+            get_string('uploaddigitalsignature', 'customcertelement_digitalsignature'),
+            '',
+            $this->signaturefilemanageroptions
+        );
     }
 
     /**

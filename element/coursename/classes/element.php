@@ -26,15 +26,13 @@ declare(strict_types=1);
 
 namespace customcertelement_coursename;
 
-use mod_customcert\element\field_type;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\element\dynamic_selects_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -51,9 +49,8 @@ use stdClass;
  */
 class element extends base_element implements
     constructable_element_interface,
-    dynamic_selects_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -70,36 +67,22 @@ class element extends base_element implements
     public const int COURSE_FULL_NAME = 2;
 
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
-        return [
-            'coursenamedisplay' => [
-                'type' => field_type::select,
-                'label' => get_string('coursenamedisplay', 'customcertelement_coursename'),
-                'help' => ['coursenamedisplay', 'customcertelement_coursename'],
-                'type_param' => PARAM_INT,
-            ],
-            // Standard fields expected on this form (include colour picker etc.).
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
-    }
+    public function build_form(MoodleQuickForm $mform): void {
+        $mform->addElement(
+            'select',
+            'coursenamedisplay',
+            get_string('coursenamedisplay', 'customcertelement_coursename'),
+            self::get_course_name_display_options()
+        );
+        $mform->addHelpButton('coursenamedisplay', 'coursenamedisplay', 'customcertelement_coursename');
+        $mform->setType('coursenamedisplay', PARAM_INT);
 
-    /**
-     * Advertise dynamic selects to be populated centrally by the form service.
-     *
-     * @return array
-     */
-    public function get_dynamic_selects(): array {
-        return [
-            'coursenamedisplay' => [self::class, 'get_course_name_display_options'],
-        ];
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

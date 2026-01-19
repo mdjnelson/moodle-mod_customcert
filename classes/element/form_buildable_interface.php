@@ -14,26 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Interface for elements that build forms directly using MoodleQuickForm.
+ *
+ * @package    mod_customcert
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 declare(strict_types=1);
 
 namespace mod_customcert\element;
 
+use MoodleQuickForm;
+
 /**
- * Dynamic selects interface for element form fields.
- *
- * Elements implementing this interface expose one or more select fields whose
- * options are provided dynamically at build time by the form service.
- *
- * @package    mod_customcert
- * @copyright  2025 Mark Nelson
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Elements implementing this interface receive the raw $mform to construct
+ * their edit form fields directly.
  */
-interface dynamic_selects_interface {
+interface form_buildable_interface {
     /**
-     * Map field names to callables that return an array of options.
-     * Example: [ 'fileid' => [self::class, 'get_images'] ]
+     * Build the form for this element using the provided MoodleQuickForm.
      *
-     * @return array<string, callable>
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_dynamic_selects(): array;
+    public function build_form(MoodleQuickForm $mform): void;
 }

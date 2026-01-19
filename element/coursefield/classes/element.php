@@ -35,7 +35,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -54,18 +54,19 @@ use stdClass;
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     validatable_element_interface
 {
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         // Get the course fields.
         $coursefields = [
             'fullname' => get_string('fullnamecourse'),
@@ -84,21 +85,11 @@ class element extends base_element implements
         $fields = $coursefields + $arrcustomfields;
         core_collator::asort($fields);
 
-        return [
-            'coursefield' => [
-                'type' => field_type::select,
-                'label' => get_string('coursefield', 'customcertelement_coursefield'),
-                'options' => $fields,
-                'help' => ['coursefield', 'customcertelement_coursefield'],
-                'type_param' => PARAM_ALPHANUM,
-            ],
-            // Standard fields expected on this form.
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement('select', 'coursefield', get_string('coursefield', 'customcertelement_coursefield'), $fields);
+        $mform->addHelpButton('coursefield', 'coursefield', 'customcertelement_coursefield');
+        $mform->setType('coursefield', PARAM_ALPHANUM);
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**
