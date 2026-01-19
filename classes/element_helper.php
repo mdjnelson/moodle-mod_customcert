@@ -253,6 +253,27 @@ class element_helper {
     }
 
     /**
+     * Renders all common form elements (font, colour, position, width, refpoint, alignment).
+     *
+     * This is a convenience method that adds all standard visual property fields
+     * to the form. Elements should call this method in their build_form() implementation
+     * after adding their element-specific fields.
+     *
+     * @param MoodleQuickForm $mform the edit_form instance.
+     * @param bool $showposxy whether to show position fields (default: true).
+     */
+    public static function render_common_form_elements($mform, bool $showposxy = true) {
+        self::render_form_element_font($mform);
+        self::render_form_element_colour($mform);
+        if ($showposxy) {
+            self::render_form_element_position($mform);
+        }
+        self::render_form_element_width($mform);
+        self::render_form_element_refpoint($mform);
+        self::render_form_element_alignment($mform);
+    }
+
+    /**
      * Helper function to performs validation on the colour element.
      *
      * @param array $data the submitted data

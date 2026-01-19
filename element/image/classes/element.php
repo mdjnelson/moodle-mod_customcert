@@ -31,15 +31,13 @@ use context_system;
 use core_collator;
 use html_writer;
 use mod_customcert\certificate;
-use mod_customcert\element\field_type;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
-use mod_customcert\element\form_definable_interface;
-use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\element\validatable_element_interface;
@@ -60,9 +58,8 @@ use stored_file;
  */
 class element extends base_element implements
     constructable_element_interface,
-    dynamic_selects_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -102,12 +99,17 @@ class element extends base_element implements
     }
 
     /**
-     * Define the configuration fields for this element in the same order as before the refactor.
-     * The form builder renders fields exactly in this order, mapping standard names to helpers.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
+        $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
+
+        element_helper::render_form_element_width($mform);
+        element_helper::render_form_element_height($mform);
+
         $alphachannelvalues = [
             '0' => 0,
             '0.1' => 0.1,
@@ -122,43 +124,27 @@ class element extends base_element implements
             '1' => 1,
         ];
 
-        return [
-            'fileid' => [
-                'type' => field_type::select,
-                'label' => get_string('image', 'customcertelement_image'),
-            ],
-            // Standard fields in the expected order.
-            'width' => [],
-            'height' => [],
-            'alphachannel' => [
-                'type' => field_type::select,
-                'label' => get_string('alphachannel', 'customcertelement_image'),
-                'options' => $alphachannelvalues,
-                'type_param' => PARAM_FLOAT,
-                'default' => 1,
-                'help' => ['alphachannel', 'customcertelement_image'],
-            ],
-            // Position controls (rendered once when enabled).
-            'posx' => [],
-            'posy' => [],
-            // Upload image last.
-            'customcertimage' => [
-                'type' => field_type::filemanager,
-                'label' => get_string('uploadimage', 'customcert'),
-                'options' => $this->filemanageroptions,
-            ],
-        ];
-    }
+        $mform->addElement(
+            'select',
+            'alphachannel',
+            get_string('alphachannel', 'customcertelement_image'),
+            $alphachannelvalues
+        );
+        $mform->setType('alphachannel', PARAM_FLOAT);
+        $mform->setDefault('alphachannel', 1);
+        $mform->addHelpButton('alphachannel', 'alphachannel', 'customcertelement_image');
 
-    /**
-     * Advertise dynamic selects to be populated centrally by the form service.
-     *
-     * @return array
-     */
-    public function get_dynamic_selects(): array {
-        return [
-            'fileid' => [self::class, 'get_images'],
-        ];
+        if (get_config('customcert', 'showposxy')) {
+            element_helper::render_form_element_position($mform);
+        }
+
+        $mform->addElement(
+            'filemanager',
+            'customcertimage',
+            get_string('uploadimage', 'customcert'),
+            '',
+            $this->filemanageroptions
+        );
     }
 
     /**

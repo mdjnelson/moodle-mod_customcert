@@ -31,9 +31,10 @@ use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -50,23 +51,23 @@ use TCPDF_COLORS;
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     validatable_element_interface
 {
     /**
-     * Define the configuration fields for this element in the same order as before the refactor.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
-        // Width first, then Colour.
-        return [
-            'width' => [],
-            'colour' => [],
-        ];
+    public function build_form(MoodleQuickForm $mform): void {
+        // We want to define the width of the border.
+        element_helper::render_form_element_width($mform);
+        // The only other thing to define is the colour we want the border to be.
+        element_helper::render_form_element_colour($mform);
     }
 
     /**

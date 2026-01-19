@@ -9,11 +9,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Added
 - Element System v2 (interfaces + services) to improve stability and long-term extensibility of Custom Certificate elements.
 - New element capability interfaces:
-  - `mod_customcert\element\form_definable_interface`
+  - `mod_customcert\element\form_buildable_interface`
   - `mod_customcert\element\persistable_element_interface`
   - `mod_customcert\element\validatable_element_interface`
   - `mod_customcert\element\preparable_form_interface`
-  - `mod_customcert\element\dynamic_selects_interface`
   - (Scaffolding) `renderable_element_interface`, `restorable_element_interface`
 - New persistence + migration helpers:
   - JSON payload utilities (`get_payload()`, `get_value()`, safe decode/encode with `json_validate()`).
@@ -88,7 +87,7 @@ Migration impact for element plugins:
 
 ### Deprecated
 Legacy element APIs are still supported but deprecated as of 5.2:
-- `element::render_form_elements()` → implement `form_definable_interface::get_form_fields()`
+- `element::render_form_elements()` → implement `form_buildable_interface::build_form()` and use `element_helper::render_common_form_elements()` for standard fields
 - `element::definition_after_data()` → implement `preparable_form_interface::prepare_form()`
 - `element::validate_form_elements()` → implement `validatable_element_interface::validate()`
 - `element::save_form_elements()` / `element::save_unique_data()` → implement `persistable_element_interface::normalise_data()`
@@ -102,28 +101,21 @@ Deprecation notes:
 #### Option A (Recommended): Adopt Element System v2
 Update your element class to implement interfaces as needed:
 
-```
+```php
 class element extends \mod_customcert\element implements
-    \mod_customcert\element\form_definable_interface,
+    \mod_customcert\element\form_buildable_interface,
     \mod_customcert\element\persistable_element_interface,
     \mod_customcert\element\validatable_element_interface,
     \mod_customcert\element\preparable_form_interface {
 
-    public function get_form_fields(): array {
-        return [
-            'myfield' => [
-                'type' => \mod_customcert\element\field_type::text,
-                'label' => get_string('myfield', 'customcertelement_myplugin'),
-            ],
-            // Standard fields may be requested by name:
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'posx' => [],
-            'posy' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+    public function build_form(\MoodleQuickForm $mform): void {
+        // Add element-specific fields.
+        $mform->addElement('text', 'myfield', get_string('myfield', 'customcertelement_myplugin'));
+        $mform->setType('myfield', PARAM_TEXT);
+        $mform->addHelpButton('myfield', 'myfield', 'customcertelement_myplugin');
+
+        // Add standard fields (font, colour, position, width, refpoint, alignment).
+        \mod_customcert\element_helper::render_common_form_elements($mform);
     }
 
     public function normalise_data(\stdClass $formdata): array {

@@ -30,9 +30,8 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\element\field_type;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -51,7 +50,7 @@ use mod_customcert\element\restorable_element_interface;
  */
 class element extends base_element implements
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -93,11 +92,12 @@ class element extends base_element implements
     ];
 
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         global $CFG, $COURSE;
 
         $dateoptions[self::EXPIRY_ONE] = get_string('expirydateone', 'customcertelement_expiry');
@@ -111,35 +111,21 @@ class element extends base_element implements
             $startdates['coursecomplete'] = get_string('completiondate', 'customcertelement_expiry');
         }
 
-        return [
-            // Element-specific controls first, as before refactor.
-            'dateitem' => [
-                'type' => field_type::select,
-                'label' => get_string('dateitem', 'customcertelement_expiry'),
-                'options' => $dateoptions,
-                'help' => ['dateitem', 'customcertelement_expiry'],
-            ],
-            'dateformat' => [
-                'type' => field_type::select,
-                'label' => get_string('dateformat', 'customcertelement_expiry'),
-                'options' => self::get_date_formats(),
-                'help' => ['dateformat', 'customcertelement_expiry'],
-            ],
-            'startfrom' => [
-                'type' => field_type::select,
-                'label' => get_string('startfrom', 'customcertelement_expiry'),
-                'options' => $startdates,
-                'help' => ['startfrom', 'customcertelement_expiry'],
-            ],
-            // Standard controls expected on Expiry forms.
-            'font' => [],
-            'colour' => [],
-            'posx' => [],
-            'posy' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_expiry'), $dateoptions);
+        $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_expiry');
+
+        $mform->addElement(
+            'select',
+            'dateformat',
+            get_string('dateformat', 'customcertelement_expiry'),
+            self::get_date_formats()
+        );
+        $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_expiry');
+
+        $mform->addElement('select', 'startfrom', get_string('startfrom', 'customcertelement_expiry'), $startdates);
+        $mform->addHelpButton('startfrom', 'startfrom', 'customcertelement_expiry');
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

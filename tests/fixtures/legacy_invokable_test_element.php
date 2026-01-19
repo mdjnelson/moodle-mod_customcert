@@ -14,26 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Interface for form-definable elements.
- *
- * @package    mod_customcert
- * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 declare(strict_types=1);
 
-namespace mod_customcert\element;
+namespace mod_customcert\tests\fixtures;
+
+use MoodleQuickForm;
 
 /**
- * Interface for form-definable elements.
+ * Legacy-only element fixture that records render_form_elements invocations.
+ *
+ * @package    mod_customcert
+ * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface form_definable_interface {
+class legacy_invokable_test_element extends legacy_only_test_element {
     /**
-     * Define the configuration fields for this element.
+     * Flag set when render_form_elements() is called.
      *
-     * @return array
+     * @var bool
      */
-    public function get_form_fields(): array;
+    public bool $called = false;
+
+    /**
+     * Record that the legacy render path was invoked.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function render_form_elements($mform) {
+        $this->called = true;
+    }
 }

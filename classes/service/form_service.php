@@ -28,14 +28,11 @@ namespace mod_customcert\service;
 
 use mod_customcert\certificate;
 use mod_customcert\element;
-use mod_customcert\element\field_type;
-use mod_customcert\element\form_definable_interface;
-use mod_customcert\element\dynamic_selects_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use moodleform;
 use MoodleQuickForm;
-use ValueError;
 
 /**
  * Service for handling element forms.
@@ -48,87 +45,18 @@ class form_service {
      * @param element $element
      */
     public function build_form(MoodleQuickForm $mform, element $element): void {
-        if ($element instanceof form_definable_interface) {
-            $fields = $element->get_form_fields();
-
-            // Render strictly in the order provided by the element using simple mappers.
-            $standard = [
-                'font' => fn() => element_helper::render_form_element_font($mform),
-                'colour' => fn() => element_helper::render_form_element_colour($mform),
-                'width' => fn() => element_helper::render_form_element_width($mform),
-                'height' => fn() => element_helper::render_form_element_height($mform),
-                'refpoint' => fn() => element_helper::render_form_element_refpoint($mform),
-                'alignment' => fn() => element_helper::render_form_element_alignment($mform),
-                // Accept legacy sequential-style declarations by key and value for standard fields.
-                0 => fn() => null, // Placeholder to allow is_int($key) flow below.
-            ];
-
-            $renderedposition = false;
-
-            foreach ($fields ?? [] as $name => $field) {
-                // Enforce associative format: ['fieldname' => [config]]. Skip invalid entries.
-                if (!is_string($name) || $name === '') {
-                    continue;
-                }
-                if (!is_array($field)) {
-                    $field = [];
-                }
-
-                // Render combined position controls once if either posx/posy encountered and enabled.
-                if ($name === 'posx' || $name === 'posy') {
-                    if (!$renderedposition && get_config('customcert', 'showposxy')) {
-                        element_helper::render_form_element_position($mform);
-                    }
-                    $renderedposition = true;
-                    continue;
-                }
-
-                // Standard mapped fields.
-                if (isset($standard[$name])) {
-                    $standard[$name]();
-                    continue;
-                }
-
-                // Non-standard: render by type (default text). Support enum values.
-                $type = $field['type'] ?? 'text';
-                if ($type instanceof field_type) {
-                    $type = $type->value;
-                }
-                $this->render_by_type($mform, (string)$type, $name, $field);
-
-                // Apply common settings.
-                if (isset($field['help'])) {
-                    $mform->addHelpButton($name, $field['help'][0], $field['help'][1]);
-                }
-                if (isset($field['type_param'])) {
-                    $mform->setType($name, $field['type_param']);
-                }
-                if (isset($field['default'])) {
-                    $mform->setDefault($name, $field['default']);
-                }
-            }
-            // Populate dynamic selects centrally if element advertises them via interface.
-            if ($element instanceof dynamic_selects_interface) {
-                foreach ($element->get_dynamic_selects() as $name => $provider) {
-                    if (!$mform->elementExists($name)) {
-                        continue;
-                    }
-                    // Per contract, provider is a callable returning an options array.
-                    $options = (array) $provider();
-                    $mform->getElement($name)->loadArray($options);
-                }
-            }
-
-            // Per-element hook for non-select concerns (e.g., filemanager draft areas).
-            // Use a formal interface instead of method_exists to keep the contract explicit.
-            if ($element instanceof preparable_form_interface) {
-                $element->prepare_form($mform);
-            }
+        if ($element instanceof form_buildable_interface) {
+            $element->build_form($mform);
+        } else {
+            // Fallback for elements not yet migrated or third-party elements.
+            $element->render_form_elements($mform);
             return;
         }
 
-        // Fallback for elements not yet migrated or third-party elements.
-        $element->render_form_elements($mform);
+        // Per-element hook for form preparation (e.g., filemanager draft areas, default values).
+        if ($element instanceof preparable_form_interface) {
+            $element->prepare_form($mform);
+        }
     }
 
     /**
@@ -168,74 +96,6 @@ class form_service {
                 $data['filepath'] = $file->get_filepath();
                 $data['filename'] = $file->get_filename();
             }
-        }
-    }
-
-    /**
-     * Render a form element by type with sensible defaults.
-     *
-     * Prefer enum-driven rendering to avoid magic strings. Falls back to the raw
-     * string $type for unknown/custom elements.
-     *
-     * @param MoodleQuickForm $mform
-     * @param field_type|string $type Enum case or MoodleQuickForm element type string.
-     * @param string $name
-     * @param array $field
-     * @return void
-     */
-    private function render_by_type(MoodleQuickForm $mform, field_type|string $type, string $name, array $field): void {
-        // Normalise to enum when possible.
-        if ($type instanceof field_type) {
-            $etype = $type;
-        } else {
-            // Try to map known strings to enum; ignore failures (custom types allowed).
-            try {
-                $etype = field_type::from($type ?: 'text');
-            } catch (ValueError $e) {
-                $etype = null;
-            }
-        }
-
-        switch ($etype) {
-            case field_type::select:
-                $mform->addElement('select', $name, $field['label'] ?? '', $field['options'] ?? [], $field['attributes'] ?? []);
-                break;
-
-            case field_type::advcheckbox:
-                $mform->addElement(
-                    'advcheckbox',
-                    $name,
-                    $field['label'] ?? '',
-                    '',
-                    $field['attributes'] ?? [],
-                    $field['options'] ?? []
-                );
-                break;
-
-            case field_type::filemanager:
-                $mform->addElement('filemanager', $name, $field['label'] ?? '', null, $field['options'] ?? []);
-                break;
-
-            case field_type::editor:
-                $mform->addElement('editor', $name, $field['label'] ?? '', null, $field['options'] ?? []);
-                break;
-
-            case field_type::header:
-                $mform->addElement('header', $name, $field['label'] ?? '');
-                break;
-
-            case field_type::date_selector:
-                $mform->addElement('date_selector', $name, $field['label'] ?? '', $field['attributes'] ?? []);
-                break;
-
-            case field_type::static_text:
-                $mform->addElement('static', $name, $field['label'] ?? '', $field['text'] ?? '');
-                break;
-
-            default:
-                // Fallback: use enum value if available, otherwise the raw type string (or 'text').
-                $elementtype = $etype?->value ?? ($type ?: 'text');
-                $mform->addElement($elementtype, $name, $field['label'] ?? '', $field['attributes'] ?? []);
         }
     }
 }

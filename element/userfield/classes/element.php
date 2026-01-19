@@ -29,12 +29,11 @@ namespace customcertelement_userfield;
 use availability_profile\condition;
 use core_collator;
 use core_user\fields;
-use mod_customcert\element\field_type;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -52,18 +51,19 @@ use stdClass;
  */
 class element extends base_element implements
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     validatable_element_interface
 {
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         // Get the user profile fields.
         $userfields = [
             'firstname' => fields::get_display_name('firstname'),
@@ -90,21 +90,11 @@ class element extends base_element implements
         $fields = $userfields + $customfields;
         core_collator::asort($fields);
 
-        return [
-            'userfield' => [
-                'type' => field_type::select,
-                'label' => get_string('userfield', 'customcertelement_userfield'),
-                'options' => $fields,
-                'help' => ['userfield', 'customcertelement_userfield'],
-                'type_param' => PARAM_ALPHANUM,
-            ],
-            // Standard controls expected by tests.
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement('select', 'userfield', get_string('userfield', 'customcertelement_userfield'), $fields);
+        $mform->addHelpButton('userfield', 'userfield', 'customcertelement_userfield');
+        $mform->setType('userfield', PARAM_ALPHANUM);
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

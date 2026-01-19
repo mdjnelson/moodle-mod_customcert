@@ -27,13 +27,12 @@ declare(strict_types=1);
 namespace customcertelement_teachername;
 
 use context_system;
-use mod_customcert\element\field_type;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -52,32 +51,28 @@ use stdClass;
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
     validatable_element_interface
 {
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
-        return [
-            'teacher' => [
-                'type' => field_type::select,
-                'label' => get_string('teacher', 'customcertelement_teachername'),
-                'options' => $this->get_list_of_teachers(),
-                'help' => ['teacher', 'customcertelement_teachername'],
-            ],
-            // Standard controls expected on Teacher name forms.
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+    public function build_form(MoodleQuickForm $mform): void {
+        $mform->addElement(
+            'select',
+            'teacher',
+            get_string('teacher', 'customcertelement_teachername'),
+            $this->get_list_of_teachers()
+        );
+        $mform->addHelpButton('teacher', 'teacher', 'customcertelement_teachername');
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

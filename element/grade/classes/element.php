@@ -27,13 +27,12 @@ declare(strict_types=1);
 namespace customcertelement_grade;
 
 use grade_item;
-use mod_customcert\element\field_type;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -61,7 +60,7 @@ require_once($CFG->libdir . '/gradelib.php');
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -70,12 +69,14 @@ class element extends base_element implements
 {
     /** @var string Course grade identifier. */
     public const GRADE_COURSE = '0';
+
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         global $COURSE;
 
         // Get the grade items we can display.
@@ -83,27 +84,19 @@ class element extends base_element implements
         $gradeitems[self::GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
         $gradeitems = $gradeitems + element_helper::get_grade_items($COURSE);
 
-        return [
-            'gradeitem' => [
-                'type' => field_type::select,
-                'label' => get_string('gradeitem', 'customcertelement_grade'),
-                'options' => $gradeitems,
-                'help' => ['gradeitem', 'customcertelement_grade'],
-            ],
-            'gradeformat' => [
-                'type' => field_type::select,
-                'label' => get_string('gradeformat', 'customcertelement_grade'),
-                'options' => self::get_grade_format_options(),
-                'help' => ['gradeformat', 'customcertelement_grade'],
-                'type_param' => PARAM_INT,
-            ],
-            // Standard controls expected on Grade forms.
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement('select', 'gradeitem', get_string('gradeitem', 'customcertelement_grade'), $gradeitems);
+        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_grade');
+
+        $mform->addElement(
+            'select',
+            'gradeformat',
+            get_string('gradeformat', 'customcertelement_grade'),
+            self::get_grade_format_options()
+        );
+        $mform->setType('gradeformat', PARAM_INT);
+        $mform->addHelpButton('gradeformat', 'gradeformat', 'customcertelement_grade');
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

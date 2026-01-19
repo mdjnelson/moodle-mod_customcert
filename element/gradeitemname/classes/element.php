@@ -27,11 +27,10 @@ declare(strict_types=1);
 namespace customcertelement_gradeitemname;
 
 use grade_item;
-use mod_customcert\element\field_type;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\form_definable_interface;
+use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
@@ -51,34 +50,30 @@ use mod_customcert\element\restorable_element_interface;
  */
 class element extends base_element implements
     element_interface,
-    form_definable_interface,
+    form_buildable_interface,
     persistable_element_interface,
     preparable_form_interface,
     restorable_element_interface,
     validatable_element_interface
 {
     /**
-     * Define the configuration fields for this element.
+     * Build the configuration form for this element.
      *
-     * @return array
+     * @param MoodleQuickForm $mform
+     * @return void
      */
-    public function get_form_fields(): array {
+    public function build_form(MoodleQuickForm $mform): void {
         global $COURSE;
 
-        return [
-            'gradeitem' => [
-                'type' => field_type::select,
-                'label' => get_string('gradeitem', 'customcertelement_gradeitemname'),
-                'options' => element_helper::get_grade_items($COURSE),
-                'help' => ['gradeitem', 'customcertelement_gradeitemname'],
-            ],
-            // Standard controls expected by tests.
-            'font' => [],
-            'colour' => [],
-            'width' => [],
-            'refpoint' => [],
-            'alignment' => [],
-        ];
+        $mform->addElement(
+            'select',
+            'gradeitem',
+            get_string('gradeitem', 'customcertelement_gradeitemname'),
+            element_helper::get_grade_items($COURSE)
+        );
+        $mform->addHelpButton('gradeitem', 'gradeitem', 'customcertelement_gradeitemname');
+
+        element_helper::render_common_form_elements($mform, $this->showposxy);
     }
 
     /**

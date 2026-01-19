@@ -358,26 +358,17 @@ abstract class element implements stylable_element_interface {
         return null;
     }
 
-    /**
-     * Define the configuration fields for this element.
-     *
-     * @return array
-     */
-    public function get_form_fields(): array {
-        return [];
-    }
 
     /**
-     * This function renders the form elements when adding a customcert element.
-     * Can be overridden if more functionality is needed.
+     * Renders common form elements (font, colour, position, width, refpoint, alignment).
      *
      * @param MoodleQuickForm $mform the edit_form instance.
-     * @deprecated since Moodle 5.2
+     * @deprecated since Moodle 5.2 Use element_helper::render_common_form_elements() instead.
      */
     public function render_form_elements($mform) {
         debugging(
             'render_form_elements() is deprecated since Moodle 5.2. '
-            . 'Implement mod_customcert\\element\\form_definable_interface::get_form_fields() instead.',
+            . 'Use element_helper::render_common_form_elements() instead.',
             DEBUG_DEVELOPER
         );
         // Render the common elements.
