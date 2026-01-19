@@ -906,7 +906,7 @@ final class email_certificate_task_test extends advanced_testcase {
         // No setup; call the adhoc task with no custom data.
         $sink = $this->redirectEmails();
 
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
         // Intentionally DO NOT call set_custom_data().
         $task->execute();
 
@@ -924,7 +924,7 @@ final class email_certificate_task_test extends advanced_testcase {
     public function test_email_adhoc_task_invalid_customcertid(): void {
         $sink = $this->redirectEmails();
 
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
 
         // Point to bogus ids; both should be integers but not exist.
         $task->set_custom_data((object)['issueid' => 999999, 'customcertid' => 999998]);
@@ -958,7 +958,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $sink = $this->redirectEmails();
 
-        $task = new \mod_customcert\task\email_certificate_task();
+        $task = new email_certificate_task();
 
         // Valid customcertid, but bogus issueid.
         $task->set_custom_data((object)['issueid' => 123456789, 'customcertid' => $customcert->id]);
