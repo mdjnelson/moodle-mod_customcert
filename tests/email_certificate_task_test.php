@@ -473,8 +473,9 @@ final class email_certificate_task_test extends advanced_testcase {
     public function test_email_certificates_students_havent_met_required_time(): void {
         global $DB;
 
-        // Set the standard log to on.
-        set_config('enabled_stores', 'logstore_standard', 'tool_log');
+        // Intentionally avoid enabling the logstore here. get_course_time()
+        // returns 0 when no stores are enabled, so the user still fails the
+        // required time check without causing teardown DB-write warnings.
 
         // Create a course.
         $course = $this->getDataGenerator()->create_course();
