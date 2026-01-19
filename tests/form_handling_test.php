@@ -28,6 +28,7 @@ namespace mod_customcert;
 
 use advanced_testcase;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\template_service;
 use mod_customcert\service\validation_service;
 
 /**
@@ -49,8 +50,9 @@ final class form_handling_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
-        $template = new template($templatedata);
-        $pageid = $template->add_page();
+        $template = template::load((int)$templatedata->id);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
 
         $elementdata = (object) [
             'element' => 'text',

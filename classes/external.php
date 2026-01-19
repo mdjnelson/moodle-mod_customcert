@@ -34,6 +34,7 @@ use core_user\fields;
 use mod_customcert\event\element_updated;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\template_service;
 use stdClass;
 use Throwable;
 
@@ -84,11 +85,10 @@ class external extends external_api {
         ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
-        $template = $DB->get_record('customcert_templates', ['id' => $templateid], '*', MUST_EXIST);
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
-        $template = new template($template);
+        $template = template::load((int)$templateid);
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -186,11 +186,10 @@ class external extends external_api {
         ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
-        $template = $DB->get_record('customcert_templates', ['id' => $templateid], '*', MUST_EXIST);
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
 
         // Set the template.
-        $template = new template($template);
+        $template = template::load((int)$templateid);
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -411,24 +410,20 @@ class external extends external_api {
 
         $output = [];
 
+        $service = $includepdf ? new template_service() : null;
+
         foreach ($records as $issue) {
             $pdfname = null;
             $pdfcontent = null;
 
             if ($includepdf) {
                 try {
-                    $templatedata = (object)[
-                        'id' => $issue->templateid,
-                        'name' => $issue->templatename,
-                        'contextid' => $issue->contextid,
-                    ];
-
-                    $template = new template($templatedata);
+                    $template = template::load((int)$issue->templateid);
                     $safe = str_replace(' ', '_', mb_strtolower($template->get_name()));
 
                     $pdfname = $safe . '_certificate.pdf';
                     $pdfcontent = base64_encode(
-                        $template->generate_pdf(false, $issue->userid, true)
+                        $service->generate_pdf($template, false, (int)$issue->userid, true)
                     );
                 } catch (Throwable $e) {
                     // Leave PDF fields null on failure and log for developers.

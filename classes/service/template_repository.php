@@ -191,6 +191,18 @@ class template_repository {
     }
 
     /**
+     * Delete a template record.
+     *
+     * @param int $id
+     * @return void
+     * @throws dml_exception For database errors.
+     */
+    public function delete(int $id): void {
+        global $DB;
+        $DB->delete_records('customcert_templates', ['id' => $id]);
+    }
+
+    /**
      * Count templates in a context.
      *
      * @param int $contextid

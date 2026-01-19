@@ -26,6 +26,8 @@ use core\session\manager;
 use mod_customcert\certificate;
 use mod_customcert\event\course_module_viewed;
 use mod_customcert\report_table;
+use mod_customcert\service\template_service;
+use mod_customcert\template;
 
 require_once('../../config.php');
 
@@ -117,7 +119,7 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
 
 // Check if we are downloading all certificates.
 if ($downloadall && $canviewreport && confirm_sesskey()) {
-    $template = new \mod_customcert\template($template);
+    $template = \mod_customcert\template::load((int)$template->id);
     $issues = certificate::get_issues($customcert->id, $groupmode, $cm, 0, 0);
 
     // The button is not visible if there are no issues, so in this case just redirect back to this page.
@@ -235,7 +237,8 @@ if (!$downloadown && !$downloadissue) {
     manager::write_close();
 
     // Now we want to generate the PDF.
-    $template = new \mod_customcert\template($template);
-    $template->generate_pdf(false, $userid);
+    $template = template::load((int)$template->id);
+    $service = new template_service();
+    $service->generate_pdf($template, false, (int)$userid);
     exit();
 }

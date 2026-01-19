@@ -24,6 +24,7 @@
 
 use mod_customcert\certificate;
 use mod_customcert\my_certificates_table;
+use mod_customcert\service\template_service;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -69,9 +70,9 @@ $PAGE->navigation->extend_for_user($user);
 
 // Check if we requested to download a certificate.
 if ($downloadcert) {
-    $template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
-    $template = new template($template);
-    $template->generate_pdf(false, $userid);
+    $template = template::load((int)$customcert->templateid);
+    $service = new template_service();
+    $service->generate_pdf($template, false, (int)$userid);
     exit();
 }
 

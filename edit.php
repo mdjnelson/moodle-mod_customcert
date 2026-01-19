@@ -30,12 +30,14 @@ use mod_customcert\local\preview_renderer;
 use mod_customcert\page_helper;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
 use mod_customcert\template;
 
 require_once('../../config.php');
 
 $templaterepo = new template_repository();
 $pagerepo = new page_repository();
+$templateservice = new template_service($templaterepo, $pagerepo);
 
 $tid = optional_param('tid', 0, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -47,8 +49,7 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Edit an existing template.
 if ($tid) {
     // Create the template object.
-    $templaterow = $templaterepo->get_by_id_or_fail((int)$tid);
-    $template = new template($templaterow);
+    $template = template::load((int)$tid);
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.
@@ -102,25 +103,45 @@ if ($tid) {
     if ($action && confirm_sesskey()) {
         switch ($action) {
             case 'pmoveup':
-                $template->move_item('page', $actionid, 'up');
+                $templateservice->move_item(
+                    $template,
+                    template_service::ITEM_PAGE,
+                    $actionid,
+                    template_service::DIRECTION_UP
+                );
                 break;
             case 'pmovedown':
-                $template->move_item('page', $actionid, 'down');
+                $templateservice->move_item(
+                    $template,
+                    template_service::ITEM_PAGE,
+                    $actionid,
+                    template_service::DIRECTION_DOWN
+                );
                 break;
             case 'emoveup':
-                $template->move_item('element', $actionid, 'up');
+                $templateservice->move_item(
+                    $template,
+                    template_service::ITEM_ELEMENT,
+                    $actionid,
+                    template_service::DIRECTION_UP
+                );
                 break;
             case 'emovedown':
-                $template->move_item('element', $actionid, 'down');
+                $templateservice->move_item(
+                    $template,
+                    template_service::ITEM_ELEMENT,
+                    $actionid,
+                    template_service::DIRECTION_DOWN
+                );
                 break;
             case 'addpage':
-                $template->add_page();
+                $templateservice->add_page($template);
                 $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                 redirect($url);
                 break;
             case 'deletepage':
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
-                    $template->delete_page($actionid);
+                    $templateservice->delete_page($template, $actionid);
                     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     redirect($url);
                 } else {
@@ -144,7 +165,7 @@ if ($tid) {
                 break;
             case 'deleteelement':
                 if (!empty($confirm)) { // Check they have confirmed the deletion.
-                    $template->delete_element($actionid);
+                    $templateservice->delete_element($template, $actionid);
                 } else {
                     // Set deletion flag to true.
                     $deleting = true;
@@ -192,7 +213,7 @@ if ($data = $mform->get_data()) {
         $template = template::create($data->name, $contextid);
 
         // Create a page for this template.
-        $pageid = $template->add_page(false);
+        $pageid = $templateservice->add_page($template, false);
 
         // Associate all the data from the form to the newly created page.
         $width = 'pagewidth_' . $pageid;
@@ -222,11 +243,11 @@ if ($data = $mform->get_data()) {
 
     if ($tid) {
         // Save any data for the template.
-        $template->save($data);
+        $templateservice->update($template, $data);
     }
 
-    // Save any page data.
-    $template->save_page($data);
+    // Save any page data and emit template_updated when changes occur.
+    $templateservice->save_pages($template, $data, true);
 
     // Loop through the data.
     foreach ($data as $key => $value) {
@@ -251,7 +272,7 @@ if ($data = $mform->get_data()) {
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
         $preview = new preview_renderer();
-        $pdf = $template->create_preview_pdf($USER);
+        $pdf = $templateservice->create_preview_pdf($template, $USER);
 
         // Render each page of this template in sequence.
         $pages = $pagerepo->list_by_template($template->get_id());
@@ -261,7 +282,7 @@ if ($data = $mform->get_data()) {
 
         // Compute preview filename using the same rules as generate_pdf().
         $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]);
-        $pdffilename = $template->compute_filename_for_user($USER, $customcert);
+        $pdffilename = $templateservice->compute_filename_for_user($template, $USER, $customcert);
         $pdf->Output($pdffilename, certificate::DELIVERY_OPTION_INLINE);
         exit();
     }

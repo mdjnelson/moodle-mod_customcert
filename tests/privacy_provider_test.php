@@ -260,6 +260,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $course = $this->getDataGenerator()->create_course();
         $customcert1 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $customcert2 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
         $cm1 = get_coursemodule_from_instance('customcert', $customcert1->id);
         $cm2 = get_coursemodule_from_instance('customcert', $customcert2->id);
         $user1 = $this->getDataGenerator()->create_user();

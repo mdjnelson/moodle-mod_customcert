@@ -28,6 +28,8 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use context_system;
+use mod_customcert\service\template_service;
 
 /**
  * Unit test class for testing filename generation in templates.
@@ -39,17 +41,13 @@ final class template_filename_test extends advanced_testcase {
     /**
      * Test default name simply uses template name.
      *
-     * @covers \mod_customcert\template::compute_filename_for_user
+     * @covers \mod_customcert\service\template_service::compute_filename_for_user
      */
     public function test_default_filename_uses_template_name(): void {
         $this->resetAfterTest();
 
-        $templatedata = (object) [
-            'id' => 999,
-            'name' => 'My Fancy Template.', // Trailing dot should be stripped.
-            'contextid' => 1,
-        ];
-        $template = new template($templatedata);
+        $template = template::create('My Fancy Template.', context_system::instance()->id);
+        $service = new template_service();
 
         $user = (object) ['id' => 123, 'firstname' => 'Ada', 'lastname' => 'Lovelace'];
         $customcert = (object) [
@@ -59,36 +57,60 @@ final class template_filename_test extends advanced_testcase {
             'customfilenamepattern' => '',
         ];
 
-        $filename = $template->compute_filename_for_user($user, $customcert);
+        $filename = $service->compute_filename_for_user($template, $user, $customcert);
         $this->assertStringEndsWith('.pdf', $filename);
-        $this->assertStringContainsString('My_Fancy_Template', $filename);
+        $this->assertSame(clean_filename('My Fancy Template.pdf'), $filename);
+        $this->assertDebuggingNotCalled();
     }
 
     /**
      * Test placeholders are applied when a custom pattern is added.
      *
-     * @covers \mod_customcert\template::compute_filename_for_user
+     * @covers \mod_customcert\service\template_service::compute_filename_for_user
      */
     public function test_custom_pattern_placeholders_are_applied(): void {
         $this->resetAfterTest();
 
-        $templatedata = (object) [
-            'id' => 1001,
-            'name' => 'Ignored When Custom',
-            'contextid' => 1,
-        ];
-        $template = new template($templatedata);
+        $template = template::create('Ignored When Custom', context_system::instance()->id);
+        $service = new template_service();
+
+        $course = $this->getDataGenerator()->create_course();
 
         $user = (object) ['id' => 456, 'firstname' => 'Grace', 'lastname' => 'Hopper'];
         $customcert = (object) [
             'id' => 88,
-            'course' => 1,
+            'course' => $course->id,
             'usecustomfilename' => 1,
             'customfilenamepattern' => '{FIRST_NAME}_{LAST_NAME}_{ISSUE_DATE}',
         ];
 
-        $filename = $template->compute_filename_for_user($user, $customcert);
+        $filename = $service->compute_filename_for_user($template, $user, $customcert);
         $this->assertStringEndsWith('.pdf', $filename);
         $this->assertStringContainsString('Grace_Hopper_', $filename);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Custom patterns that already include ".pdf" should not produce double extensions.
+     *
+     * @covers \mod_customcert\service\template_service::compute_filename_for_user
+     */
+    public function test_custom_pattern_with_pdf_suffix_is_not_duplicated(): void {
+        $this->resetAfterTest();
+
+        $template = template::create('PDF Name', context_system::instance()->id);
+        $service = new template_service();
+
+        $user = (object) ['id' => 456, 'firstname' => 'Grace', 'lastname' => 'Hopper'];
+        $customcert = (object) [
+            'id' => 99,
+            'course' => 0,
+            'usecustomfilename' => 1,
+            'customfilenamepattern' => '{FIRST_NAME}.pdf',
+        ];
+
+        $filename = $service->compute_filename_for_user($template, $user, $customcert);
+        $this->assertSame('Grace.pdf', $filename);
+        $this->assertDebuggingNotCalled();
     }
 }

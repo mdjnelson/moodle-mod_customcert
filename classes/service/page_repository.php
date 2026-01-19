@@ -22,6 +22,7 @@ use dml_exception;
 use dml_missing_record_exception;
 use invalid_parameter_exception;
 use mod_customcert\local\ordering;
+use mod_customcert\service\page_update;
 use stdClass;
 
 /**
@@ -164,5 +165,33 @@ final class page_repository {
             }
             $seq++;
         }
+    }
+
+    /**
+     * Update a page's dimensions/margins.
+     *
+     * @param int $pageid
+     * @param page_update $data
+     * @return void
+     * @throws invalid_parameter_exception
+     * @throws dml_exception
+     */
+    public function update(int $pageid, page_update $data): void {
+        global $DB;
+
+        if ($pageid <= 0) {
+            throw new invalid_parameter_exception('Missing/invalid page id');
+        }
+
+        $record = (object) [
+            'id' => $pageid,
+            'width' => $data->width,
+            'height' => $data->height,
+            'leftmargin' => $data->leftmargin,
+            'rightmargin' => $data->rightmargin,
+            'timemodified' => $data->timemodified,
+        ];
+
+        $DB->update_record('customcert_pages', $record);
     }
 }

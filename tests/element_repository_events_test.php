@@ -32,6 +32,7 @@ use mod_customcert\element\element_interface;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
+use mod_customcert\service\template_service;
 use customcertelement_text\element as text_element;
 
 /**
@@ -188,7 +189,8 @@ final class element_repository_events_test extends advanced_testcase {
     public function test_create_fires_element_created_event(): void {
         // Create a template and a page to ensure a valid context for events.
         $template = template::create('Repo events', \context_system::instance()->id);
-        $pageid = $template->add_page();
+        $service = new template_service();
+        $pageid = $service->add_page($template);
 
         $registry = new element_registry();
         $registry->register('text', text_element::class);
@@ -220,7 +222,8 @@ final class element_repository_events_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Repo events', \context_system::instance()->id);
-        $pageid = $template->add_page();
+        $service = new template_service();
+        $pageid = $service->add_page($template);
 
         $registry = new element_registry();
         $registry->register('text', text_element::class);

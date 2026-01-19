@@ -84,10 +84,10 @@ final class template_load_service {
     public function replace(int $targetid, int $sourceid): void {
         global $DB;
 
-        $target = $this->templates->get_by_id_or_fail($targetid);
         $source = $this->templates->get_by_id_or_fail($sourceid);
 
-        $context = context::instance_by_id($target->contextid);
+        $targettemplate = template::load($targetid);
+        $context = context::instance_by_id($targettemplate->get_contextid());
         require_capability('mod/customcert:manage', $context);
 
         $transaction = $DB->start_delegated_transaction();
@@ -119,7 +119,6 @@ final class template_load_service {
 
         $transaction->allow_commit();
 
-        $targettemplate = new template($target);
         if ($targettemplate->get_context()->contextlevel !== CONTEXT_SYSTEM) {
             template_updated::create_from_template($targettemplate)->trigger();
         }

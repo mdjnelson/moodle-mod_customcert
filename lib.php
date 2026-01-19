@@ -23,6 +23,8 @@
  */
 
 use mod_customcert\event\issue_deleted;
+use mod_customcert\service\template_service;
+use mod_customcert\template;
 
 /**
  * Add customcert instance.
@@ -36,7 +38,7 @@ function customcert_add_instance($data, $mform) {
 
     // Create a template for this customcert to use.
     $context = context_module::instance($data->coursemodule);
-    $template = \mod_customcert\template::create($data->name, $context->id);
+    $template = template::create($data->name, $context->id);
 
     // Add the data to the DB.
     $data->templateid = $template->get_id();
@@ -46,7 +48,8 @@ function customcert_add_instance($data, $mform) {
     $data->id = $DB->insert_record('customcert', $data);
 
     // Add a page to this customcert.
-    $template->add_page(false);
+    $service = new template_service();
+    $service->add_page($template, false);
 
     return $data->id;
 }
@@ -108,9 +111,9 @@ function customcert_delete_instance($id) {
     }
 
     // Now, delete the template associated with this certificate.
-    if ($template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid])) {
-        $template = new \mod_customcert\template($template);
-        $template->delete();
+    if ($DB->record_exists('customcert_templates', ['id' => $customcert->templateid])) {
+        $templateservice = new template_service();
+        $templateservice->delete(template::load((int)$customcert->templateid));
     }
 
     // Delete the customcert instance.
@@ -431,7 +434,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
 
         // Set the template object.
-        $template = new \mod_customcert\template($template);
+        $template = template::load((int)$page->templateid);
         // Perform checks.
         if ($cm = $template->get_cm()) {
             require_login($cm->course, false, $cm);

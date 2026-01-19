@@ -30,6 +30,7 @@ use grade_grade;
 use context_module;
 use context_system;
 use advanced_testcase;
+use mod_customcert\service\template_service;
 
 /**
  * Unit tests for the element helper class.
@@ -65,10 +66,12 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = new template($template);
+        $template = template::load((int)$template->id);
+
+        $service = new template_service();
 
         // Add a page to the template.
-        $pageid = $template->add_page();
+        $pageid = $service->add_page($template);
 
         // Add an element to this page.
         $element = new \stdClass();
@@ -94,8 +97,10 @@ final class element_helper_test extends advanced_testcase {
         // Add a template to the site.
         $template = template::create('Site template', context_system::instance()->id);
 
+        $service = new template_service();
+
         // Add a page to the template.
-        $pageid = $template->add_page();
+        $pageid = $service->add_page($template);
 
         // Add an element to this page.
         $element = new \stdClass();
@@ -126,10 +131,12 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = new template($template);
+        $template = template::load((int)$template->id);
+
+        $service = new template_service();
 
         // Add a page to the template.
-        $pageid = $template->add_page();
+        $pageid = $service->add_page($template);
 
         // Add an element to this page.
         $element = new \stdClass();
@@ -158,8 +165,10 @@ final class element_helper_test extends advanced_testcase {
         // Add a template to the site.
         $template = template::create('Site template', context_system::instance()->id);
 
+        $service = new template_service();
+
         // Add a page to the template.
-        $pageid = $template->add_page();
+        $pageid = $service->add_page($template);
 
         // Add an element to this page.
         $element = new \stdClass();

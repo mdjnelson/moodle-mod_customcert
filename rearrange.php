@@ -30,7 +30,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
-use mod_customcert\service\template_repository;
+use mod_customcert\template;
 
 require_once('../../config.php');
 
@@ -39,9 +39,6 @@ $pid = required_param('pid', PARAM_INT);
 
 $pagerepo = new page_repository();
 $page = $pagerepo->get_by_id_or_fail($pid);
-
-$templaterepo = new template_repository();
-$templaterecord = $templaterepo->get_by_id_or_fail((int)$page->templateid);
 
 $registry = new element_registry();
 element_bootstrap::register_defaults($registry);
@@ -55,7 +52,7 @@ foreach ($elementrepo->load_by_page_id($pid) as $instance) {
 }
 
 // Set the template.
-$template = new \mod_customcert\template($templaterecord);
+$template = template::load((int)$page->templateid);
 // Perform checks.
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);

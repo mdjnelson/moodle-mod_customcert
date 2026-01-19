@@ -28,8 +28,8 @@ namespace mod_customcert;
 use completion_info;
 use context_module;
 use stdClass;
-use context_course;
 use advanced_testcase;
+use mod_customcert\service\template_service;
 use mod_customcert\task\email_certificate_task;
 use mod_customcert\task\issue_certificates_task;
 
@@ -110,14 +110,12 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -165,14 +163,12 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -181,7 +177,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        \mod_customcert\certificate::issue_certificate($customcert->id, $user1->id);
+        certificate::issue_certificate($customcert->id, $user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -246,14 +242,12 @@ final class email_certificate_task_test extends advanced_testcase {
         role_change_permission($role->id, context_module::instance($customcert->cmid), 'mod/customcert:receiveissue', CAP_ALLOW);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($SITE->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -262,7 +256,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        \mod_customcert\certificate::issue_certificate($customcert->id, $user1->id);
+        certificate::issue_certificate($customcert->id, $user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -334,14 +328,12 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailteachers' => 1]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -390,14 +382,12 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailothers' => 'testcustomcert@example.com, doo@dah']);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -444,14 +434,12 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -502,14 +490,12 @@ final class email_certificate_task_test extends advanced_testcase {
             'requiredtime' => '60']);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -584,14 +570,12 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -670,14 +654,12 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -731,14 +713,12 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Create template object.
-        $template = new stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'A template';
-        $template->contextid = context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page to this template.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
 
         // Add an element to the page.
         $element = new stdClass();
@@ -747,7 +727,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        \mod_customcert\certificate::issue_certificate($customcert->id, $user1->id);
+        certificate::issue_certificate($customcert->id, $user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -829,14 +809,13 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Set up a basic certificate template.
-        $template = new \stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'Test Template';
-        $template->contextid = \context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
         // Add a page and an element to put the certificate in a valid state.
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+
         $element = new \stdClass();
         $element->pageid = $pageid;
         $element->name = 'Test Element';
@@ -854,7 +833,7 @@ final class email_certificate_task_test extends advanced_testcase {
         set_config('certificateexecutionperiod', 1, 'customcert');
 
         // Execute the issue certificates task.
-        $task = new \mod_customcert\task\issue_certificates_task();
+        $task = new issue_certificates_task();
         $task->execute();
 
         // After executing the task, verify that a certificate issue record was created.
@@ -927,12 +906,11 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         // Make the template valid.
-        $template = new \stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'T';
-        $template->contextid = \context_course::instance($course->id)->id;
-        $template = new \mod_customcert\template($template);
-        $pageid = $template->add_page();
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         $sink = $this->redirectEmails();
@@ -981,13 +959,12 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create valid template.
-        $template = new \stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'Manager Test Template';
-        $template->contextid = \context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+
         $DB->insert_record('customcert_elements', (object)[
             'pageid' => $pageid,
             'name' => 'ElementX',
@@ -1069,13 +1046,11 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create valid template (one element).
-        $template = new \stdClass();
-        $template->id = $customcert->templateid;
-        $template->name = 'ReceiveIssue Test Template';
-        $template->contextid = \context_course::instance($course->id)->id;
-        $template = new template($template);
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
 
-        $pageid = $template->add_page();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)[
             'pageid' => $pageid,
             'name' => 'ElementX',
@@ -1083,7 +1058,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Run issuing task.
         $sink = $this->redirectEmails();
-        $task = new \mod_customcert\task\issue_certificates_task();
+        $task = new issue_certificates_task();
         $task->execute();
         $emails = $sink->get_messages();
 

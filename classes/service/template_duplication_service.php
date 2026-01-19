@@ -106,8 +106,7 @@ final class template_duplication_service {
         $transaction = $DB->start_delegated_transaction();
 
         $targetid = $this->templates->duplicate($sourceid, $newname);
-        $target = $this->templates->get_by_id_or_fail($targetid);
-        $targettemplate = new template($target);
+        $targettemplate = template::load($targetid);
 
         $pages = $this->pages->list_by_template($sourceid);
         foreach ($pages as $page) {
@@ -139,7 +138,7 @@ final class template_duplication_service {
         $transaction->allow_commit();
 
         template_duplicated::create([
-            'contextid' => $target->contextid,
+            'contextid' => $targettemplate->get_contextid(),
             'objectid' => $targetid,
             'other' => ['sourceid' => $sourceid],
         ])->trigger();
