@@ -45,4 +45,11 @@ interface i_field {
      * @return array Associative array representing the exported structure.
      */
     public function export($value): array;
+
+    /**
+     * Gets the fallback if an exception occurs
+     *
+     * @return mixed Valid value for fallback cases
+     */
+    public function get_fallback();
 }

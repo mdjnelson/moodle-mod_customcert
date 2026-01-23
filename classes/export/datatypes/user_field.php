@@ -54,8 +54,8 @@ class user_field implements i_field {
      * @throws format_exception If the user does not exist or the name does not match.
      */
     public function import(array $data) {
-        $userid = $data['userid'];
-        $username = $data['fullname'];
+        $userid = $data['userid'] ?? -1;
+        $username = $data['fullname'] ?? null;
 
         $user = $this->db->get_record('user', ['id' => $userid]);
 
@@ -95,5 +95,14 @@ class user_field implements i_field {
             'userid' => $userid,
             'fullname' => fullname($user),
         ];
+    }
+
+    /**
+     * Empty cause import not possible
+     *
+     * @return string Empty fallback.
+     */
+    public function get_fallback() {
+        return "";
     }
 }
