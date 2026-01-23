@@ -56,10 +56,9 @@ interface i_template_appendix_manager {
      * and returns its reference data.
      *
      * @param string $identifier The unique identifier for the file.
-     * @param string $filename Name put before each value, in the reference array.
      * @return array Data array to reference the found file, empty if not found.
      */
-    public function get_file_reference(string $identifier, string $filename = ''): array;
+    public function get_file_reference(string $identifier): array;
 
     /**
      * Returns a unique identifier for a given stored file.

@@ -189,20 +189,19 @@ class template_appendix_manager implements i_template_appendix_manager {
      * and returns its reference data.
      *
      * @param string $identifier The unique identifier for the file.
-     * @param string $filename Name put before each value, in the reference array.
      * @return array Data array to reference the found file, empty if not found.
      */
-    public function get_file_reference(string $identifier, string $filename = ''): array {
+    public function get_file_reference(string $identifier): array {
         if (!$file = $this->find($identifier)) {
             return [];
         }
 
         return [
-            "{$filename}contextid" => $file->get_contextid(),
-            "{$filename}filearea" => $file->get_filearea(),
-            "{$filename}itemid" => $file->get_itemid(),
-            "{$filename}filepath" => $file->get_filepath(),
-            "{$filename}filename" => $file->get_filename(),
+            "contextid" => $file->get_contextid(),
+            "filearea" => $file->get_filearea(),
+            "itemid" => $file->get_itemid(),
+            "filepath" => $file->get_filepath(),
+            "filename" => $file->get_filename(),
         ];
     }
 

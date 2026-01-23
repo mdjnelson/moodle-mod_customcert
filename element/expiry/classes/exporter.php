@@ -16,6 +16,7 @@
 
 namespace customcertelement_expiry;
 
+use mod_customcert\classes\export\datatypes\enum_field;
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
@@ -31,41 +32,11 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * Validates expiry date settings including date item, format, and base start.
-     *
-     * Ensures all input values are from predefined valid sets. If any value is invalid,
-     * a default is used and a warning is logged.
-     *
-     * @param array $data Element data to validate.
-     * @return array|false Cleaned and valid data array or false on total failure.
-     */
-    public function validate(array $data): array|false {
-        $dateitem = $data["dateitem"];
-        $validdateitems = $this->get_dateitems();
-        if (!in_array($dateitem, $validdateitems)) {
-            $this->logger->warning("invalid expiry date item");
-            $dateitem = $validdateitems[0];
-        }
-
-        $dateformat = $data["dateformat"];
-        $validdateformats = array_keys(element::get_date_formats());
-        if (!in_array($dateformat, $validdateformats)) {
-            $this->logger->warning("invalid expiry date format");
-            $dateformat = $validdateformats[0];
-        }
-
-        $startfrom = $data["startfrom"];
-        $validstartfroms = ['award', 'coursecomplete'];
-        if (!in_array($startfrom, $validstartfroms)) {
-            $this->logger->warning("invalid expiry start date format");
-            $startfrom = $validstartfroms[0];
-        }
-
+    protected function get_fields(): array {
         return [
-            'dateitem' => $dateitem,
-            'dateformat' => $dateformat,
-            'startfrom' => $startfrom,
+            'dateitem' => new enum_field($this->get_dateitems()),
+            'dateformat' => new enum_field(array_keys(element::get_date_formats())),
+            'startfrom' => new enum_field(['award', 'coursecomplete']),
         ];
     }
 
@@ -84,33 +55,5 @@ class exporter extends subplugin_exportable {
             '-11',
             '-12',
         ];
-    }
-
-    /**
-     * Converts the validated expiry configuration into a JSON string for storage.
-     *
-     * @param array $data Cleaned input data.
-     * @return string|null JSON-encoded data or null if invalid.
-     */
-    public function convert_for_import(array $data): ?string {
-        return json_encode($data);
-    }
-
-    /**
-     * Reconstructs the expiry element data from stored JSON for export.
-     *
-     * @param int $elementid ID of the expiry element.
-     * @param string $customdata Stored JSON-encoded data.
-     * @return array Associative array with keys: dateitem, dateformat, startfrom.
-     */
-    public function export(int $elementid, string $customdata): array {
-        $data = json_decode($customdata);
-
-        $arrtostore = [
-            'dateitem' => $data->dateitem,
-            'dateformat' => $data->dateformat,
-            'startfrom' => $data->startfrom,
-        ];
-        return $arrtostore;
     }
 }
