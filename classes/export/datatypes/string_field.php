@@ -74,6 +74,11 @@ class string_field implements i_field {
         ];
     }
 
+    /**
+     * Get predefined default from subplugin
+     *
+     * @return string predefined default
+     */
     public function get_fallback() {
         return $this->default;
     }

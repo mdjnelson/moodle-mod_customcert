@@ -43,6 +43,8 @@ abstract class subplugin_exportable {
 
     /**
      * Constructor.
+     *
+     * @param string $pluginname Name of the plugin from the element
      */
     public function __construct(string $pluginname) {
         $this->pluginname = $pluginname;
