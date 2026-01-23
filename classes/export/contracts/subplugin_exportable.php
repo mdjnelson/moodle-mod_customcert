@@ -17,6 +17,10 @@
 namespace mod_customcert\export\contracts;
 
 use core\di;
+use mod_customcert\classes\export\datatypes\format_error;
+use mod_customcert\classes\export\datatypes\format_exception;
+use mod_customcert\classes\export\datatypes\i_field;
+use mod_customcert\classes\export\datatypes\i_file_field;
 use stored_file;
 
 /**
@@ -41,66 +45,110 @@ abstract class subplugin_exportable {
     }
 
     /**
-     * Validates the provided data before import.
+     * Returns the customdata fields of the subplugin
      *
-     * @param array $data The data to validate.
-     * @return array|false Returns the corrected data if recoverable
-     *                     or false on validation failure.
+     * @return i_field[] customdata fields
      */
-    public function validate(array $data): array|false {
-        return $data;
-    }
+    abstract protected function get_fields(): array;
 
     /**
      * Converts raw import data to a string format suitable for subplugin storage.
      *
-     * Will only be called if validation was successful.
-     *
      * @param array $data The data to convert.
      * @return string|null Converted string.
      */
-    abstract public function convert_for_import(array $data): ?string;
+    public function convert_for_import(array $data): ?string {
+        $fields = $this->get_fields();
+        $customdata = [];
+
+        foreach ($fields as $key => $field) {
+            $safekey = str_replace('$', '', $key);
+            $value = $data[$safekey] ?? null;
+            if (!is_array($value)) {
+                throw new format_error('Subplugin data is missing');
+            }
+
+            try {
+                $fielddata = $field->import($value);
+                if (is_array($fielddata)) {
+                    foreach ($fielddata as $subkey => $subvalue) {
+                        $customdata[str_replace('$', $subkey, $key)] = $subvalue;
+                    }
+                } else {
+                    $customdata[$key] = $value;
+                }
+            } catch (format_exception $e) {
+                $this->logger->warning($key . ': ' . $e->getMessage());
+            }
+        }
+
+        return json_encode($customdata);
+    }
 
     /**
      * Exports subplugin data.
      *
      * The exported structure will later be passed to convert_for_import again.
      *
-     * @param int $elementid The ID of the customcert element.
      * @param string $customdata Subplugin custom data.
      * @return array Exported data in array format.
      */
-    abstract public function export(int $elementid, string $customdata): array;
+    public function export(string $customdata): array {
+        $fields = $this->get_fields();
+        $data = json_decode($customdata, true);
+        $safedata = [];
+
+        foreach ($fields as $key => $field) {
+            $fielddata = $this->get_relevant_data($key, $data);
+            $exportedfielddata = $field->export($fielddata);
+
+            $safekey = str_replace('$', '', $key);
+            $safedata[$safekey] = $exportedfielddata;
+        }
+
+        return $safedata;
+    }
 
     /**
      * Retrieves file references used by the subplugin element.
      *
-     * @param int $id The ID of the element.
      * @param string $customdata Subplugin custom data.
      * @return stored_file[] Stored files, defaulting to an empty array.
      */
-    public function get_used_files(int $id, string $customdata): array {
-        return [];
+    public function get_used_files(string $customdata): array {
+        $fields = $this->get_fields();
+        $data = json_decode($customdata, true);
+        $files = [];
+
+        foreach ($fields as $key => $field) {
+            if (!$field instanceof i_file_field) {
+                continue;
+            }
+
+            $fielddata = $this->get_relevant_data($key, $data);
+
+            $files[] = $field->get_file($fielddata);
+        }
+
+        return $files;
     }
 
     /**
-     * Retrieves the stored file instance associated with this element.
-     *
-     * @param string $customdata JSON-encoded data with file metadata.
-     * @param string $dbprename Optional database field prefix for file reference keys
-     * @return stored_file|false The resolved image file or false if not found.
+     * @param int|string $key
+     * @param mixed $data
+     * @return array|mixed|null[]
      */
-    protected function get_file_from_customdata(string $customdata, string $dbprename = ''): stored_file|false {
-        $imagedata = (array) json_decode($customdata);
+    public function get_relevant_data(string $key, array $data): mixed {
+        if (str_contains($key, '$')) {
+            $subkeys = ['contextid', 'filearea', 'itemid', 'filepath', 'filename'];
+            $fielddata = array_map(function ($subkey) use ($data, $key) {
+                return $data[str_replace('$', $subkey, $key)] ?? null;
+            }, $subkeys);
+            $fielddata = array_combine($subkeys, $fielddata);
+        } else {
+            $fielddata = $data[$key];
+        }
 
-        $fs = get_file_storage();
-        return $fs->get_file(
-            (int) $imagedata["{$dbprename}contextid"],
-            'mod_customcert',
-            $imagedata["{$dbprename}filearea"],
-            (int) $imagedata["{$dbprename}itemid"],
-            $imagedata["{$dbprename}filepath"],
-            $imagedata["{$dbprename}filename"]
-        );
+        return $fielddata;
     }
 }

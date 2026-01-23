@@ -16,7 +16,9 @@
 
 namespace customcertelement_image;
 
-use customcertelement_bgimage\exporter as bgimage_exporter;
+use mod_customcert\classes\export\datatypes\file_field;
+use mod_customcert\classes\export\datatypes\float_field;
+use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
  * Handles import and export of image elements for custom certificates.
@@ -26,30 +28,13 @@ use customcertelement_bgimage\exporter as bgimage_exporter;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends bgimage_exporter {
-    /**
-     * Validates and prepares data for an image element.
-     *
-     * Inherits base file validation from background image exporter and supplements it
-     * with integer conversion for width and height fields.
-     *
-     * @param array $data The image element configuration.
-     * @return array|false Validated data structure or false on failure.
-     */
-    public function validate(array $data): array|false {
-        $valid = parent::validate($data);
-        if (!$valid) {
-            return false;
-        }
-
-        $width = intval($data['width'] ?? null);
-        $height = intval($data['height'] ?? null);
-
+class exporter extends subplugin_exportable {
+    protected function get_fields(): array {
         return [
-            'width' => $width,
-            'height' => $height,
-            'alphachannel' => $data['alphachannel'],
-            'imageref' => $data['imageref'],
+            'width' => new float_field(0),
+            'height' => new float_field(0),
+            'alphachannel' => new float_field(0, 1),
+            '$' => new file_field('mod_customcert'),
         ];
     }
 }
