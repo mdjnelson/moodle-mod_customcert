@@ -17,10 +17,10 @@
 namespace mod_customcert\export\contracts;
 
 use core\di;
-use mod_customcert\classes\export\datatypes\format_error;
-use mod_customcert\classes\export\datatypes\format_exception;
-use mod_customcert\classes\export\datatypes\i_field;
-use mod_customcert\classes\export\datatypes\i_file_field;
+use mod_customcert\export\datatypes\format_error;
+use mod_customcert\export\datatypes\format_exception;
+use mod_customcert\export\datatypes\i_field;
+use mod_customcert\export\datatypes\i_file_field;
 use stored_file;
 
 /**
@@ -62,8 +62,7 @@ abstract class subplugin_exportable {
         $customdata = [];
 
         foreach ($fields as $key => $field) {
-            $safekey = str_replace('$', '', $key);
-            $value = $data[$safekey] ?? null;
+            $value = $data[$key] ?? null;
             if (!is_array($value)) {
                 throw new format_error('Subplugin data is missing');
             }
@@ -75,7 +74,7 @@ abstract class subplugin_exportable {
                         $customdata[str_replace('$', $subkey, $key)] = $subvalue;
                     }
                 } else {
-                    $customdata[$key] = $value;
+                    $customdata[$key] = $fielddata;
                 }
             } catch (format_exception $e) {
                 $this->logger->warning($key . ': ' . $e->getMessage());
@@ -102,8 +101,7 @@ abstract class subplugin_exportable {
             $fielddata = $this->get_relevant_data($key, $data);
             $exportedfielddata = $field->export($fielddata);
 
-            $safekey = str_replace('$', '', $key);
-            $safedata[$safekey] = $exportedfielddata;
+            $safedata[$key] = $exportedfielddata;
         }
 
         return $safedata;

@@ -1,6 +1,6 @@
 <?php
 
-namespace mod_customcert\classes\export\datatypes;
+namespace mod_customcert\export\datatypes;
 
 class float_field implements i_field {
     public function __construct(
