@@ -16,6 +16,8 @@
 
 namespace customcertelement_grade;
 
+use mod_customcert\classes\export\datatypes\enum_field;
+use mod_customcert\classes\export\datatypes\unimported_field;
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
@@ -27,55 +29,12 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * Validates the grade format against supported options.
-     *
-     * @param array $data Input data with 'gradeformat'.
-     * @return array|false Validated data or false on error.
-     */
-    public function validate(array $data): array|false {
-        $gradeformat = $data["gradeformat"];
-        $gradeformats = element::get_grade_format_options();
-
-        if (!array_key_exists($gradeformat, $gradeformats)) {
-            $this->logger->warning("The grade format '{$gradeformat}' does not exist.");
-            $gradeformat = array_keys($gradeformats)[0];
-        }
-
-        $this->logger->info("There is a grade reference, that will not be imported");
+    protected function get_fields(): array {
         return [
-            "gradeformat" => $gradeformat,
+            'gradeformat' => new enum_field(
+                array_keys(element::get_grade_format_options())
+            ),
+            'gradeitem' => new unimported_field()
         ];
-    }
-
-    /**
-     * Converts validated grade data into a JSON string for database storage.
-     *
-     * Ignores any grade item binding and always sets 'gradeitem' to '0'.
-     *
-     * @param array $data Validated data array.
-     * @return string|null JSON-encoded data or null.
-     */
-    public function convert_for_import(array $data): ?string {
-        $arrtostore = [
-            'gradeitem' => '0',
-            'gradeformat' => $data["gradeformat"],
-        ];
-        return json_encode($arrtostore);
-    }
-
-    /**
-     * Extracts and exports the grade format from stored data.
-     *
-     * @param int $elementid ID of the grade element.
-     * @param string $customdata JSON-encoded grade settings.
-     * @return array Associative array with 'gradeformat'.
-     */
-    public function export(int $elementid, string $customdata): array {
-        $decodeddata = json_decode($customdata);
-
-        $arrtostore = [];
-        $arrtostore['gradeformat'] = $decodeddata->gradeformat;
-        return $arrtostore;
     }
 }

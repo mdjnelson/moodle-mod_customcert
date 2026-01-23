@@ -20,7 +20,6 @@ use coding_exception;
 use mod_customcert\export\contracts\import_exception;
 use mod_customcert\export\contracts\i_template_file_manager;
 use mod_customcert\export\contracts\i_template_appendix_manager;
-use zip_packer;
 
 /**
  * Manages the export and import of custom certificate template files.
@@ -73,7 +72,9 @@ class template_file_manager implements i_template_file_manager {
 
         $this->filemng->export($templateid, $tempdir);
 
-        $zipper = new zip_packer();
+        if (!$packer = get_file_packer()) {
+            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
+        }
         $zipfile = "$tempdir/certificate-template-$templateid.zip";
 
         $files = [];
@@ -81,7 +82,7 @@ class template_file_manager implements i_template_file_manager {
             $files[basename($path)] = $path;
         }
 
-        $zipper->archive_to_pathname(
+        $packer->archive_to_pathname(
             $files,
             $zipfile
         );

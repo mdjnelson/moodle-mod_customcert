@@ -27,24 +27,7 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * No conversion required during import.
-     *
-     * @param array $data Input data (ignored).
-     * @return null|string Always returns null.
-     */
-    public function convert_for_import(array $data): ?string {
-        return null;
-    }
-
-    /**
-     * No data is exported.
-     *
-     * @param int $elementid ID of the element.
-     * @param string $customdata Ignored.
-     * @return array Always returns an empty array.
-     */
-    public function export(int $elementid, string $customdata): array {
+    protected function get_fields(): array {
         return [];
     }
 }
