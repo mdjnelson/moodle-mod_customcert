@@ -18,6 +18,8 @@ namespace mod_customcert\export;
 
 use core\clock;
 use core\di;
+use mod_customcert\classes\export\datatypes\format_error;
+use mod_customcert\export\contracts\i_template_import_logger;
 use mod_customcert\export\contracts\import_exception;
 use mod_customcert\export\contracts\subplugin_exportable;
 use moodle_database;
@@ -100,8 +102,10 @@ class element {
         }
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);
-        $subplugindata = $specificexporter->validate($data['data']);
-        if ($subplugindata === false) {
+        try {
+            $subpugindata = $specificexporter->convert_for_import($data['data']);
+        } catch (format_error $e) {
+            di::get(i_template_import_logger::class)->warning('subplugin data is not valid: ' . $e->getMessage());
             return;
         }
 
@@ -110,13 +114,9 @@ class element {
             'pageid' => $pageid,
             'name' => $data['name'],
             'element' => $data['element'],
-            'data' => $specificexporter->convert_for_import($subplugindata),
-            'font' => $data['font'],
-            'fontsize' => $data['fontsize'],
-            'colour' => $data['colour'],
+            'data' => $subpugindata,
             'posx' => (int) $data['posx'],
             'posy' => (int) $data['posy'],
-            'width' => (int) $data['width'],
             'refpoint' => (int) $data['refpoint'],
             'alignment' => $data['alignment'],
             'sequence' => (int) $data['sequence'],
@@ -137,7 +137,7 @@ class element {
         $data = $this->exporter->export($elementid, $this->fields);
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);
-        $data['data'] = $specificexporter->export($elementid, $data['data'] ?? "");
+        $data['data'] = $specificexporter->export($data['data'] ?? "");
         return $data;
     }
 

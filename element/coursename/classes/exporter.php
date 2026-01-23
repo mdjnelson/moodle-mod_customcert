@@ -16,6 +16,8 @@
 
 namespace customcertelement_coursename;
 
+use mod_customcert\classes\export\datatypes\enum_field;
+use mod_customcert\classes\export\datatypes\float_field;
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
@@ -31,48 +33,12 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * Validates the selected course name display format.
-     *
-     * @param array $data Input data with 'coursenamedisplay'.
-     * @return array|false Validated or corrected data.
-     */
-    public function validate(array $data): array|false {
-        $coursenamedisplay = $data['coursenamedisplay'];
-
-        if (
-            $coursenamedisplay == element::COURSE_SHORT_NAME
-            || $coursenamedisplay == element::COURSE_FULL_NAME
-        ) {
-            return $data;
-        }
-
-        $this->logger->warning("Course name display format not found");
+    protected function get_fields(): array {
         return [
-            'coursenamedisplay' => element::COURSE_SHORT_NAME,
+            'coursenamedisplay' => new enum_field([
+                element::COURSE_SHORT_NAME,
+                element::COURSE_FULL_NAME
+            ]),
         ];
-    }
-
-    /**
-     * Returns the validated display format as a string for storage.
-     *
-     * @param array $data Validated data array.
-     * @return string|null The display format to store.
-     */
-    public function convert_for_import(array $data): ?string {
-        return $data['coursenamedisplay'];
-    }
-
-    /**
-     * Reconstructs export data from stored course name format.
-     *
-     * @param int $elementid ID of the course name element.
-     * @param string $customdata Stored display format.
-     * @return array Associative array for export.
-     */
-    public function export(int $elementid, string $customdata): array {
-        $arrtostore = [];
-        $arrtostore['coursenamedisplay'] = $customdata;
-        return $arrtostore;
     }
 }

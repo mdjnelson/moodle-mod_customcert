@@ -17,6 +17,7 @@
 namespace customcertelement_userfield;
 
 use availability_profile\condition;
+use mod_customcert\classes\export\datatypes\enum_field;
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
@@ -32,42 +33,19 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * Validates that the specified user field exists in core or as a custom profile field.
-     *
-     * Logs a warning and rejects the data if the field is not found.
-     *
-     * @param array $data Element configuration including 'userfield'.
-     * @return array|false Validated data array or false if invalid.
-     */
-    public function validate(array $data): array|false {
-        $userfield = $data['userfield'];
 
-        if (!$this->validate_userfield($userfield)) {
-            $this->logger->warning("User field $userfield does not exists");
-            return false;
-        }
-
-        return $data;
+    protected function get_fields(): array {
+        return [
+            'userfield' => new enum_field($this->get_user_fields()),
+        ];
     }
 
     /**
-     * Extracts the user field identifier for storage.
+     * Get all valid user field options exists among core user fields and custom profile fields.
      *
-     * @param array $data Validated user field data.
-     * @return string|null The field name to store.
+     * @return array List of valid user field options.
      */
-    public function convert_for_import(array $data): ?string {
-        return $data['userfield'];
-    }
-
-    /**
-     * Checks if a user field exists among core user fields or custom profile fields.
-     *
-     * @param string $userfield The field identifier to validate.
-     * @return bool True if the field exists, false otherwise.
-     */
-    private function validate_userfield(string $userfield): bool {
+    private function get_user_fields(): array {
         $basefields = [
             'firstname',
             'lastname',
@@ -83,29 +61,8 @@ class exporter extends subplugin_exportable {
             'address',
         ];
 
-        if (in_array($userfield, $basefields)) {
-            return true;
-        }
-
         $arrcustomfields = condition::get_custom_profile_fields();
         $customfields = array_map(fn ($field) => $field->id, $arrcustomfields);
-        if (in_array($userfield, $customfields)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Prepares the user field for export in an associative array format.
-     *
-     * @param int $elementid The ID of the user field element.
-     * @param string $customdata Stored field name.
-     * @return array Associative array containing the 'userfield' key.
-     */
-    public function export(int $elementid, string $customdata): array {
-        $data = [];
-        $data['userfield'] = $customdata;
-        return $data;
+        return array_merge($basefields, $customfields);
     }
 }

@@ -56,14 +56,17 @@ class element_null_exporter extends subplugin_exportable {
     /**
      * Logs a message to CLI that export for the given plugin type is not supported.
      *
-     * @param int $elementid ID of the customcert element.
      * @param string|null $customdata Custom data associated with the element.
      * @return array Always returns an empty array since export is not supported.
      */
-    public function export(int $elementid, ?string $customdata): array {
+    public function export(?string $customdata): array {
         if (CLI_SCRIPT) {
             mtrace('Couldn\'t export element from plugin ' . $this->pluginname);
         }
+        return [];
+    }
+
+    protected function get_fields(): array {
         return [];
     }
 }

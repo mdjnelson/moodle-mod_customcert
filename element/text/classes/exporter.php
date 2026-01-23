@@ -16,6 +16,7 @@
 
 namespace customcertelement_text;
 
+use mod_customcert\classes\export\datatypes\string_field;
 use mod_customcert\export\contracts\subplugin_exportable;
 
 /**
@@ -27,46 +28,9 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-    /**
-     * Validates the static text element's content.
-     *
-     * If empty, logs an informational message. Returns sanitized data structure.
-     *
-     * @param array $data The element input data.
-     * @return array|false Sanitized data or false on failure.
-     */
-    public function validate(array $data): array|false {
-        $text = $data['text'] ?? "";
-
-        if ($text == "") {
-            $this->logger->info("Empty text element found.");
-        }
-
+    protected function get_fields(): array {
         return [
-            "text" => $text,
+            'text' => new string_field(true),
         ];
-    }
-
-    /**
-     * Returns the validated text for direct database storage.
-     *
-     * @param array $data Validated element data.
-     * @return string|null The text to be stored or null.
-     */
-    public function convert_for_import(array $data): ?string {
-        return $data['text'];
-    }
-
-    /**
-     * Wraps the stored text value in an array for export.
-     *
-     * @param int $elementid The ID of the text element.
-     * @param string $customdata The stored text value.
-     * @return array Exportable structure containing the text.
-     */
-    public function export(int $elementid, string $customdata): array {
-        $data = [];
-        $data['text'] = $customdata;
-        return $data;
     }
 }
