@@ -19,13 +19,10 @@ namespace customcertelement_bgimage;
 use mod_customcert\export\datatypes\file_field;
 use mod_customcert\export\datatypes\float_field;
 use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles import and export of background image elements for custom certificates.
- *
- * This exporter deals with serialization and deserialization of image references and properties.
- * It ensures referenced images are available, correctly mapped, and included in import/export
- * operations using the appendix manager service.
  *
  * @package    customcertelement_bgimage
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
@@ -33,6 +30,11 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return [
             'width' => new float_field(0),

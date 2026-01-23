@@ -24,7 +24,7 @@ use mod_customcert\export\datatypes\i_file_field;
 use stored_file;
 
 /**
- * Provides a base structure for exportable custom certificate subplugins. *
+ * Provides a base structure for exportable custom certificate subplugins.
  *
  * @package    mod_customcert
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
@@ -124,17 +124,25 @@ abstract class subplugin_exportable {
             }
 
             $fielddata = $this->get_relevant_data($key, $data);
-
-            $files[] = $field->get_file($fielddata);
+            try {
+                $files[] = $field->get_file($fielddata);
+            } catch (format_exception $e) {
+                $this->logger->warning($key . ': ' . $e->getMessage());
+            }
         }
 
         return $files;
     }
 
     /**
-     * @param int|string $key
-     * @param mixed $data
-     * @return array|mixed|null[]
+     * Retrieves field data from the customdata array, handling multi-key structures.
+     *
+     * If the field key uses `$` as a placeholder, replaces it with expected subkeys
+     * and collects associated data. Otherwise, returns the direct field value.
+     *
+     * @param string $key Field key, potentially containing a `$` placeholder.
+     * @param array $data Decoded custom data array.
+     * @return mixed Single field value or associative array of file-related subkeys.
      */
     public function get_relevant_data(string $key, array $data): mixed {
         if (str_contains($key, '$')) {

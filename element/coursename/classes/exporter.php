@@ -18,13 +18,10 @@ namespace customcertelement_coursename;
 
 use mod_customcert\export\contracts\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles import and export of course name elements for custom certificates.
- *
- * This exporter validates and serializes the display format for course names,
- * supporting short or full name formats. Invalid formats fall back to a default
- * with a warning.
  *
  * @package    customcertelement_coursename
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
@@ -32,6 +29,11 @@ use mod_customcert\export\datatypes\enum_field;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_text_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return parent::get_fields() + [
             'coursenamedisplay' => new enum_field([
