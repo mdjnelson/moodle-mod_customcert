@@ -16,11 +16,8 @@
 
 namespace customcertelement_teachername;
 
-use core\di;
-use mod_customcert\classes\export\datatypes\float_field;
-use mod_customcert\classes\export\datatypes\user_field;
-use mod_customcert\export\contracts\subplugin_exportable;
-use moodle_database;
+use mod_customcert\export\contracts\subplugin_text_exportable;
+use mod_customcert\export\datatypes\user_field;
 
 /**
  * Handles import and export of teacher name elements for custom certificates.
@@ -30,9 +27,9 @@ use moodle_database;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends subplugin_exportable {
+class exporter extends subplugin_text_exportable {
     protected function get_fields(): array {
-        return [
+        return parent::get_fields() + [
             'teacher' => new user_field(),
         ];
     }

@@ -16,9 +16,9 @@
 
 namespace customcertelement_grade;
 
-use mod_customcert\classes\export\datatypes\enum_field;
-use mod_customcert\classes\export\datatypes\unimported_field;
-use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\contracts\subplugin_text_exportable;
+use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\unimported_field;
 
 /**
  * Handles import and export of grade elements for custom certificates.
@@ -28,9 +28,9 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends subplugin_exportable {
+class exporter extends subplugin_text_exportable {
     protected function get_fields(): array {
-        return [
+        return parent::get_fields() + [
             'gradeformat' => new enum_field(
                 array_keys(element::get_grade_format_options())
             ),
