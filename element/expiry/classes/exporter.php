@@ -16,8 +16,8 @@
 
 namespace customcertelement_expiry;
 
-use mod_customcert\classes\export\datatypes\enum_field;
-use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\contracts\subplugin_text_exportable;
+use mod_customcert\export\datatypes\enum_field;
 
 /**
  * Handles import and export of expiry elements for custom certificates.
@@ -31,9 +31,9 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends subplugin_exportable {
+class exporter extends subplugin_text_exportable {
     protected function get_fields(): array {
-        return [
+        return parent::get_fields() + [
             'dateitem' => new enum_field($this->get_dateitems()),
             'dateformat' => new enum_field(array_keys(element::get_date_formats())),
             'startfrom' => new enum_field(['award', 'coursecomplete']),

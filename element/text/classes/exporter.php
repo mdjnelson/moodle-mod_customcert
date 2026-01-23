@@ -16,8 +16,8 @@
 
 namespace customcertelement_text;
 
-use mod_customcert\classes\export\datatypes\string_field;
-use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\contracts\subplugin_text_exportable;
+use mod_customcert\export\datatypes\string_field;
 
 /**
  * Handles import and export of static text elements for custom certificates.
@@ -27,9 +27,9 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends subplugin_exportable {
+class exporter extends subplugin_text_exportable {
     protected function get_fields(): array {
-        return [
+        return parent::get_fields() + [
             'text' => new string_field(true),
         ];
     }

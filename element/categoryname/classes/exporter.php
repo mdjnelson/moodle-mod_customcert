@@ -16,7 +16,7 @@
 
 namespace customcertelement_categoryname;
 
-use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\contracts\subplugin_text_exportable;
 
 /**
  * Empty custom data exporter.
@@ -26,9 +26,5 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exporter extends subplugin_exportable {
-    protected function get_fields(): array {
-        return [
-        ];
-    }
+class exporter extends subplugin_text_exportable {
 }
