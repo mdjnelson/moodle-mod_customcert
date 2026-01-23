@@ -22,6 +22,7 @@ require_once(__DIR__ . '/constants.php');
 use mod_customcert\export\contracts\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
 use mod_customcert\element_helper;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles import and export of date elements for custom certificates.
@@ -32,6 +33,11 @@ use mod_customcert\element_helper;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_text_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return parent::get_fields() + [
             'dateitem' => new enum_field($this->get_valid_dateitems()),
@@ -39,6 +45,11 @@ class exporter extends subplugin_text_exportable {
         ];
     }
 
+    /**
+     * Returns a valid list of date item options
+     *
+     * @return array valid date item options
+     */
     private function get_valid_dateitems(): array {
         return [
             CUSTOMCERT_DATE_ISSUE,
@@ -52,6 +63,11 @@ class exporter extends subplugin_text_exportable {
         ];
     }
 
+    /**
+     * Returns a list of valid date formats
+     *
+     * @return array list of valid data formats
+     */
     private function get_valid_dateformats(): array {
         return array_keys(element_helper::get_date_formats());
     }
