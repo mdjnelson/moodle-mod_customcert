@@ -19,6 +19,7 @@ namespace customcertelement_coursefield;
 use core_course\customfield\course_handler;
 use mod_customcert\export\contracts\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles import and export of course field elements for custom certificates.
@@ -33,12 +34,22 @@ use mod_customcert\export\datatypes\enum_field;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_text_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return parent::get_fields() + [
             'customfieldname' => new enum_field($this->get_course_fields()),
         ];
     }
 
+    /**
+     * Gets a list of valid course field types (inclusive moodle specific fields)
+     *
+     * @return array list of course field types
+     */
     private function get_course_fields(): array {
         $fields = ['fullname', 'shortname', 'idnumber'];
 
