@@ -41,7 +41,7 @@ class exporter extends subplugin_text_exportable {
     protected function get_fields(): array {
         return parent::get_fields() + [
             'dateitem' => new enum_field($this->get_valid_dateitems()),
-            'dateformat' => new enum_field($this->get_valid_dateformats())
+            'dateformat' => new enum_field($this->get_valid_dateformats()),
         ];
     }
 
