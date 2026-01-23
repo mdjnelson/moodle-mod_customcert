@@ -35,12 +35,17 @@ abstract class subplugin_exportable {
     /**
      * @var i_template_import_logger Logger instance used for reporting import issues and notices.
      */
-    protected i_template_import_logger $logger;
+    protected readonly i_template_import_logger $logger;
+    /**
+     * @var string Name of the plugin for debugging reasons.
+     */
+    protected readonly string $pluginname;
 
     /**
      * Constructor.
      */
-    public function __construct() {
+    public function __construct(string $pluginname) {
+        $this->pluginname = $pluginname;
         $this->logger = di::get(i_template_import_logger::class);
     }
 
@@ -69,15 +74,17 @@ abstract class subplugin_exportable {
 
             try {
                 $fielddata = $field->import($value);
-                if (is_array($fielddata)) {
-                    foreach ($fielddata as $subkey => $subvalue) {
-                        $customdata[str_replace('$', $subkey, $key)] = $subvalue;
-                    }
-                } else {
-                    $customdata[$key] = $fielddata;
-                }
             } catch (format_exception $e) {
                 $this->logger->warning($key . ': ' . $e->getMessage());
+                $fielddata = $field->get_fallback();
+            }
+
+            if (is_array($fielddata)) {
+                foreach ($fielddata as $subkey => $subvalue) {
+                    $customdata[str_replace('$', $subkey, $key)] = $subvalue;
+                }
+            } else {
+                $customdata[$key] = $fielddata;
             }
         }
 
@@ -93,10 +100,10 @@ abstract class subplugin_exportable {
      * @return array Exported data in array format.
      */
     public function export(string $customdata): array {
-        $fields = $this->get_fields();
-        $data = json_decode($customdata, true);
-        $safedata = [];
+        $data = $this->read_custom_data($customdata);
 
+        $safedata = [];
+        $fields = $this->get_fields();
         foreach ($fields as $key => $field) {
             $fielddata = $this->get_relevant_data($key, $data);
             $exportedfielddata = $field->export($fielddata);
@@ -115,7 +122,7 @@ abstract class subplugin_exportable {
      */
     public function get_used_files(string $customdata): array {
         $fields = $this->get_fields();
-        $data = json_decode($customdata, true);
+        $data = $this->read_custom_data($customdata);
         $files = [];
 
         foreach ($fields as $key => $field) {
@@ -152,9 +159,32 @@ abstract class subplugin_exportable {
             }, $subkeys);
             $fielddata = array_combine($subkeys, $fielddata);
         } else {
-            $fielddata = $data[$key];
+            $fielddata = $data[$key] ?? null;
         }
 
         return $fielddata;
+    }
+
+    /**
+     * Returns the custom data array from the db string
+     *
+     * @param string $customdata custom data from database
+     * @return array Custom data as array
+     */
+    public function read_custom_data(string $customdata): array {
+        if ($customdata === '') {
+            return [];
+        }
+
+        $decoded = json_decode($customdata, true);
+        if (json_last_error() == JSON_ERROR_NONE) {
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            return ['value' => $decoded];
+        }
+
+        return ['value' => $customdata];
     }
 }
