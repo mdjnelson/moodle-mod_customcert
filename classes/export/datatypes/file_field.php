@@ -20,6 +20,17 @@ use core\di;
 use mod_customcert\export\contracts\i_template_appendix_manager;
 use stored_file;
 
+/**
+ * Field which exports and import a file.
+ *
+ * This class handles the import and export for files and
+ * references files to elements.
+ *
+ * @package    mod_customcert
+ * @copyright  2026, onCampus GmbH
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class file_field implements i_field, i_file_field {
     /**
      * @var i_template_appendix_manager Reference to the template appendix manager used for file lookup and identification.
@@ -36,9 +47,7 @@ class file_field implements i_field, i_file_field {
      *
      * @param string $component Component of the file storage
      */
-    public function __construct(
-       string $component
-    ) {
+    public function __construct(string $component) {
         $this->component = $component;
         $this->filemng = di::get(i_template_appendix_manager::class);
     }

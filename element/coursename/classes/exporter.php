@@ -38,7 +38,7 @@ class exporter extends subplugin_text_exportable {
         return parent::get_fields() + [
             'coursenamedisplay' => new enum_field([
                 element::COURSE_SHORT_NAME,
-                element::COURSE_FULL_NAME
+                element::COURSE_FULL_NAME,
             ]),
         ];
     }
