@@ -50,24 +50,10 @@ class file_field implements i_field, i_file_field {
      * @return array The validated input value. (Local file reference)
      */
     public function import(array $data) {
-        return $this->filemng->get_file_reference($data['file_ref']);
-    }
-
-    /**
-     * Retrieves a stored file based on the provided file reference data.
-     *
-     * Validates the existence of the referenced file and throws an exception if not found.
-     *
-     * @param array $data File reference data containing 'file_ref'.
-     * @return stored_file The resolved stored file.
-     * @throws format_exception If the file could not be found.
-     */
-    public function get_file(array $data) {
-        $file = $this->filemng->find($data['file_ref']);
-        if (!$file) {
-            throw new format_exception("File with ref " . $data['imageref'] . " not found");
+        if (!$fileref = ($data['file_ref'] ?? null)) {
+            throw new format_exception("File reference not set");
         }
-        return $file;
+        return $this->filemng->get_file_reference($fileref);
     }
 
     /**
@@ -79,28 +65,39 @@ class file_field implements i_field, i_file_field {
      * @return array Array containing the 'file_ref' identifier.
      */
     public function export($value): array {
-        $file = $this->get_file_from_customdata($value);
-        $fileid = $this->filemng->get_identifier($file);
+        if (!$file = $this->get_file($value)) {
+            return [];
+        }
+
         return [
-            'file_ref' => $fileid,
+            'file_ref' => $this->filemng->get_identifier($file),
         ];
+    }
+
+    /**
+     * Fallback value for file reference.
+     *
+     * @return array No fallback needed.
+     */
+    public function get_fallback() {
+        return [];
     }
 
     /**
      * Retrieves the stored file instance associated with this element.
      *
-     * @param array $imagedata JSON-encoded data with file metadata.
+     * @param array $data JSON-encoded data with file metadata.
      * @return stored_file|false The resolved image file or false if not found.
      */
-    protected function get_file_from_customdata(array $imagedata): stored_file|false {
+    public function get_file(array $data): stored_file|false {
         $fs = get_file_storage();
         return $fs->get_file(
-            (int) $imagedata["contextid"],
+            (int) $data["contextid"],
             $this->component,
-            $imagedata["filearea"],
-            (int) $imagedata["itemid"],
-            $imagedata["filepath"],
-            $imagedata["filename"]
+            $data["filearea"],
+            (int) $data["itemid"],
+            $data["filepath"],
+            $data["filename"]
         );
     }
 }

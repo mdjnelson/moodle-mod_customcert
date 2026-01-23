@@ -46,4 +46,13 @@ class unimported_field implements i_field {
     public function export($value): array {
         return [];
     }
+
+    /**
+     * Empty cause import not possible
+     *
+     * @return string Empty fallback.
+     */
+    public function get_fallback() {
+        return "";
+    }
 }
