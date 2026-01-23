@@ -40,7 +40,7 @@ class enum_field implements i_field {
      * Constructor.
      *
      * @param array $options Array of valid options
-     * @param mixed $default Default value to use, use first from list if null
+     * @param mixed $firstasdefault True if the first field should be used as default, else uses null
      */
     public function __construct(array $options, $firstasdefault = true) {
         $this->options = $options;
