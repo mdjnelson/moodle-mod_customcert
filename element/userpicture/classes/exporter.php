@@ -18,6 +18,7 @@ namespace customcertelement_userpicture;
 
 use mod_customcert\export\datatypes\float_field;
 use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles import and export of user picture elements for custom certificates.
@@ -28,6 +29,11 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return [
             'width' => new float_field(0),

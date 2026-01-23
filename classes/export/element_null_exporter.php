@@ -17,6 +17,7 @@
 namespace mod_customcert\export;
 
 use mod_customcert\export\contracts\subplugin_exportable;
+use mod_customcert\export\datatypes\i_field;
 
 /**
  * Handles unsupported or unrecognized subplugin types during export and import.
@@ -66,6 +67,11 @@ class element_null_exporter extends subplugin_exportable {
         return [];
     }
 
+    /**
+     * Non-existent subplugin dont have fields
+     *
+     * @return i_field[] empty array
+     */
     protected function get_fields(): array {
         return [];
     }
