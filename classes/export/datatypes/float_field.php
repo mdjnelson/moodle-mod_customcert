@@ -16,6 +16,8 @@
 
 namespace mod_customcert\export\datatypes;
 
+use Exception;
+
 /**
  * Handles floating-point number validation and export for custom certificate fields.
  *
@@ -31,11 +33,11 @@ class float_field implements i_field {
     /**
      * @var float|null Minimum allowed value, or null if no lower bound.
      */
-    private ?float $min;
+    protected ?float $min;
     /**
      * @var float|null Maximum allowed value, or null if no upper bound.
      */
-    private ?float $max;
+    protected ?float $max;
 
     /**
      * Constructor.
@@ -84,5 +86,20 @@ class float_field implements i_field {
         return [
             'value' => $value,
         ];
+    }
+
+    /**
+     * Returns a valid value in the range
+     *
+     * @return float Default value
+     */
+    public function get_fallback() {
+        if ($this->min != null) {
+            return $this->min;
+        } else if ($this->max != null) {
+            return $this->max;
+        }
+
+        throw new Exception("This should never happen");
     }
 }

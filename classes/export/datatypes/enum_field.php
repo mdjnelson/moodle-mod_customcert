@@ -33,13 +33,18 @@ class enum_field implements i_field {
      */
     private array $options;
 
+    /** @var bool Use first value from list as default */
+    private bool $firstasdefault;
+
     /**
      * Constructor.
      *
      * @param array $options Array of valid options
+     * @param mixed $default Default value to use, use first from list if null
      */
-    public function __construct(array $options) {
+    public function __construct(array $options, $firstasdefault = true) {
         $this->options = $options;
+        $this->firstasdefault = $firstasdefault;
     }
 
     /**
@@ -72,5 +77,18 @@ class enum_field implements i_field {
         return [
             'value' => $value,
         ];
+    }
+
+    /**
+     * Fallback value for select.
+     *
+     * @return mixed Returns the first element as fallback
+     */
+    public function get_fallback() {
+        if ($this->firstasdefault) {
+            return reset($this->options);
+        }
+
+        return null;
     }
 }

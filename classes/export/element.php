@@ -23,6 +23,7 @@ use mod_customcert\export\contracts\i_template_import_logger;
 use mod_customcert\export\contracts\import_exception;
 use mod_customcert\export\contracts\subplugin_exportable;
 use moodle_database;
+use stored_file;
 
 /**
  * Manages the import, export, and file referencing of certificate elements.
@@ -147,13 +148,13 @@ class element {
      * Delegates the file collection to the corresponding subplugin exporter.
      *
      * @param int $elementid The ID of the element.
-     * @return array List of file references.
+     * @return stored_file[] List of file references.
      */
     public function get_files(int $elementid): array {
         $data = $this->exporter->export($elementid, ['element', 'data']);
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);
-        return $specificexporter->get_used_files($elementid, $data['data'] ?? "");
+        return $specificexporter->get_used_files($data['data'] ?? "");
     }
 
     /**
@@ -172,7 +173,7 @@ class element {
             return new element_null_exporter($pluginname);
         }
 
-        $exporter = new $classname();
+        $exporter = new $classname($pluginname);
         if (!$exporter instanceof subplugin_exportable) {
             return new element_null_exporter($pluginname);
         }

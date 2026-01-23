@@ -33,13 +33,18 @@ class string_field implements i_field {
      */
     private string $emptyallowed;
 
+    /** @var string Default value */
+    private string $default;
+
     /**
      * Constructor.
      *
      * @param string $emptyallowed Indicates whether empty strings are allowed for this field
+     * @param string $default Default value
      */
-    public function __construct(string $emptyallowed) {
+    public function __construct(string $emptyallowed, string $default = 'TODO') {
         $this->emptyallowed = $emptyallowed;
+        $this->default = $default;
     }
 
     /**
@@ -67,5 +72,9 @@ class string_field implements i_field {
         return [
             'value' => $value,
         ];
+    }
+
+    public function get_fallback() {
+        return $this->default;
     }
 }

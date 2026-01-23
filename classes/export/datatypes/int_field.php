@@ -16,6 +16,8 @@
 
 namespace mod_customcert\export\datatypes;
 
+use Exception;
+
 /**
  * Handles integer-specific import functionality for certificate subplugin fields.
  *
@@ -34,5 +36,20 @@ class int_field extends float_field {
     public function import(array $data) {
         $validated = parent::import($data);
         return (int) $validated;
+    }
+
+    /**
+     * Returns a valid value in the range
+     *
+     * @return float Default value
+     */
+    public function get_fallback() {
+        if ($this->min != null) {
+            return ceil($this->min);
+        } else if ($this->max != null) {
+            return floor($this->max);
+        }
+
+        throw new Exception("This should never happen");
     }
 }
