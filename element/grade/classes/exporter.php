@@ -40,7 +40,7 @@ class exporter extends subplugin_text_exportable {
             'gradeformat' => new enum_field(
                 array_keys(element::get_grade_format_options())
             ),
-            'gradeitem' => new unimported_field()
+            'gradeitem' => new unimported_field(),
         ];
     }
 }
