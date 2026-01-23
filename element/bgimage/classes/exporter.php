@@ -16,13 +16,9 @@
 
 namespace customcertelement_bgimage;
 
-use core\di;
-use Exception;
-use mod_customcert\classes\export\datatypes\file_field;
-use mod_customcert\classes\export\datatypes\float_field;
-use mod_customcert\export\contracts\i_template_appendix_manager;
+use mod_customcert\export\datatypes\file_field;
+use mod_customcert\export\datatypes\float_field;
 use mod_customcert\export\contracts\subplugin_exportable;
-use stored_file;
 
 /**
  * Handles import and export of background image elements for custom certificates.

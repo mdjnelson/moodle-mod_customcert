@@ -1,6 +1,6 @@
 <?php
 
-namespace mod_customcert\classes\export\datatypes;
+namespace mod_customcert\export\datatypes;
 
 class enum_field implements i_field {
     public function __construct(
@@ -9,9 +9,9 @@ class enum_field implements i_field {
     }
 
     public function import(array $data) {
-        $option = $data['option'];
+        $option = $data['value'];
 
-        if (!in_array($this->options, $option)) {
+        if (!in_array($option, $this->options)) {
             throw new format_exception("$option is not an valid option");
         }
 
@@ -20,7 +20,7 @@ class enum_field implements i_field {
 
     public function export($value): array {
         return [
-            'option' => $value,
+            'value' => $value,
         ];
     }
 }

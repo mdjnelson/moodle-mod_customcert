@@ -1,6 +1,6 @@
 <?php
 
-namespace mod_customcert\classes\export\datatypes;
+namespace mod_customcert\export\datatypes;
 
 use core\di;
 use moodle_database;
