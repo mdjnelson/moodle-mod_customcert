@@ -17,6 +17,7 @@
 namespace customcertelement_teachername;
 
 use mod_customcert\export\contracts\subplugin_text_exportable;
+use mod_customcert\export\datatypes\i_field;
 use mod_customcert\export\datatypes\user_field;
 
 /**
@@ -28,6 +29,11 @@ use mod_customcert\export\datatypes\user_field;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_text_exportable {
+    /**
+     * Defines the custom data fields
+     *
+     * @return i_field[] plugin-specific custom data fields
+     */
     protected function get_fields(): array {
         return parent::get_fields() + [
             'teacher' => new user_field(),

@@ -18,7 +18,7 @@ namespace mod_customcert\export;
 
 use core\clock;
 use core\di;
-use mod_customcert\classes\export\datatypes\format_error;
+use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\contracts\i_template_import_logger;
 use mod_customcert\export\contracts\import_exception;
 use mod_customcert\export\contracts\subplugin_exportable;
