@@ -107,6 +107,61 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * Ensure reusable issuer APIs expose candidates and issue creation without duplication.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service
+     */
+    public function test_certificate_issuer_helpers_list_candidates_and_issue_if_needed(): void {
+        global $DB;
+
+        // Create a course and enrol two students.
+        $course = $this->getDataGenerator()->create_course();
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+
+        // Create a custom certificate with emailing enabled.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Make the template valid.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
+
+        $issuer = new certificate_issuer_service();
+
+        // Pre-issue to one student and mark as emailed.
+        $issuedid = certificate::issue_certificate($customcert->id, $student1->id);
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issuedid]);
+
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+        $this->assertArrayHasKey($student2->id, $candidates);
+        $this->assertArrayNotHasKey($student1->id, $candidates);
+
+        // Existing issue returns same id and emailed flag.
+        $existing = $issuer->issue_if_needed((int)$customcert->id, (int)$student1->id);
+        $this->assertNotNull($existing);
+        $this->assertEquals($issuedid, $existing->id);
+        $this->assertEquals(1, $existing->emailed);
+
+        // New issue is created for the other student.
+        $newissue = $issuer->issue_if_needed((int)$customcert->id, (int)$student2->id);
+        $this->assertNotNull($newissue);
+        $this->assertNotEquals($issuedid, $newissue->id);
+        $this->assertEquals(0, $newissue->emailed);
+
+        // Subsequent calls keep returning the same issue id.
+        $repeat = $issuer->issue_if_needed((int)$customcert->id, (int)$student2->id);
+        $this->assertEquals($newissue->id, $repeat->id);
+    }
+
+    /**
      * Tests the email certificate task when there are no elements.
      *
      * @covers \mod_customcert\task\issue_certificates_task

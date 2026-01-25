@@ -43,6 +43,71 @@ class certificate_issuer_service {
     }
 
     /**
+     * List eligible users for emailing for a single certificate.
+     *
+     * @param int $customcertid
+     * @return array keyed by userid
+     */
+    public function list_email_candidates(int $customcertid): array {
+        $customcert = $this->get_customcert_for_processing($customcertid);
+        if (!$customcert) {
+            return [];
+        }
+
+        $includeinnotvisiblecourses = (bool)get_config('customcert', 'includeinnotvisiblecourses');
+        if (!$includeinnotvisiblecourses && $this->is_hidden_course($customcert)) {
+            return [];
+        }
+
+        [, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
+        if (!$cm->visible) {
+            return [];
+        }
+
+        if (!$this->certificate_has_elements((int)$customcert->contextid)) {
+            return [];
+        }
+
+        return $this->get_email_candidates_for_customcert($customcert, $cm);
+    }
+
+    /**
+     * Issue a certificate for a user if needed.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return object|null Contains id and emailed flags for the issue
+     */
+    public function issue_if_needed(int $customcertid, int $userid): ?object {
+        global $DB;
+
+        $issue = $DB->get_record(
+            'customcert_issues',
+            ['userid' => $userid, 'customcertid' => $customcertid],
+            'id, emailed'
+        );
+
+        if ($issue) {
+            return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+        }
+
+        $issueid = certificate::issue_certificate($customcertid, $userid);
+
+        return (object)['id' => $issueid, 'emailed' => 0];
+    }
+
+    /**
+     * Queue or send the email for an issue depending on configuration.
+     *
+     * @param int $customcertid
+     * @param int $issueid
+     * @return void
+     */
+    public function queue_or_send_email(int $customcertid, int $issueid): void {
+        $this->dispatch_email($customcertid, $issueid);
+    }
+
+    /**
      * Process a run of certificate issuance and emailing according to configuration.
      *
      * @return void
@@ -108,95 +173,17 @@ class certificate_issuer_service {
             }
 
             // Do not process an empty certificate.
-            $sqlelements = "SELECT ce.*
-                              FROM {customcert_elements} ce
-                              JOIN {customcert_pages} cp
-                                ON cp.id = ce.pageid
-                              JOIN {customcert_templates} ct
-                                ON ct.id = cp.templateid
-                             WHERE ct.contextid = :contextid";
-            if (!$DB->record_exists_sql($sqlelements, ['contextid' => $customcert->contextid])) {
+            if (!$this->certificate_has_elements((int)$customcert->contextid)) {
                 continue;
             }
 
-            // Get the context.
-            $context = \context::instance_by_id($customcert->contextid);
+            $candidates = $this->get_email_candidates_for_customcert($customcert, $cm);
 
-            // Get a list of all the issues that are already emailed (skip these users).
-            $sqlissued = "SELECT u.id
-                            FROM {customcert_issues} ci
-                            JOIN {user} u
-                              ON ci.userid = u.id
-                           WHERE ci.customcertid = :customcertid
-                                 AND ci.emailed = 1";
-            $issuedusers = $DB->get_records_sql($sqlissued, ['customcertid' => $customcert->id]);
+            foreach ($candidates as $filtereduser) {
+                $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id);
 
-            // Now, get a list of users who can Manage the certificate.
-            $userswithmanage = get_users_by_capability($context, 'mod/customcert:manage', 'u.id');
-
-            // Get the context of the Custom Certificate module.
-            $cmcontext = \context_module::instance($cm->id);
-
-            // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
-            $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
-            // Get users with mod/customcert:view capability.
-            $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
-            // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
-            $userswithissueview = array_intersect_key($userswithissue, $userswithview);
-
-            // Filter remaining users by availability conditions.
-            $infomodule = new \core_availability\info_module($cm);
-            $filteredusers = $infomodule->filter_user_list($userswithissueview);
-
-            foreach ($filteredusers as $filtereduser) {
-                // Skip if the user has already been issued and emailed.
-                if (in_array($filtereduser->id, array_keys((array)$issuedusers))) {
-                    continue;
-                }
-
-                // Require mod/customcert:receiveissue capability.
-                if (!in_array($filtereduser->id, array_keys($userswithissue))) {
-                    continue;
-                }
-
-                // Check whether the CM is visible to this user.
-                $usercm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
-                if (!$usercm->uservisible) {
-                    continue;
-                }
-
-                // Check required time (if any).
-                if (!empty($customcert->requiredtime)) {
-                    if (
-                        certificate::get_course_time(
-                            $customcert->courseid,
-                            $filtereduser->id
-                        ) < ($customcert->requiredtime * 60)
-                    ) {
-                        continue;
-                    }
-                }
-
-                // Ensure the cert hasn't already been issued; if not, issue it now.
-                $issue = $DB->get_record(
-                    'customcert_issues',
-                    ['userid' => $filtereduser->id, 'customcertid' => $customcert->id],
-                    'id, emailed'
-                );
-
-                $issueid = null;
-                $emailed = 0;
-                if (!empty($issue)) {
-                    $issueid = (int)$issue->id;
-                    $emailed = (int)$issue->emailed;
-                } else {
-                    $issueid = certificate::issue_certificate($customcert->id, $filtereduser->id);
-                    $emailed = 0;
-                }
-
-                // If we have an issue and it has not been emailed yet, send it now.
-                if (!empty($issueid) && $emailed === 0) {
-                    $this->dispatch_email((int)$customcert->id, $issueid);
+                if (!empty($issue) && (int)$issue->emailed === 0) {
+                    $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
                 }
             }
         }
@@ -219,5 +206,126 @@ class certificate_issuer_service {
         }
 
         $this->emailservice->send_issue($customcertid, $issueid);
+    }
+
+    /**
+     * Get the certificate record with necessary joins for processing.
+     *
+     * @param int $customcertid
+     * @return object|null
+     */
+    private function get_customcert_for_processing(int $customcertid): ?object {
+        global $DB;
+
+        $sql = "SELECT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, c.emailothers,
+                       ct.contextid, co.id AS courseid, co.visible AS coursevisible, cat.visible AS categoryvisible
+                  FROM {customcert} c
+                  JOIN {customcert_templates} ct ON c.templateid = ct.id
+                  JOIN {course} co ON c.course = co.id
+             LEFT JOIN {course_categories} cat ON co.category = cat.id
+                 WHERE c.id = :id";
+
+        return $DB->get_record_sql($sql, ['id' => $customcertid]);
+    }
+
+    /**
+     * Determine if the certificate has at least one element.
+     *
+     * @param int $contextid
+     * @return bool
+     */
+    private function certificate_has_elements(int $contextid): bool {
+        global $DB;
+
+        $sqlelements = "SELECT 1
+                           FROM {customcert_elements} ce
+                           JOIN {customcert_pages} cp ON cp.id = ce.pageid
+                           JOIN {customcert_templates} ct ON ct.id = cp.templateid
+                          WHERE ct.contextid = :contextid";
+
+        return $DB->record_exists_sql($sqlelements, ['contextid' => $contextid]);
+    }
+
+    /**
+     * Determine if the course/category should be skipped when hidden.
+     *
+     * @param object $customcert
+     * @return bool
+     */
+    private function is_hidden_course(object $customcert): bool {
+        $coursevisible = isset($customcert->coursevisible) ? (int)$customcert->coursevisible : 1;
+        $categoryvisible = property_exists($customcert, 'categoryvisible') ? $customcert->categoryvisible : null;
+
+        return $coursevisible === 0 || ($categoryvisible !== null && (int)$categoryvisible === 0);
+    }
+
+    /**
+     * Build the list of eligible users for a certificate within a CM context.
+     *
+     * @param object $customcert
+     * @param object $cm
+     * @return array
+     */
+    private function get_email_candidates_for_customcert(object $customcert, object $cm): array {
+        global $DB;
+
+        // Get a list of all the issues that are already emailed (skip these users).
+        $sqlissued = "SELECT u.id
+                        FROM {customcert_issues} ci
+                        JOIN {user} u
+                          ON ci.userid = u.id
+                       WHERE ci.customcertid = :customcertid
+                             AND ci.emailed = 1";
+        $issuedusers = $DB->get_records_sql($sqlissued, ['customcertid' => $customcert->id]);
+
+        // Get the context of the Custom Certificate module.
+        $cmcontext = \context_module::instance($cm->id);
+
+        // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
+        $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
+        // Get users with mod/customcert:view capability.
+        $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
+        // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
+        $userswithissueview = array_intersect_key($userswithissue, $userswithview);
+
+        // Filter remaining users by availability conditions.
+        $infomodule = new \core_availability\info_module($cm);
+        $filteredusers = $infomodule->filter_user_list($userswithissueview);
+
+        $candidates = [];
+
+        foreach ($filteredusers as $filtereduser) {
+            // Skip if the user has already been issued and emailed.
+            if (array_key_exists($filtereduser->id, $issuedusers)) {
+                continue;
+            }
+
+            // Require mod/customcert:receiveissue capability.
+            if (!array_key_exists($filtereduser->id, $userswithissue)) {
+                continue;
+            }
+
+            // Check whether the CM is visible to this user.
+            $usercm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
+            if (!$usercm->uservisible) {
+                continue;
+            }
+
+            // Check required time (if any).
+            if (!empty($customcert->requiredtime)) {
+                if (
+                    certificate::get_course_time(
+                        $customcert->courseid,
+                        $filtereduser->id
+                    ) < ($customcert->requiredtime * 60)
+                ) {
+                    continue;
+                }
+            }
+
+            $candidates[$filtereduser->id] = $filtereduser;
+        }
+
+        return $candidates;
     }
 }
