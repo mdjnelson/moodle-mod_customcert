@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\element\validatable_element_interface;
 use Throwable;
@@ -38,11 +38,11 @@ class validation_service {
     /**
      * Validate the configuration for an element.
      *
-     * @param element $element
+     * @param element_interface $element
      * @param array $data
      * @return array
      */
-    public function validate(element $element, array $data): array {
+    public function validate(element_interface $element, array $data): array {
         $errors = [];
 
         // Validate standard fields if present.

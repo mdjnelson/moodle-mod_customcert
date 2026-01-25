@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -33,7 +34,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class form_buildable_test_element extends element implements form_buildable_interface {
+class form_buildable_test_element extends element implements element_interface, form_buildable_interface {
     /**
      * Flag to track whether build_form was called.
      *

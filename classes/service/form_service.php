@@ -27,8 +27,9 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\certificate;
-use mod_customcert\element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use moodleform;
@@ -42,20 +43,22 @@ class form_service {
      * Build the form for an element.
      *
      * @param MoodleQuickForm $mform
-     * @param element $element
+     * @param element_interface $element
      */
-    public function build_form(MoodleQuickForm $mform, element $element): void {
+    public function build_form(MoodleQuickForm $mform, element_interface $element): void {
         if ($element instanceof form_buildable_interface) {
             $element->build_form($mform);
         } else {
             // Fallback for elements not yet migrated or third-party elements.
             $element->render_form_elements($mform);
-            return;
         }
 
         // Per-element hook for form preparation (e.g., filemanager draft areas, default values).
         if ($element instanceof preparable_form_interface) {
             $element->prepare_form($mform);
+        } else if ($element instanceof legacy_element_adapter) {
+            // Legacy fallback: delegate to the wrapped legacy element's definition_after_data().
+            $element->definition_after_data($mform);
         }
     }
 

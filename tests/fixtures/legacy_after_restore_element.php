@@ -19,38 +19,58 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
-use mod_customcert\element\element_interface;
 use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
 /**
- * Test fixture: legacy-only element without constructable interface.
+ * Test fixture: legacy element with after_restore for adapter testing.
  *
  * @package    mod_customcert
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class legacy_only_test_element extends element implements element_interface {
+class legacy_after_restore_element extends element {
     /**
-     * Render the element to PDF (no-op in tests).
+     * Flag to track if after_restore was called.
      *
-     * @param pdf $pdf PDF engine
-     * @param bool $preview Preview flag
-     * @param stdClass $user User
-     * @param element_renderer|null $renderer Optional renderer
+     * @var bool
+     */
+    public bool $called = false;
+
+    /**
+     * Legacy after_restore implementation.
+     *
+     * @param mixed $restore
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // No-op for tests.
+    public function after_restore($restore) {
+        $this->called = true;
     }
 
     /**
-     * Render the element to HTML (no-op in tests).
+     * Render to PDF (not used in this test).
      *
-     * @param element_renderer|null $renderer Optional renderer
-     * @return string Empty HTML
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(
+        pdf $pdf,
+        bool $preview,
+        stdClass $user,
+        ?element_renderer $renderer = null
+    ): void {
+    }
+
+    /**
+     * Render HTML (not used in this test).
+     *
+     * @param element_renderer|null $renderer
+     * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
         return '';

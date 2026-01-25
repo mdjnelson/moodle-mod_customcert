@@ -27,7 +27,9 @@ declare(strict_types=1);
 
 namespace mod_customcert\element;
 
+use mod_customcert\edit_element_form;
 use mod_customcert\element as legacy_base;
+use mod_customcert\service\element_renderer;
 
 /**
  * Adapts a legacy element (extending mod_customcert\element) to element_interface.
@@ -169,5 +171,107 @@ final class legacy_element_adapter implements element_interface {
      */
     public function get_type(): string {
         return $this->inner->get_type();
+    }
+
+    /**
+     * Set the edit element form instance.
+     *
+     * @param edit_element_form $editelementform
+     * @return void
+     */
+    public function set_edit_element_form(edit_element_form $editelementform): void {
+        $this->inner->set_edit_element_form($editelementform);
+    }
+
+    /**
+     * Render form elements (legacy fallback).
+     *
+     * @param \MoodleQuickForm $mform
+     * @return void
+     */
+    public function render_form_elements($mform): void {
+        $this->inner->render_form_elements($mform);
+    }
+
+    /**
+     * Check if this element requires the 'Save and continue' button.
+     *
+     * @return bool
+     */
+    public function has_save_and_continue(): bool {
+        if (method_exists($this->inner, 'has_save_and_continue')) {
+            return $this->inner->has_save_and_continue();
+        }
+        return false;
+    }
+
+    /**
+     * Validate form elements (legacy fallback).
+     *
+     * @param array $data
+     * @param array $files
+     * @return array
+     */
+    public function validate_form_elements($data, $files): array {
+        if (method_exists($this->inner, 'validate_form_elements')) {
+            return $this->inner->validate_form_elements($data, $files);
+        }
+        return [];
+    }
+
+    /**
+     * Save unique data for legacy elements (legacy fallback).
+     *
+     * @param \stdClass $data
+     * @return mixed
+     */
+    public function save_unique_data($data) {
+        if (method_exists($this->inner, 'save_unique_data')) {
+            return $this->inner->save_unique_data($data);
+        }
+        return null;
+    }
+
+    /**
+     * Render the element in HTML for the drag and drop interface.
+     *
+     * @param element_renderer|null $renderer
+     * @return string
+     */
+    public function render_html(?element_renderer $renderer = null): string {
+        return $this->inner->render_html($renderer);
+    }
+
+    /**
+     * Sets the data on the form when editing an element (legacy fallback).
+     *
+     * @param \MoodleQuickForm $mform
+     * @return void
+     */
+    public function definition_after_data($mform): void {
+        if (method_exists($this->inner, 'definition_after_data')) {
+            $this->inner->definition_after_data($mform);
+        }
+    }
+
+    /**
+     * Handle restoration process for legacy elements.
+     *
+     * @param \restore_customcert_activity_task $restore
+     * @return void
+     */
+    public function after_restore($restore): void {
+        if (method_exists($this->inner, 'after_restore')) {
+            $this->inner->after_restore($restore);
+        }
+    }
+
+    /**
+     * Handle element deletion.
+     *
+     * @return bool success return true if deletion success, false otherwise
+     */
+    public function delete(): bool {
+        return $this->inner->delete();
     }
 }

@@ -69,10 +69,10 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param element_interface $element the customcert element
+     * @param element_interface|element $element the customcert element
      * @param string $content the content to render
      */
-    public static function render_content(pdf $pdf, element_interface $element, string $content) {
+    public static function render_content(pdf $pdf, element_interface|element $element, string $content) {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
         $colour = $element->get_colour() ?? '#000000';
@@ -122,11 +122,11 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element_interface $element the customcert element
+     * @param element_interface|element $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
-    public static function render_html_content(element_interface $element, string $content): string {
+    public static function render_html_content(element_interface|element $element, string $content): string {
         [$font, $attr] = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
@@ -378,10 +378,10 @@ class element_helper {
     /**
      * Returns the font used for this element.
      *
-     * @param element_interface $element the customcert element
+     * @param element_interface|element $element the customcert element
      * @return array the font and font attributes
      */
-    public static function get_font(element_interface $element) {
+    public static function get_font(element_interface|element $element) {
         // Variable for the font.
         $font = $element->get_font();
         // If there is no font, then we have nothing to do.
