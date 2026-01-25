@@ -29,6 +29,7 @@ use completion_info;
 use context_module;
 use stdClass;
 use advanced_testcase;
+use mod_customcert\service\certificate_issuer_service;
 use mod_customcert\service\template_service;
 use mod_customcert\task\email_certificate_task;
 use mod_customcert\task\issue_certificates_task;
@@ -52,6 +53,57 @@ final class email_certificate_task_test extends advanced_testcase {
         set_config('certificateexecutionperiod', 0, 'customcert');
 
         parent::setUp();
+    }
+
+    /**
+     * Tests the issuer service end-to-end for a single student.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service
+     * @covers \mod_customcert\service\certificate_email_service
+     */
+    public function test_certificate_issuer_service_processes_run(): void {
+        global $CFG, $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a student and enrol them.
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a custom certificate.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Build a minimal template with one element.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
+
+        // Run the issuer service directly.
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Confirm the issue was created and emailed.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues);
+        $issue = reset($issues);
+        $this->assertEquals(1, (int)$issue->emailed);
+        $this->assertEquals($student->id, (int)$issue->userid);
+
+        // Confirm one email to the student.
+        $this->assertCount(1, $emails);
+        $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
+        $this->assertEquals($student->email, $emails[0]->to);
     }
 
     /**
