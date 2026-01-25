@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use mod_customcert\element\element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
 use pdf;
@@ -36,7 +37,7 @@ use stdClass;
 /**
  * Dummy validatable element used only for PHPUnit tests.
  */
-final class dummy_validatable_element extends element implements validatable_element_interface {
+final class dummy_validatable_element extends element implements element_interface, validatable_element_interface {
     /** @var array<string,string> */
     private array $customerrors = [];
 

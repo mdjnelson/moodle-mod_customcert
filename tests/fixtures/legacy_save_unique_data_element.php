@@ -19,38 +19,51 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
-use mod_customcert\element\element_interface;
 use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
 /**
- * Test fixture: legacy-only element without constructable interface.
+ * Test fixture: legacy element with save_unique_data for adapter testing.
  *
  * @package    mod_customcert
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class legacy_only_test_element extends element implements element_interface {
+class legacy_save_unique_data_element extends element {
     /**
-     * Render the element to PDF (no-op in tests).
+     * Legacy save_unique_data implementation.
      *
-     * @param pdf $pdf PDF engine
-     * @param bool $preview Preview flag
-     * @param stdClass $user User
-     * @param element_renderer|null $renderer Optional renderer
-     * @return void
+     * @param stdClass $data
+     * @return string
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // No-op for tests.
+    public function save_unique_data($data) {
+        return $data->testfield ?? 'default';
     }
 
     /**
-     * Render the element to HTML (no-op in tests).
+     * Render to PDF (not used in this test).
      *
-     * @param element_renderer|null $renderer Optional renderer
-     * @return string Empty HTML
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(
+        pdf $pdf,
+        bool $preview,
+        stdClass $user,
+        ?element_renderer $renderer = null
+    ): void {
+    }
+
+    /**
+     * Render HTML (not used in this test).
+     *
+     * @param element_renderer|null $renderer
+     * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
         return '';
