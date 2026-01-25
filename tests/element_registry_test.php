@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_factory;
 use mod_customcert\element\element_bootstrap;
@@ -108,7 +109,7 @@ final class element_registry_test extends advanced_testcase {
         foreach ($map as $type => $expectedclass) {
             $instance = $factory->create($type, $record);
             // Factory returns adapter instances now; unwrap if needed.
-            if ($instance instanceof \mod_customcert\element\legacy_element_adapter) {
+            if ($instance instanceof legacy_element_adapter) {
                 $instance = $instance->get_inner();
             }
             $this->assertInstanceOf($expectedclass, $instance, "Factory did not create expected class for '{$type}'");

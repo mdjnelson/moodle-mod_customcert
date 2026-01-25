@@ -18,7 +18,10 @@ declare(strict_types=1);
 
 namespace mod_customcert\tests\fixtures;
 
+use mod_customcert\element;
 use mod_customcert\service\element_renderer;
+use pdf;
+use stdClass;
 
 /**
  * Test fixture: legacy-only element without constructable interface.
@@ -28,17 +31,17 @@ use mod_customcert\service\element_renderer;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class legacy_only_test_element extends \mod_customcert\element {
+class legacy_only_test_element extends element {
     /**
      * Render the element to PDF (no-op in tests).
      *
-     * @param \pdf $pdf PDF engine
+     * @param pdf $pdf PDF engine
      * @param bool $preview Preview flag
-     * @param \stdClass $user User
+     * @param stdClass $user User
      * @param element_renderer|null $renderer Optional renderer
      * @return void
      */
-    public function render(\pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         // No-op for tests.
     }
 
