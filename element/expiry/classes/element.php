@@ -177,7 +177,6 @@ class element extends base_element implements
             return;
         }
 
-        $courseid = element_helper::get_courseid($this->id);
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
         $dateitem = $payload['dateitem'] ?? '';
