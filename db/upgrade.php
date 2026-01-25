@@ -366,7 +366,7 @@ function xmldb_customcert_upgrade($oldversion) {
         // 1) Migrate data in customcert_elements.
         $rs = $DB->get_recordset('customcert_elements', null, 'id');
         foreach ($rs as $rec) {
-            $migrated = \mod_customcert\local\upgrade\row_migrator::migrate_row(
+            $migrated = row_migrator::migrate_row(
                 $rec->data,
                 $rec->width === null ? null : (int)$rec->width,
                 $rec->font === null ? null : (string)$rec->font,
