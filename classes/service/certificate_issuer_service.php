@@ -34,12 +34,30 @@ class certificate_issuer_service {
     private certificate_email_service $emailservice;
 
     /**
+     * @var certificate_repository
+     */
+    private certificate_repository $certificates;
+
+    /**
+     * @var issue_repository
+     */
+    private issue_repository $issues;
+
+    /**
      * certificate_issuer_service constructor.
      *
      * @param certificate_email_service|null $emailservice
+     * @param certificate_repository|null $certificates
+     * @param issue_repository|null $issues
      */
-    public function __construct(?certificate_email_service $emailservice = null) {
+    public function __construct(
+        ?certificate_email_service $emailservice = null,
+        ?certificate_repository $certificates = null,
+        ?issue_repository $issues = null
+    ) {
         $this->emailservice = $emailservice ?? new certificate_email_service();
+        $this->certificates = $certificates ?? new certificate_repository();
+        $this->issues = $issues ?? new issue_repository();
     }
 
     /**
@@ -49,7 +67,7 @@ class certificate_issuer_service {
      * @return array keyed by userid
      */
     public function list_email_candidates(int $customcertid): array {
-        $customcert = $this->get_customcert_for_processing($customcertid);
+        $customcert = $this->certificates->get_for_processing($customcertid);
         if (!$customcert) {
             return [];
         }
@@ -64,7 +82,7 @@ class certificate_issuer_service {
             return [];
         }
 
-        if (!$this->certificate_has_elements((int)$customcert->contextid)) {
+        if (!$this->certificates->has_elements((int)$customcert->contextid)) {
             return [];
         }
 
@@ -79,19 +97,13 @@ class certificate_issuer_service {
      * @return object|null Contains id and emailed flags for the issue
      */
     public function issue_if_needed(int $customcertid, int $userid): ?object {
-        global $DB;
-
-        $issue = $DB->get_record(
-            'customcert_issues',
-            ['userid' => $userid, 'customcertid' => $customcertid],
-            'id, emailed'
-        );
+        $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
 
         if ($issue) {
             return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
         }
 
-        $issueid = certificate::issue_certificate($customcertid, $userid);
+        $issueid = $this->issues->create($customcertid, $userid);
 
         return (object)['id' => $issueid, 'emailed' => 0];
     }
@@ -113,50 +125,17 @@ class certificate_issuer_service {
      * @return void
      */
     public function process_email_issuance_run(): void {
-        global $DB;
-
         // Get the certificatesperrun, includeinnotvisiblecourses, and certificateexecutionperiod configurations.
         $certificatesperrun = (int)get_config('customcert', 'certificatesperrun');
         $includeinnotvisiblecourses = (bool)get_config('customcert', 'includeinnotvisiblecourses');
         $certificateexecutionperiod = (int)get_config('customcert', 'certificateexecutionperiod');
         $offset = (int)get_config('customcert', 'certificate_offset');
-        $emailothersselect = "c.emailothers";
-        $emailotherslengthsql = $DB->sql_length('c.emailothers');
-
-        $sql = "SELECT DISTINCT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, $emailothersselect,
-                       ct.id AS templateid, ct.name AS templatename, ct.contextid, co.id AS courseid,
-                       co.fullname AS coursefullname, co.shortname AS courseshortname
-                  FROM {customcert} c
-                  JOIN {customcert_templates} ct
-                    ON c.templateid = ct.id
-                  JOIN {course} co
-                    ON c.course = co.id
-             LEFT JOIN {course_categories} cat
-                    ON co.category = cat.id
-             LEFT JOIN {customcert_issues} ci
-                    ON c.id = ci.customcertid
-                 WHERE (c.emailstudents = :emailstudents
-                    OR c.emailteachers = :emailteachers
-                    OR $emailotherslengthsql >= 3)";
-
-        $params = ['emailstudents' => 1, 'emailteachers' => 1];
-
-        // Check the includeinnotvisiblecourses configuration.
-        if (!$includeinnotvisiblecourses) {
-            // Exclude certificates from hidden courses.
-            $sql .= " AND co.visible = 1 AND (cat.visible = 1 OR cat.id IS NULL)";
-        }
-
-        // Add condition based on certificate execution period.
-        if ($certificateexecutionperiod > 0) {
-            // Include courses with no end date or end date greater than the specified period.
-            $sql .= " AND (co.enddate > :enddate OR (co.enddate = 0 AND (ci.timecreated > :enddate2 OR ci.timecreated IS NULL)))";
-            $params['enddate'] = time() - $certificateexecutionperiod;
-            $params['enddate2'] = $params['enddate'];
-        }
-
-        // Execute the SQL query.
-        $customcerts = $DB->get_records_sql($sql, $params, $offset, $certificatesperrun);
+        $customcerts = $this->certificates->list_for_issuance_run(
+            $certificatesperrun,
+            $offset,
+            $includeinnotvisiblecourses,
+            $certificateexecutionperiod
+        );
 
         // When we get to the end of the list, reset the offset.
         set_config('certificate_offset', !empty($customcerts) ? $offset + $certificatesperrun : 0, 'customcert');
@@ -173,7 +152,7 @@ class certificate_issuer_service {
             }
 
             // Do not process an empty certificate.
-            if (!$this->certificate_has_elements((int)$customcert->contextid)) {
+            if (!$this->certificates->has_elements((int)$customcert->contextid)) {
                 continue;
             }
 
@@ -209,44 +188,6 @@ class certificate_issuer_service {
     }
 
     /**
-     * Get the certificate record with necessary joins for processing.
-     *
-     * @param int $customcertid
-     * @return object|null
-     */
-    private function get_customcert_for_processing(int $customcertid): ?object {
-        global $DB;
-
-        $sql = "SELECT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, c.emailothers,
-                       ct.contextid, co.id AS courseid, co.visible AS coursevisible, cat.visible AS categoryvisible
-                  FROM {customcert} c
-                  JOIN {customcert_templates} ct ON c.templateid = ct.id
-                  JOIN {course} co ON c.course = co.id
-             LEFT JOIN {course_categories} cat ON co.category = cat.id
-                 WHERE c.id = :id";
-
-        return $DB->get_record_sql($sql, ['id' => $customcertid]);
-    }
-
-    /**
-     * Determine if the certificate has at least one element.
-     *
-     * @param int $contextid
-     * @return bool
-     */
-    private function certificate_has_elements(int $contextid): bool {
-        global $DB;
-
-        $sqlelements = "SELECT 1
-                           FROM {customcert_elements} ce
-                           JOIN {customcert_pages} cp ON cp.id = ce.pageid
-                           JOIN {customcert_templates} ct ON ct.id = cp.templateid
-                          WHERE ct.contextid = :contextid";
-
-        return $DB->record_exists_sql($sqlelements, ['contextid' => $contextid]);
-    }
-
-    /**
      * Determine if the course/category should be skipped when hidden.
      *
      * @param object $customcert
@@ -267,16 +208,8 @@ class certificate_issuer_service {
      * @return array
      */
     private function get_email_candidates_for_customcert(object $customcert, object $cm): array {
-        global $DB;
-
         // Get a list of all the issues that are already emailed (skip these users).
-        $sqlissued = "SELECT u.id
-                        FROM {customcert_issues} ci
-                        JOIN {user} u
-                          ON ci.userid = u.id
-                       WHERE ci.customcertid = :customcertid
-                             AND ci.emailed = 1";
-        $issuedusers = $DB->get_records_sql($sqlissued, ['customcertid' => $customcert->id]);
+        $issuedusers = $this->issues->list_emailed_users((int)$customcert->id);
 
         // Get the context of the Custom Certificate module.
         $cmcontext = \context_module::instance($cm->id);
