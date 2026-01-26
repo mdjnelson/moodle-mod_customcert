@@ -162,6 +162,69 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * list_email_candidates should ignore certificates without elements.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_requires_elements(): void {
+        // Create a course and enrol a student.
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate with emailing enabled but no elements/pages added.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        $issuer = new certificate_issuer_service();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        $this->assertArrayNotHasKey($student->id, $candidates);
+        $this->assertEmpty($candidates);
+    }
+
+    /**
+     * list_email_candidates should enforce required time before listing users.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_respects_required_time(): void {
+        global $DB;
+
+        // Create a course and enrol a student.
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate requiring 5 minutes in the course and enable emailing.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'requiredtime' => 5,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issuer = new certificate_issuer_service();
+
+        // With no course time logged, the student should not be listed.
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+        $this->assertArrayNotHasKey($student->id, $candidates);
+
+        // If required time is removed, the user becomes eligible.
+        $DB->set_field('customcert', 'requiredtime', 0, ['id' => $customcert->id]);
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+        $this->assertArrayHasKey($student->id, $candidates);
+    }
+
+    /**
      * Tests the email certificate task when there are no elements.
      *
      * @covers \mod_customcert\task\issue_certificates_task
