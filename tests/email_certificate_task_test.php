@@ -452,6 +452,47 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * queue_or_send_email should send immediately and flag emailed when adhoc is disabled.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::queue_or_send_email
+     */
+    public function test_queue_or_send_email_sends_inline_when_adhoc_disabled(): void {
+        global $CFG, $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->queue_or_send_email((int)$customcert->id, (int)$issueid);
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $issue = $DB->get_record('customcert_issues', ['id' => $issueid], '*', MUST_EXIST);
+        $this->assertEquals(1, (int)$issue->emailed);
+
+        $this->assertCount(1, $emails);
+        $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
+        $this->assertEquals($student->email, $emails[0]->to);
+    }
+
+    /**
      * process_email_issuance_run should skip hidden courses when config excludes them.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
