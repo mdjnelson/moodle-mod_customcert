@@ -26,6 +26,7 @@
 namespace mod_customcert;
 
 use completion_info;
+use context_course;
 use context_module;
 use stdClass;
 use advanced_testcase;
@@ -484,6 +485,58 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $this->assertEmpty($DB->get_records('customcert_issues'));
         $this->assertCount(0, $emails);
+    }
+
+    /**
+     * process_email_issuance_run should process hidden courses when config allows them and the user can view them.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_allows_hidden_course_when_config_enabled(): void {
+        global $CFG, $DB;
+
+        set_config('includeinnotvisiblecourses', 1, 'customcert');
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course(['visible' => 0]);
+        $student = $this->getDataGenerator()->create_user();
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, $roleids['student']);
+
+        // Allow the enrolled user to view the hidden course.
+        role_change_permission(
+            $roleids['student'],
+            context_course::instance($course->id),
+            'moodle/course:viewhiddencourses',
+            CAP_ALLOW
+        );
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues);
+        $issue = reset($issues);
+        $this->assertEquals(1, (int)$issue->emailed);
+        $this->assertEquals($student->id, (int)$issue->userid);
+
+        $this->assertCount(1, $emails);
+        $this->assertEquals($CFG->noreplyaddress, $emails[0]->from);
+        $this->assertEquals($student->email, $emails[0]->to);
     }
 
     /**
@@ -1038,7 +1091,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Remove the permission for the user to view the certificate.
-        assign_capability('mod/customcert:view', CAP_PROHIBIT, $roleids['student'], \context_course::instance($course->id));
+        assign_capability('mod/customcert:view', CAP_PROHIBIT, $roleids['student'], context_course::instance($course->id));
 
         // Run the task.
         $sink = $this->redirectEmails();
