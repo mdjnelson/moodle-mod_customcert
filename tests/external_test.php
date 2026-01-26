@@ -27,6 +27,7 @@ namespace mod_customcert;
 
 use core_external\external_api;
 use advanced_testcase;
+use mod_customcert\service\certificate_issue_service;
 
 /**
  * Unit tests for the webservices.
@@ -145,8 +146,8 @@ final class external_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student2->id, $course->id);
 
         // Issue them both certificates.
-        $i1 = certificate::issue_certificate($customcert->id, $student1->id);
-        $i2 = certificate::issue_certificate($customcert->id, $student2->id);
+        $i1 = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
+        $i2 = $this->issue_certificate((int)$customcert->id, (int)$student2->id);
 
         $this->assertEquals(2, $DB->count_records('customcert_issues'));
 
@@ -185,8 +186,8 @@ final class external_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student2->id, $course->id);
 
         // Issue them both certificates.
-        $i1 = certificate::issue_certificate($customcert->id, $student1->id);
-        $i2 = certificate::issue_certificate($customcert->id, $student2->id);
+        $i1 = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
+        $i2 = $this->issue_certificate((int)$customcert->id, (int)$student2->id);
 
         $this->assertEquals(2, $DB->count_records('customcert_issues'));
 
@@ -220,8 +221,8 @@ final class external_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student2->id, $course->id);
 
         // Issue them both certificates.
-        $i1 = certificate::issue_certificate($customcert->id, $student1->id);
-        $i2 = certificate::issue_certificate($customcert->id, $student2->id);
+        $i1 = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
+        $i2 = $this->issue_certificate((int)$customcert->id, (int)$student2->id);
 
         $this->assertEquals(2, $DB->count_records('customcert_issues'));
 
@@ -247,7 +248,7 @@ final class external_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student->id, $course->id);
 
         // Issue certificate.
-        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         // Call the external function.
         $result = external::list_issues(null, null, null, false, 100, 0);
@@ -279,8 +280,8 @@ final class external_test extends advanced_testcase {
         $this->getDataGenerator()->enrol_user($student2->id, $course->id);
 
         // Issue certificates.
-        $i1 = certificate::issue_certificate($customcert->id, $student1->id);
-        $i2 = certificate::issue_certificate($customcert->id, $student2->id);
+        $i1 = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
+        $i2 = $this->issue_certificate((int)$customcert->id, (int)$student2->id);
 
         // Filter by student1.
         $result = external::list_issues(null, $student1->id, null, false, 100, 0);
@@ -306,9 +307,9 @@ final class external_test extends advanced_testcase {
 
         // Issue 3 certificates.
         $ids = [];
-        $ids[] = certificate::issue_certificate($customcert->id, $student->id);
-        $ids[] = certificate::issue_certificate($customcert->id, $student->id);
-        $ids[] = certificate::issue_certificate($customcert->id, $student->id);
+        $ids[] = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+        $ids[] = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+        $ids[] = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         // Get first two with limit=2.
         $result1 = external::list_issues(null, null, null, false, 2, 0);
@@ -337,7 +338,7 @@ final class external_test extends advanced_testcase {
         $student = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student->id, $course->id);
 
-        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         $result = external::list_issues(null, null, null, true, 100, 0);
         $result = external_api::clean_returnvalue(external::list_issues_returns(), $result);
@@ -376,5 +377,18 @@ final class external_test extends advanced_testcase {
         $this->expectException('required_capability_exception');
 
         external::list_issues();
+    }
+
+    /**
+     * Issue a certificate via the service for test setup.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return int
+     */
+    private function issue_certificate(int $customcertid, int $userid): int {
+        $service = new certificate_issue_service();
+
+        return $service->issue_certificate($customcertid, $userid);
     }
 }
