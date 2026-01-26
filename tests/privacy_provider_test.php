@@ -28,6 +28,7 @@ use stdClass;
 use context_module;
 use context_system;
 use mod_customcert\privacy\provider;
+use mod_customcert\service\certificate_issue_service;
 
 /**
  * Privacy provider tests class.
@@ -315,7 +316,8 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcertid;
         $customcertissue->userid = $userid;
-        $customcertissue->code = certificate::generate_code();
+        $service = new certificate_issue_service();
+        $customcertissue->code = $service->generate_code();
         $customcertissue->timecreated = time() + $i;
 
         // Insert the record into the database.

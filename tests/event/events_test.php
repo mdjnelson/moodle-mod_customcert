@@ -26,6 +26,7 @@
 namespace mod_customcert\event;
 
 use mod_customcert\service\element_factory;
+use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -475,7 +476,7 @@ final class events_test extends \advanced_testcase {
     /**
      * Tests that the issue_created event is fired correctly.
      *
-     * @covers \mod_customcert\certificate::issue_certificate
+     * @covers \mod_customcert\service\certificate_issue_service::issue_certificate
      * @covers \mod_customcert\event\issue_created
      */
     public function test_issue_created_event(): void {
@@ -489,7 +490,7 @@ final class events_test extends \advanced_testcase {
         $sink = $this->redirectEvents();
 
         // Call the actual function that creates an issue and triggers the event.
-        $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $user->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$user->id);
 
         $events = $sink->get_events();
         $this->assertCount(1, $events);
@@ -505,7 +506,7 @@ final class events_test extends \advanced_testcase {
      * Tests that the issue_deleted event is fired correctly.
      * This simulates the deletion process that happens in view.php.
      *
-     * @covers \mod_customcert\certificate::issue_certificate
+     * @covers \mod_customcert\service\certificate_issue_service::issue_certificate
      * @covers \mod_customcert\event\issue_deleted
      */
     public function test_issue_deleted_event(): void {
@@ -527,7 +528,7 @@ final class events_test extends \advanced_testcase {
         $context = \context_module::instance($cm->id);
 
         // Create an issue using the natural method.
-        $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $student->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         // Get the issue record (as view.php does).
         $issue = $DB->get_record('customcert_issues', [
@@ -571,5 +572,18 @@ final class events_test extends \advanced_testcase {
         // Verify the issue was actually deleted from database.
         $issueexists = $DB->record_exists('customcert_issues', ['id' => $issueid]);
         $this->assertFalse($issueexists);
+    }
+
+    /**
+     * Issue a certificate via the service for test setup.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return int
+     */
+    private function issue_certificate(int $customcertid, int $userid): int {
+        $service = new certificate_issue_service();
+
+        return $service->issue_certificate($customcertid, $userid);
     }
 }

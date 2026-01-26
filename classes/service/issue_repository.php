@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\certificate;
+use mod_customcert\service\certificate_issue_service;
 use stdClass;
 
 /**
@@ -54,7 +54,9 @@ final class issue_repository {
      * @return int Issue id
      */
     public function create(int $customcertid, int $userid): int {
-        return certificate::issue_certificate($customcertid, $userid);
+        $service = new certificate_issue_service();
+
+        return $service->issue_certificate($customcertid, $userid);
     }
 
     /**

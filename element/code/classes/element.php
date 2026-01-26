@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace customcertelement_code;
 
-use mod_customcert\certificate;
 use mod_customcert\element as base_element;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\element_interface;
@@ -34,6 +33,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\validatable_element_interface;
+use mod_customcert\service\certificate_issue_service;
 use MoodleQuickForm;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -76,7 +76,7 @@ class element extends base_element implements
         global $DB;
 
         if ($preview) {
-            $code = certificate::generate_code();
+            $code = (new certificate_issue_service())->generate_code();
         } else {
             // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
@@ -109,7 +109,7 @@ class element extends base_element implements
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        $code = certificate::generate_code();
+        $code = (new certificate_issue_service())->generate_code();
 
         if ($renderer) {
             return (string) $renderer->render_content($this, $code);

@@ -19,6 +19,7 @@ namespace mod_customcert\service;
 use core\task\manager;
 use mod_customcert\certificate;
 use mod_customcert\task\email_certificate_task;
+use mod_customcert\service\certificate_time_service;
 
 /**
  * Coordinates certificate issuing and email dispatching.
@@ -226,6 +227,7 @@ class certificate_issuer_service {
         $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
         $candidates = [];
+        $timeservice = new certificate_time_service();
 
         foreach ($filteredusers as $filtereduser) {
             // Skip if the user has already been issued and emailed.
@@ -247,9 +249,9 @@ class certificate_issuer_service {
             // Check required time (if any).
             if (!empty($customcert->requiredtime)) {
                 if (
-                    certificate::get_course_time(
-                        $customcert->courseid,
-                        $filtereduser->id
+                    $timeservice->get_course_time(
+                        (int)$customcert->courseid,
+                        (int)$filtereduser->id
                     ) < ($customcert->requiredtime * 60)
                 ) {
                     continue;

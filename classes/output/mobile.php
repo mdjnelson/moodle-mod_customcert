@@ -28,6 +28,7 @@ use context;
 use context_module;
 use core_external\util;
 use mod_customcert\certificate;
+use mod_customcert\service\certificate_time_service;
 use moodle_url;
 use stdClass;
 
@@ -84,7 +85,8 @@ class mobile {
         $requiredtimemet = true;
         $canmanage = has_capability('mod/customcert:manage', $context);
         if ($certificate->requiredtime && !$canmanage) {
-            if (certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
+            $timeservice = new certificate_time_service();
+            if ($timeservice->get_course_time((int)$certificate->course, (int)$USER->id) < ($certificate->requiredtime * 60)) {
                 $requiredtimemet = false;
             }
         }

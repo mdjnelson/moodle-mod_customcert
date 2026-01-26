@@ -26,6 +26,9 @@ use core\session\manager;
 use mod_customcert\certificate;
 use mod_customcert\event\course_module_viewed;
 use mod_customcert\report_table;
+use mod_customcert\service\certificate_download_service;
+use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\certificate_time_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -61,7 +64,8 @@ $pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
 
 // Check if the user can view the certificate based on time spent in course.
 if ($customcert->requiredtime && !$canmanage) {
-    if (certificate::get_course_time($course->id) < ($customcert->requiredtime * 60)) {
+    $timeservice = new certificate_time_service();
+    if ($timeservice->get_course_time((int)$course->id, (int)$USER->id) < ($customcert->requiredtime * 60)) {
         $a = new stdClass();
         $a->requiredtime = $customcert->requiredtime;
         $url = new moodle_url('/course/view.php', ['id' => $course->id]);
@@ -127,7 +131,8 @@ if ($downloadall && $canviewreport && confirm_sesskey()) {
         redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
     }
 
-    certificate::download_all_issues_for_instance($template, $issues);
+    $downloadservice = new certificate_download_service();
+    $downloadservice->download_all_issues_for_instance($template, $issues);
     exit();
 }
 
@@ -219,7 +224,8 @@ if (!$downloadown && !$downloadissue) {
     if ($downloadown) {
         // Create new customcert issue record if one does not already exist.
         if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
-            certificate::issue_certificate($customcert->id, $USER->id);
+            $issueservice = new certificate_issue_service();
+            $issueservice->issue_certificate((int)$customcert->id, (int)$USER->id);
         }
 
         // Set the custom certificate as viewed.
