@@ -451,6 +451,82 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * process_email_issuance_run should respect certificatesperrun and advance/reset the offset.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_respects_limit_and_offset(): void {
+        global $CFG, $DB;
+
+        set_config('certificatesperrun', 2, 'customcert');
+        set_config('certificate_offset', 0, 'customcert');
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcerts = [];
+        for ($i = 0; $i < 3; $i++) {
+            $customcerts[] = $this->getDataGenerator()->create_module('customcert', [
+                'course' => $course->id,
+                'emailstudents' => 1,
+            ]);
+        }
+
+        foreach ($customcerts as $customcert) {
+            $template = template::load((int)$customcert->templateid);
+            $templateservice = new template_service();
+            $pageid = $templateservice->add_page($template);
+            $this->assertDebuggingNotCalled();
+            $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+        }
+
+        // First run should process only two certificates.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $firstemails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(2, $firstemails);
+        $this->assertEquals(2, get_config('customcert', 'certificate_offset'));
+        $this->assertCount(2, $DB->get_records('customcert_issues'));
+
+        // Second run should process the remaining certificate.
+        $sink = $this->redirectEmails();
+        $task->execute();
+        $secondemails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $secondemails);
+        $this->assertEquals(4, get_config('customcert', 'certificate_offset'));
+        $this->assertCount(3, $DB->get_records('customcert_issues'));
+
+        // Third run should no-op and reset the offset back to zero.
+        $sink = $this->redirectEmails();
+        $task->execute();
+        $thirdemails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(0, $thirdemails);
+        $this->assertEquals(0, get_config('customcert', 'certificate_offset'));
+        $this->assertCount(3, $DB->get_records('customcert_issues'));
+
+        // Ensure emails were sent to the expected recipient each time.
+        $allrunemails = array_merge($firstemails, $secondemails, $thirdemails);
+        $addresses = array_map(fn($email) => $email->to, $allrunemails);
+        foreach ($addresses as $to) {
+            $this->assertEquals($student->email, $to);
+        }
+
+        // Confirm sender is noreply.
+        foreach ($allrunemails as $email) {
+            $this->assertEquals($CFG->noreplyaddress, $email->from);
+        }
+    }
+
+    /**
      * Tests the email certificate task when there are no elements.
      *
      * @covers \mod_customcert\task\issue_certificates_task
