@@ -30,6 +30,7 @@ use context_course;
 use context_module;
 use stdClass;
 use advanced_testcase;
+use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_issuer_service;
 use mod_customcert\service\template_service;
 use mod_customcert\task\email_certificate_task;
@@ -138,7 +139,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $issuer = new certificate_issuer_service();
 
         // Pre-issue to one student and mark as emailed.
-        $issuedid = certificate::issue_certificate($customcert->id, $student1->id);
+        $issuedid = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issuedid]);
 
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
@@ -437,7 +438,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         // Create an issue and queue email.
-        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         $issuer = new certificate_issuer_service();
         $issuer->queue_or_send_email((int)$customcert->id, (int)$issueid);
@@ -476,7 +477,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         $sink = $this->redirectEmails();
         $issuer = new certificate_issuer_service();
@@ -855,7 +856,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        certificate::issue_certificate($customcert->id, $user1->id);
+        $this->issue_certificate((int)$customcert->id, (int)$user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -936,7 +937,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        certificate::issue_certificate($customcert->id, $user1->id);
+        $this->issue_certificate((int)$customcert->id, (int)$user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -1416,7 +1417,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         // Ok, now issue this to one user.
-        certificate::issue_certificate($customcert->id, $user1->id);
+        $this->issue_certificate((int)$customcert->id, (int)$user1->id);
 
         // Confirm there is only one entry in this table.
         $this->assertEquals(1, $DB->count_records('customcert_issues'));
@@ -1784,5 +1785,18 @@ final class email_certificate_task_test extends advanced_testcase {
             $this->assertContains($email->to, $expected);
             $expected = array_diff($expected, [$email->to]);
         }
+    }
+
+    /**
+     * Issue a certificate via the service for test setup.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return int
+     */
+    private function issue_certificate(int $customcertid, int $userid): int {
+        $service = new certificate_issue_service();
+
+        return $service->issue_certificate($customcertid, $userid);
     }
 }

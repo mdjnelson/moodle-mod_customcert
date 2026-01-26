@@ -85,17 +85,18 @@ final class element_bootstrap {
         // Auto-discover third-party customcertelement_* plugins and register them.
         // This preserves explicit core registrations while enabling ecosystem compatibility.
         // Discovery with simple in-request memoization to avoid repeated scanning.
-        static $discovered = null; // Can be an array<string,string> or null.
+        static $discovered = []; // Cache keyed by provider class name.
         try {
             $provider = $provider ?? new provider\core_plugin_provider();
-            if ($discovered === null) {
-                $discovered = [];
+            $cachekey = get_class($provider);
+            if (!array_key_exists($cachekey, $discovered)) {
+                $discovered[$cachekey] = [];
                 $plugins = $provider->get_plugins();
                 foreach ($plugins as $name => $unused) {
                     $type = (string)$name; // E.g., 'foobar' for customcertelement_foobar.
                     $classname = "\\customcertelement_{$type}\\element";
                     if (class_exists($classname)) {
-                        $discovered[$type] = $classname;
+                        $discovered[$cachekey][$type] = $classname;
                     } else if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
                         $missingclass = "\\customcertelement_{$type}\\element";
                         debugging(
@@ -106,7 +107,7 @@ final class element_bootstrap {
                 }
             }
             // Register discovered classes that aren't already in the registry.
-            foreach ($discovered as $type => $classname) {
+            foreach ($discovered[$cachekey] as $type => $classname) {
                 if ($registry->has($type)) {
                     continue;
                 }
