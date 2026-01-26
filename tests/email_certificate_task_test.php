@@ -363,6 +363,51 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * process_email_issuance_run should skip courses that ended before the execution period window.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_skips_expired_course_outside_execution_period(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+        set_config('certificateexecutionperiod', 1000, 'customcert');
+
+        // Create a course that ended before the execution window.
+        $course = $this->getDataGenerator()->create_course([
+            'enddate' => time() - 2000,
+        ]);
+
+        // Create and enrol a student.
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate with emailing enabled.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Run the issuer service.
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Confirm nothing was issued or emailed.
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+        $this->assertCount(0, $emails);
+    }
+
+    /**
      * Tests the email certificate task when there are no elements.
      *
      * @covers \mod_customcert\task\issue_certificates_task
