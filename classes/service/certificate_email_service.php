@@ -49,14 +49,25 @@ class certificate_email_service {
     private issue_repository $issues;
 
     /**
+     * @var issue_email_repository
+     */
+    private issue_email_repository $emailrepository;
+
+    /**
      * certificate_email_service constructor.
      *
      * @param template_service|null $templateservice
      * @param issue_repository|null $issues
+     * @param issue_email_repository|null $emailrepository
      */
-    public function __construct(?template_service $templateservice = null, ?issue_repository $issues = null) {
+    public function __construct(
+        ?template_service $templateservice = null,
+        ?issue_repository $issues = null,
+        ?issue_email_repository $emailrepository = null
+    ) {
         $this->templateservice = $templateservice ?? new template_service();
         $this->issues = $issues ?? new issue_repository();
+        $this->emailrepository = $emailrepository ?? new issue_email_repository();
     }
 
     /**
@@ -69,25 +80,12 @@ class certificate_email_service {
     public function send_issue(int $customcertid, int $issueid): void {
         global $DB;
 
-        $sql = "SELECT c.*, ct.id as templateid, ct.name as templatename, ct.contextid, co.id as courseid,
-                       co.fullname as coursefullname, co.shortname as courseshortname, co.lang as courselang
-                  FROM {customcert} c
-                  JOIN {customcert_templates} ct ON c.templateid = ct.id
-                  JOIN {course} co ON c.course = co.id
-                 WHERE c.id = :id";
-
-        $customcert = $DB->get_record_sql($sql, ['id' => $customcertid]);
+        $customcert = $this->emailrepository->get_customcert_for_email($customcertid);
         if (!$customcert) {
             return;
         }
 
-        $userfields = helper::get_all_user_name_fields('u');
-        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed
-                  FROM {customcert_issues} ci
-                  JOIN {user} u ON ci.userid = u.id
-                 WHERE ci.customcertid = :customcertid
-                   AND ci.id = :issueid";
-        $user = $DB->get_record_sql($sql, ['customcertid' => $customcertid, 'issueid' => $issueid]);
+        $user = $this->emailrepository->get_user_for_issue($customcertid, $issueid);
         if (!$user) {
             return;
         }
