@@ -26,6 +26,8 @@
  * AJAX_SCRIPT - exception will be converted into JSON.
  */
 
+use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\certificate_time_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -71,7 +73,8 @@ if ($userid != $USER->id) {
 } else {
     // Make sure the user has met the required time.
     if ($certificate->requiredtime) {
-        if (\mod_customcert\certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
+        $timeservice = new certificate_time_service();
+        if ($timeservice->get_course_time((int)$certificate->course, (int)$USER->id) < ($certificate->requiredtime * 60)) {
             exit();
         }
     }
@@ -86,7 +89,8 @@ if (!$issue) {
         exit();
     }
 
-    \mod_customcert\certificate::issue_certificate($certificate->id, $USER->id);
+    $issueservice = new certificate_issue_service();
+    $issueservice->issue_certificate((int)$certificate->id, (int)$USER->id);
 
     // Set the custom certificate as viewed.
     $completion = new completion_info($course);

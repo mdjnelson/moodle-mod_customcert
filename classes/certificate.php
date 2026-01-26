@@ -25,15 +25,13 @@
 namespace mod_customcert;
 
 use context_module;
-use core\log\sql_internal_table_reader;
 use core_user\fields;
-use logstore_legacy\log\store;
-use mod_customcert\event\issue_created;
-use mod_customcert\service\template_service;
+use mod_customcert\service\certificate_download_service;
+use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\certificate_time_service;
 use pdf;
 use stdClass;
 use TCPDF_FONTS;
-use zip_archive;
 
 /**
  * Class certificate.
@@ -75,16 +73,6 @@ class certificate {
      *      If you want to display all customcerts on a page set this to 0.
      */
     const CUSTOMCERT_PER_PAGE = '50';
-
-    /**
-     * Date format in filename for download all zip file.
-     */
-    private const ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT = '%Y%m%d%H%M%S';
-
-    /**
-     * The ending part of the name of the zip file.
-     */
-    private const ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES = 'all_certificates.zip';
 
     /**
      * Handles setting the protection field for the customcert
@@ -192,74 +180,16 @@ class certificate {
      * @param int $courseid
      * @param int $userid
      * @return int the total time spent in seconds
+     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_time_service::get_course_time() instead.
      */
     public static function get_course_time(int $courseid, int $userid = 0): int {
-        global $CFG, $DB, $USER;
+        debugging(
+            'certificate::get_course_time() is deprecated; use certificate_time_service::get_course_time() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        if (empty($userid)) {
-            $userid = $USER->id;
-        }
-
-        $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers();
-        $enabledreaders = get_config('tool_log', 'enabled_stores');
-        if (empty($enabledreaders)) {
-            return 0;
-        }
-        $enabledreaders = explode(',', $enabledreaders);
-
-        // Go through all the readers until we find one that we can use.
-        foreach ($enabledreaders as $enabledreader) {
-            $reader = $readers[$enabledreader];
-            if ($reader instanceof store) {
-                $logtable = 'log';
-                $coursefield = 'course';
-                $timefield = 'time';
-                break;
-            } else if ($reader instanceof sql_internal_table_reader) {
-                $logtable = $reader->get_internal_log_table_name();
-                $coursefield = 'courseid';
-                $timefield = 'timecreated';
-                break;
-            }
-        }
-
-        // If we didn't find a reader then return 0.
-        if (!isset($logtable)) {
-            return 0;
-        }
-
-        $sql = "SELECT id, $timefield
-                  FROM {{$logtable}}
-                 WHERE userid = :userid
-                   AND $coursefield = :courseid
-              ORDER BY $timefield ASC";
-        $params = ['userid' => $userid, 'courseid' => $courseid];
-        $totaltime = 0;
-        if ($logs = $DB->get_recordset_sql($sql, $params)) {
-            foreach ($logs as $log) {
-                if (!isset($login)) {
-                    // For the first time $login is not set so the first log is also the first login.
-                    $login = $log->$timefield;
-                    $lasthit = $log->$timefield;
-                    $totaltime = 0;
-                }
-                $delay = $log->$timefield - $lasthit;
-                if ($delay > $CFG->sessiontimeout) {
-                    // The difference between the last log and the current log is more than
-                    // the timeout Register session value so that we have found a session!
-                    $login = $log->$timefield;
-                } else {
-                    $totaltime += $delay;
-                }
-                // Now the actual log became the previous log for the next cycle.
-                $lasthit = $log->$timefield;
-            }
-
-            return $totaltime;
-        }
-
-        return 0;
+        $service = new certificate_time_service();
+        return $service->get_course_time($courseid, $userid);
     }
 
     /**
@@ -269,78 +199,34 @@ class certificate {
      * @param array $issues
      * @return void
      * @throws \moodle_exception
+     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_download_service::download_all_issues_for_instance() instead.
      */
     public static function download_all_issues_for_instance(template $template, array $issues): void {
-        $zipdir = make_request_directory();
-        if (!$zipdir) {
-            return;
-        }
+        debugging(
+            'certificate::download_all_issues_for_instance() is deprecated; '
+            . 'use certificate_download_service::download_all_issues_for_instance() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
-        $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
-        $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
-
-        $ziparchive = new zip_archive();
-        if ($ziparchive->open($zipfullpath)) {
-            foreach ($issues as $issue) {
-                $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
-                $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
-                $service = new template_service();
-                $filecontents = $service->generate_pdf($template, false, $issue->id, true);
-                $ziparchive->add_file_from_string($pdfname, $filecontents);
-            }
-            $ziparchive->close();
-        }
-
-        send_file($zipfullpath, $zipfilename);
-        exit();
+        $service = new certificate_download_service();
+        $service->download_all_issues_for_instance($template, $issues);
     }
 
     /**
      * Download all certificates on the site.
      *
      * @return void
+     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_download_service::download_all_for_site() instead.
      */
     public static function download_all_for_site(): void {
-        global $DB;
+        debugging(
+            'certificate::download_all_for_site() is deprecated; '
+            . 'use certificate_download_service::download_all_for_site() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        [$namefields, $nameparams] = fields::get_sql_fullname();
-        $sql = "SELECT ci.*, $namefields as fullname, ct.id as templateid, ct.name as templatename, ct.contextid
-                  FROM {customcert_issues} ci
-                  JOIN {user} u
-                    ON ci.userid = u.id
-                  JOIN {customcert} c
-                    ON ci.customcertid = c.id
-                  JOIN {customcert_templates} ct
-                    ON c.templateid = ct.id";
-        if ($issues = $DB->get_records_sql($sql, $nameparams)) {
-            $zipdir = make_request_directory();
-            if (!$zipdir) {
-                return;
-            }
-
-            $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
-            $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
-            $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
-
-            $ziparchive = new zip_archive();
-            if ($ziparchive->open($zipfullpath)) {
-                foreach ($issues as $issue) {
-                    $template = template::load((int)$issue->templateid);
-
-                    $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
-                    $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
-                    $pdfname = $userfullname . DIRECTORY_SEPARATOR . $ctname . '_' . 'certificate.pdf';
-                    $service = $service ?? new template_service();
-                    $filecontents = $service->generate_pdf($template, false, $issue->userid, true);
-                    $ziparchive->add_file_from_string($pdfname, $filecontents);
-                }
-                $ziparchive->close();
-            }
-
-            send_file($zipfullpath, $zipfilename);
-            exit();
-        }
+        $service = new certificate_download_service();
+        $service->download_all_for_site();
     }
 
     /**
@@ -531,78 +417,31 @@ class certificate {
      * @param int $certificateid The ID of the certificate
      * @param int $userid The ID of the user to issue the certificate to
      * @return int The ID of the issue
+     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_issue_service::issue_certificate() instead.
      */
     public static function issue_certificate($certificateid, $userid) {
-        global $DB;
+        debugging(
+            'certificate::issue_certificate() is deprecated; use certificate_issue_service::issue_certificate() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        $issue = new stdClass();
-        $issue->userid = $userid;
-        $issue->customcertid = $certificateid;
-        $issue->code = self::generate_code();
-        $issue->emailed = 0;
-        $issue->timecreated = time();
-
-        // Insert the record into the database.
-        $issueid = $DB->insert_record('customcert_issues', $issue);
-
-        // Get course module context for event.
-        $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
-        $context = context_module::instance($cm->id);
-
-        // Trigger event.
-        $event = issue_created::create([
-            'objectid' => $issueid,
-            'context' => $context,
-            'relateduserid' => $userid,
-        ]);
-        $event->trigger();
-
-        return $issueid;
+        $service = new certificate_issue_service();
+        return $service->issue_certificate($certificateid, $userid);
     }
 
     /**
      * Generates an unused code of random letters and numbers.
      *
      * @return string
+     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_issue_service::generate_code() instead.
      */
     public static function generate_code(): string {
-        global $DB;
-
-        // Get the user's selected method from settings.
-        $method = get_config('customcert', 'codegenerationmethod');
-
-        do {
-            $code = match ($method) {
-                '0' => self::generate_code_upper_lower_digits(),
-                '1' => self::generate_code_digits_with_hyphens(),
-                default => self::generate_code_upper_lower_digits(),
-            };
-        } while ($DB->record_exists('customcert_issues', ['code' => $code]));
-        return $code;
-    }
-
-    /**
-     * Generate a random code of the format XXXXXXXXXX, where each X is a character from the set [A-Za-z0-9].
-     * Does not check that it is unused.
-     *
-     * @return string
-     */
-    private static function generate_code_upper_lower_digits(): string {
-        return random_string(10);
-    }
-
-    /**
-     * Generate an random code of the format XXXX-XXXX-XXXX, where each X is a random digit.
-     * Does not check that it is unused.
-     *
-     * @return string
-     */
-    private static function generate_code_digits_with_hyphens(): string {
-        return sprintf(
-            '%04d-%04d-%04d',
-            random_int(0, 9999),
-            random_int(0, 9999),
-            random_int(0, 9999)
+        debugging(
+            'certificate::generate_code() is deprecated; use certificate_issue_service::generate_code() instead.',
+            DEBUG_DEVELOPER
         );
+
+        $service = new certificate_issue_service();
+        return $service->generate_code();
     }
 }

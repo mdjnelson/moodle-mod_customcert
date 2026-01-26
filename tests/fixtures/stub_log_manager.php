@@ -14,24 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_customcert\tests\fixtures;
+
 /**
- * Handles downloading all certificates on the site.
+ * Minimal stub log manager that returns provided readers.
  *
  * @package    mod_customcert
- * @copyright  2024 Mark Nelson <mdjnelson@gmail.com>
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class stub_log_manager {
+    /** @var array<string,object> */
+    private array $readers;
 
-use mod_customcert\service\certificate_download_service;
+    /**
+     * Constructor.
+     *
+     * @param array $readers
+     */
+    public function __construct(array $readers) {
+        $this->readers = $readers;
+    }
 
-require_once('../../config.php');
-require_once($CFG->libdir . '/filestorage/zip_archive.php');
-
-require_login();
-
-$context = context_system::instance();
-require_capability('mod/customcert:viewallcertificates', $context);
-
-$downloadservice = new certificate_download_service();
-$downloadservice->download_all_for_site();
-exit();
+    /**
+     * Return configured readers.
+     *
+     * @return array<string,object>
+     */
+    public function get_readers(): array {
+        return $this->readers;
+    }
+}
