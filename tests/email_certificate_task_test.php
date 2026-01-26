@@ -451,6 +451,79 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * process_email_issuance_run should skip hidden courses when config excludes them.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_skips_hidden_course_when_config_disabled(): void {
+        global $DB;
+
+        set_config('includeinnotvisiblecourses', 0, 'customcert');
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course(['visible' => 0]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * process_email_issuance_run should skip hidden activities.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_skips_hidden_activity(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        set_coursemodule_visible($customcert->cmid, 0);
+
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $sink = $this->redirectEmails();
+        $issuer = new certificate_issuer_service();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+        $this->assertCount(0, $emails);
+    }
+
+    /**
      * process_email_issuance_run should respect certificatesperrun and advance/reset the offset.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
