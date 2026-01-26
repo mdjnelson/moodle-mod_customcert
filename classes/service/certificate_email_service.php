@@ -44,12 +44,19 @@ class certificate_email_service {
     private template_service $templateservice;
 
     /**
+     * @var issue_repository
+     */
+    private issue_repository $issues;
+
+    /**
      * certificate_email_service constructor.
      *
      * @param template_service|null $templateservice
+     * @param issue_repository|null $issues
      */
-    public function __construct(?template_service $templateservice = null) {
+    public function __construct(?template_service $templateservice = null, ?issue_repository $issues = null) {
         $this->templateservice = $templateservice ?? new template_service();
+        $this->issues = $issues ?? new issue_repository();
     }
 
     /**
@@ -236,6 +243,6 @@ class certificate_email_service {
             }
         }
 
-        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+        $this->issues->mark_emailed($issueid);
     }
 }
