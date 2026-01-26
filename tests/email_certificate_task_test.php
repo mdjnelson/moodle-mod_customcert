@@ -408,6 +408,49 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * queue_or_send_email should queue an adhoc task when configured.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::queue_or_send_email
+     */
+    public function test_queue_or_send_email_queues_adhoc_task(): void {
+        global $DB;
+
+        set_config('useadhoc', 1, 'customcert');
+
+        // Create a course and enrol a student.
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Create an issue and queue email.
+        $issueid = certificate::issue_certificate($customcert->id, $student->id);
+
+        $issuer = new certificate_issuer_service();
+        $issuer->queue_or_send_email((int)$customcert->id, (int)$issueid);
+
+        // Confirm an adhoc task exists with the expected data.
+        $tasks = $DB->get_records('task_adhoc', ['classname' => '\mod_customcert\\task\\email_certificate_task']);
+        $this->assertCount(1, $tasks);
+        $task = reset($tasks);
+        $customdata = json_decode($task->customdata ?? '{}');
+        $this->assertEquals($issueid, $customdata->issueid ?? null);
+        $this->assertEquals($customcert->id, $customdata->customcertid ?? null);
+    }
+
+    /**
      * Tests the email certificate task when there are no elements.
      *
      * @covers \mod_customcert\task\issue_certificates_task
