@@ -133,6 +133,13 @@ $string['fontcolour'] = 'Colour';
 $string['fontcolour_help'] = 'The colour of the font.';
 $string['fontsize'] = 'Size';
 $string['fontsize_help'] = 'The size of the font in points.';
+$string['fullname'] = 'Customize name';
+$string['fullname_help'] = 'The certificate elements \'Student name\' and \'Teacher name\' use the full name format (defined via the setting "fullnamedisplay" on the User policies page) by default. If you want to use a customized name format in the certificate, enable this setting and define the format in the setting \'fullnameformat\'.<br>
+<b>Note:</b> If this setting is enbabled but no customized name format is defined, the full name format \'language\' is used by default. This leaves it to the string \'fullnamedisplay\' in the current language pack to decide. Some languages have different name display conventions.
+';
+$string['fullnameformat'] = 'Customize name format';
+$string['fullnameformat_help'] = 'This defines how names in the certificate elements \'Student name\' and \'Teacher name\' are shown. 
+Placeholders that can be used are: firstname, lastname, firstnamephonetic, lastnamephonetic, middlename and alternatename.';
 $string['getcustomcert'] = 'View certificate';
 $string['gradeoutcome'] = 'Outcome';
 $string['height'] = 'Height';
