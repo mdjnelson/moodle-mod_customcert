@@ -23,7 +23,6 @@
  */
 
 namespace customcertelement_studentname;
-
 /**
  * The customcert element studentname's core interaction API.
  *
@@ -40,7 +39,11 @@ class element extends \mod_customcert\element {
      * @param \stdClass $user the user we are rendering this for
      */
     public function render($pdf, $preview, $user) {
+        if(!get_config('customcert', 'fullname')) {
         \mod_customcert\element_helper::render_content($pdf, $this, fullname($user));
+        } else {
+            \mod_customcert\element_helper::render_content($pdf, $this, \mod_customcert\fullname_certificate::mod_customcert_get_fullname($user));
+        }
     }
 
     /**
