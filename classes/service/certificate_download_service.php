@@ -109,7 +109,7 @@ class certificate_download_service {
             foreach ($issues as $issue) {
                 $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
                 $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
-                $filecontents = $this->templateservice->generate_pdf($template, false, (int)$issue->id, true);
+                $filecontents = $this->templateservice->generate_pdf($template, false, (int)$issue->userid, true);
                 $ziparchive->add_file_from_string($pdfname, $filecontents);
             }
             $ziparchive->close();

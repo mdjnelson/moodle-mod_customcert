@@ -62,6 +62,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $issues = [
             (object) [
                 'id' => $user->id,
+                'userid' => $user->id,
                 'firstname' => $user->firstname,
                 'lastname' => $user->lastname,
                 'firstnamephonetic' => $user->firstnamephonetic,
@@ -93,6 +94,68 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $this->assertCount(1, $files);
         $this->assertSame('ada_lovelace/certificate.pdf', $files[0]->pathname);
+    }
+
+    /**
+     * Ensure instance download requests PDFs using the issue user id (not the issue id).
+     * @covers ::download_all_issues_for_instance
+     */
+    public function test_download_all_issues_for_instance_uses_issue_userid_not_issue_id(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user([
+            'firstname' => 'Linus',
+            'lastname' => 'Torvalds',
+        ]);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = new template_service();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $element = new \stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        $issues = [
+            (object) [
+                'id' => 999999,
+                'userid' => $user->id,
+                'firstname' => $user->firstname,
+                'lastname' => $user->lastname,
+                'firstnamephonetic' => $user->firstnamephonetic,
+                'lastnamephonetic' => $user->lastnamephonetic,
+                'middlename' => $user->middlename,
+                'alternatename' => $user->alternatename,
+            ],
+        ];
+
+        $sent = [];
+        $service = new certificate_download_service(
+            $templateservice,
+            null,
+            null,
+            static function (string $path, string $name) use (&$sent): void {
+                $sent = ['path' => $path, 'name' => $name];
+            }
+        );
+
+        $service->download_all_issues_for_instance($template, $issues);
+
+        $this->assertNotEmpty($sent);
+        $this->assertFileExists($sent['path']);
+
+        $zip = new \zip_archive();
+        $zip->open($sent['path'], \file_archive::OPEN);
+        $files = $zip->list_files();
+        $zip->close();
+
+        $this->assertCount(1, $files);
+        $this->assertSame('linus_torvalds/certificate.pdf', $files[0]->pathname);
     }
 
     /**
