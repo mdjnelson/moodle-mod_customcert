@@ -28,7 +28,9 @@ use mod_customcert\edit_form;
 use mod_customcert\load_template_form;
 use mod_customcert\local\preview_renderer;
 use mod_customcert\page_helper;
+use mod_customcert\service\item_move_service;
 use mod_customcert\service\page_repository;
+use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
@@ -38,6 +40,7 @@ require_once('../../config.php');
 $templaterepo = new template_repository();
 $pagerepo = new page_repository();
 $templateservice = new template_service($templaterepo, $pagerepo);
+$pdfservice = new pdf_generation_service($pagerepo);
 
 $tid = optional_param('tid', 0, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -105,33 +108,33 @@ if ($tid) {
             case 'pmoveup':
                 $templateservice->move_item(
                     $template,
-                    template_service::ITEM_PAGE,
+                    item_move_service::ITEM_PAGE,
                     $actionid,
-                    template_service::DIRECTION_UP
+                    item_move_service::DIRECTION_UP
                 );
                 break;
             case 'pmovedown':
                 $templateservice->move_item(
                     $template,
-                    template_service::ITEM_PAGE,
+                    item_move_service::ITEM_PAGE,
                     $actionid,
-                    template_service::DIRECTION_DOWN
+                    item_move_service::DIRECTION_DOWN
                 );
                 break;
             case 'emoveup':
                 $templateservice->move_item(
                     $template,
-                    template_service::ITEM_ELEMENT,
+                    item_move_service::ITEM_ELEMENT,
                     $actionid,
-                    template_service::DIRECTION_UP
+                    item_move_service::DIRECTION_UP
                 );
                 break;
             case 'emovedown':
                 $templateservice->move_item(
                     $template,
-                    template_service::ITEM_ELEMENT,
+                    item_move_service::ITEM_ELEMENT,
                     $actionid,
-                    template_service::DIRECTION_DOWN
+                    item_move_service::DIRECTION_DOWN
                 );
                 break;
             case 'addpage':
@@ -272,7 +275,7 @@ if ($data = $mform->get_data()) {
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
         $preview = new preview_renderer();
-        $pdf = $templateservice->create_preview_pdf($template, $USER);
+        $pdf = $pdfservice->create_preview_pdf($template, $USER);
 
         // Render each page of this template in sequence.
         $pages = $pagerepo->list_by_template($template->get_id());
@@ -282,7 +285,7 @@ if ($data = $mform->get_data()) {
 
         // Compute preview filename using the same rules as generate_pdf().
         $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]);
-        $pdffilename = $templateservice->compute_filename_for_user($template, $USER, $customcert);
+        $pdffilename = $pdfservice->compute_filename_for_user($template, $USER, $customcert);
         $pdf->Output($pdffilename, certificate::DELIVERY_OPTION_INLINE);
         exit();
     }

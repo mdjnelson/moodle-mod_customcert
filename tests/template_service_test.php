@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
 
 /**
@@ -101,9 +102,9 @@ final class template_service_test extends advanced_testcase {
         // Move second page up.
         $service->move_item(
             $template,
-            template_service::ITEM_PAGE,
+            item_move_service::ITEM_PAGE,
             $second,
-            template_service::DIRECTION_UP
+            item_move_service::DIRECTION_UP
         );
 
         $pages = $DB->get_records('customcert_pages', ['templateid' => $template->get_id()], 'sequence ASC');
@@ -278,192 +279,6 @@ final class template_service_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
     }
 
-    /**
-     * create_preview_pdf should return a configured PDF instance without debugging notices.
-     *
-     * @covers \mod_customcert\service\template_service::create_preview_pdf
-     */
-    public function test_create_preview_pdf_service(): void {
-        global $DB, $USER;
-
-        $this->setAdminUser();
-
-        $course = $this->getDataGenerator()->create_course();
-        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-
-        $template = template::load((int)$customcert->templateid);
-
-        $service = new template_service();
-        $pdf = $service->create_preview_pdf($template, $USER);
-
-        $this->assertInstanceOf(\pdf::class, $pdf);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * generate_pdf should produce a PDF string when returning output and avoid debugging.
-     *
-     * @covers \mod_customcert\service\template_service::generate_pdf
-     */
-    public function test_generate_pdf_service_preview_returns_string(): void {
-        global $DB, $USER;
-
-        $this->setAdminUser();
-
-        $course = $this->getDataGenerator()->create_course();
-        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-
-        $template = template::load((int)$customcert->templateid);
-        $service = new template_service();
-
-        // Ensure at least one element exists for rendering.
-        $page = $DB->get_record('customcert_pages', ['templateid' => $template->get_id()], '*', MUST_EXIST);
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $page->id,
-            'element' => 'text',
-            'name' => 'Sample',
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-            'data' => '',
-        ]);
-
-        $pdfstring = $service->generate_pdf($template, true, (int)$USER->id, true);
-
-        $this->assertIsString($pdfstring);
-        $this->assertNotEmpty($pdfstring);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * System templates without a backing customcert record should still generate PDFs and safe filenames.
-     *
-     * @covers \mod_customcert\service\template_service::generate_pdf
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
-     */
-    public function test_generate_pdf_system_template_without_customcert(): void {
-        global $DB, $USER, $CFG;
-
-        require_once($CFG->libdir . '/filelib.php');
-
-        $this->setAdminUser();
-
-        $template = template::create('System/Template Name', \context_system::instance()->id);
-        $service = new template_service();
-
-        $pageid = $service->add_page($template);
-
-        $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
-            'element' => 'text',
-            'name' => 'Sample',
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-            'data' => '',
-        ]);
-
-        $pdfstring = $service->generate_pdf($template, true, (int)$USER->id, true);
-
-        $this->assertIsString($pdfstring);
-        $this->assertNotEmpty($pdfstring);
-        $filename = $service->compute_filename_for_user($template, $USER, null);
-
-        $this->assertStringEndsWith('.pdf', $filename);
-        $this->assertStringContainsString('System', $filename);
-        $this->assertStringContainsString('Template', $filename);
-        $this->assertStringNotContainsString('/', $filename);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * compute_filename_for_user should honour custom filename patterns without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
-     */
-    public function test_compute_filename_for_user_service(): void {
-        global $CFG, $DB;
-
-        require_once($CFG->dirroot . '/group/lib.php');
-
-        $this->setAdminUser();
-
-        $course = $this->getDataGenerator()->create_course([
-            'shortname' => 'COURSE101',
-            'fullname' => 'Course 101',
-        ]);
-
-        $customcert = $this->getDataGenerator()->create_module('customcert', [
-            'course' => $course->id,
-            'usecustomfilename' => 1,
-            'customfilenamepattern' => '{FIRST_NAME}-{LAST_NAME}-{COURSE_SHORT_NAME}-{ISSUE_DATE}-{GROUP_NAME}',
-        ]);
-
-        $template = template::load((int)$customcert->templateid);
-        $service = new template_service();
-
-        $user = $this->getDataGenerator()->create_user([
-            'firstname' => 'Ada',
-            'lastname' => 'Lovelace',
-        ]);
-
-        // Enrol the user so group membership is returned by group APIs.
-        $this->getDataGenerator()->enrol_user($user->id, $course->id);
-
-        // Add a group and membership to exercise GROUP_NAME replacement.
-        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'GroupX']);
-        groups_add_member($group->id, $user->id);
-
-        // Seed an issue so ISSUE_DATE comes from the record.
-        $issuedate = 1700000000;
-        $DB->insert_record('customcert_issues', (object) [
-            'customcertid' => $customcert->id,
-            'userid' => $user->id,
-            'code' => 'CODE123',
-            'timecreated' => $issuedate,
-            'emailed' => 0,
-        ]);
-
-        $customcertrecord = $DB->get_record('customcert', ['id' => $customcert->id]);
-        $filename = $service->compute_filename_for_user($template, $user, $customcertrecord);
-
-        $expecteddate = date('Y-m-d', $issuedate);
-        // Sanitisation uses hyphens from the pattern and replaces spaces with underscores.
-        $this->assertStringStartsWith('Ada-Lovelace-COURSE101-' . $expecteddate . '-GroupX', $filename);
-        $this->assertStringEndsWith('.pdf', $filename);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * compute_filename_for_user should drop GROUP_NAME when no course/group data is available.
-     *
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
-     */
-    public function test_compute_filename_for_user_without_group_data(): void {
-        $this->setAdminUser();
-
-        $template = template::create('No Group', \context_system::instance()->id);
-        $service = new template_service();
-
-        $user = $this->getDataGenerator()->create_user([
-            'firstname' => 'NoGroup',
-            'lastname' => 'User',
-        ]);
-
-        $customcert = (object) [
-            'id' => 123,
-            'course' => 0,
-            'usecustomfilename' => 1,
-            'customfilenamepattern' => '{FIRST_NAME}-{GROUP_NAME}-{ISSUE_DATE}',
-        ];
-
-        $filename = $service->compute_filename_for_user($template, $user, $customcert);
-
-        $this->assertStringEndsWith('.pdf', $filename);
-        $this->assertStringNotContainsString('{GROUP_NAME}', $filename);
-        $this->assertStringContainsString('NoGroup--', $filename);
-        $this->assertDebuggingNotCalled();
-    }
 
     /**
      * save_pages should throw when required page fields are missing from input data.

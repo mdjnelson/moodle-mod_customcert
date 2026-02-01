@@ -29,7 +29,7 @@ namespace mod_customcert;
 
 use advanced_testcase;
 use context_system;
-use mod_customcert\service\template_service;
+use mod_customcert\service\pdf_generation_service;
 
 /**
  * Unit test class for testing filename generation in templates.
@@ -41,13 +41,13 @@ final class template_filename_test extends advanced_testcase {
     /**
      * Test default name simply uses template name.
      *
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
+     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_default_filename_uses_template_name(): void {
         $this->resetAfterTest();
 
         $template = template::create('My Fancy Template.', context_system::instance()->id);
-        $service = new template_service();
+        $service = new pdf_generation_service();
 
         $user = (object) ['id' => 123, 'firstname' => 'Ada', 'lastname' => 'Lovelace'];
         $customcert = (object) [
@@ -66,13 +66,13 @@ final class template_filename_test extends advanced_testcase {
     /**
      * Test placeholders are applied when a custom pattern is added.
      *
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
+     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_custom_pattern_placeholders_are_applied(): void {
         $this->resetAfterTest();
 
         $template = template::create('Ignored When Custom', context_system::instance()->id);
-        $service = new template_service();
+        $service = new pdf_generation_service();
 
         $course = $this->getDataGenerator()->create_course();
 
@@ -93,13 +93,13 @@ final class template_filename_test extends advanced_testcase {
     /**
      * Custom patterns that already include ".pdf" should not produce double extensions.
      *
-     * @covers \mod_customcert\service\template_service::compute_filename_for_user
+     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_custom_pattern_with_pdf_suffix_is_not_duplicated(): void {
         $this->resetAfterTest();
 
         $template = template::create('PDF Name', context_system::instance()->id);
-        $service = new template_service();
+        $service = new pdf_generation_service();
 
         $user = (object) ['id' => 456, 'firstname' => 'Grace', 'lastname' => 'Hopper'];
         $customcert = (object) [

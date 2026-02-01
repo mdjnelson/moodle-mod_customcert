@@ -42,9 +42,9 @@ class certificate_download_service {
     private const string ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES = 'all_certificates.zip';
 
     /**
-     * @var template_service
+     * @var pdf_generation_service
      */
-    private template_service $templateservice;
+    private pdf_generation_service $pdfservice;
 
     /**
      * @var moodle_database
@@ -64,20 +64,20 @@ class certificate_download_service {
     /**
      * certificate_download_service constructor.
      *
-     * @param template_service|null $templateservice
+     * @param pdf_generation_service|null $pdfservice
      * @param moodle_database|null $db
      * @param callable|null $zipfactory
      * @param callable|null $sendfile
      */
     public function __construct(
-        ?template_service $templateservice = null,
+        ?pdf_generation_service $pdfservice = null,
         ?moodle_database $db = null,
         ?callable $zipfactory = null,
         ?callable $sendfile = null
     ) {
         global $DB;
 
-        $this->templateservice = $templateservice ?? new template_service();
+        $this->pdfservice = $pdfservice ?? new pdf_generation_service();
         $this->db = $db ?? $DB;
         $this->zipfactory = $zipfactory ?? static fn(): zip_archive => new zip_archive();
         $this->sendfile = $sendfile ?? static function (string $path, string $name): void {
@@ -109,7 +109,7 @@ class certificate_download_service {
             foreach ($issues as $issue) {
                 $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
                 $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
-                $filecontents = $this->templateservice->generate_pdf($template, false, (int)$issue->id, true);
+                $filecontents = $this->pdfservice->generate_pdf($template, false, (int)$issue->id, true);
                 $ziparchive->add_file_from_string($pdfname, $filecontents);
             }
             $ziparchive->close();
@@ -151,7 +151,7 @@ class certificate_download_service {
                     $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
                     $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
                     $pdfname = $userfullname . DIRECTORY_SEPARATOR . $ctname . '_' . 'certificate.pdf';
-                    $filecontents = $this->templateservice->generate_pdf($template, false, (int)$issue->userid, true);
+                    $filecontents = $this->pdfservice->generate_pdf($template, false, (int)$issue->userid, true);
                     $ziparchive->add_file_from_string($pdfname, $filecontents);
                 }
                 $ziparchive->close();

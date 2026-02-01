@@ -21,7 +21,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Changed (Breaking)
 #### Template/page/element orchestration
-- New service-layer APIs for template/page/element CRUD and PDF generation live in `mod_customcert\service\template_service` (and repositories/DTOs such as `page_update`). Use these services instead of direct DB access.
+- New service-layer APIs for template/page/element CRUD live in `mod_customcert\service\template_service` (and repositories/DTOs such as `page_update`). PDF generation/preview/filenames now live in `mod_customcert\service\pdf_generation_service`. Use these services instead of direct DB access.
 - `mod_customcert\template::load(int $id)` is the supported entry point for instantiating templates; production code should no longer call `new template($record)`.
 
 Deprecated template methods (now shims that emit developer debugging):
@@ -30,7 +30,7 @@ Deprecated template methods (now shims that emit developer debugging):
 - `template::delete()` / `template::delete_page()` / `template::delete_element()` → use `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
 - `template::copy_to_template()` → use `template_service::copy_to_template()`
 - `template::move_item()` → use `template_service::move_item()` (service constants for item/direction are available but raw strings remain supported)
-- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → use the corresponding `template_service` methods
+- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → use the corresponding `pdf_generation_service` methods
 
 Third-party developers should swap legacy calls for the service methods above; the shims will be removed in a future release.
 
@@ -98,7 +98,7 @@ Legacy element APIs are still supported but deprecated as of 5.2:
  - `certificate::download_all_issues_for_instance()` / `certificate::download_all_for_site()` → use `certificate_download_service` equivalents
  - `certificate::get_course_time()` → use `certificate_time_service::get_course_time()`
  - `template` shims (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `copy_to_template`, `move_item`,
-   `generate_pdf`, `create_preview_pdf`, `compute_filename_for_user`) now delegate to `template_service`
+   `generate_pdf`, `create_preview_pdf`, `compute_filename_for_user`) now delegate to `template_service` and `pdf_generation_service`
 
 Deprecation notes:
 - Deprecated APIs will continue to work during the 5.2 line, but new development should use Element System v2 interfaces.

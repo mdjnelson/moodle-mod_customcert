@@ -26,6 +26,7 @@ namespace mod_customcert;
 
 use mod_customcert\event\template_created;
 use mod_customcert\service\template_repository;
+use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_service;
 use pdf;
 use stdClass;
@@ -59,6 +60,13 @@ class template {
      * @var template_service|null
      */
     private ?template_service $service = null;
+
+    /**
+     * Cached PDF generation service for deprecated shims.
+     *
+     * @var pdf_generation_service|null
+     */
+    private ?pdf_generation_service $pdfs = null;
 
     /**
      * The constructor.
@@ -149,8 +157,8 @@ class template {
      * @return string|void Can return the PDF in string format if specified.
      */
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
-        debugging('template::generate_pdf() is deprecated; use template_service::generate_pdf() instead.', DEBUG_DEVELOPER);
-        return $this->get_service()->generate_pdf($this, $preview, $userid, $return);
+        debugging('template::generate_pdf() is deprecated; use pdf_generation_service::generate_pdf() instead.', DEBUG_DEVELOPER);
+        return $this->get_pdf_service()->generate_pdf($this, $preview, $userid, $return);
     }
 
     /**
@@ -164,10 +172,10 @@ class template {
      */
     public function create_preview_pdf(stdClass $user): pdf {
         debugging(
-            'template::create_preview_pdf() is deprecated; use template_service::create_preview_pdf() instead.',
+            'template::create_preview_pdf() is deprecated; use pdf_generation_service::create_preview_pdf() instead.',
             DEBUG_DEVELOPER
         );
-        return $this->get_service()->create_preview_pdf($this, $user);
+        return $this->get_pdf_service()->create_preview_pdf($this, $user);
     }
 
 
@@ -181,10 +189,10 @@ class template {
      */
     public function compute_filename_for_user(stdClass $user, $customcert): string {
         debugging(
-            'template::compute_filename_for_user() is deprecated; use template_service::compute_filename_for_user() instead.',
+            'template::compute_filename_for_user() is deprecated; use pdf_generation_service::compute_filename_for_user() instead.',
             DEBUG_DEVELOPER
         );
-        return $this->get_service()->compute_filename_for_user($this, $user, $customcert);
+        return $this->get_pdf_service()->compute_filename_for_user($this, $user, $customcert);
     }
 
     /**
@@ -318,5 +326,14 @@ class template {
      */
     private function get_service(): template_service {
         return $this->service ??= new template_service();
+    }
+
+    /**
+     * Lazily build a pdf_generation_service instance.
+     *
+     * @return pdf_generation_service
+     */
+    private function get_pdf_service(): pdf_generation_service {
+        return $this->pdfs ??= new pdf_generation_service();
     }
 }

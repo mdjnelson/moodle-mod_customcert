@@ -377,6 +377,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create a course that ended before the execution window.
         $course = $this->getDataGenerator()->create_course([
+            'startdate' => time() - 4000,
             'enddate' => time() - 2000,
         ]);
 
