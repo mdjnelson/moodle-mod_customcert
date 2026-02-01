@@ -93,6 +93,13 @@ Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::save_form_elements()` / `element::save_unique_data()` → implement `persistable_element_interface::normalise_data()`
 - `element::after_restore()` → implement `restorable_element_interface::after_restore_from_backup()`
 
+ Legacy certificate/template shims now emit developer debugging in 5.2 and should be replaced with services:
+ - `certificate::issue_certificate()` / `certificate::generate_code()` → use `certificate_issue_service::issue_certificate()` / `::generate_code()`
+ - `certificate::download_all_issues_for_instance()` / `certificate::download_all_for_site()` → use `certificate_download_service` equivalents
+ - `certificate::get_course_time()` → use `certificate_time_service::get_course_time()`
+ - `template` shims (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `copy_to_template`, `move_item`,
+   `generate_pdf`, `create_preview_pdf`, `compute_filename_for_user`) now delegate to `template_service`
+
 Deprecation notes:
 - Deprecated APIs will continue to work during the 5.2 line, but new development should use Element System v2 interfaces.
 - New element plugins should not rely on `customcert_elements` legacy columns or legacy element hooks.
