@@ -29,7 +29,7 @@ use mod_customcert\report_table;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
-use mod_customcert\service\template_service;
+use mod_customcert\service\pdf_generation_service;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -244,7 +244,7 @@ if (!$downloadown && !$downloadissue) {
 
     // Now we want to generate the PDF.
     $template = template::load((int)$template->id);
-    $service = new template_service();
-    $service->generate_pdf($template, false, (int)$userid);
+    $pdfservice = new pdf_generation_service();
+    $pdfservice->generate_pdf($template, false, (int)$userid);
     exit();
 }

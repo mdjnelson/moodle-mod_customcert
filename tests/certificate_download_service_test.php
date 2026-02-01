@@ -19,6 +19,7 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_service;
 
 /**
@@ -52,6 +53,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $template = template::load((int)$customcert->templateid);
         $templateservice = new template_service();
+        $pdfservice = new pdf_generation_service();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $element = new \stdClass();
@@ -73,7 +75,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $sent = [];
         $service = new certificate_download_service(
-            $templateservice,
+            $pdfservice,
             null,
             null,
             static function (string $path, string $name) use (&$sent): void {
@@ -117,6 +119,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $template = template::load((int)$customcert->templateid);
         $templateservice = new template_service();
+        $pdfservice = new pdf_generation_service();
         $templateservice->update($template, (object) ['name' => 'Site Template']);
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -130,7 +133,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $sent = [];
         $service = new certificate_download_service(
-            $templateservice,
+            $pdfservice,
             null,
             null,
             static function (string $path, string $name) use (&$sent): void {

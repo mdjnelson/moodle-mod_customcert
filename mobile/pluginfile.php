@@ -28,7 +28,7 @@
 
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
-use mod_customcert\service\template_service;
+use mod_customcert\service\pdf_generation_service;
 use mod_customcert\template;
 
 define('AJAX_SCRIPT', true);
@@ -99,6 +99,6 @@ if (!$issue) {
 
 // Now we want to generate the PDF.
 $template = template::load((int)$certificate->templateid);
-$service = new template_service();
-$service->generate_pdf($template, false, (int)$userid);
+$pdfservice = new pdf_generation_service();
+$pdfservice->generate_pdf($template, false, (int)$userid);
 exit();

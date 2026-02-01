@@ -25,8 +25,9 @@
 
 namespace mod_customcert\event;
 
-use mod_customcert\service\element_factory;
 use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -150,7 +151,7 @@ final class events_test extends \advanced_testcase {
         $service->add_page($template);
 
         $sink = $this->redirectEvents();
-        $service->move_item($template, template_service::ITEM_PAGE, $page1id, template_service::DIRECTION_DOWN);
+        $service->move_item($template, item_move_service::ITEM_PAGE, $page1id, item_move_service::DIRECTION_DOWN);
         $events = $sink->get_events();
         $this->assertCount(1, $events);
 

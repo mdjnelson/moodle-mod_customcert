@@ -20,8 +20,6 @@ namespace mod_customcert\service;
 
 use dml_exception;
 use invalid_parameter_exception;
-use mod_customcert\certificate;
-use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\event\element_created;
@@ -30,9 +28,7 @@ use mod_customcert\event\page_deleted;
 use mod_customcert\event\page_updated;
 use mod_customcert\event\template_deleted;
 use mod_customcert\event\template_updated;
-use mod_customcert\local\preview_renderer;
 use mod_customcert\template;
-use pdf;
 use stdClass;
 
 /**
@@ -48,17 +44,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class template_service {
-    /** @var string Page move target. */
-    public const string ITEM_PAGE = 'page';
-
-    /** @var string Element move target. */
-    public const string ITEM_ELEMENT = 'element';
-
-    /** @var string Move direction upwards. */
-    public const string DIRECTION_UP = 'up';
-
-    /** @var string Move direction downwards. */
-    public const string DIRECTION_DOWN = 'down';
     /**
      * template_service constructor.
      *
@@ -66,6 +51,7 @@ final class template_service {
      * @param page_repository|null $pages
      * @param element_repository|null $elements
      * @param element_factory|null $factory
+     * @param item_move_service|null $moves
      */
     public function __construct(
         /** @var template_repository|null $templates Repository for template records. */
@@ -76,6 +62,8 @@ final class template_service {
         private ?element_repository $elements = null,
         /** @var element_factory|null $factory Element factory shared across operations. */
         private ?element_factory $factory = null,
+        /** @var item_move_service|null $moves Service handling page/element movement. */
+        private ?item_move_service $moves = null,
     ) {
         $this->templates ??= new template_repository();
         $this->pages ??= new page_repository();
@@ -84,6 +72,7 @@ final class template_service {
         }
         $this->factory ??= $this->build_element_factory();
         $this->elements ??= $this->build_element_repository();
+        $this->moves ??= new item_move_service(null, $this->pages);
     }
 
     /**
@@ -425,245 +414,11 @@ final class template_service {
      * @throws dml_exception
      */
     public function move_item(template $template, string $itemname, int $itemid, string $direction): void {
-        global $DB;
+        $this->moves ??= new item_move_service(null, $this->pages);
 
-        if (!in_array($itemname, [self::ITEM_PAGE, self::ITEM_ELEMENT], true)) {
-            throw new invalid_parameter_exception('Invalid item to move');
-        }
-        if (!in_array($direction, [self::DIRECTION_UP, self::DIRECTION_DOWN], true)) {
-            throw new invalid_parameter_exception('Invalid move direction');
-        }
-
-        $table = $itemname === self::ITEM_PAGE ? 'customcert_pages' : 'customcert_elements';
-
-        $moveitem = $DB->get_record($table, ['id' => $itemid]);
-        if (!$moveitem) {
-            return;
-        }
-
-        if ($itemname === self::ITEM_PAGE) {
-            if ((int)$moveitem->templateid !== $template->get_id()) {
-                throw new invalid_parameter_exception('Page does not belong to template');
-            }
-        } else {
-            $page = $this->pages->get_by_id_or_fail((int)$moveitem->pageid);
-            if ((int)$page->templateid !== $template->get_id()) {
-                throw new invalid_parameter_exception('Element does not belong to template');
-            }
-        }
-
-        $sequence = $direction === self::DIRECTION_UP ? $moveitem->sequence - 1 : $moveitem->sequence + 1;
-
-        $params = $itemname === self::ITEM_PAGE
-            ? ['templateid' => $moveitem->templateid]
-            : ['pageid' => $moveitem->pageid];
-        $swapitem = $DB->get_record($table, $params + ['sequence' => $sequence]);
-
-        if ($swapitem) {
-            $DB->set_field($table, 'sequence', $swapitem->sequence, ['id' => $moveitem->id]);
-            $DB->set_field($table, 'sequence', $moveitem->sequence, ['id' => $swapitem->id]);
-            template_updated::create_from_template($template)->trigger();
-        }
+        $this->moves->move_item($template, $itemname, $itemid, $direction);
     }
 
-    /**
-     * Generate the PDF for a template.
-     *
-     * @param template $template
-     * @param bool $preview
-     * @param int|null $userid
-     * @param bool $return
-     * @return string|void
-     * @throws dml_exception
-     */
-    public function generate_pdf(template $template, bool $preview = false, ?int $userid = null, bool $return = false) {
-        global $CFG, $DB, $USER;
-
-        $userid = $userid !== null ? (int)$userid : null;
-        $user = $userid !== null ? \core_user::get_user($userid) : $USER;
-
-        require_once($CFG->libdir . '/pdflib.php');
-        require_once($CFG->dirroot . '/mod/customcert/lib.php');
-
-        // Keep the language switch below this early return to avoid leaving the runtime language modified
-        // when no pages are present.
-        $pages = $this->pages->list_by_template($template->get_id());
-        if (empty($pages)) {
-            return $return ? '' : null;
-        }
-
-        $pdf = new pdf();
-
-        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]) ?: null;
-
-        $originallang = $this->apply_runtime_language_for_user($customcert, $user);
-
-        $this->configure_pdf_for_customcert($pdf, $customcert);
-
-        $deliveryoption = ($customcert && !empty($customcert->deliveryoption))
-            ? $customcert->deliveryoption
-            : certificate::DELIVERY_OPTION_INLINE;
-        $filename = $this->compute_filename_for_user($template, $user, $customcert);
-
-        $pdf->SetTitle($filename);
-
-        $previewrenderer = new preview_renderer();
-        foreach ($pages as $page) {
-            $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user, $preview);
-        }
-
-        $this->restore_runtime_language($originallang);
-
-        if ($return) {
-            return $pdf->Output('', 'S');
-        }
-
-        $pdf->Output($filename, $deliveryoption);
-    }
-
-    /**
-     * Create a configured PDF instance for preview.
-     *
-     * Note: This keeps the runtime language switched for the preview lifecycle (restored on shutdown)
-     * so callers can render pages/elements immediately after receiving the PDF instance.
-     *
-     * @param template $template
-     * @param stdClass $user
-     * @return pdf
-     * @throws dml_exception
-     */
-    public function create_preview_pdf(template $template, stdClass $user): pdf {
-        global $CFG, $DB;
-
-        require_once($CFG->libdir . '/pdflib.php');
-        require_once($CFG->dirroot . '/mod/customcert/lib.php');
-
-        $pdf = new pdf();
-        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]) ?: null;
-
-        // Leave the runtime language switched for the preview lifecycle; shutdown restore registered by
-        // apply_runtime_language_for_user() provides a safety net after rendering.
-        $this->apply_runtime_language_for_user($customcert, $user);
-        $this->configure_pdf_for_customcert($pdf, $customcert);
-
-        return $pdf;
-    }
-
-    /**
-     * Compute the PDF filename for a user/customcert.
-     *
-     * @param template $template
-     * @param stdClass $user
-     * @param object|null $customcert
-     * @return string
-     */
-    public function compute_filename_for_user(template $template, stdClass $user, $customcert): string {
-        global $DB, $CFG;
-
-        require_once($CFG->dirroot . '/mod/customcert/lib.php');
-        require_once($CFG->libdir . '/filelib.php');
-
-        $customcert = $customcert ?: null;
-
-        $haspattern = $customcert && !empty($customcert->usecustomfilename) && !empty($customcert->customfilenamepattern);
-
-        if (!$haspattern) {
-            $basename = rtrim(format_string($template->get_name(), true, ['context' => $template->get_context()]), '.');
-        } else {
-            $issue = $DB->get_record('customcert_issues', [
-                'userid' => (int)$user->id,
-                'customcertid' => (int)$customcert->id,
-            ]);
-
-            $issuedate = ($issue && !empty($issue->timecreated))
-                ? date('Y-m-d', (int)$issue->timecreated)
-                : date('Y-m-d');
-
-            $course = !empty($customcert->course)
-                ? $DB->get_record('course', ['id' => (int)$customcert->course])
-                : null;
-
-            $values = [
-                '{FIRST_NAME}' => $user->firstname ?? '',
-                '{LAST_NAME}' => $user->lastname ?? '',
-                '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
-                '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
-                '{ISSUE_DATE}' => $issuedate,
-                '{GROUP_NAME}' => '',
-            ];
-
-            $needsgroup = $course && str_contains((string)$customcert->customfilenamepattern, '{GROUP_NAME}');
-
-            if ($needsgroup) {
-                require_once($CFG->dirroot . '/group/lib.php');
-                $groups = groups_get_all_groups((int)$course->id, (int)$user->id);
-                if (!empty($groups)) {
-                    $groupnames = array_map(fn ($group) => $group->name, $groups);
-                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
-                }
-            }
-
-            $basename = rtrim(strtr($customcert->customfilenamepattern, $values), '.');
-        }
-
-        $basename = preg_replace('/\.pdf$/i', '', (string)$basename);
-
-        if (empty($basename)) {
-            $basename = get_string('certificate', 'customcert');
-        }
-
-        return clean_filename($basename . '.pdf');
-    }
-
-    /**
-     * Apply runtime language for this certificate/user and register a shutdown restore.
-     *
-     * @param object|null $customcert
-     * @param stdClass $user
-     * @return string|null
-     */
-    private function apply_runtime_language_for_user($customcert, stdClass $user): ?string {
-        if (!$customcert) {
-            return null;
-        }
-        $originallang = current_language();
-        $uselang = mod_customcert_get_language_to_use($customcert, $user);
-        $switched = mod_customcert_apply_runtime_language($uselang);
-        if ($switched) {
-            \core_shutdown_manager::register_function('force_current_language', [$originallang]);
-            return $originallang;
-        }
-        return null;
-    }
-
-    /**
-     * Restore runtime language if previously switched.
-     *
-     * @param string|null $originallang
-     * @return void
-     */
-    private function restore_runtime_language(?string $originallang): void {
-        if (!empty($originallang)) {
-            mod_customcert_apply_runtime_language($originallang);
-        }
-    }
-
-    /**
-     * Configure a PDF for this certificate: protection, header/footer and page break.
-     *
-     * @param pdf $pdf
-     * @param object|null $customcert
-     * @return void
-     */
-    private function configure_pdf_for_customcert(pdf $pdf, $customcert): void {
-        if ($customcert && !empty($customcert->protection)) {
-            $protection = explode(', ', $customcert->protection);
-            $pdf->SetProtection($protection);
-        }
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
-        $pdf->SetAutoPageBreak(true, 0);
-    }
 
     /**
      * Determine if a page has been updated based on form data.

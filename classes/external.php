@@ -34,7 +34,7 @@ use core_user\fields;
 use mod_customcert\event\element_updated;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\template_service;
+use mod_customcert\service\pdf_generation_service;
 use stdClass;
 use Throwable;
 
@@ -411,7 +411,7 @@ class external extends external_api {
 
         $output = [];
 
-        $service = $includepdf ? new template_service() : null;
+        $pdfservice = $includepdf ? new pdf_generation_service() : null;
 
         foreach ($records as $issue) {
             $pdfname = null;
@@ -424,7 +424,7 @@ class external extends external_api {
 
                     $pdfname = $safe . '_certificate.pdf';
                     $pdfcontent = base64_encode(
-                        $service->generate_pdf($template, false, (int)$issue->userid, true)
+                        $pdfservice->generate_pdf($template, false, (int)$issue->userid, true)
                     );
                 } catch (Throwable $e) {
                     // Leave PDF fields null on failure and log for developers.
