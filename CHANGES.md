@@ -168,7 +168,8 @@ DB columns removed from `customcert_elements`:
 - `width`
 
 - Element removed:
-  - `daterange`
+  - `daterange` - If you use this element, you must install it separately before upgrading.
+     Clone it from: https://github.com/mdjnelson/moodle-customcertelement_daterange.
 
 ### Notes for maintainers
 If you maintain a third-party element plugin, update it to Element System v2 as soon as practical to avoid future breakage when legacy hooks are removed.
