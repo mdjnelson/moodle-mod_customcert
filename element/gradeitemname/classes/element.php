@@ -166,21 +166,28 @@ class element extends base_element implements
         global $DB;
 
         $data = $this->get_payload();
-        if (empty($data) || empty($data['gradeitem'])) {
+        if (empty($data)) {
             return;
         }
 
-        $isgradeitem = false;
-        $oldid = $data['gradeitem'];
-        if (str_starts_with($data['gradeitem'], 'gradeitem:')) {
-            $isgradeitem = true;
-            $oldid = str_replace('gradeitem:', '', $data['gradeitem']);
+        // Legacy fixtures may store the reference in 'value' rather than 'gradeitem'.
+        $gradeitemref = $data['gradeitem'] ?? ($data['value'] ?? '');
+        if ($gradeitemref === '' || $gradeitemref === null) {
+            return;
         }
 
+        $gradeitemref = (string)$gradeitemref;
+        $isgradeitem = str_starts_with($gradeitemref, 'gradeitem:');
+        $oldid = $isgradeitem ? substr($gradeitemref, 10) : $gradeitemref;
+
         $itemname = $isgradeitem ? 'grade_item' : 'course_module';
-        if ($newitem = \restore_dbops::get_backup_ids_record($restore->get_restoreid(), $itemname, $oldid)) {
-            $payload = ['gradeitem' => ($isgradeitem ? 'gradeitem:' : '') . $newitem->newitemid];
-            $DB->set_field('customcert_elements', 'data', json_encode($payload), ['id' => $this->get_id()]);
+        $newid = $restore->get_mappingid($itemname, (int)$oldid);
+        if ($newid) {
+            $newref = ($isgradeitem ? 'gradeitem:' : '') . $newid;
+            $data['gradeitem'] = $newref;
+            // Keep legacy consumers aligned by mirroring into value when present.
+            $data['value'] = $newref;
+            $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
         }
     }
 

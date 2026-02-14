@@ -229,9 +229,10 @@ final class restore_hooks_json_test extends advanced_testcase {
              *
              * @param string $itemname
              * @param int $oldid
+             * @param bool $ifnotfound
              * @return int|false
              */
-            public function get_mappingid($itemname, $oldid) {
+            public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
                 return $this->map[$itemname][$oldid] ?? false;
             }
         };

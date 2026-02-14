@@ -24,6 +24,7 @@
 
 use mod_customcert\service\element_factory;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\element as base_element;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -138,10 +139,29 @@ class restore_customcert_activity_task extends restore_activity_task {
                     if ($instance instanceof restorable_element_interface) {
                         $instance->after_restore_from_backup($this);
                     } else if (method_exists($instance, 'after_restore')) {
-                        $instance->after_restore($this);
+                        // Skip the deprecated base implementation to avoid noise when no element-specific hook exists.
+                        $method = new ReflectionMethod($instance, 'after_restore');
+                        if ($method->getDeclaringClass()->getName() !== base_element::class) {
+                            $instance->after_restore($this);
+                        }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Convenience wrapper to fetch mapped ids during element restore hooks.
+     *
+     * Matches the core restore API signature for compatibility with legacy callers.
+     *
+     * @param string $itemname Mapping name, e.g. 'course_module' or 'grade_item'.
+     * @param int $oldid Source id from the backup file.
+     * @param bool $ifnotfound Value to return when the mapping does not exist (default false).
+     * @return int|bool New id when a mapping exists, or $ifnotfound when not found.
+     */
+    public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
+        $mapping = \restore_dbops::get_backup_ids_record($this->get_restoreid(), $itemname, $oldid);
+        return ($mapping && isset($mapping->newitemid)) ? (int)$mapping->newitemid : $ifnotfound;
     }
 }
