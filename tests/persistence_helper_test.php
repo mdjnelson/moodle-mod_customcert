@@ -101,6 +101,7 @@ final class persistence_helper_test extends advanced_testcase {
 
         $form = new stdClass();
         $json = persistence_helper::to_json_data($legacy, $form);
+        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
         $decoded = json_decode($json, true);
         $this->assertIsArray($decoded);
         $this->assertSame('plainstring', $decoded['value'] ?? null);
