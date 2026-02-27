@@ -179,11 +179,11 @@ final class persistence_json_test extends advanced_testcase {
             'alignment' => 'L',
         ];
 
-        // This anonymous legacy element uses the legacy save path which emits a deprecation
-        // debugging() message. Assert it to make the expectation explicit in the test.
+        // This anonymous legacy element uses the legacy save path which emits two deprecation
+        // debugging() messages: one for save_form_elements() and one for save_unique_data().
         $newid = $legacy->save_form_elements($form);
-        // Assert the deprecation was triggered on the legacy path as well.
-        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
+        // Assert both deprecation notices were triggered.
+        $this->assertDebuggingCalledCount(2);
         $this->assertIsNumeric($newid);
 
         $row = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);

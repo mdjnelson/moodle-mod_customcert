@@ -24,7 +24,6 @@
 
 use mod_customcert\service\element_factory;
 use mod_customcert\element\restorable_element_interface;
-use mod_customcert\element as base_element;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -139,11 +138,12 @@ class restore_customcert_activity_task extends restore_activity_task {
                     if ($instance instanceof restorable_element_interface) {
                         $instance->after_restore_from_backup($this);
                     } else if (method_exists($instance, 'after_restore')) {
-                        // Skip the deprecated base implementation to avoid noise when no element-specific hook exists.
-                        $method = new ReflectionMethod($instance, 'after_restore');
-                        if ($method->getDeclaringClass()->getName() !== base_element::class) {
-                            $instance->after_restore($this);
-                        }
+                        debugging(
+                            'after_restore() is deprecated since Moodle 5.2. Implement ' .
+                            'mod_customcert\element\restorable_element_interface::after_restore_from_backup() instead.',
+                            DEBUG_DEVELOPER
+                        );
+                        $instance->after_restore($this);
                     }
                 }
             }

@@ -36,7 +36,6 @@ use mod_customcert\service\element_renderer;
 use mod_customcert\service\persistence_helper;
 use MoodleQuickForm;
 use pdf;
-use restore_customcert_activity_task;
 use stdClass;
 
 /**
@@ -518,24 +517,6 @@ abstract class element implements stylable_element_interface {
         }
     }
 
-    /**
-     * This will handle how form data will be saved into the data column in the
-     * customcert_elements table.
-     *
-     * Can be overridden if more functionality is needed.
-     *
-     * @param stdClass $data the form data
-     * @return string the unique data to save
-     * @deprecated since Moodle 5.2
-     */
-    public function save_unique_data($data) {
-        debugging(
-            'save_unique_data() is deprecated since Moodle 5.2. '
-            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() instead.',
-            DEBUG_DEVELOPER
-        );
-        return '';
-    }
 
     /**
      * This handles copying data from another element of the same type.
@@ -599,24 +580,6 @@ abstract class element implements stylable_element_interface {
         return $return;
     }
 
-    /**
-     * This function is responsible for handling the restoration process of the element.
-     *
-     * For example, the function may save data that is related to another course module, this
-     * data will need to be updated if we are restoring the course as the course module id will
-     * be different in the new course.
-     *
-     * @param restore_customcert_activity_task $restore
-     * @deprecated since Moodle 5.2 — implement
-     *   mod_customcert\element\restorable_element_interface::after_restore_from_backup() instead.
-     */
-    public function after_restore($restore) {
-        debugging(
-            'after_restore() is deprecated since Moodle 5.2. Implement ' .
-            'mod_customcert\element\restorable_element_interface::after_restore_from_backup() instead.',
-            DEBUG_DEVELOPER
-        );
-    }
 
     /**
      * Set edit form instance for the custom cert element.

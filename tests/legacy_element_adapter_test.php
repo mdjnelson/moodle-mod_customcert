@@ -338,9 +338,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'testfield' => 'Test content',
         ];
 
-        // Should delegate to inner element's deprecated save_unique_data.
+        // Should delegate to inner element's save_unique_data (deprecation notice fires at the call site, not the adapter).
         $result = $adapter->save_unique_data($formdata);
-
         // Should return the value from the inner element's save_unique_data.
         $this->assertIsString($result);
         $this->assertSame('Test content', $result);
@@ -401,7 +400,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         // Create a simple mock restore task (stdClass is sufficient for testing delegation).
         $restore = new \stdClass();
 
-        // Should delegate to inner element's deprecated after_restore.
+        // Should delegate to inner element's after_restore (deprecation notice fires at the call site, not the adapter).
         $adapter->after_restore($restore);
 
         // Verify the inner element's method was called.

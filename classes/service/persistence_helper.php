@@ -52,6 +52,11 @@ final class persistence_helper {
 
         // Legacy path.
         if (method_exists($element, 'save_unique_data')) {
+            debugging(
+                'save_unique_data() is deprecated since Moodle 5.2. Implement ' .
+                'mod_customcert\element\persistable_element_interface::normalise_data() instead.',
+                DEBUG_DEVELOPER
+            );
             $legacy = $element->save_unique_data($formdata);
             if (is_array($legacy)) {
                 return json_encode($legacy);
