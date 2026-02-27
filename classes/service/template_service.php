@@ -286,10 +286,9 @@ final class template_service {
 
         if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
             foreach ($elements as $element) {
-                // Use the element instance so plugin-specific delete hooks execute; repository deletion would skip them.
                 $instance = $this->create_element_from_record($element);
                 if ($instance) {
-                    $instance->delete();
+                    $this->elements->delete($instance);
                     continue;
                 }
 
@@ -329,7 +328,7 @@ final class template_service {
 
         $instance = $this->create_element_from_record($element);
         if ($instance) {
-            $instance->delete();
+            $this->elements->delete($instance);
         } else {
             $DB->delete_records('customcert_elements', ['id' => $elementid]);
         }
@@ -386,7 +385,7 @@ final class template_service {
                     if ($instance = $this->create_element_from_record($element)) {
                         $inner = $this->unwrap_element($instance);
                         if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
-                            $instance->delete();
+                            $this->elements->delete($instance);
                         } else {
                             element_created::create_from_element($instance)->trigger();
                         }

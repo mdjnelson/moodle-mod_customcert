@@ -35,6 +35,7 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
 use mod_customcert\local\ordering;
 use mod_customcert\event\element_created;
+use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
 use stdClass;
 
@@ -234,6 +235,22 @@ class element_repository {
         }
 
         return $count;
+    }
+
+    /**
+     * Delete an element record and fire the deleted event.
+     *
+     * @param element_interface $element
+     * @return bool True on success, false otherwise.
+     */
+    public function delete(element_interface $element): bool {
+        global $DB;
+
+        $result = $DB->delete_records('customcert_elements', ['id' => $element->get_id()]);
+
+        element_deleted::create_from_element($element)->trigger();
+
+        return $result;
     }
 
     /**
