@@ -211,4 +211,59 @@ final class element_repository_test extends \advanced_testcase {
         $this->assertSame([$page1], [(int) $records[0]->pageid]);
         $this->assertNotSame($otherid, (int) $records[0]->id);
     }
+
+    /**
+     * Ensures delete() removes the DB record and fires element_deleted event.
+     *
+     * @covers ::delete
+     */
+    public function test_delete_removes_record_and_fires_event(): void {
+        global $DB;
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'To delete',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $repo = new element_repository(element_factory::build_with_defaults());
+        $element = $repo->load_by_page_id($pageid)[0];
+
+        $sink = $this->redirectEvents();
+        $result = $this->repo->delete($element);
+        $events = $sink->get_events();
+        $sink->close();
+
+        $this->assertTrue($result);
+        $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
+
+        $eventclasses = array_map(fn($e) => get_class($e), $events);
+        $this->assertContains(\mod_customcert\event\element_deleted::class, $eventclasses);
+    }
 }

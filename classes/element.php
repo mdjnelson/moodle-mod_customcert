@@ -28,11 +28,14 @@ namespace mod_customcert;
 
 use coding_exception;
 use InvalidArgumentException;
+use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\element_created;
-use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
 use mod_customcert\service\element_renderer;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\persistence_helper;
 use MoodleQuickForm;
 use pdf;
@@ -568,16 +571,18 @@ abstract class element implements stylable_element_interface {
      * Handles deleting any data this element may have introduced.
      * Can be overridden if more functionality is needed.
      *
+     * @deprecated since Moodle 5.2. Use element_repository::delete() instead.
      * @return bool success return true if deletion success, false otherwise
      */
     public function delete() {
-        global $DB;
+        debugging(
+            'element::delete() is deprecated since Moodle 5.2. Use element_repository::delete() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        $return = $DB->delete_records('customcert_elements', ['id' => $this->id]);
-
-        element_deleted::create_from_element($this)->trigger();
-
-        return $return;
+        $repository = new element_repository(element_factory::build_with_defaults());
+        $target = ($this instanceof element_interface) ? $this : new legacy_element_adapter($this);
+        return $repository->delete($target);
     }
 
 
