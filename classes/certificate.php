@@ -71,10 +71,10 @@ class certificate {
     public const string PROTECTION_COPY = 'copy';
 
     /**
-     * @var string the number of issues that will be displayed on each page in the report
+     * @var int the number of issues that will be displayed on each page in the report
      *      If you want to display all customcerts on a page set this to 0.
      */
-    public const string CUSTOMCERT_PER_PAGE = '50';
+    public const int CUSTOMCERT_PER_PAGE = 50;
 
     /**
      * Handles setting the protection field for the customcert
