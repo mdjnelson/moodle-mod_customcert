@@ -25,7 +25,6 @@ namespace mod_customcert\service;
 
 use core\cron;
 use core_shutdown_manager;
-use mod_customcert\helper;
 use mod_customcert\output\email_certificate;
 use mod_customcert\template;
 use stdClass;
@@ -78,8 +77,6 @@ class certificate_email_service {
      * @return void
      */
     public function send_issue(int $customcertid, int $issueid): void {
-        global $DB;
-
         $customcert = $this->emailrepository->get_customcert_for_email($customcertid);
         if (!$customcert) {
             return;
