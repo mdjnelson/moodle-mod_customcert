@@ -59,7 +59,7 @@ class element extends \customcertelement_image\element implements
     /**
      * @var array The file manager options for the certificate.
      */
-    protected $signaturefilemanageroptions = [];
+    protected array $signaturefilemanageroptions = [];
 
     /**
      * Constructor.

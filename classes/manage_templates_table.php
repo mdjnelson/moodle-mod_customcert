@@ -50,7 +50,7 @@ class manage_templates_table extends table_sql {
     /**
      * @var context $context
      */
-    protected $context;
+    protected context $context;
 
     /**
      * Sets up the table.

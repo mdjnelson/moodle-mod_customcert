@@ -39,14 +39,14 @@ class email_certificate_task extends adhoc_task {
      *
      * @return string
      */
-    public function get_name() {
+    public function get_name(): string {
         return get_string('taskemailcertificate', 'customcert');
     }
 
     /**
      * Execute.
      */
-    public function execute() {
+    public function execute(): void {
         $customdata = $this->get_custom_data();
         if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
             return;

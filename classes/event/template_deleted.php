@@ -40,7 +40,7 @@ class template_deleted extends base {
     /**
      * Initialises the event.
      */
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'customcert_templates';
@@ -51,7 +51,7 @@ class template_deleted extends base {
      *
      * @return string
      */
-    public function get_description() {
+    public function get_description(): string {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
             return "The user with id '$this->userid' deleted the certificate template with id '$this->objectid'.";
@@ -67,7 +67,7 @@ class template_deleted extends base {
      *
      * @return string
      */
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventtemplatedeleted', 'customcert');
     }
 
@@ -88,9 +88,9 @@ class template_deleted extends base {
 
     /**
      * Returns relevant URL.
-     * @return moodle_url
+     * @return moodle_url|null
      */
-    public function get_url() {
+    public function get_url(): ?moodle_url {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             return new moodle_url('/mod/customcert/manage_templates.php');
         } else {
@@ -103,7 +103,7 @@ class template_deleted extends base {
      *
      * @return string[]
      */
-    public static function get_objectid_mapping() {
+    public static function get_objectid_mapping(): array {
         return ['db' => 'customcert_templates', 'restore' => 'customcert_templates'];
     }
 

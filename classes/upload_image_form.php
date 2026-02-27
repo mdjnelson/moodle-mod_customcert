@@ -40,7 +40,7 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class upload_image_form extends moodleform {
     /** @var array the filemanager options */
-    protected $filemanageroptions = [];
+    protected array $filemanageroptions = [];
 
     /**
      * Form definition.

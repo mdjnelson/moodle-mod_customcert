@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace mod_customcert;
 
 use context;
@@ -45,7 +47,7 @@ class page_helper {
      * @param context $context
      * @param string $title the page title
      */
-    public static function page_setup($pageurl, $context, $title) {
+    public static function page_setup(moodle_url $pageurl, context $context, string $title): void {
         global $COURSE, $PAGE, $SITE;
 
         $PAGE->set_url($pageurl);

@@ -57,12 +57,12 @@ class edit_form extends moodleform {
     /**
      * @var int The id of the template being used.
      */
-    protected $tid = null;
+    protected ?int $tid = null;
 
     /**
      * @var int The total number of pages for this cert.
      */
-    protected $numpages = 1;
+    protected int $numpages = 1;
 
     /**
      * Form definition.

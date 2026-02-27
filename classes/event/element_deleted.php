@@ -26,7 +26,7 @@ namespace mod_customcert\event;
 
 use context_system;
 use core\event\base;
-use mod_customcert\element;
+use mod_customcert\element\element_interface;
 use moodle_url;
 
 /**
@@ -40,7 +40,7 @@ class element_deleted extends base {
     /**
      * Initialises the event.
      */
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
         $this->data['objecttable'] = 'customcert_elements';
@@ -51,7 +51,7 @@ class element_deleted extends base {
      *
      * @return string
      */
-    public function get_description() {
+    public function get_description(): string {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
             return "The user with id '$this->userid' deleted the element with id '$this->objectid'.";
@@ -67,17 +67,17 @@ class element_deleted extends base {
      *
      * @return string
      */
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventelementdeleted', 'customcert');
     }
 
     /**
      * Create instance of event.
      *
-     * @param element $element
+     * @param element_interface $element
      * @return element_deleted
      */
-    public static function create_from_element(element $element): element_deleted {
+    public static function create_from_element(element_interface $element): element_deleted {
         global $DB;
 
         $page = $DB->get_record('customcert_pages', ['id' => $element->get_pageid()]);
@@ -95,7 +95,7 @@ class element_deleted extends base {
      * Returns relevant URL.
      * @return moodle_url
      */
-    public function get_url() {
+    public function get_url(): moodle_url {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             return new moodle_url('/mod/customcert/manage_templates.php');
         } else {
@@ -111,7 +111,7 @@ class element_deleted extends base {
      *
      * @return string[]
      */
-    public static function get_objectid_mapping() {
+    public static function get_objectid_mapping(): array {
         return ['db' => 'customcert_elements', 'restore' => 'customcert_elements'];
     }
 

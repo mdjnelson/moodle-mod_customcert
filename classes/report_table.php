@@ -50,17 +50,17 @@ class report_table extends table_sql {
     /**
      * @var int $customcertid The custom certificate id
      */
-    protected $customcertid;
+    protected int $customcertid;
 
     /**
      * @var stdClass $cm The course module.
      */
-    protected $cm;
+    protected stdClass $cm;
 
     /**
      * @var bool $groupmode are we in group mode?
      */
-    protected $groupmode;
+    protected bool $groupmode;
 
     /**
      * Sets up the table.

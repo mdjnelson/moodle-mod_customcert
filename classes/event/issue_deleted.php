@@ -25,6 +25,7 @@
 namespace mod_customcert\event;
 
 use core\event\base;
+use moodle_url;
 
 /**
  * Event triggered when a certificate issue is deleted.
@@ -37,7 +38,7 @@ class issue_deleted extends base {
     /**
      * Initialises the event.
      */
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'd'; // A 'delete' operation.
         $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
         $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to.
@@ -48,7 +49,7 @@ class issue_deleted extends base {
      *
      * @return string
      */
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventissuedeleted', 'mod_customcert');
     }
 
@@ -57,16 +58,16 @@ class issue_deleted extends base {
      *
      * @return string
      */
-    public function get_description() {
+    public function get_description(): string {
         return "The certificate issue with id '{$this->objectid}' was deleted, from user with id '{$this->relateduserid}'.";
     }
 
     /**
      * Returns a relevant URL for viewing more information about the event.
      *
-     * @return \moodle_url
+     * @return moodle_url
      */
-    public function get_url() {
-        return new \moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
+    public function get_url(): moodle_url {
+        return new moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
     }
 }

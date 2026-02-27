@@ -46,7 +46,7 @@ class issue_certificates_task extends scheduled_task {
     /**
      * Execute.
      */
-    public function execute() {
+    public function execute(): void {
         $issuer = new certificate_issuer_service();
         $issuer->process_email_issuance_run();
     }

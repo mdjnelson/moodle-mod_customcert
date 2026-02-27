@@ -29,6 +29,8 @@ namespace mod_customcert\element;
 
 use mod_customcert\edit_element_form;
 use mod_customcert\element as legacy_base;
+use MoodleQuickForm;
+use stdClass;
 use mod_customcert\service\element_renderer;
 
 /**
@@ -189,7 +191,7 @@ final class legacy_element_adapter implements element_interface {
      * @param \MoodleQuickForm $mform
      * @return void
      */
-    public function render_form_elements($mform): void {
+    public function render_form_elements(MoodleQuickForm $mform): void {
         $this->inner->render_form_elements($mform);
     }
 
@@ -212,7 +214,7 @@ final class legacy_element_adapter implements element_interface {
      * @param array $files
      * @return array
      */
-    public function validate_form_elements($data, $files): array {
+    public function validate_form_elements(array $data, array $files): array {
         if (method_exists($this->inner, 'validate_form_elements')) {
             return $this->inner->validate_form_elements($data, $files);
         }
@@ -225,7 +227,7 @@ final class legacy_element_adapter implements element_interface {
      * @param \stdClass $data
      * @return mixed
      */
-    public function save_unique_data($data) {
+    public function save_unique_data(stdClass $data): mixed {
         if (method_exists($this->inner, 'save_unique_data')) {
             return $this->inner->save_unique_data($data);
         }
@@ -248,7 +250,7 @@ final class legacy_element_adapter implements element_interface {
      * @param \MoodleQuickForm $mform
      * @return void
      */
-    public function definition_after_data($mform): void {
+    public function definition_after_data(MoodleQuickForm $mform): void {
         if (method_exists($this->inner, 'definition_after_data')) {
             $this->inner->definition_after_data($mform);
         }

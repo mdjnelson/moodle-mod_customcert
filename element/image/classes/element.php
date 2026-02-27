@@ -69,7 +69,7 @@ class element extends base_element implements
     /**
      * @var array The file manager options.
      */
-    protected $filemanageroptions = [];
+    protected array $filemanageroptions = [];
 
     /**
      * Constructor.
@@ -505,7 +505,7 @@ class element extends base_element implements
      * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function copy_element($data) {
+    public function copy_element(stdClass $data): bool {
         global $COURSE, $DB, $SITE;
 
         $imagedata = json_decode($data->data);

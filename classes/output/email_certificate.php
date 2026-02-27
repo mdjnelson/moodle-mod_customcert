@@ -40,32 +40,32 @@ class email_certificate implements renderable, templatable {
     /**
      * @var bool Are we emailing the student?
      */
-    public $isstudent;
+    public bool $isstudent;
 
     /**
      * @var string The name of the user who owns the certificate.
      */
-    public $userfullname;
+    public string $userfullname;
 
     /**
      * @var string The course short name.
      */
-    public $courseshortname;
+    public string $courseshortname;
 
     /**
      * @var string The course full name.
      */
-    public $coursefullname;
+    public string $coursefullname;
 
     /**
-     * @var int The certificate name.
+     * @var string The certificate name.
      */
-    public $certificatename;
+    public string $certificatename;
 
     /**
      * @var int The course module id.
      */
-    public $cmid;
+    public int $cmid;
 
     /**
      * Constructor.
@@ -75,9 +75,16 @@ class email_certificate implements renderable, templatable {
      * @param string $courseshortname The short name of the course.
      * @param string $coursefullname The full name of the course.
      * @param string $certificatename The name of the certificate.
-     * @param string $cmid The course module id.
+     * @param int $cmid The course module id.
      */
-    public function __construct($isstudent, $userfullname, $courseshortname, $coursefullname, $certificatename, $cmid) {
+    public function __construct(
+        bool $isstudent,
+        string $userfullname,
+        string $courseshortname,
+        string $coursefullname,
+        string $certificatename,
+        int $cmid
+    ) {
         $this->isstudent = $isstudent;
         $this->userfullname = $userfullname;
         $this->courseshortname = $courseshortname;
@@ -92,7 +99,7 @@ class email_certificate implements renderable, templatable {
      * @param renderer_base $renderer The render to be used for formatting the email
      * @return stdClass The data ready for use in a mustache template
      */
-    public function export_for_template(renderer_base $renderer) {
+    public function export_for_template(renderer_base $renderer): stdClass {
         $data = new stdClass();
 
         // Used for the body text.
