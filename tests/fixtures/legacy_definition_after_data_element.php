@@ -46,7 +46,7 @@ class legacy_definition_after_data_element extends element {
      * @param MoodleQuickForm $mform
      * @return void
      */
-    public function definition_after_data($mform) {
+    public function definition_after_data(MoodleQuickForm $mform): void {
         $this->called = true;
     }
 

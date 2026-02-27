@@ -42,7 +42,7 @@ class renderer extends plugin_renderer_base {
      * @param verify_certificate_results $page
      * @return string html for the page
      */
-    public function render_verify_certificate_results(verify_certificate_results $page) {
+    public function render_verify_certificate_results(verify_certificate_results $page): string {
         $data = $page->export_for_template($this);
         return parent::render_from_template('mod_customcert/verify_certificate_results', $data);
     }
@@ -53,7 +53,7 @@ class renderer extends plugin_renderer_base {
      * @param email_certificate $certificate The certificate to email
      * @return string
      */
-    public function render_email_certificate(email_certificate $certificate) {
+    public function render_email_certificate(email_certificate $certificate): string {
         $data = $certificate->export_for_template($this);
         return $this->render_from_template('mod_customcert/' . $this->get_template_name(), $data);
     }

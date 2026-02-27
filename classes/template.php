@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace mod_customcert;
 
 use mod_customcert\event\template_created;
@@ -42,17 +44,17 @@ class template {
     /**
      * @var int $id The id of the template.
      */
-    protected $id;
+    protected int $id;
 
     /**
      * @var string $name The name of this template
      */
-    protected $name;
+    protected string $name;
 
     /**
      * @var int $contextid The context id of this template
      */
-    protected $contextid;
+    protected int $contextid;
 
     /**
      * Cached template service instance for deprecated shims.
@@ -73,7 +75,7 @@ class template {
      *
      * @param stdClass $template
      */
-    public function __construct($template) {
+    public function __construct(stdClass $template) {
         $this->id = (int)$template->id;
         $this->name = $template->name;
         $this->contextid = (int)$template->contextid;
@@ -85,7 +87,7 @@ class template {
      * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::update instead
      * @param stdClass $data the template data
      */
-    public function save($data) {
+    public function save(stdClass $data): void {
         debugging('template::save() is deprecated; use template_service::update() instead.', DEBUG_DEVELOPER);
         $this->get_service()->update($this, $data);
     }
@@ -97,7 +99,7 @@ class template {
      * @param bool $triggertemplateupdatedevent
      * @return int the id of the page
      */
-    public function add_page(bool $triggertemplateupdatedevent = true) {
+    public function add_page(bool $triggertemplateupdatedevent = true): int {
         debugging('template::add_page() is deprecated; use template_service::add_page() instead.', DEBUG_DEVELOPER);
         return $this->get_service()->add_page($this, $triggertemplateupdatedevent);
     }
@@ -108,7 +110,7 @@ class template {
      * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::save_pages instead
      * @param stdClass $data the template data
      */
-    public function save_page($data) {
+    public function save_page(stdClass $data): void {
         debugging('template::save_page() is deprecated; use template_service::save_pages() instead.', DEBUG_DEVELOPER);
         $this->get_service()->save_pages($this, $data);
     }
@@ -119,7 +121,7 @@ class template {
      * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::delete instead
      * @return bool return true if the deletion was successful, false otherwise
      */
-    public function delete() {
+    public function delete(): bool {
         debugging('template::delete() is deprecated; use template_service::delete() instead.', DEBUG_DEVELOPER);
         return $this->get_service()->delete($this);
     }
@@ -143,7 +145,7 @@ class template {
      * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::delete_element instead
      * @param int $elementid the template page
      */
-    public function delete_element($elementid) {
+    public function delete_element(int $elementid): void {
         debugging('template::delete_element() is deprecated; use template_service::delete_element() instead.', DEBUG_DEVELOPER);
         $this->get_service()->delete_element($this, $elementid);
     }
@@ -184,10 +186,10 @@ class template {
      * Mirrors the logic in generate_pdf(). Returns a clean filename with .pdf suffix.
      *
      * @param stdClass $user
-     * @param object|null $customcert
+     * @param stdClass|null $customcert
      * @return string
      */
-    public function compute_filename_for_user(stdClass $user, $customcert): string {
+    public function compute_filename_for_user(stdClass $user, ?stdClass $customcert): string {
         debugging(
             'template::compute_filename_for_user() is deprecated; use pdf_generation_service::compute_filename_for_user() instead.',
             DEBUG_DEVELOPER
@@ -198,10 +200,10 @@ class template {
     /**
      * Handles copying this template into another.
      *
-     * @param object $copytotemplate The template instance to copy to
+     * @param template $copytotemplate The template instance to copy to
      * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::copy_to_template instead
      */
-    public function copy_to_template($copytotemplate) {
+    public function copy_to_template(template $copytotemplate): void {
         debugging('template::copy_to_template() is deprecated; use template_service::copy_to_template() instead.', DEBUG_DEVELOPER);
         $this->get_service()->copy_to_template($this, $copytotemplate);
     }
@@ -214,7 +216,7 @@ class template {
      * @param int $itemid the id of the item
      * @param string $direction the direction
      */
-    public function move_item($itemname, $itemid, $direction) {
+    public function move_item(string $itemname, int $itemid, string $direction): void {
         debugging('template::move_item() is deprecated; use template_service::move_item() instead.', DEBUG_DEVELOPER);
         $this->get_service()->move_item($this, $itemname, $itemid, $direction);
     }
@@ -224,7 +226,7 @@ class template {
      *
      * @return int the id of the template
      */
-    public function get_id() {
+    public function get_id(): int {
         return (int)$this->id;
     }
 
@@ -233,7 +235,7 @@ class template {
      *
      * @return string the name of the template
      */
-    public function get_name() {
+    public function get_name(): string {
         return $this->name;
     }
 
@@ -252,7 +254,7 @@ class template {
      *
      * @return int the context id
      */
-    public function get_contextid() {
+    public function get_contextid(): int {
         return $this->contextid;
     }
 
@@ -261,7 +263,7 @@ class template {
      *
      * @return \context the context
      */
-    public function get_context() {
+    public function get_context(): \context {
         return \context::instance_by_id($this->contextid);
     }
 
@@ -270,7 +272,7 @@ class template {
      *
      * @return \context_module|null the context module, null if there is none
      */
-    public function get_cm() {
+    public function get_cm(): ?stdClass {
         $context = $this->get_context();
         if ($context->contextlevel === CONTEXT_MODULE) {
             return get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
@@ -284,7 +286,7 @@ class template {
      *
      * @throws \required_capability_exception if the user does not have the necessary capabilities (ie. Fred)
      */
-    public function require_manage() {
+    public function require_manage(): void {
         require_capability('mod/customcert:manage', $this->get_context());
     }
 
@@ -295,7 +297,7 @@ class template {
      * @param int $contextid the context id
      * @return template the template object
      */
-    public static function create($templatename, $contextid) {
+    public static function create(string $templatename, int $contextid): template {
         $repository = new template_repository();
         $id = $repository->create((object) ['name' => $templatename, 'contextid' => $contextid]);
         $record = $repository->get_by_id_or_fail($id);

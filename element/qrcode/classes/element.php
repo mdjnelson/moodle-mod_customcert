@@ -82,7 +82,7 @@ class element extends base_element implements
     /**
      * @var string The barcode type.
      */
-    const BARCODETYPE = 'QRCODE';
+    public const string BARCODETYPE = 'QRCODE';
 
     /**
      * Normalise QR code element data.

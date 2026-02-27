@@ -38,7 +38,7 @@ class legacy_save_unique_data_element extends element {
      * @param stdClass $data
      * @return string
      */
-    public function save_unique_data($data) {
+    public function save_unique_data(stdClass $data): mixed {
         return $data->testfield ?? 'default';
     }
 

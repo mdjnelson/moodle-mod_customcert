@@ -24,6 +24,8 @@
 
 namespace mod_customcert\event;
 
+use moodle_url;
+
 /**
  * Event class for when a custom certificate is issued to a user.
  *
@@ -35,7 +37,7 @@ class issue_created extends \core\event\base {
     /**
      * Initialises the event.
      */
-    protected function init() {
+    protected function init(): void {
         $this->data['crud'] = 'c'; // A 'create' operation.
         $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
         $this->data['objecttable'] = 'customcert_issues'; // The DB table this event pertains to.
@@ -46,7 +48,7 @@ class issue_created extends \core\event\base {
      *
      * @return string The name of the event.
      */
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('eventissuecreated', 'mod_customcert');
     }
 
@@ -55,16 +57,16 @@ class issue_created extends \core\event\base {
      *
      * @return string A detailed description of the event.
      */
-    public function get_description() {
+    public function get_description(): string {
         return "The user with id '{$this->userid}' was issued a custom certificate with issue id '{$this->objectid}'.";
     }
 
     /**
      * Returns the URL relevant to the event.
      *
-     * @return \moodle_url A URL to view the certificate or related activity.
+     * @return moodle_url A URL to view the certificate or related activity.
      */
-    public function get_url() {
-        return new \moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
+    public function get_url(): moodle_url {
+        return new moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
     }
 }

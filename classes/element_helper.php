@@ -53,17 +53,17 @@ class element_helper {
     /**
      * @var int the top-left of element
      */
-    const CUSTOMCERT_REF_POINT_TOPLEFT = 0;
+    public const int CUSTOMCERT_REF_POINT_TOPLEFT = 0;
 
     /**
      * @var int the top-center of element
      */
-    const CUSTOMCERT_REF_POINT_TOPCENTER = 1;
+    public const int CUSTOMCERT_REF_POINT_TOPCENTER = 1;
 
     /**
      * @var int the top-left of element
      */
-    const CUSTOMCERT_REF_POINT_TOPRIGHT = 2;
+    public const int CUSTOMCERT_REF_POINT_TOPRIGHT = 2;
 
     /**
      * Common behaviour for rendering specified content on the pdf.
@@ -72,7 +72,7 @@ class element_helper {
      * @param element_interface|element $element the customcert element
      * @param string $content the content to render
      */
-    public static function render_content(pdf $pdf, element_interface|element $element, string $content) {
+    public static function render_content(pdf $pdf, element_interface|element $element, string $content): void {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
         $colour = $element->get_colour() ?? '#000000';
@@ -150,7 +150,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_font($mform) {
+    public static function render_form_element_font(MoodleQuickForm $mform): void {
         $mform->addElement('select', 'font', get_string('font', 'customcert'), certificate::get_fonts());
         $mform->setType('font', PARAM_TEXT);
         $mform->setDefault('font', 'times');
@@ -171,7 +171,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_colour($mform) {
+    public static function render_form_element_colour(MoodleQuickForm $mform): void {
         $mform->addElement('customcert_colourpicker', 'colour', get_string('fontcolour', 'customcert'));
         $mform->setType('colour', PARAM_RAW); // Need to validate that this is a valid colour.
         $mform->setDefault('colour', '#000000');
@@ -183,7 +183,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_position($mform) {
+    public static function render_form_element_position(MoodleQuickForm $mform): void {
         $mform->addElement('text', 'posx', get_string('posx', 'customcert'), ['size' => 10]);
         $mform->setType('posx', PARAM_INT);
         $mform->setDefault('posx', 0);
@@ -199,7 +199,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_width($mform) {
+    public static function render_form_element_width(MoodleQuickForm $mform): void {
         $mform->addElement('text', 'width', get_string('elementwidth', 'customcert'), ['size' => 10]);
         $mform->setType('width', PARAM_INT);
         $mform->setDefault('width', 0);
@@ -211,7 +211,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_height($mform) {
+    public static function render_form_element_height(MoodleQuickForm $mform): void {
         $mform->addElement('text', 'height', get_string('elementheight', 'customcert'), ['size' => 10]);
         $mform->setType('height', PARAM_INT);
         $mform->setDefault('height', 0);
@@ -223,7 +223,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_refpoint($mform) {
+    public static function render_form_element_refpoint(MoodleQuickForm $mform): void {
         $refpointoptions = [];
         $refpointoptions[self::CUSTOMCERT_REF_POINT_TOPLEFT] = get_string('topleft', 'customcert');
         $refpointoptions[self::CUSTOMCERT_REF_POINT_TOPCENTER] = get_string('topcenter', 'customcert');
@@ -240,7 +240,7 @@ class element_helper {
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public static function render_form_element_alignment($mform) {
+    public static function render_form_element_alignment(MoodleQuickForm $mform): void {
         $alignmentoptions = [];
         $alignmentoptions[element::ALIGN_LEFT] = get_string('alignleft', 'customcert');
         $alignmentoptions[element::ALIGN_CENTER] = get_string('aligncenter', 'customcert');
@@ -262,7 +262,7 @@ class element_helper {
      * @param MoodleQuickForm $mform the edit_form instance.
      * @param bool $showposxy whether to show position fields (default: true).
      */
-    public static function render_common_form_elements($mform, bool $showposxy = true) {
+    public static function render_common_form_elements(MoodleQuickForm $mform, bool $showposxy = true): void {
         self::render_form_element_font($mform);
         self::render_form_element_colour($mform);
         if ($showposxy) {
@@ -279,7 +279,7 @@ class element_helper {
      * @param array $data the submitted data
      * @return array the validation errors
      */
-    public static function validate_form_element_colour($data) {
+    public static function validate_form_element_colour(array $data): array {
         $errors = [];
         // Validate the colour.
         if (!self::validate_colour($data['colour'])) {
@@ -294,7 +294,7 @@ class element_helper {
      * @param array $data the submitted data
      * @return array the validation errors
      */
-    public static function validate_form_element_position($data) {
+    public static function validate_form_element_position(array $data): array {
         $errors = [];
 
         // Check if posx is not set, or not numeric or less than 0.
@@ -316,7 +316,7 @@ class element_helper {
      * @param bool $allowzero allow zero as a valid value
      * @return array the validation errors
      */
-    public static function validate_form_element_width($data, bool $allowzero = true) {
+    public static function validate_form_element_width(array $data, bool $allowzero = true): array {
         $errors = [];
 
         // If there is no width element no validation is needed.
@@ -349,7 +349,7 @@ class element_helper {
      * @param bool $allowzero allow zero as a valid value
      * @return array the validation errors
      */
-    public static function validate_form_element_height($data, bool $allowzero = true) {
+    public static function validate_form_element_height(array $data, bool $allowzero = true): array {
         $errors = [];
 
         // If there is no height element no validation is needed.
@@ -381,7 +381,7 @@ class element_helper {
      * @param element_interface|element $element the customcert element
      * @return array the font and font attributes
      */
-    public static function get_font(element_interface|element $element) {
+    public static function get_font(element_interface|element $element): array {
         // Variable for the font.
         $font = $element->get_font();
         // If there is no font, then we have nothing to do.
@@ -419,7 +419,7 @@ class element_helper {
      * @param string $colour
      * @return bool returns true if the colour is valid, false otherwise
      */
-    public static function validate_colour($colour) {
+    public static function validate_colour(string $colour): bool {
         // List of valid HTML colour names.
         $colournames = [
             'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',
@@ -471,7 +471,7 @@ class element_helper {
      * @param int $pageid the id of the page we are adding this element to
      * @return int the element number
      */
-    public static function get_element_sequence($pageid) {
+    public static function get_element_sequence(int $pageid): int {
         global $DB;
 
         // Set the sequence of the element we are creating.
@@ -494,7 +494,7 @@ class element_helper {
      * @param int $elementid The element id
      * @return int The course id
      */
-    public static function get_courseid($elementid) {
+    public static function get_courseid(int $elementid): int {
         global $DB, $SITE;
 
         $sql = "SELECT course
@@ -539,7 +539,7 @@ class element_helper {
      *
      * @return array the list of element types that can be used.
      */
-    public static function get_available_element_types() {
+    public static function get_available_element_types(): array {
         global $CFG;
 
         // Array to store the element types.
@@ -582,7 +582,7 @@ class element_helper {
      * @param stdClass $course The course we want to return the grade items for
      * @return array the array of gradeable items in the course
      */
-    public static function get_grade_items($course) {
+    public static function get_grade_items(stdClass $course): array {
         // Array to store the grade items.
         $arrgradeitems = [];
 
@@ -627,7 +627,7 @@ class element_helper {
      * @param int $userid
      * @return grade_information|bool the grade information, or false if there is none.
      */
-    public static function get_course_grade_info($courseid, $gradeformat, $userid) {
+    public static function get_course_grade_info(int $courseid, int $gradeformat, int $userid): grade_information|false {
         $courseitem = \grade_item::fetch_course_item($courseid);
 
         if (!$courseitem) {
@@ -652,7 +652,7 @@ class element_helper {
      * @param int $userid
      * @return grade_information|bool the grade information, or false if there is none.
      */
-    public static function get_mod_grade_info($cmid, $gradeformat, $userid) {
+    public static function get_mod_grade_info(int $cmid, int $gradeformat, int $userid): grade_information|false {
         global $DB;
 
         if (!$cm = $DB->get_record('course_modules', ['id' => $cmid])) {
@@ -713,7 +713,7 @@ class element_helper {
      * @param int $userid
      * @return grade_information|bool the grade information, or false if there is none.
      */
-    public static function get_grade_item_info($gradeitemid, $gradeformat, $userid) {
+    public static function get_grade_item_info(int $gradeitemid, int $gradeformat, int $userid): grade_information|false {
         if (!$gradeitem = \grade_item::fetch(['id' => $gradeitemid])) {
             return false;
         }

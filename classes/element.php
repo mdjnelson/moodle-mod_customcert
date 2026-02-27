@@ -367,7 +367,7 @@ abstract class element implements stylable_element_interface {
      * @param MoodleQuickForm $mform the edit_form instance.
      * @deprecated since Moodle 5.2 Use element_helper::render_common_form_elements() instead.
      */
-    public function render_form_elements($mform) {
+    public function render_form_elements(MoodleQuickForm $mform): void {
         debugging(
             'render_form_elements() is deprecated since Moodle 5.2. '
             . 'Use element_helper::render_common_form_elements() instead.',
@@ -388,10 +388,10 @@ abstract class element implements stylable_element_interface {
      * Sets the data on the form when editing an element.
      * Can be overridden if more functionality is needed.
      *
-     * @param edit_element_form $mform the edit_form instance
+     * @param MoodleQuickForm $mform the edit_form instance
      * @deprecated since Moodle 5.2
      */
-    public function definition_after_data($mform) {
+    public function definition_after_data(MoodleQuickForm $mform): void {
         debugging(
             'definition_after_data() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
@@ -427,7 +427,7 @@ abstract class element implements stylable_element_interface {
      * @return array the validation errors
      * @deprecated since Moodle 5.2
      */
-    public function validate_form_elements($data, $files) {
+    public function validate_form_elements(array $data, array $files): array {
         debugging(
             'validate_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\validatable_element_interface::validate() instead.',
@@ -454,7 +454,7 @@ abstract class element implements stylable_element_interface {
      * @return int|bool true if updated was a success, id of the new element otherwise.
      * @deprecated since Moodle 5.2
      */
-    public function save_form_elements($data) {
+    public function save_form_elements(stdClass $data): int|bool {
         debugging(
             'save_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() and '
@@ -503,7 +503,8 @@ abstract class element implements stylable_element_interface {
             $element->id = $this->id;
             $return = $DB->update_record('customcert_elements', $element);
 
-            element_updated::create_from_element($this)->trigger();
+            $target = ($this instanceof element_interface) ? $this : new legacy_element_adapter($this);
+            element_updated::create_from_element($target)->trigger();
 
             return $return;
         } else { // Must be adding a new one.
@@ -514,7 +515,8 @@ abstract class element implements stylable_element_interface {
             $element->id = $DB->insert_record('customcert_elements', $element, true);
             $this->id = $element->id;
 
-            element_created::create_from_element($this)->trigger();
+            $target = ($this instanceof element_interface) ? $this : new legacy_element_adapter($this);
+            element_created::create_from_element($target)->trigger();
 
             return $element->id;
         }
@@ -528,7 +530,7 @@ abstract class element implements stylable_element_interface {
      * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function copy_element($data) {
+    public function copy_element(stdClass $data): bool {
         return true;
     }
 
@@ -538,7 +540,7 @@ abstract class element implements stylable_element_interface {
      *
      * @return bool returns true if the element can be added, false otherwise
      */
-    public static function can_add() {
+    public static function can_add(): bool {
         return true;
     }
 
@@ -591,7 +593,7 @@ abstract class element implements stylable_element_interface {
      *
      * @param edit_element_form $editelementform
      */
-    public function set_edit_element_form(edit_element_form $editelementform) {
+    public function set_edit_element_form(edit_element_form $editelementform): void {
         $this->editelementform = $editelementform;
     }
 
@@ -600,7 +602,7 @@ abstract class element implements stylable_element_interface {
      *
      * @return edit_element_form
      */
-    public function get_edit_element_form() {
+    public function get_edit_element_form(): edit_element_form {
         if (empty($this->editelementform)) {
             throw new coding_exception('Edit element form instance is not set.');
         }

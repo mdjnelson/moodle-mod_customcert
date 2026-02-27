@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+declare(strict_types=1);
+
 namespace mod_customcert;
 
 use context_module;
@@ -46,33 +48,33 @@ class certificate {
     /**
      * Send the file inline to the browser.
      */
-    const DELIVERY_OPTION_INLINE = 'I';
+    public const string DELIVERY_OPTION_INLINE = 'I';
 
     /**
      * Send to the browser and force a file download
      */
-    const DELIVERY_OPTION_DOWNLOAD = 'D';
+    public const string DELIVERY_OPTION_DOWNLOAD = 'D';
 
     /**
      * @var string the print protection variable
      */
-    const PROTECTION_PRINT = 'print';
+    public const string PROTECTION_PRINT = 'print';
 
     /**
      * @var string the modify protection variable
      */
-    const PROTECTION_MODIFY = 'modify';
+    public const string PROTECTION_MODIFY = 'modify';
 
     /**
      * @var string the copy protection variable
      */
-    const PROTECTION_COPY = 'copy';
+    public const string PROTECTION_COPY = 'copy';
 
     /**
-     * @var int the number of issues that will be displayed on each page in the report
+     * @var string the number of issues that will be displayed on each page in the report
      *      If you want to display all customcerts on a page set this to 0.
      */
-    const CUSTOMCERT_PER_PAGE = '50';
+    public const string CUSTOMCERT_PER_PAGE = '50';
 
     /**
      * Handles setting the protection field for the customcert
@@ -80,7 +82,7 @@ class certificate {
      * @param stdClass $data
      * @return string the value to insert into the protection field
      */
-    public static function set_protection($data) {
+    public static function set_protection(stdClass $data): string {
         $protection = [];
 
         if (!empty($data->protection_print)) {
@@ -104,7 +106,7 @@ class certificate {
      * @param int $contextid the context we are storing this image in
      * @param string $filearea indentifies the file area.
      */
-    public static function upload_files($draftitemid, $contextid, $filearea = 'image') {
+    public static function upload_files(int $draftitemid, int $contextid, string $filearea = 'image'): void {
         global $CFG;
 
         // Save the file if it exists that is currently in the draft area.
@@ -115,7 +117,7 @@ class certificate {
     /**
      * Return the list of possible fonts to use.
      */
-    public static function get_fonts() {
+    public static function get_fonts(): array {
         global $CFG;
 
         require_once($CFG->libdir . '/pdflib.php');
@@ -163,7 +165,7 @@ class certificate {
     /**
      * Return the list of possible font sizes to use.
      */
-    public static function get_font_sizes() {
+    public static function get_font_sizes(): array {
         // Array to store the sizes.
         $sizes = [];
 
@@ -240,7 +242,14 @@ class certificate {
      * @param string $sort
      * @return array the users
      */
-    public static function get_issues($customcertid, $groupmode, $cm, $limitfrom, $limitnum, $sort = '') {
+    public static function get_issues(
+        int $customcertid,
+        bool $groupmode,
+        stdClass $cm,
+        int $limitfrom,
+        int $limitnum,
+        string $sort = ''
+    ): array {
         global $DB;
 
         // Get the conditional SQL.
@@ -279,7 +288,7 @@ class certificate {
      * @param bool $groupmode the group mode
      * @return int the number of issues
      */
-    public static function get_number_of_issues($customcertid, $cm, $groupmode) {
+    public static function get_number_of_issues(int $customcertid, stdClass $cm, bool $groupmode): int {
         global $DB;
 
         // Get the conditional SQL.
@@ -311,7 +320,7 @@ class certificate {
      * @param bool $groupmode are we in group mode ?
      * @return array the conditional variables
      */
-    public static function get_conditional_issues_sql($cm, $groupmode) {
+    public static function get_conditional_issues_sql(stdClass $cm, bool $groupmode): array {
         global $DB, $USER;
 
         // Get all users that can manage this customcert to exclude them from the report.
@@ -373,7 +382,7 @@ class certificate {
      * @param int $userid
      * @return int
      */
-    public static function get_number_of_certificates_for_user($userid) {
+    public static function get_number_of_certificates_for_user(int $userid): int {
         global $DB;
 
         $sql = "SELECT COUNT(*)
@@ -393,7 +402,7 @@ class certificate {
      * @param string $sort
      * @return array
      */
-    public static function get_certificates_for_user($userid, $limitfrom, $limitnum, $sort = '') {
+    public static function get_certificates_for_user(int $userid, int $limitfrom, int $limitnum, string $sort = ''): array {
         global $DB;
 
         if (empty($sort)) {
@@ -419,7 +428,7 @@ class certificate {
      * @return int The ID of the issue
      * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_issue_service::issue_certificate() instead.
      */
-    public static function issue_certificate($certificateid, $userid) {
+    public static function issue_certificate(int $certificateid, int $userid): int {
         debugging(
             'certificate::issue_certificate() is deprecated; use certificate_issue_service::issue_certificate() instead.',
             DEBUG_DEVELOPER

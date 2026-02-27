@@ -104,7 +104,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param userlist $userlist The userlist containing the list of users who have data in this context/plugin combination.
      */
-    public static function get_users_in_context(userlist $userlist) {
+    public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
 
         if (!$context instanceof context_module) {
@@ -135,7 +135,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_contextlist $contextlist a list of contexts approved for export.
      */
-    public static function export_user_data(approved_contextlist $contextlist) {
+    public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
 
         // Filter out any contexts that are not related to modules.
@@ -184,7 +184,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param context $context the context to delete in.
      */
-    public static function delete_data_for_all_users_in_context(context $context) {
+    public static function delete_data_for_all_users_in_context(context $context): void {
         global $DB;
 
         if (!$context instanceof context_module) {
@@ -203,7 +203,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_contextlist $contextlist a list of contexts approved for deletion.
      */
-    public static function delete_data_for_user(approved_contextlist $contextlist) {
+    public static function delete_data_for_user(approved_contextlist $contextlist): void {
         global $DB;
 
         if (empty($contextlist->count())) {
@@ -225,7 +225,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_userlist $userlist The approved context and user information to delete information for.
      */
-    public static function delete_data_for_users(approved_userlist $userlist) {
+    public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;
 
         $context = $userlist->get_context();
@@ -253,7 +253,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      * @param array $cmids The course module IDs.
      * @return array In the form of [$customcertid => $cmid].
      */
-    protected static function get_customcert_ids_to_cmids_from_cmids(array $cmids) {
+    protected static function get_customcert_ids_to_cmids_from_cmids(array $cmids): array {
         global $DB;
 
         [$insql, $inparams] = $DB->get_in_or_equal($cmids, SQL_PARAMS_NAMED);
@@ -282,11 +282,11 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      */
     protected static function recordset_loop_and_export(
         moodle_recordset $recordset,
-        $splitkey,
-        $initial,
+        string $splitkey,
+        mixed $initial,
         callable $reducer,
         callable $export
-    ) {
+    ): void {
         $data = $initial;
         $lastid = null;
 

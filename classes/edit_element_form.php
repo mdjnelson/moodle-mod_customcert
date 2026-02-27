@@ -56,7 +56,7 @@ class edit_element_form extends moodleform {
     /**
      * @var element The element object.
      */
-    protected $element;
+    protected element $element;
 
     /**
      * Form definition.

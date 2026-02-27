@@ -41,12 +41,12 @@ class admin_setting_link extends admin_setting_configtext {
     /**
      * @var string the link.
      */
-    protected $link;
+    protected string $link;
 
     /**
      * @var string the link name.
      */
-    protected $linkname;
+    protected string $linkname;
 
     /**
      * The admin_setting_link constructor.
@@ -82,7 +82,7 @@ class admin_setting_link extends admin_setting_configtext {
      * @param string $query
      * @return string
      */
-    public function output_html($data, $query = '') {
+    public function output_html($data, $query = ''): string {
         // Create a dummy variable for this field to avoid being redirected back to the upgrade settings page.
         $this->config_write($this->name, '');
 

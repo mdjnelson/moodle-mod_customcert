@@ -42,7 +42,7 @@ class legacy_invokable_test_element extends legacy_only_test_element {
      * @param MoodleQuickForm $mform
      * @return void
      */
-    public function render_form_elements($mform) {
+    public function render_form_elements(MoodleQuickForm $mform): void {
         $this->called = true;
     }
 }

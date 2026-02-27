@@ -60,27 +60,27 @@ class element extends base_element implements
     /**
      * Date - Relative expiry date of 1 year
      */
-    private const EXPIRY_ONE = '-8';
+    private const string EXPIRY_ONE = '-8';
 
     /**
      * Date - Relative expiry date of 2 year
      */
-    private const EXPIRY_TWO = '-9';
+    private const string EXPIRY_TWO = '-9';
 
     /**
      * Date - Relative expiry date of 3 year
      */
-    private const EXPIRY_THREE = '-10';
+    private const string EXPIRY_THREE = '-10';
 
     /**
      * Date - Relative expiry date of 4 year
      */
-    private const EXPIRY_FOUR = '-11';
+    private const string EXPIRY_FOUR = '-11';
 
     /**
      * Date - Relative expiry date of 5 year
      */
-    private const EXPIRY_FIVE = '-12';
+    private const string EXPIRY_FIVE = '-12';
 
     /** @var array Map EXPIRY_ consts to strtotime()'s $datetime param. */
     private array $relative = [

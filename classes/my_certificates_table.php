@@ -48,7 +48,7 @@ class my_certificates_table extends table_sql {
     /**
      * @var int $userid The user id
      */
-    protected $userid;
+    protected int $userid;
 
     /**
      * Sets up the table.
@@ -56,7 +56,7 @@ class my_certificates_table extends table_sql {
      * @param int $userid
      * @param string|null $download The file type, null if we are not downloading
      */
-    public function __construct($userid, $download = null) {
+    public function __construct(int $userid, ?string $download = null) {
         parent::__construct('mod_customcert_report_table');
 
         $columns = [
@@ -99,7 +99,7 @@ class my_certificates_table extends table_sql {
      * @param stdClass $certificate
      * @return string
      */
-    public function col_name($certificate) {
+    public function col_name(stdClass $certificate): string {
         $cm = get_coursemodule_from_instance('customcert', $certificate->id);
         $context = context_module::instance($cm->id);
 
@@ -112,7 +112,7 @@ class my_certificates_table extends table_sql {
      * @param stdClass $certificate
      * @return string
      */
-    public function col_coursename($certificate) {
+    public function col_coursename(stdClass $certificate): string {
         $cm = get_coursemodule_from_instance('customcert', $certificate->id);
         $context = context_module::instance($cm->id);
 
@@ -125,7 +125,7 @@ class my_certificates_table extends table_sql {
      * @param stdClass $certificate
      * @return string
      */
-    public function col_timecreated($certificate) {
+    public function col_timecreated(stdClass $certificate): string {
         return userdate($certificate->timecreated);
     }
 
@@ -135,7 +135,7 @@ class my_certificates_table extends table_sql {
      * @param stdClass $certificate
      * @return string
      */
-    public function col_code($certificate) {
+    public function col_code(stdClass $certificate): string {
         return $certificate->code;
     }
 
@@ -145,7 +145,7 @@ class my_certificates_table extends table_sql {
      * @param stdClass $certificate
      * @return string
      */
-    public function col_download($certificate) {
+    public function col_download(stdClass $certificate): string {
         global $OUTPUT;
 
         $icon = new pix_icon('download', get_string('download'), 'customcert');
@@ -165,7 +165,7 @@ class my_certificates_table extends table_sql {
      * @param int $pagesize size of page for paginated displayed table.
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
-    public function query_db($pagesize, $useinitialsbar = true) {
+    public function query_db($pagesize, $useinitialsbar = true): void {
         $total = certificate::get_number_of_certificates_for_user($this->userid);
 
         $this->pagesize($pagesize, $total);
@@ -186,7 +186,7 @@ class my_certificates_table extends table_sql {
     /**
      * Download the data.
      */
-    public function download() {
+    public function download(): void {
         manager::write_close();
         $total = certificate::get_number_of_certificates_for_user($this->userid);
         $this->out($total, false);

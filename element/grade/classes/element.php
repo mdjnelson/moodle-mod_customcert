@@ -68,7 +68,7 @@ class element extends base_element implements
     validatable_element_interface
 {
     /** @var string Course grade identifier. */
-    public const GRADE_COURSE = '0';
+    public const string GRADE_COURSE = '0';
 
     /**
      * Build the configuration form for this element.
