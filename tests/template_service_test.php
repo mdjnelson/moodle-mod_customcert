@@ -47,7 +47,7 @@ final class template_service_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Service test', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $pageid = $service->add_page($template);
         $this->assertTrue($DB->record_exists('customcert_pages', ['id' => $pageid]));
@@ -67,7 +67,7 @@ final class template_service_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Service sequence', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $first = $service->add_page($template);
         $second = $service->add_page($template);
@@ -94,7 +94,7 @@ final class template_service_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Service move', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $first = $service->add_page($template);
         $second = $service->add_page($template);
@@ -123,7 +123,7 @@ final class template_service_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $coursecontext = \context_course::instance($course->id);
         $template = template::create('Original', $coursecontext->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         // Name changed → event fires.
         $sink = $this->redirectEvents();
@@ -146,7 +146,7 @@ final class template_service_test extends advanced_testcase {
      */
     public function test_update_template_service_system_context_does_not_emit_event(): void {
         $template = template::create('System Original', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $sink = $this->redirectEvents();
         $service->update($template, (object)['name' => 'System Renamed']);
@@ -167,7 +167,7 @@ final class template_service_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Delete', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $pageid = $service->add_page($template);
         $DB->insert_record('customcert_elements', (object) [
@@ -203,7 +203,7 @@ final class template_service_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Element delete', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $id1 = $DB->insert_record('customcert_elements', (object) [
@@ -249,7 +249,7 @@ final class template_service_test extends advanced_testcase {
 
         $source = template::create('Source', \context_system::instance()->id);
         $target = template::create('Target', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $pageid = $service->add_page($source);
         $DB->insert_record('customcert_elements', (object) [
@@ -287,7 +287,7 @@ final class template_service_test extends advanced_testcase {
      */
     public function test_save_pages_throws_on_missing_fields(): void {
         $template = template::create('Missing fields', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $data = new \stdClass();

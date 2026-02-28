@@ -68,7 +68,7 @@ final class element_helper_test extends advanced_testcase {
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
         $template = template::load((int)$template->id);
 
-        $service = new template_service();
+        $service = template_service::create();
 
         // Add a page to the template.
         $pageid = $service->add_page($template);
@@ -97,7 +97,7 @@ final class element_helper_test extends advanced_testcase {
         // Add a template to the site.
         $template = template::create('Site template', context_system::instance()->id);
 
-        $service = new template_service();
+        $service = template_service::create();
 
         // Add a page to the template.
         $pageid = $service->add_page($template);
@@ -133,7 +133,7 @@ final class element_helper_test extends advanced_testcase {
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
         $template = template::load((int)$template->id);
 
-        $service = new template_service();
+        $service = template_service::create();
 
         // Add a page to the template.
         $pageid = $service->add_page($template);
@@ -165,7 +165,7 @@ final class element_helper_test extends advanced_testcase {
         // Add a template to the site.
         $template = template::create('Site template', context_system::instance()->id);
 
-        $service = new template_service();
+        $service = template_service::create();
 
         // Add a page to the template.
         $pageid = $service->add_page($template);

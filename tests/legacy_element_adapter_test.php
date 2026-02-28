@@ -281,7 +281,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
         $template = template::load((int)$templatedata->id);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
         // Insert element record to get valid ID.
@@ -420,7 +420,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
         $template = template::load((int)$templatedata->id);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
         $elementid = $DB->insert_record('customcert_elements', (object) [
@@ -468,7 +468,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
         $template = template::load((int)$templatedata->id);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
         // Insert element record.

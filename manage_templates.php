@@ -93,7 +93,7 @@ if ($tid) {
             }
 
             // Delete the template.
-            $templateservice = new template_service();
+            $templateservice = template_service::create();
             $templateservice->delete($template);
 
             // Redirect back to the manage templates page.

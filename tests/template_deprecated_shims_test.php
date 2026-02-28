@@ -74,7 +74,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
      */
     public function test_delete_page_shim_emits_debugging(): void {
         $template = template::create('Shim', context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $template->delete_page($pageid);
@@ -92,7 +92,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Shim', context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $elementid = $DB->insert_record('customcert_elements', (object) [
@@ -117,7 +117,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
      */
     public function test_move_item_shim_emits_debugging(): void {
         $template = template::create('Shim', context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1 = $service->add_page($template);
         $service->add_page($template);
 
@@ -136,7 +136,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Shim', context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $service->add_page($template);
 
         $template->delete();
@@ -212,7 +212,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $context = context_course::instance($course->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $sourcecustomcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $source = template::load((int)$sourcecustomcert->templateid);

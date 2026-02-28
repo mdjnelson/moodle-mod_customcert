@@ -53,7 +53,7 @@ final class repository_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'X']);
 
@@ -85,7 +85,7 @@ final class repository_test extends advanced_testcase {
 
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $template = template::load((int)$customcert->templateid);
         $pageid = $templateservice->add_page($template);
 
@@ -114,7 +114,7 @@ final class repository_test extends advanced_testcase {
 
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $template = template::load((int)$customcert->templateid);
         $pageid = $templateservice->add_page($template);
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'Z']);

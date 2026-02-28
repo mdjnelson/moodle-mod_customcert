@@ -189,7 +189,7 @@ final class element_repository_events_test extends advanced_testcase {
     public function test_create_fires_element_created_event(): void {
         // Create a template and a page to ensure a valid context for events.
         $template = template::create('Repo events', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $registry = new element_registry();
@@ -222,7 +222,7 @@ final class element_repository_events_test extends advanced_testcase {
         global $DB;
 
         $template = template::create('Repo events', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $registry = new element_registry();

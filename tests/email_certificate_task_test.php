@@ -83,7 +83,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Build a minimal template with one element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
@@ -131,7 +131,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Make the template valid.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
@@ -209,7 +209,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -249,7 +249,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -282,7 +282,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -319,7 +319,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -353,7 +353,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -393,7 +393,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -433,7 +433,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Put the certificate in a valid state by adding a page + element.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -473,7 +473,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -515,7 +515,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -560,7 +560,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -604,7 +604,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -641,7 +641,7 @@ final class email_certificate_task_test extends advanced_testcase {
         set_coursemodule_visible($customcert->cmid, 0);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -682,7 +682,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         foreach ($customcerts as $customcert) {
             $template = template::load((int)$customcert->templateid);
-            $templateservice = new template_service();
+            $templateservice = template_service::create();
             $pageid = $templateservice->add_page($template);
             $this->assertDebuggingNotCalled();
             $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
@@ -790,7 +790,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -844,7 +844,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -925,7 +925,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1013,7 +1013,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1068,7 +1068,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1121,7 +1121,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1179,7 +1179,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1260,7 +1260,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1345,7 +1345,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1405,7 +1405,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create template object.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page to this template.
         $pageid = $templateservice->add_page($template);
@@ -1505,7 +1505,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Set up a basic certificate template.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         // Add a page and an element to put the certificate in a valid state.
         $pageid = $templateservice->add_page($template);
@@ -1606,7 +1606,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Make the template valid.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
 
@@ -1660,7 +1660,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create valid template.
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -1748,7 +1748,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create valid template (one element).
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
 
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();

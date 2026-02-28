@@ -70,7 +70,7 @@ final class events_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
         $template = template::create('Test name', $context->id);
-        $service = new template_service();
+        $service = template_service::create();
         $data = new \stdClass();
         $data->id = $template->get_id();
         $data->name = 'Test name 2';
@@ -96,7 +96,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_updating_a_template_no_change(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $data = new \stdClass();
         $data->id = $template->get_id();
         $data->name = $template->get_name();
@@ -118,7 +118,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_creating_a_page_via_service(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
 
         $sink = $this->redirectEvents();
         $pageid = $service->add_page($template);
@@ -146,7 +146,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_moving_item_via_service(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
         $service->add_page($template);
 
@@ -171,7 +171,7 @@ final class events_test extends \advanced_testcase {
         global $DB;
 
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Check the created objects exist in the database as we will check the
@@ -212,7 +212,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_deleting_a_page(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         $sink = $this->redirectEvents();
@@ -241,7 +241,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_updating_a_page(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $pageid = $service->add_page($template);
 
         $width = 'pagewidth_' . $pageid;
@@ -277,7 +277,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_save_form_elements_insert(): void {
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         $data = new \stdClass();
@@ -312,7 +312,7 @@ final class events_test extends \advanced_testcase {
         global $DB;
 
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
@@ -354,7 +354,7 @@ final class events_test extends \advanced_testcase {
         global $DB;
 
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
@@ -396,7 +396,7 @@ final class events_test extends \advanced_testcase {
         global $DB;
 
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
@@ -443,7 +443,7 @@ final class events_test extends \advanced_testcase {
         global $DB;
 
         $template = template::create('Test name', \context_system::instance()->id);
-        $service = new template_service();
+        $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
