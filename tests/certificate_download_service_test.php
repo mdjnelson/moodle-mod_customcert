@@ -52,7 +52,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pdfservice = new pdf_generation_service();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -118,7 +118,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         $template = template::load((int)$customcert->templateid);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pdfservice = new pdf_generation_service();
         $templateservice->update($template, (object) ['name' => 'Site Template']);
         $pageid = $templateservice->add_page($template);

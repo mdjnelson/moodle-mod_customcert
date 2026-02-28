@@ -24,6 +24,8 @@
 
 namespace mod_customcert;
 
+use mod_customcert\service\template_service;
+
 /**
  * Contains tests for template's page operations.
  *
@@ -56,8 +58,8 @@ final class page_test extends \advanced_testcase {
     public function test_delete_non_empty_page(): void {
         global $DB;
 
-        $template = \mod_customcert\template::create('Test name', \context_system::instance()->id);
-        $service = new \mod_customcert\service\template_service();
+        $template = template::create('Test name', \context_system::instance()->id);
+        $service = template_service::create();
 
         // Add a second page and add an element to it.
         $page2id = $service->add_page($template);

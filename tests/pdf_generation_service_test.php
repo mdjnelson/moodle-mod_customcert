@@ -108,7 +108,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $this->setAdminUser();
 
         $template = template::create('System/Template Name', \context_system::instance()->id);
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
         $DB->insert_record('customcert_elements', (object) [

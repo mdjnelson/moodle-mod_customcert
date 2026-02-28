@@ -45,53 +45,46 @@ use stdClass;
  */
 final class template_service {
     /**
+     * Create a template_service with default dependencies.
+     *
+     * Use this instead of new template_service() when you do not need to inject
+     * custom dependencies (e.g. in production code and integration tests).
+     *
+     * @return self
+     */
+    public static function create(): self {
+        $factory = element_factory::build_with_defaults();
+        $pages = new page_repository();
+        return new self(
+            new template_repository(),
+            $pages,
+            new element_repository($factory),
+            $factory,
+            new item_move_service(null, $pages),
+        );
+    }
+
+    /**
      * template_service constructor.
      *
-     * @param template_repository|null $templates
-     * @param page_repository|null $pages
-     * @param element_repository|null $elements
-     * @param element_factory|null $factory
-     * @param item_move_service|null $moves
+     * @param template_repository $templates
+     * @param page_repository $pages
+     * @param element_repository $elements
+     * @param element_factory $factory
+     * @param item_move_service $moves
      */
     public function __construct(
-        /** @var template_repository|null $templates Repository for template records. */
-        private ?template_repository $templates = null,
-        /** @var page_repository|null $pages Repository for page records. */
-        private ?page_repository $pages = null,
-        /** @var element_repository|null $elements Repository for element records. */
-        private ?element_repository $elements = null,
-        /** @var element_factory|null $factory Element factory shared across operations. */
-        private ?element_factory $factory = null,
-        /** @var item_move_service|null $moves Service handling page/element movement. */
-        private ?item_move_service $moves = null,
+        /** @var template_repository $templates Repository for template records. */
+        private template_repository $templates,
+        /** @var page_repository $pages Repository for page records. */
+        private page_repository $pages,
+        /** @var element_repository $elements Repository for element records. */
+        private element_repository $elements,
+        /** @var element_factory $factory Element factory shared across operations. */
+        private element_factory $factory,
+        /** @var item_move_service $moves Service handling page/element movement. */
+        private item_move_service $moves,
     ) {
-        $this->templates ??= new template_repository();
-        $this->pages ??= new page_repository();
-        if ($this->elements !== null) {
-            $this->factory ??= $this->elements->get_factory();
-        }
-        $this->factory ??= $this->build_element_factory();
-        $this->elements ??= $this->build_element_repository();
-        $this->moves ??= new item_move_service(null, $this->pages);
-    }
-
-    /**
-     * Build the element repository with default registry/factory wiring.
-     *
-     * @return element_repository
-     */
-    private function build_element_repository(): element_repository {
-        $this->factory ??= $this->build_element_factory();
-        return new element_repository($this->factory);
-    }
-
-    /**
-     * Build the element factory with default wiring.
-     *
-     * @return element_factory
-     */
-    private function build_element_factory(): element_factory {
-        return element_factory::build_with_defaults();
     }
 
     /**
@@ -101,7 +94,6 @@ final class template_service {
      * @return element_interface|null
      */
     private function create_element_from_record(stdClass $record): ?element_interface {
-        $this->factory ??= $this->build_element_factory();
         return $this->factory->create_from_legacy_record($record);
     }
 
@@ -419,8 +411,6 @@ final class template_service {
      * @throws dml_exception
      */
     public function move_item(template $template, string $itemname, int $itemid, string $direction): void {
-        $this->moves ??= new item_move_service(null, $this->pages);
-
         $this->moves->move_item($template, $itemname, $itemid, $direction);
     }
 

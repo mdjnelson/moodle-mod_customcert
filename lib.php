@@ -48,7 +48,7 @@ function customcert_add_instance($data, $mform) {
     $data->id = $DB->insert_record('customcert', $data);
 
     // Add a page to this customcert.
-    $service = new template_service();
+    $service = template_service::create();
     $service->add_page($template, false);
 
     return $data->id;
@@ -112,7 +112,7 @@ function customcert_delete_instance($id) {
 
     // Now, delete the template associated with this certificate.
     if ($DB->record_exists('customcert_templates', ['id' => $customcert->templateid])) {
-        $templateservice = new template_service();
+        $templateservice = template_service::create();
         $templateservice->delete(template::load((int)$customcert->templateid));
     }
 

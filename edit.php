@@ -31,15 +31,13 @@ use mod_customcert\page_helper;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\pdf_generation_service;
-use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
 require_once('../../config.php');
 
-$templaterepo = new template_repository();
 $pagerepo = new page_repository();
-$templateservice = new template_service($templaterepo, $pagerepo);
+$templateservice = template_service::create();
 $pdfservice = new pdf_generation_service($pagerepo);
 
 $tid = optional_param('tid', 0, PARAM_INT);

@@ -327,7 +327,7 @@ class template {
      * @return template_service
      */
     private function get_service(): template_service {
-        return $this->service ??= new template_service();
+        return $this->service ??= template_service::create();
     }
 
     /**
