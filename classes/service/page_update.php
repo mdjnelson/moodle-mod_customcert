@@ -48,7 +48,7 @@ final class page_update {
      * @param int $height The height of the object.
      * @param int $leftmargin The left margin of the object.
      * @param int $rightmargin The right margin of the object.
-     * @param int $timemodified Optional parameter for the last modified time; if not provided, defaults to the current time.
+     * @param int|null $timemodified Optional parameter for the last modified time; if not provided, defaults to the current time.
      * @return void
      */
     public function __construct(
@@ -56,12 +56,12 @@ final class page_update {
         int $height,
         int $leftmargin,
         int $rightmargin,
-        int $timemodified = 0,
+        ?int $timemodified = null,
     ) {
         $this->width = $width;
         $this->height = $height;
         $this->leftmargin = $leftmargin;
         $this->rightmargin = $rightmargin;
-        $this->timemodified = $timemodified ?: time();
+        $this->timemodified = $timemodified ?? time();
     }
 }
