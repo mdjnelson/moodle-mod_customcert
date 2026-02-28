@@ -29,7 +29,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class certificate_issue_service {
+final class certificate_issue_service {
     /**
      * @var \moodle_database
      */
