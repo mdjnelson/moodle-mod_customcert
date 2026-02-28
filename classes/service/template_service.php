@@ -439,19 +439,19 @@ final class template_service {
             }
         }
 
-        if ($page->width != $formdata->$width) {
+        if ((int)$page->width !== (int)$formdata->$width) {
             return true;
         }
 
-        if ($page->height != $formdata->$height) {
+        if ((int)$page->height !== (int)$formdata->$height) {
             return true;
         }
 
-        if ($page->leftmargin != $formdata->$leftmargin) {
+        if ((int)$page->leftmargin !== (int)$formdata->$leftmargin) {
             return true;
         }
 
-        if ($page->rightmargin != $formdata->$rightmargin) {
+        if ((int)$page->rightmargin !== (int)$formdata->$rightmargin) {
             return true;
         }
 
