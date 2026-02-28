@@ -29,10 +29,8 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use context_course;
-use mod_customcert\element\element_bootstrap;
 use mod_customcert\event\template_duplicated;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_duplication_service;
@@ -58,7 +56,8 @@ final class template_duplication_service_test extends \advanced_testcase {
 
         $this->templates = new template_repository();
         $this->pages = new page_repository();
-        $this->service = new template_duplication_service($this->templates, $this->pages);
+        $factory = element_factory::build_with_defaults();
+        $this->service = new template_duplication_service($this->templates, $this->pages, new element_repository($factory));
     }
 
     /**
@@ -118,10 +117,7 @@ final class template_duplication_service_test extends \advanced_testcase {
         $this->assertCount(1, $newpages);
         $this->assertSame(1, (int)$newpages[0]->sequence);
 
-        $registry = new element_registry();
-        element_bootstrap::register_defaults($registry);
-        $factory = new element_factory($registry);
-        $erepo = new element_repository($factory);
+        $erepo = new element_repository(element_factory::build_with_defaults());
 
         $elements = array_values($erepo->list_by_page((int)$newpages[0]->id));
         $this->assertCount(1, $elements);

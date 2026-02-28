@@ -20,6 +20,8 @@ namespace mod_customcert;
 
 use context_course;
 use mod_customcert\event\template_updated;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_load_service;
 use mod_customcert\service\template_repository;
@@ -50,7 +52,8 @@ final class template_load_service_test extends \advanced_testcase {
 
         $this->templates = new template_repository();
         $this->pages = new page_repository();
-        $this->service = new template_load_service($this->templates, $this->pages);
+        $factory = element_factory::build_with_defaults();
+        $this->service = new template_load_service($this->templates, $this->pages, new element_repository($factory));
     }
 
     /**
