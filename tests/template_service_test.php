@@ -324,11 +324,18 @@ final class template_service_test extends advanced_testcase {
             'timemodified' => time(),
         ]);
 
+        // Capture the element id before deletion so we can assert the exact debugging message.
+        $elementrecord = $DB->get_record('customcert_elements', ['pageid' => $pageid], '*', MUST_EXIST);
         $service->delete_page($template, $pageid);
 
         $this->assertFalse($DB->record_exists('customcert_pages', ['id' => $pageid]));
         $this->assertFalse($DB->record_exists('customcert_elements', ['pageid' => $pageid]));
-        $this->assertDebuggingCalledCount(2);
+        $this->assertDebuggingCalledCount(2, [
+            'element_factory::get_element_instance() is deprecated. Use element_factory::create() or ' .
+            'create_from_legacy_record() instead.',
+            "Could not resolve element type 'idontexist' (id={$elementrecord->id}) during page delete; " .
+            "deleting record directly without firing element_deleted event.",
+        ]);
     }
 
     /**
@@ -360,6 +367,11 @@ final class template_service_test extends advanced_testcase {
         $service->delete_element($template, $elementid);
 
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
-        $this->assertDebuggingCalledCount(2);
+        $this->assertDebuggingCalledCount(2, [
+            'element_factory::get_element_instance() is deprecated. Use element_factory::create() or ' .
+            'create_from_legacy_record() instead.',
+            "Could not resolve element type 'idontexist' (id={$elementid}) during element delete; " .
+            "deleting record directly without firing element_deleted event.",
+        ]);
     }
 }
