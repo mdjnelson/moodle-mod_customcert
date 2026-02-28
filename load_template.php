@@ -51,7 +51,7 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 
 // Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
-    $service = new template_load_service();
+    $service = template_load_service::create();
     $service->replace($template->get_id(), $loadtemplate->get_id());
 
     // Redirect.
