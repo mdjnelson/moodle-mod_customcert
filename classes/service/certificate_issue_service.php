@@ -90,20 +90,25 @@ final class certificate_issue_service {
      * Generates an unused code of random letters and numbers.
      *
      * @return string
+     * @throws \moodle_exception If a unique code cannot be generated after the maximum number of attempts.
      */
     public function generate_code(): string {
         // Get the user's selected method from settings.
         $method = get_config('customcert', 'codegenerationmethod');
 
-        do {
+        $maxattempts = 10;
+        for ($i = 0; $i < $maxattempts; $i++) {
             $code = match ($method) {
                 '0' => $this->generate_code_upper_lower_digits(),
                 '1' => $this->generate_code_digits_with_hyphens(),
                 default => $this->generate_code_upper_lower_digits(),
             };
-        } while ($this->db->record_exists('customcert_issues', ['code' => $code]));
+            if (!$this->db->record_exists('customcert_issues', ['code' => $code])) {
+                return $code;
+            }
+        }
 
-        return $code;
+        throw new \moodle_exception('Could not generate a unique certificate code after ' . $maxattempts . ' attempts.');
     }
 
     /**
