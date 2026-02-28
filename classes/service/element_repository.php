@@ -268,8 +268,9 @@ class element_repository {
         $record->alignment = $element->get_alignment();
         $record->data = $element->get_data();
         $record->sequence = element_helper::get_element_sequence($record->pageid);
-        $record->timecreated = time();
-        $record->timemodified = time();
+        $now = time();
+        $record->timecreated = $now;
+        $record->timemodified = $now;
 
         $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
