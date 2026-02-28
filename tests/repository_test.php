@@ -104,7 +104,7 @@ final class repository_test extends advanced_testcase {
      *
      * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
-    public function test_get_by_template_id_must_exist_returns_record(): void {
+    public function test_get_by_template_id_or_fail_returns_record(): void {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $repository = new certificate_repository();
@@ -117,7 +117,7 @@ final class repository_test extends advanced_testcase {
      *
      * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
-    public function test_get_by_template_id_must_exist_throws_when_missing(): void {
+    public function test_get_by_template_id_or_fail_throws_when_missing(): void {
         $repository = new certificate_repository();
         $this->expectException(\dml_missing_record_exception::class);
         $repository->get_by_template_id_or_fail(999999);
