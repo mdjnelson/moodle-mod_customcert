@@ -95,4 +95,21 @@ final class certificate_issue_service_test extends advanced_testcase {
 
         $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{10}$/', $code);
     }
+
+    /**
+     * generate_code() throws a moodle_exception after 10 failed attempts when every candidate collides.
+     * @covers ::generate_code
+     */
+    public function test_generate_code_throws_after_exhausting_attempts(): void {
+        $this->resetAfterTest();
+
+        // Mock DB that always reports the code as already existing.
+        $mockdb = $this->createMock(\moodle_database::class);
+        $mockdb->method('record_exists')->willReturn(true);
+
+        $service = new certificate_issue_service($mockdb);
+
+        $this->expectException(\moodle_exception::class);
+        $service->generate_code();
+    }
 }
