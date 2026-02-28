@@ -23,11 +23,9 @@
  */
 
 use mod_customcert\element;
-use mod_customcert\element\element_bootstrap;
 use mod_customcert\element_helper;
 use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\template;
@@ -40,9 +38,9 @@ $pid = required_param('pid', PARAM_INT);
 $pagerepo = new page_repository();
 $page = $pagerepo->get_by_id_or_fail($pid);
 
-$registry = new element_registry();
-element_bootstrap::register_defaults($registry);
-$factory = new element_factory($registry);
+
+
+$factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
 
 $elementrecords = $elementrepo->list_by_page($pid);
