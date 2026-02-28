@@ -93,6 +93,17 @@ final class certificate_repository {
     }
 
     /**
+     * Get a certificate record by id.
+     *
+     * @param int $id
+     * @return stdClass|null
+     */
+    public function get_by_id(int $id): ?stdClass {
+        global $DB;
+        return $DB->get_record('customcert', ['id' => $id]) ?: null;
+    }
+
+    /**
      * Get a certificate record by template id.
      *
      * @param int $templateid
