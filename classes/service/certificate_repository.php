@@ -93,6 +93,17 @@ final class certificate_repository {
     }
 
     /**
+     * Get a certificate record by template id.
+     *
+     * @param int $templateid
+     * @return stdClass|null
+     */
+    public function get_by_template_id(int $templateid): ?stdClass {
+        global $DB;
+        return $DB->get_record('customcert', ['templateid' => $templateid]) ?: null;
+    }
+
+    /**
      * Determine if the certificate has at least one element.
      *
      * @param int $contextid
