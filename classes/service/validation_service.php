@@ -34,7 +34,7 @@ use Throwable;
 /**
  * Service for validating element configurations.
  */
-class validation_service {
+final class validation_service {
     /**
      * Validate the configuration for an element.
      *

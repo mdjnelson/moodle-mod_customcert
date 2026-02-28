@@ -42,7 +42,7 @@ use stdClass;
 /**
  * DB-backed repository for element instances.
  */
-class element_repository {
+final class element_repository {
     /** @var element_factory */
     private element_factory $factory;
 

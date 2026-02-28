@@ -29,7 +29,7 @@ namespace mod_customcert\service;
 /**
  * Simple in-memory registry of element types to class names.
  */
-class element_registry {
+final class element_registry {
     /** @var array<string, class-string> */
     private array $map = [];
 

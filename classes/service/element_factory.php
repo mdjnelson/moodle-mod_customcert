@@ -36,7 +36,7 @@ use stdClass;
 /**
  * Registry-based factory for creating elements by type.
  */
-class element_factory {
+final class element_factory {
     /**
      * @var element_registry Element type registry instance.
      */
