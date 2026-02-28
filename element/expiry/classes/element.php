@@ -292,7 +292,7 @@ class element extends base_element implements
      *
      * @return array the list of date formats
      */
-    private static function get_date_formats(): array {
+    public static function get_date_formats(): array {
         $dateformats = element_helper::get_date_formats();
         $dateformats['validfor'] = get_string('validfor', 'customcertelement_expiry');
 
