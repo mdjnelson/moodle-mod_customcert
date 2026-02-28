@@ -147,6 +147,9 @@ final class row_migrator {
      * @return string|null New JSON string (or original when unchanged); may be NULL when original was NULL and no visuals provided.
      */
     public static function migrate_row(?string $rawdata, ?int $width, ?string $font, ?int $fontsize, ?string $colour): ?string {
+        if ($rawdata !== null) {
+            $rawdata = trim($rawdata);
+        }
         $novisuals = ($width === null && $font === null && $fontsize === null && $colour === null);
 
         // Nothing to migrate (no visuals): normalise scalars/JSON non-objects to JSON for consistency.
