@@ -72,7 +72,7 @@ final class preview_renderer_test extends advanced_testcase {
             'timemodified' => time(),
         ]);
 
-        $preview = new preview_renderer();
+        $preview = preview_renderer::create();
         $html = $preview->render_html_page((int)$pageid);
 
         $this->assertIsString($html);
@@ -123,7 +123,7 @@ final class preview_renderer_test extends advanced_testcase {
             'timemodified' => time(),
         ]);
 
-        $preview = new preview_renderer();
+        $preview = preview_renderer::create();
         $html = $preview->render_html_page((int)$pageid);
 
         $this->assertIsString($html);
