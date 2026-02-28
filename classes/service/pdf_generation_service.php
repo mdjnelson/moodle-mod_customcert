@@ -37,12 +37,21 @@ final class pdf_generation_service {
     private page_repository $pages;
 
     /**
+     * Create a pdf_generation_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        return new self(new page_repository());
+    }
+
+    /**
      * pdf_generation_service constructor.
      *
-     * @param page_repository|null $pages
+     * @param page_repository $pages
      */
-    public function __construct(?page_repository $pages = null) {
-        $this->pages = $pages ?? new page_repository();
+    public function __construct(page_repository $pages) {
+        $this->pages = $pages;
     }
 
     /**

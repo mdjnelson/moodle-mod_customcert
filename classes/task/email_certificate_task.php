@@ -51,7 +51,7 @@ class email_certificate_task extends adhoc_task {
         if (empty($customdata) || empty($customdata->issueid) || empty($customdata->customcertid)) {
             return;
         }
-        $service = new certificate_email_service();
+        $service = certificate_email_service::create();
         $service->send_issue((int)$customdata->customcertid, (int)$customdata->issueid);
     }
 }

@@ -336,6 +336,6 @@ class template {
      * @return pdf_generation_service
      */
     private function get_pdf_service(): pdf_generation_service {
-        return $this->pdfs ??= new pdf_generation_service();
+        return $this->pdfs ??= pdf_generation_service::create();
     }
 }

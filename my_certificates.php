@@ -71,7 +71,7 @@ $PAGE->navigation->extend_for_user($user);
 // Check if we requested to download a certificate.
 if ($downloadcert) {
     $template = template::load((int)$customcert->templateid);
-    $pdfservice = new pdf_generation_service();
+    $pdfservice = pdf_generation_service::create();
     $pdfservice->generate_pdf($template, false, (int)$userid);
     exit();
 }

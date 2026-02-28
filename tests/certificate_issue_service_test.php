@@ -74,7 +74,7 @@ final class certificate_issue_service_test extends advanced_testcase {
 
         set_config('codegenerationmethod', '1', 'customcert');
 
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
         $code = $service->generate_code();
 
         $this->assertMatchesRegularExpression('/^\d{4}-\d{4}-\d{4}$/', $code);
@@ -89,7 +89,7 @@ final class certificate_issue_service_test extends advanced_testcase {
 
         set_config('codegenerationmethod', '0', 'customcert');
 
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
         $code = $service->generate_code();
 
         $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{10}$/', $code);

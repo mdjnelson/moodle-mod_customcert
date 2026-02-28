@@ -62,23 +62,31 @@ final class certificate_download_service {
     private $sendfile;
 
     /**
+     * Create a certificate_download_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        global $DB;
+        return new self(pdf_generation_service::create(), $DB);
+    }
+
+    /**
      * certificate_download_service constructor.
      *
-     * @param pdf_generation_service|null $pdfservice
-     * @param moodle_database|null $db
+     * @param pdf_generation_service $pdfservice
+     * @param moodle_database $db
      * @param callable|null $zipfactory
      * @param callable|null $sendfile
      */
     public function __construct(
-        ?pdf_generation_service $pdfservice = null,
-        ?moodle_database $db = null,
+        pdf_generation_service $pdfservice,
+        moodle_database $db,
         ?callable $zipfactory = null,
         ?callable $sendfile = null
     ) {
-        global $DB;
-
-        $this->pdfservice = $pdfservice ?? new pdf_generation_service();
-        $this->db = $db ?? $DB;
+        $this->pdfservice = $pdfservice;
+        $this->db = $db;
         $this->zipfactory = $zipfactory ?? static fn(): zip_archive => new zip_archive();
         $this->sendfile = $sendfile ?? static function (string $path, string $name): void {
             send_file($path, $name);

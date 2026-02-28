@@ -51,16 +51,24 @@ final class item_move_service {
     private page_repository $pages;
 
     /**
+     * Create an item_move_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        global $DB;
+        return new self($DB, new page_repository());
+    }
+
+    /**
      * item_move_service constructor.
      *
-     * @param moodle_database|null $db
-     * @param page_repository|null $pages
+     * @param moodle_database $db
+     * @param page_repository $pages
      */
-    public function __construct(?moodle_database $db = null, ?page_repository $pages = null) {
-        global $DB;
-
-        $this->db = $db ?? $DB;
-        $this->pages = $pages ?? new page_repository();
+    public function __construct(moodle_database $db, page_repository $pages) {
+        $this->db = $db;
+        $this->pages = $pages;
     }
 
     /**
@@ -85,6 +93,10 @@ final class item_move_service {
 
         $moveitem = $this->db->get_record($table, ['id' => $itemid]);
         if (!$moveitem) {
+            debugging(
+                "item_move_service: could not find {$itemname} with id={$itemid} to move {$direction}.",
+                DEBUG_DEVELOPER
+            );
             return;
         }
 

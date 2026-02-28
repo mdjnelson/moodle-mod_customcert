@@ -210,7 +210,7 @@ class certificate {
             DEBUG_DEVELOPER
         );
 
-        $service = new certificate_download_service();
+        $service = certificate_download_service::create();
         $service->download_all_issues_for_instance($template, $issues);
     }
 
@@ -227,7 +227,7 @@ class certificate {
             DEBUG_DEVELOPER
         );
 
-        $service = new certificate_download_service();
+        $service = certificate_download_service::create();
         $service->download_all_for_site();
     }
 
@@ -434,7 +434,7 @@ class certificate {
             DEBUG_DEVELOPER
         );
 
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
         return $service->issue_certificate($certificateid, $userid);
     }
 
@@ -450,7 +450,7 @@ class certificate {
             DEBUG_DEVELOPER
         );
 
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
         return $service->generate_code();
     }
 }

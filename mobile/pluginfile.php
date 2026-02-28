@@ -89,7 +89,7 @@ if (!$issue) {
         exit();
     }
 
-    $issueservice = new certificate_issue_service();
+    $issueservice = certificate_issue_service::create();
     $issueservice->issue_certificate((int)$certificate->id, (int)$USER->id);
 
     // Set the custom certificate as viewed.
@@ -99,6 +99,6 @@ if (!$issue) {
 
 // Now we want to generate the PDF.
 $template = template::load((int)$certificate->templateid);
-$pdfservice = new pdf_generation_service();
+$pdfservice = pdf_generation_service::create();
 $pdfservice->generate_pdf($template, false, (int)$userid);
 exit();

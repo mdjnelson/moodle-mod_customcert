@@ -28,7 +28,7 @@ use mod_customcert\service\certificate_time_service;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class certificate_issuer_service {
+final class certificate_issuer_service {
     /**
      * @var certificate_email_service
      */
@@ -45,20 +45,33 @@ class certificate_issuer_service {
     private issue_repository $issues;
 
     /**
+     * Create a certificate_issuer_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        return new self(
+            certificate_email_service::create(),
+            new certificate_repository(),
+            new issue_repository(),
+        );
+    }
+
+    /**
      * certificate_issuer_service constructor.
      *
-     * @param certificate_email_service|null $emailservice
-     * @param certificate_repository|null $certificates
-     * @param issue_repository|null $issues
+     * @param certificate_email_service $emailservice
+     * @param certificate_repository $certificates
+     * @param issue_repository $issues
      */
     public function __construct(
-        ?certificate_email_service $emailservice = null,
-        ?certificate_repository $certificates = null,
-        ?issue_repository $issues = null
+        certificate_email_service $emailservice,
+        certificate_repository $certificates,
+        issue_repository $issues
     ) {
-        $this->emailservice = $emailservice ?? new certificate_email_service();
-        $this->certificates = $certificates ?? new certificate_repository();
-        $this->issues = $issues ?? new issue_repository();
+        $this->emailservice = $emailservice;
+        $this->certificates = $certificates;
+        $this->issues = $issues;
     }
 
     /**

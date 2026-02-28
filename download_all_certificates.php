@@ -32,6 +32,6 @@ require_login();
 $context = context_system::instance();
 require_capability('mod/customcert:viewallcertificates', $context);
 
-$downloadservice = new certificate_download_service();
+$downloadservice = certificate_download_service::create();
 $downloadservice->download_all_for_site();
 exit();

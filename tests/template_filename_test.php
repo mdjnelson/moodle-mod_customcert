@@ -47,7 +47,7 @@ final class template_filename_test extends advanced_testcase {
         $this->resetAfterTest();
 
         $template = template::create('My Fancy Template.', context_system::instance()->id);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         $user = (object) ['id' => 123, 'firstname' => 'Ada', 'lastname' => 'Lovelace'];
         $customcert = (object) [
@@ -72,7 +72,7 @@ final class template_filename_test extends advanced_testcase {
         $this->resetAfterTest();
 
         $template = template::create('Ignored When Custom', context_system::instance()->id);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         $course = $this->getDataGenerator()->create_course();
 
@@ -99,7 +99,7 @@ final class template_filename_test extends advanced_testcase {
         $this->resetAfterTest();
 
         $template = template::create('PDF Name', context_system::instance()->id);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         $user = (object) ['id' => 456, 'firstname' => 'Grace', 'lastname' => 'Hopper'];
         $customcert = (object) [

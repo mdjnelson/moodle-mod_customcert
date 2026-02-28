@@ -131,7 +131,7 @@ if ($downloadall && $canviewreport && confirm_sesskey()) {
         redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
     }
 
-    $downloadservice = new certificate_download_service();
+    $downloadservice = certificate_download_service::create();
     $downloadservice->download_all_issues_for_instance($template, $issues);
     exit();
 }
@@ -224,7 +224,7 @@ if (!$downloadown && !$downloadissue) {
     if ($downloadown) {
         // Create new customcert issue record if one does not already exist.
         if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
-            $issueservice = new certificate_issue_service();
+            $issueservice = certificate_issue_service::create();
             $issueservice->issue_certificate((int)$customcert->id, (int)$USER->id);
         }
 
@@ -244,7 +244,7 @@ if (!$downloadown && !$downloadissue) {
 
     // Now we want to generate the PDF.
     $template = template::load((int)$template->id);
-    $pdfservice = new pdf_generation_service();
+    $pdfservice = pdf_generation_service::create();
     $pdfservice->generate_pdf($template, false, (int)$userid);
     exit();
 }

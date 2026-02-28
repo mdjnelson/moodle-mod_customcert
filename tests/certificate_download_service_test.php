@@ -53,7 +53,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $template = template::load((int)$customcert->templateid);
         $templateservice = template_service::create();
-        $pdfservice = new pdf_generation_service();
+        $pdfservice = pdf_generation_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
         $element = new \stdClass();
@@ -119,7 +119,7 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $template = template::load((int)$customcert->templateid);
         $templateservice = template_service::create();
-        $pdfservice = new pdf_generation_service();
+        $pdfservice = pdf_generation_service::create();
         $templateservice->update($template, (object) ['name' => 'Site Template']);
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();

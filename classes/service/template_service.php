@@ -53,6 +53,7 @@ final class template_service {
      * @return self
      */
     public static function create(): self {
+        global $DB;
         $factory = element_factory::build_with_defaults();
         $pages = new page_repository();
         return new self(
@@ -60,7 +61,7 @@ final class template_service {
             $pages,
             new element_repository($factory),
             $factory,
-            new item_move_service(null, $pages),
+            new item_move_service($DB, $pages),
         );
     }
 

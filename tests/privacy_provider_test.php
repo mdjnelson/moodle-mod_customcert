@@ -316,7 +316,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $customcertissue = new stdClass();
         $customcertissue->customcertid = $customcertid;
         $customcertissue->userid = $userid;
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
         $customcertissue->code = $service->generate_code();
         $customcertissue->timecreated = time() + $i;
 
