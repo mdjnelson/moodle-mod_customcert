@@ -100,6 +100,30 @@ final class repository_test extends advanced_testcase {
     }
 
     /**
+     * Ensures get_by_template_id_must_exist() returns the record when it exists.
+     *
+     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_must_exist
+     */
+    public function test_get_by_template_id_must_exist_returns_record(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repository = new certificate_repository();
+        $record = $repository->get_by_template_id_must_exist((int)$customcert->templateid);
+        $this->assertEquals($customcert->id, (int)$record->id);
+    }
+
+    /**
+     * Ensures get_by_template_id_must_exist() throws when no record exists.
+     *
+     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_must_exist
+     */
+    public function test_get_by_template_id_must_exist_throws_when_missing(): void {
+        $repository = new certificate_repository();
+        $this->expectException(\dml_missing_record_exception::class);
+        $repository->get_by_template_id_must_exist(999999);
+    }
+
+    /**
      * Ensures email repository can load certificate and issued user records.
      *
      * @covers \mod_customcert\service\issue_email_repository::get_customcert_for_email
