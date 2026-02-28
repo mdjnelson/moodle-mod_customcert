@@ -344,7 +344,7 @@ class element extends base_element implements
             // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
             // Get the customcert this page belongs to.
-            $customcert = (new certificate_repository())->get_by_template_id((int)$page->templateid);
+            $customcert = (new certificate_repository())->get_by_template_id_must_exist((int)$page->templateid);
             // Now we can get the issue for this user.
             $issue = $DB->get_record(
                 'customcert_issues',

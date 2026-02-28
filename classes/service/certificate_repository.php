@@ -115,6 +115,17 @@ final class certificate_repository {
     }
 
     /**
+     * Get the customcert record for a template, throwing if not found.
+     *
+     * @param int $templateid
+     * @return stdClass
+     */
+    public function get_by_template_id_must_exist(int $templateid): stdClass {
+        global $DB;
+        return $DB->get_record('customcert', ['templateid' => $templateid], '*', MUST_EXIST);
+    }
+
+    /**
      * Determine if the certificate has at least one element.
      *
      * @param int $contextid
