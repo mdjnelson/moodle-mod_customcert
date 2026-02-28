@@ -99,6 +99,7 @@ After (5.2+):
   - Better handling of missing/partial legacy fields.
   - Safer normalisation of element payloads during restore.
   - Legacy border elements that stored thickness as a scalar `data` value are now migrated so width is preserved correctly.
+- `certificate_issue_service::generate_code()` now throws a `moodle_exception` after 10 failed attempts to generate a unique code, preventing an infinite loop in systems with a very large number of issued certificates.
 - Web service hardening:
   - `external::save_element()` ignores JSON list payloads for `data` to prevent numeric-key pollution of stored element JSON.
 
