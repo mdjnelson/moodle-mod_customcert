@@ -363,6 +363,7 @@ final class template_service {
 
         // Events are emitted inside this transaction; Moodle allows in-transaction events and
         // they rely only on the data manipulated within this transaction.
+        $now = time();
         $sourcepages = $this->pages->list_by_template($source->get_id());
         foreach ($sourcepages as $sourcepage) {
             $newpageid = $this->pages->create((object) [
@@ -372,8 +373,8 @@ final class template_service {
                 'leftmargin' => $sourcepage->leftmargin,
                 'rightmargin' => $sourcepage->rightmargin,
                 'sequence' => $sourcepage->sequence,
-                'timecreated' => time(),
-                'timemodified' => time(),
+                'timecreated' => $now,
+                'timemodified' => $now,
             ]);
 
             $newpage = $this->pages->get_by_id_or_fail($newpageid);
@@ -383,8 +384,8 @@ final class template_service {
                 foreach ($templateelements as $templateelement) {
                     $element = clone($templateelement);
                     $element->pageid = $newpage->id;
-                    $element->timecreated = time();
-                    $element->timemodified = $element->timecreated;
+                    $element->timecreated = $now;
+                    $element->timemodified = $now;
                     $element->id = $DB->insert_record('customcert_elements', $element);
 
                     if ($instance = $this->create_element_from_record($element)) {
