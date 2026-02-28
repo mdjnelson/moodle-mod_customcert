@@ -52,11 +52,11 @@ final class pdf_generation_service {
      * pdf_generation_service constructor.
      *
      * @param page_repository $pages
-     * @param certificate_repository|null $certificates
+     * @param certificate_repository $certificates
      */
-    public function __construct(page_repository $pages, ?certificate_repository $certificates = null) {
+    public function __construct(page_repository $pages, certificate_repository $certificates) {
         $this->pages = $pages;
-        $this->certificates = $certificates ?? new certificate_repository();
+        $this->certificates = $certificates;
     }
 
     /**
