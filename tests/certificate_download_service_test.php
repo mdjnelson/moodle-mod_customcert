@@ -76,13 +76,12 @@ final class certificate_download_service_test extends advanced_testcase {
         $sent = [];
         $service = new certificate_download_service(
             $pdfservice,
-            null,
+            $DB,
             null,
             static function (string $path, string $name) use (&$sent): void {
                 $sent = ['path' => $path, 'name' => $name];
             }
         );
-
         $service->download_all_issues_for_instance($template, $issues);
 
         $this->assertNotEmpty($sent);
@@ -128,13 +127,13 @@ final class certificate_download_service_test extends advanced_testcase {
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
 
-        $issuer = new certificate_issue_service(null, static fn(): int => 1_700_000_000);
+        $issuer = new certificate_issue_service($DB, static fn(): int => 1_700_000_000);
         $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
 
         $sent = [];
         $service = new certificate_download_service(
             $pdfservice,
-            null,
+            $DB,
             null,
             static function (string $path, string $name) use (&$sent): void {
                 $sent = ['path' => $path, 'name' => $name];

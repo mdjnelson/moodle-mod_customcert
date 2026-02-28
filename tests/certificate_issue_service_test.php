@@ -43,7 +43,8 @@ final class certificate_issue_service_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $user = $this->getDataGenerator()->create_user();
 
-        $service = new certificate_issue_service(null, static fn(): int => 1_609_459_200);
+        global $DB;
+        $service = new certificate_issue_service($DB, static fn(): int => 1_609_459_200);
 
         $sink = $this->redirectEvents();
         $issueid = $service->issue_certificate((int)$customcert->id, (int)$user->id);

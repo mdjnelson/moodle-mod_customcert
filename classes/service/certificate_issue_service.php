@@ -53,13 +53,11 @@ final class certificate_issue_service {
     /**
      * certificate_issue_service constructor.
      *
-     * @param \moodle_database|null $db
+     * @param \moodle_database $db
      * @param callable|null $timeprovider
      */
-    public function __construct(?\moodle_database $db = null, ?callable $timeprovider = null) {
-        global $DB;
-
-        $this->db = $db ?? $DB;
+    public function __construct(\moodle_database $db, ?callable $timeprovider = null) {
+        $this->db = $db;
         $this->timeprovider = $timeprovider ?? static fn(): int => time();
     }
 

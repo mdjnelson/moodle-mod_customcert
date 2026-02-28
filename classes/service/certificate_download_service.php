@@ -75,19 +75,18 @@ final class certificate_download_service {
      * certificate_download_service constructor.
      *
      * @param pdf_generation_service $pdfservice
-     * @param moodle_database|null $db
+     * @param moodle_database $db
      * @param callable|null $zipfactory
      * @param callable|null $sendfile
      */
     public function __construct(
         pdf_generation_service $pdfservice,
-        ?moodle_database $db = null,
+        moodle_database $db,
         ?callable $zipfactory = null,
         ?callable $sendfile = null
     ) {
-        global $DB;
         $this->pdfservice = $pdfservice;
-        $this->db = $db ?? $DB;
+        $this->db = $db;
         $this->zipfactory = $zipfactory ?? static fn(): zip_archive => new zip_archive();
         $this->sendfile = $sendfile ?? static function (string $path, string $name): void {
             send_file($path, $name);
