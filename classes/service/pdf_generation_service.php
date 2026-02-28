@@ -36,22 +36,27 @@ final class pdf_generation_service {
     /** @var page_repository Repository for page records. */
     private page_repository $pages;
 
+    /** @var certificate_repository Repository for certificate records. */
+    private certificate_repository $certificates;
+
     /**
      * Create a pdf_generation_service with default dependencies.
      *
      * @return self
      */
     public static function create(): self {
-        return new self(new page_repository());
+        return new self(new page_repository(), new certificate_repository());
     }
 
     /**
      * pdf_generation_service constructor.
      *
      * @param page_repository $pages
+     * @param certificate_repository|null $certificates
      */
-    public function __construct(page_repository $pages) {
+    public function __construct(page_repository $pages, ?certificate_repository $certificates = null) {
         $this->pages = $pages;
+        $this->certificates = $certificates ?? new certificate_repository();
     }
 
     /**
@@ -65,7 +70,7 @@ final class pdf_generation_service {
      * @throws dml_exception
      */
     public function generate_pdf(template $template, bool $preview = false, ?int $userid = null, bool $return = false) {
-        global $CFG, $DB, $USER;
+        global $CFG, $USER;
 
         $userid = $userid !== null ? (int)$userid : null;
         $user = $userid !== null ? \core_user::get_user($userid) : $USER;
@@ -80,7 +85,7 @@ final class pdf_generation_service {
 
         $pdf = new pdf();
 
-        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]) ?: null;
+        $customcert = $this->certificates->get_by_template_id($template->get_id());
 
         $originallang = $this->apply_runtime_language_for_user($customcert, $user, false);
 
@@ -119,13 +124,13 @@ final class pdf_generation_service {
      * @throws dml_exception
      */
     public function create_preview_pdf(template $template, stdClass $user): pdf {
-        global $CFG, $DB;
+        global $CFG;
 
         require_once($CFG->libdir . '/pdflib.php');
         require_once($CFG->dirroot . '/mod/customcert/lib.php');
 
         $pdf = new pdf();
-        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]) ?: null;
+        $customcert = $this->certificates->get_by_template_id($template->get_id());
 
         $this->apply_runtime_language_for_user($customcert, $user);
         $this->configure_pdf_for_customcert($pdf, $customcert);
