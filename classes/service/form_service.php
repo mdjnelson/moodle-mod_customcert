@@ -38,7 +38,7 @@ use MoodleQuickForm;
 /**
  * Service for handling element forms.
  */
-class form_service {
+final class form_service {
     /**
      * Build the form for an element.
      *
