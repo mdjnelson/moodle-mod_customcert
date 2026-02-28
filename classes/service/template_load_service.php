@@ -20,7 +20,7 @@ namespace mod_customcert\service;
 
 use context;
 use dml_exception;
-use mod_customcert\element\element_bootstrap;
+use mod_customcert\service\element_factory;
 use mod_customcert\event\template_updated;
 use mod_customcert\template;
 
@@ -42,32 +42,34 @@ final class template_load_service {
     private element_repository $elements;
 
     /**
-     * Constructor.
+     * Create a new instance with default dependencies.
      *
-     * @param template_repository|null $templates
-     * @param page_repository|null $pages
-     * @param element_repository|null $elements
+     * @return self
      */
-    public function __construct(
-        ?template_repository $templates = null,
-        ?page_repository $pages = null,
-        ?element_repository $elements = null,
-    ) {
-        $this->templates = $templates ?? new template_repository();
-        $this->pages = $pages ?? new page_repository();
-        $this->elements = $elements ?? $this->build_element_repository();
+    public static function create(): self {
+        $factory = element_factory::build_with_defaults();
+        return new self(
+            new template_repository(),
+            new page_repository(),
+            new element_repository($factory),
+        );
     }
 
     /**
-     * Build a default element repository with registered element types.
+     * Constructor.
      *
-     * @return element_repository
+     * @param template_repository $templates
+     * @param page_repository $pages
+     * @param element_repository $elements
      */
-    private function build_element_repository(): element_repository {
-        $registry = new element_registry();
-        element_bootstrap::register_defaults($registry);
-        $factory = new element_factory($registry);
-        return new element_repository($factory);
+    public function __construct(
+        template_repository $templates,
+        page_repository $pages,
+        element_repository $elements,
+    ) {
+        $this->templates = $templates;
+        $this->pages = $pages;
+        $this->elements = $elements;
     }
 
     /**
