@@ -412,7 +412,7 @@ class external extends external_api {
 
         $output = [];
 
-        $pdfservice = $includepdf ? new pdf_generation_service() : null;
+        $pdfservice = $includepdf ? pdf_generation_service::create() : null;
 
         foreach ($records as $issue) {
             $pdfname = null;

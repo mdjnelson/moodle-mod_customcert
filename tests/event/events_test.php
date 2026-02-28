@@ -583,7 +583,7 @@ final class events_test extends \advanced_testcase {
      * @return int
      */
     private function issue_certificate(int $customcertid, int $userid): int {
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
 
         return $service->issue_certificate($customcertid, $userid);
     }

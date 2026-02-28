@@ -52,7 +52,7 @@ final class pdf_generation_service_test extends advanced_testcase {
 
         $template = template::load((int)$customcert->templateid);
 
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
         $pdf = $service->create_preview_pdf($template, $USER);
 
         $this->assertInstanceOf(\pdf::class, $pdf);
@@ -73,7 +73,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         $template = template::load((int)$customcert->templateid);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         // Ensure at least one element exists for rendering.
         $page = $DB->get_record('customcert_pages', ['templateid' => $template->get_id()], '*', MUST_EXIST);
@@ -121,7 +121,7 @@ final class pdf_generation_service_test extends advanced_testcase {
             'data' => '',
         ]);
 
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
         $pdfstring = $service->generate_pdf($template, true, (int)$USER->id, true);
 
         $this->assertIsString($pdfstring);
@@ -159,7 +159,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         ]);
 
         $template = template::load((int)$customcert->templateid);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         $user = $this->getDataGenerator()->create_user([
             'firstname' => 'Ada',
@@ -202,7 +202,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $this->setAdminUser();
 
         $template = template::create('No Group', \context_system::instance()->id);
-        $service = new pdf_generation_service();
+        $service = pdf_generation_service::create();
 
         $user = $this->getDataGenerator()->create_user([
             'firstname' => 'NoGroup',

@@ -76,7 +76,7 @@ class element extends base_element implements
         global $DB;
 
         if ($preview) {
-            $code = (new certificate_issue_service())->generate_code();
+            $code = (certificate_issue_service::create())->generate_code();
         } else {
             // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
@@ -109,7 +109,7 @@ class element extends base_element implements
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        $code = (new certificate_issue_service())->generate_code();
+        $code = (certificate_issue_service::create())->generate_code();
 
         if ($renderer) {
             return (string) $renderer->render_content($this, $code);

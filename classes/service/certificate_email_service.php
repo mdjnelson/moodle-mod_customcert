@@ -53,20 +53,33 @@ final class certificate_email_service {
     private issue_email_repository $emailrepository;
 
     /**
+     * Create a certificate_email_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        return new self(
+            pdf_generation_service::create(),
+            new issue_repository(),
+            new issue_email_repository(),
+        );
+    }
+
+    /**
      * certificate_email_service constructor.
      *
-     * @param pdf_generation_service|null $pdfservice
-     * @param issue_repository|null $issues
-     * @param issue_email_repository|null $emailrepository
+     * @param pdf_generation_service $pdfservice
+     * @param issue_repository $issues
+     * @param issue_email_repository $emailrepository
      */
     public function __construct(
-        ?pdf_generation_service $pdfservice = null,
-        ?issue_repository $issues = null,
-        ?issue_email_repository $emailrepository = null
+        pdf_generation_service $pdfservice,
+        issue_repository $issues,
+        issue_email_repository $emailrepository
     ) {
-        $this->pdfservice = $pdfservice ?? new pdf_generation_service();
-        $this->issues = $issues ?? new issue_repository();
-        $this->emailrepository = $emailrepository ?? new issue_email_repository();
+        $this->pdfservice = $pdfservice;
+        $this->issues = $issues;
+        $this->emailrepository = $emailrepository;
     }
 
     /**

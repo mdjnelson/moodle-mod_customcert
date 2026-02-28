@@ -90,7 +90,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Run the issuer service directly.
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -136,7 +136,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
 
         // Pre-issue to one student and mark as emailed.
         $issuedid = $this->issue_certificate((int)$customcert->id, (int)$student1->id);
@@ -180,7 +180,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1,
         ]);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
         $this->assertArrayNotHasKey($student->id, $candidates);
@@ -214,7 +214,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
 
         // With no course time logged, the student should not be listed.
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
@@ -254,7 +254,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
         $this->assertEmpty($candidates);
@@ -287,7 +287,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
         $this->assertEmpty($candidates);
@@ -324,7 +324,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
         $this->assertEmpty($candidates);
@@ -358,7 +358,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
         $this->assertArrayHasKey($student->id, $candidates);
@@ -400,7 +400,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Run the issuer service.
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -441,7 +441,7 @@ final class email_certificate_task_test extends advanced_testcase {
         // Create an issue and queue email.
         $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->queue_or_send_email((int)$customcert->id, (int)$issueid);
 
         // Confirm an adhoc task exists with the expected data.
@@ -481,7 +481,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->queue_or_send_email((int)$customcert->id, (int)$issueid);
         $emails = $sink->get_messages();
         $sink->close();
@@ -521,7 +521,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -566,7 +566,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -610,7 +610,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -647,7 +647,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
         $sink = $this->redirectEmails();
-        $issuer = new certificate_issuer_service();
+        $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();
         $emails = $sink->get_messages();
         $sink->close();
@@ -1796,7 +1796,7 @@ final class email_certificate_task_test extends advanced_testcase {
      * @return int
      */
     private function issue_certificate(int $customcertid, int $userid): int {
-        $service = new certificate_issue_service();
+        $service = certificate_issue_service::create();
 
         return $service->issue_certificate($customcertid, $userid);
     }
