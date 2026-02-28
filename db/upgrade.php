@@ -366,25 +366,14 @@ function xmldb_customcert_upgrade($oldversion) {
         // 1) Migrate data in customcert_elements.
         $rs = $DB->get_recordset('customcert_elements', null, 'id');
         foreach ($rs as $rec) {
-            // Edge case: legacy border elements stored their width as a plain scalar in the
-            // 'data' column (e.g. "3") and may never have had the separate 'width' column set.
-            // In that situation migrate_row() would produce {"value":3} instead of {"width":3},
-            // causing get_width() to return null after upgrade. Detect and promote here.
             $recwidth = $rec->width === null ? null : (int)$rec->width;
-            if ($rec->element === 'border' && $recwidth === null && $rec->data !== null && $rec->data !== '') {
-                $decoded = json_decode($rec->data, true);
-                if (is_int($decoded) || (is_string($decoded) && ctype_digit($decoded))) {
-                    // Plain integer scalar — treat it as the border width.
-                    $recwidth = (int)$decoded;
-                }
-            }
-            $migrated = row_migrator::migrate_row(
-                $rec->data,
-                $recwidth,
-                $rec->font === null ? null : (string)$rec->font,
-                $rec->fontsize === null ? null : (int)$rec->fontsize,
-                $rec->colour === null ? null : (string)$rec->colour
-            );
+            $recfont = $rec->font === null ? null : (string)$rec->font;
+            $recfsize = $rec->fontsize === null ? null : (int)$rec->fontsize;
+            $reccolour = $rec->colour === null ? null : (string)$rec->colour;
+
+            $migrated = $rec->element === 'border'
+                ? row_migrator::migrate_border_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour)
+                : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour);
 
             if ($migrated !== $rec->data) {
                 $DB->update_record('customcert_elements', (object) [
