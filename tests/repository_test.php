@@ -100,27 +100,27 @@ final class repository_test extends advanced_testcase {
     }
 
     /**
-     * Ensures get_by_template_id_must_exist() returns the record when it exists.
+     * Ensures get_by_template_id_or_fail() returns the record when it exists.
      *
-     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_must_exist
+     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
     public function test_get_by_template_id_must_exist_returns_record(): void {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $repository = new certificate_repository();
-        $record = $repository->get_by_template_id_must_exist((int)$customcert->templateid);
+        $record = $repository->get_by_template_id_or_fail((int)$customcert->templateid);
         $this->assertEquals($customcert->id, (int)$record->id);
     }
 
     /**
-     * Ensures get_by_template_id_must_exist() throws when no record exists.
+     * Ensures get_by_template_id_or_fail() throws when no record exists.
      *
-     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_must_exist
+     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
     public function test_get_by_template_id_must_exist_throws_when_missing(): void {
         $repository = new certificate_repository();
         $this->expectException(\dml_missing_record_exception::class);
-        $repository->get_by_template_id_must_exist(999999);
+        $repository->get_by_template_id_or_fail(999999);
     }
 
     /**

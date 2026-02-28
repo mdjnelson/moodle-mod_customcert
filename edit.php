@@ -283,7 +283,7 @@ if ($data = $mform->get_data()) {
         }
 
         // Compute preview filename using the same rules as generate_pdf().
-        $customcert = (new certificate_repository())->get_by_template_id_must_exist($template->get_id());
+        $customcert = (new certificate_repository())->get_by_template_id_or_fail($template->get_id());
         $pdffilename = $pdfservice->compute_filename_for_user($template, $USER, $customcert);
         $pdf->Output($pdffilename, certificate::DELIVERY_OPTION_INLINE);
         exit();
