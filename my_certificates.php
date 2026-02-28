@@ -24,6 +24,8 @@
 
 use mod_customcert\certificate;
 use mod_customcert\my_certificates_table;
+use mod_customcert\service\certificate_repository;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\template;
 
@@ -35,10 +37,11 @@ $courseid = optional_param('course', null, PARAM_INT);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
-    $customcert = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
-
+    $certrepo = new certificate_repository();
+    $customcert = $certrepo->get_by_id($certificateid) ?? throw new moodle_exception('invalidcertid', 'customcert');
     // Check there exists an issued certificate for this user.
-    if (!$issue = $DB->get_record('customcert_issues', ['userid' => $userid, 'customcertid' => $customcert->id])) {
+    $issuerepo = new issue_repository();
+    if (!$issuerepo->find_by_user_certificate((int)$customcert->id, $userid)) {
         throw new moodle_exception('You have not been issued a certificate');
     }
 }
