@@ -124,6 +124,44 @@ final class row_migrator {
     }
 
     /**
+     * Migrate a legacy border element row.
+     *
+     * Legacy border elements stored their line thickness as a plain integer scalar in the
+     * 'data' column (e.g. "3") and may never have had the 'width' column populated. This
+     * method promotes such a scalar to the 'width' key in the JSON envelope so that
+     * element::get_width() returns the correct value after upgrade.
+     *
+     * @param string|null $rawdata Original data field value.
+     * @param int|null $width Value of the old 'width' column (may be null).
+     * @param string|null $font
+     * @param int|null $fontsize
+     * @param string|null $colour
+     * @return string|null Migrated JSON string.
+     */
+    public static function migrate_border_row(
+        ?string $rawdata,
+        ?int $width,
+        ?string $font,
+        ?int $fontsize,
+        ?string $colour
+    ): ?string {
+        // If the width column was never set but data holds a plain integer scalar,
+        // that scalar IS the border line thickness — promote it to the width argument
+        // and clear rawdata so the scalar is not also stored under the 'value' key.
+        if ($rawdata !== null) {
+            $rawdata = trim($rawdata);
+        }
+        if ($width === null && $rawdata !== null && $rawdata !== '') {
+            $decoded = json_decode($rawdata, true);
+            if (is_int($decoded) || (is_string($decoded) && ctype_digit($decoded))) {
+                $width = (int)$decoded;
+                $rawdata = null;
+            }
+        }
+        return self::migrate_row($rawdata, $width, $font, $fontsize, $colour);
+    }
+
+    /**
      * Migrate a single row's data payload to the consolidated JSON format.
      *
      * Rules:
