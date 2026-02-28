@@ -29,6 +29,7 @@ use mod_customcert\load_template_form;
 use mod_customcert\local\preview_renderer;
 use mod_customcert\page_helper;
 use mod_customcert\service\item_move_service;
+use mod_customcert\service\certificate_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_service;
@@ -38,7 +39,7 @@ require_once('../../config.php');
 
 $pagerepo = new page_repository();
 $templateservice = template_service::create();
-$pdfservice = new pdf_generation_service($pagerepo);
+$pdfservice = pdf_generation_service::create();
 
 $tid = optional_param('tid', 0, PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -282,7 +283,7 @@ if ($data = $mform->get_data()) {
         }
 
         // Compute preview filename using the same rules as generate_pdf().
-        $customcert = $DB->get_record('customcert', ['templateid' => $template->get_id()]);
+        $customcert = (new certificate_repository())->get_by_template_id($template->get_id());
         $pdffilename = $pdfservice->compute_filename_for_user($template, $USER, $customcert);
         $pdf->Output($pdffilename, certificate::DELIVERY_OPTION_INLINE);
         exit();
