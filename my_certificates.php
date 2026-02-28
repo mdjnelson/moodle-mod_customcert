@@ -38,7 +38,7 @@ $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $certrepo = new certificate_repository();
-    $customcert = $certrepo->get_by_id($certificateid) ?? throw new moodle_exception('invalidcertid', 'customcert');
+    $customcert = $certrepo->get_by_id($certificateid);
     // Check there exists an issued certificate for this user.
     $issuerepo = new issue_repository();
     if (!$issuerepo->find_by_user_certificate((int)$customcert->id, $userid)) {

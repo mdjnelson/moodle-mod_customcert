@@ -96,11 +96,11 @@ final class certificate_repository {
      * Get a certificate record by id.
      *
      * @param int $id
-     * @return stdClass|null
+     * @return stdClass
      */
-    public function get_by_id(int $id): ?stdClass {
+    public function get_by_id(int $id): stdClass {
         global $DB;
-        return $DB->get_record('customcert', ['id' => $id]) ?: null;
+        return $DB->get_record('customcert', ['id' => $id], '*', MUST_EXIST);
     }
 
     /**
