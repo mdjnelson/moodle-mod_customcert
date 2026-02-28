@@ -373,9 +373,9 @@ function xmldb_customcert_upgrade($oldversion) {
             $recwidth = $rec->width === null ? null : (int)$rec->width;
             if ($rec->element === 'border' && $recwidth === null && $rec->data !== null && $rec->data !== '') {
                 $decoded = json_decode($rec->data, true);
-                if (is_int($decoded) || (is_string($rec->data) && ctype_digit(trim($rec->data)))) {
+                if (is_int($decoded) || (is_string($decoded) && ctype_digit($decoded))) {
                     // Plain integer scalar — treat it as the border width.
-                    $recwidth = (int)$rec->data;
+                    $recwidth = (int)$decoded;
                 }
             }
             $migrated = row_migrator::migrate_row(
