@@ -273,7 +273,7 @@ if ($data = $mform->get_data()) {
 
     // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
-        $preview = new preview_renderer();
+        $preview = preview_renderer::create();
         $pdf = $pdfservice->create_preview_pdf($template, $USER);
 
         // Render each page of this template in sequence.
