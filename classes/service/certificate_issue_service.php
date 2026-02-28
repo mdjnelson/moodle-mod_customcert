@@ -41,6 +41,16 @@ final class certificate_issue_service {
     private $timeprovider;
 
     /**
+     * Create a certificate_issue_service with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        global $DB;
+        return new self($DB);
+    }
+
+    /**
      * certificate_issue_service constructor.
      *
      * @param \moodle_database|null $db
