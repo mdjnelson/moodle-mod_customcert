@@ -28,9 +28,7 @@ namespace mod_customcert\local;
 
 use coding_exception;
 use dml_exception;
-use mod_customcert\element\element_bootstrap;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\element_registry;
 use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\html_renderer;
@@ -60,28 +58,31 @@ final class preview_renderer {
 
     /** @var page_repository */
     private page_repository $pages;
+    /**
+     * Create a preview_renderer with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        $factory = element_factory::build_with_defaults();
+        return new self($factory, new element_repository($factory), new page_repository());
+    }
 
     /**
-     * Constructor with optional DI for factory.
+     * Constructor.
      *
-     * @param element_factory|null $factory Optional injected factory (useful for tests)
-     * @param element_repository|null $repository Optional injected factory (useful for tests)
-     * @param page_repository|null $pages Optional injected factory (useful for tests)
+     * @param element_factory $factory
+     * @param element_repository $repository
+     * @param page_repository $pages
      */
     public function __construct(
-        ?element_factory $factory = null,
-        ?element_repository $repository = null,
-        ?page_repository $pages = null,
+        element_factory $factory,
+        element_repository $repository,
+        page_repository $pages,
     ) {
-        if ($factory) {
-            $this->factory = $factory;
-        } else {
-            $registry = new element_registry();
-            element_bootstrap::register_defaults($registry);
-            $this->factory = new element_factory($registry);
-        }
-        $this->repository = $repository ?? new element_repository($this->factory);
-        $this->pages = $pages ?? new page_repository();
+        $this->factory = $factory;
+        $this->repository = $repository;
+        $this->pages = $pages;
         $this->pdfrenderer = new pdf_renderer();
         $this->htmlrenderer = new html_renderer();
     }

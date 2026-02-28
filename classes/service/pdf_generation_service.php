@@ -98,7 +98,7 @@ final class pdf_generation_service {
 
         $pdf->SetTitle($filename);
 
-        $previewrenderer = new preview_renderer();
+        $previewrenderer = preview_renderer::create();
         foreach ($pages as $page) {
             $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user, $preview);
         }

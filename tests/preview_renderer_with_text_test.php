@@ -90,7 +90,7 @@ final class preview_renderer_with_text_test extends advanced_testcase {
         $element->id = $DB->insert_record('customcert_elements', $element, true);
 
         // Render HTML via the preview orchestrator.
-        $preview = new preview_renderer();
+        $preview = preview_renderer::create();
         $html = $preview->render_html_page((int)$page->id);
 
         $this->assertIsString($html);
