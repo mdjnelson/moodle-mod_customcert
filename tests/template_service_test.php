@@ -297,4 +297,69 @@ final class template_service_test extends advanced_testcase {
         $this->expectException(\invalid_parameter_exception::class);
         $service->save_pages($template, $data, true);
     }
+
+    /**
+     * delete_page fires a debugging notice when a page contains an element of an unknown type.
+     *
+     * @covers \mod_customcert\service\template_service::delete_page
+     */
+    public function test_delete_page_with_unknown_element_type_logs_debugging(): void {
+        global $DB;
+
+        $template = template::create('Unknown element page delete', \context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        // Insert an element with an unregistered type directly into the DB.
+        $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'idontexist',
+            'name' => 'Bad element',
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $service->delete_page($template, $pageid);
+
+        $this->assertFalse($DB->record_exists('customcert_pages', ['id' => $pageid]));
+        $this->assertFalse($DB->record_exists('customcert_elements', ['pageid' => $pageid]));
+        $this->assertDebuggingCalledCount(2);
+    }
+
+    /**
+     * delete_element fires a debugging notice when the element type cannot be resolved.
+     *
+     * @covers \mod_customcert\service\template_service::delete_element
+     */
+    public function test_delete_element_with_unknown_type_logs_debugging(): void {
+        global $DB;
+
+        $template = template::create('Unknown element delete', \context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        // Insert an element with an unregistered type directly into the DB.
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'idontexist',
+            'name' => 'Bad element',
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $service->delete_element($template, $elementid);
+
+        $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
+        $this->assertDebuggingCalledCount(2);
+    }
 }
