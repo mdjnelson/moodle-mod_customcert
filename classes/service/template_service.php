@@ -327,6 +327,11 @@ final class template_service {
         if ($instance) {
             $this->elements->delete($instance);
         } else {
+            debugging(
+                "Could not resolve element type '{$element->element}' (id={$element->id}) during element delete; " .
+                "deleting record directly without firing element_deleted event.",
+                DEBUG_DEVELOPER
+            );
             $DB->delete_records('customcert_elements', ['id' => $elementid]);
         }
 
