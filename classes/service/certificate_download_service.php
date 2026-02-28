@@ -30,7 +30,7 @@ use zip_archive;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class certificate_download_service {
+final class certificate_download_service {
     /**
      * Date format in filename for download all zip file.
      */
