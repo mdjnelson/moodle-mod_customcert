@@ -110,7 +110,7 @@ if ($tid) {
             }
 
             // Duplicate via the service to copy template, pages, and elements transactionally.
-            $service = new template_duplication_service();
+            $service = template_duplication_service::create();
             $name = $template->get_name() . ' (' . strtolower(get_string('duplicate', 'customcert')) . ')';
             $service->duplicate($template->get_id(), $name);
 
