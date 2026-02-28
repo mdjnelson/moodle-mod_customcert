@@ -1,38 +1,83 @@
-# The custom certificate activity
+# Custom certificate activity (mod_customcert)
 
-This activity allows the dynamic generation of PDF certificates with complete customisation via the web browser.
+This activity allows dynamic generation of PDF certificates with full customisation in your browser.
+
+## Requirements
+
+- A supported Moodle version (use the plugin release/branch that matches your Moodle version).
+- PDF support is provided via Moodle’s built-in PDF library; no extra system packages are normally required.
 
 ## Installation
 
-There are two installation methods that are available. 
+Install **either** via Git **or** by downloading a zip. After installing, log in as an administrator and visit **Site administration → Notifications** to complete the installation.
 
-Follow one of these, then log into your Moodle site as an administrator and visit the notifications page to complete the install.
+### Option A: Install with Git (recommended)
 
-### Git
+1. Go to your Moodle `mod/` directory:
 
-This requires Git being installed. If you do not have Git installed, please visit the [Git website](https://git-scm.com/downloads "Git website").
+   ```bash
+   cd /path/to/moodle/mod
+   ```
 
-Once you have Git installed, simply visit your Moodle mod directory and clone the repository using the following command.
+2. Clone the plugin into a folder called `customcert`:
 
+   ```bash
+   git clone https://github.com/mdjnelson/moodle-mod_customcert.git customcert
+   cd customcert
+   ```
+
+3. Check out the branch that matches your Moodle version.
+
+   The plugin branches follow the Moodle convention `MOODLE_XX_STABLE` (for example: `MOODLE_401_STABLE`).
+
+   ```bash
+   git checkout MOODLE_XX_STABLE
+   ```
+
+4. To update later:
+
+   ```bash
+   git pull
+   ```
+
+> Tip: If you’re not sure which branch you need, list available branches:
+>
+> ```bash
+> git branch -r
+> ```
+
+### Option B: Download the zip
+
+1. Visit the Moodle plugins directory and download the version that matches your Moodle release:
+   - <https://moodle.org/plugins/mod_customcert>
+2. Extract the zip.
+3. Copy the extracted `customcert` folder into your Moodle `mod/` directory so the path becomes:
+   - `moodle/mod/customcert`
+4. Log in as an administrator and visit **Site administration → Notifications**.
+
+## Upgrading
+
+### If installed via Git
+
+```bash
+cd /path/to/moodle/mod/customcert
+git pull
 ```
-git clone https://github.com/mdjnelson/moodle-mod_customcert.git customcert
+
+If you also upgrade Moodle and need a different branch, switch branches first, then pull:
+
+```bash
+git checkout MOODLE_XX_STABLE
+git pull
 ```
 
-Then checkout the branch corresponding to the version of Moodle you are using with the following command. Make sure to replace MOODLE_32_STABLE with the version of Moodle you are using.
+### If installed via zip
 
-```
-git checkout MOODLE_32_STABLE
-```
-
-Use `git pull` to update this repository periodically to ensure you have the most recent updates.
-
-### Download the zip
-
-Visit the [Moodle plugins website](https://moodle.org/plugins/mod_customcert "Moodle plugins website") and download the zip corresponding to the version of Moodle you are using. Extract the zip and place the 'customcert' folder in the mod folder in your Moodle directory.
+Download the new zip version that matches your Moodle version, replace the `mod/customcert` folder, then visit **Site administration → Notifications**.
 
 ## More information
 
-Visit the [wiki page](https://docs.moodle.org/en/Custom_certificate_module "Wiki page") for more details. Also, it is a wiki, so please feel free to edit it. :)
+- Documentation / wiki: <https://docs.moodle.org/en/Custom_certificate_module>
 
 ## License
 
