@@ -186,20 +186,23 @@ if ($data = $mform->get_data()) {
 
         // Trigger updated event for the template containing the element.
         template_updated::create_from_template($template)->trigger();
+
+        $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
+        $editurl = new moodle_url('/mod/customcert/edit_element.php', [
+                'id' => $newlyid,
+                'tid' => $tid,
+                'action' => 'edit',
+        ]);
+        $redirecturl = $url;
+
+        if (isset($data->saveandcontinue)) {
+            $redirecturl = ($action === 'add') ? $editurl : $PAGE->url;
+        }
+        redirect($redirecturl);
     }
 
-    $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
-    $editurl = new moodle_url('/mod/customcert/edit_element.php', [
-            'id' => $newlyid,
-            'tid' => $tid,
-            'action' => 'edit',
-    ]);
-    $redirecturl = $url;
-
-    if (isset($data->saveandcontinue)) {
-        $redirecturl = ($action === 'add') ? $editurl : $PAGE->url;
-    }
-    redirect($redirecturl);
+    // Element type could not be resolved; redirect back without saving.
+    redirect(new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]));
 }
 
 echo $OUTPUT->header();
