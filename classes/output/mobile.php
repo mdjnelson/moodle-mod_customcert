@@ -85,7 +85,7 @@ class mobile {
         $requiredtimemet = true;
         $canmanage = has_capability('mod/customcert:manage', $context);
         if ($certificate->requiredtime && !$canmanage) {
-            $timeservice = new certificate_time_service();
+            $timeservice = certificate_time_service::create();
             if ($timeservice->get_course_time((int)$certificate->course, (int)$USER->id) < ($certificate->requiredtime * 60)) {
                 $requiredtimemet = false;
             }

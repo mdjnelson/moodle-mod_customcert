@@ -190,7 +190,7 @@ class certificate {
             DEBUG_DEVELOPER
         );
 
-        $service = new certificate_time_service();
+        $service = certificate_time_service::create();
         return $service->get_course_time($courseid, $userid);
     }
 

@@ -46,22 +46,30 @@ final class certificate_time_service {
     private stdClass $cfg;
 
     /**
+     * Create a new instance with default dependencies.
+     *
+     * @return self
+     */
+    public static function create(): self {
+        global $CFG, $DB;
+        return new self(static fn() => get_log_manager(), $DB, $CFG);
+    }
+
+    /**
      * certificate_time_service constructor.
      *
-     * @param callable|null $logmanagerfactory
-     * @param \moodle_database|null $db
-     * @param stdClass|null $cfg
+     * @param callable $logmanagerfactory
+     * @param \moodle_database $db
+     * @param stdClass $cfg
      */
     public function __construct(
-        ?callable $logmanagerfactory = null,
-        ?\moodle_database $db = null,
-        ?stdClass $cfg = null
+        callable $logmanagerfactory,
+        \moodle_database $db,
+        stdClass $cfg
     ) {
-        global $CFG, $DB;
-
-        $this->logmanagerfactory = $logmanagerfactory ?? static fn() => get_log_manager();
-        $this->db = $db ?? $DB;
-        $this->cfg = $cfg ?? $CFG;
+        $this->logmanagerfactory = $logmanagerfactory;
+        $this->db = $db;
+        $this->cfg = $cfg;
     }
 
     /**

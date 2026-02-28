@@ -240,7 +240,7 @@ final class certificate_issuer_service {
         $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
         $candidates = [];
-        $timeservice = new certificate_time_service();
+        $timeservice = certificate_time_service::create();
 
         foreach ($filteredusers as $filtereduser) {
             // Skip if the user has already been issued and emailed.
