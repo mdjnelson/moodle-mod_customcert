@@ -73,7 +73,7 @@ if ($userid != $USER->id) {
 } else {
     // Make sure the user has met the required time.
     if ($certificate->requiredtime) {
-        $timeservice = new certificate_time_service();
+        $timeservice = certificate_time_service::create();
         if ($timeservice->get_course_time((int)$certificate->course, (int)$USER->id) < ($certificate->requiredtime * 60)) {
             exit();
         }
