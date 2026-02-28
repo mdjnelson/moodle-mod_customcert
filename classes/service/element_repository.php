@@ -141,7 +141,7 @@ class element_repository {
         $pages = $DB->get_records('customcert_pages', ['templateid' => $templateid], 'sequence ASC');
         $result = [];
         foreach ($pages as $page) {
-            $result = array_merge($result, $this->load_by_page_id((int)$page->id));
+            array_push($result, ...$this->load_by_page_id((int)$page->id));
         }
         return $result;
     }
