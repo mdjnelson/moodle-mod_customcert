@@ -206,12 +206,13 @@ class element_repository {
             $transaction = $DB->start_delegated_transaction();
         }
 
+        $now = time();
         foreach ($elements as $e) {
             $newelement = clone($e);
             unset($newelement->id);
             $newelement->pageid = $topageid;
-            $newelement->timecreated = time();
-            $newelement->timemodified = time();
+            $newelement->timecreated = $now;
+            $newelement->timemodified = $now;
 
             $newid = $DB->insert_record('customcert_elements', $newelement);
 
