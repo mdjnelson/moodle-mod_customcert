@@ -216,7 +216,8 @@ class element_repository {
             $newid = $DB->insert_record('customcert_elements', $newelement);
 
             // Give the element a chance to handle any unique data copying.
-            $instance = $this->factory->create($e->element, $DB->get_record('customcert_elements', ['id' => $newid]));
+            $newelement->id = $newid;
+            $instance = $this->factory->create($e->element, $newelement);
             $inner = $instance;
             if ($instance instanceof legacy_element_adapter) {
                 $inner = $instance->get_inner();
