@@ -24,6 +24,7 @@
 
 namespace mod_customcert;
 
+use mod_customcert\service\page_update;
 use mod_customcert\service\template_service;
 
 /**
@@ -76,7 +77,31 @@ final class page_test extends \advanced_testcase {
 
         $records = $DB->count_records('customcert_pages', ['id' => $page2id]);
         $this->assertEquals(0, $records);
-
         $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * page_update uses the current time when $timemodified is not provided.
+     *
+     * @covers \mod_customcert\service\page_update::__construct
+     */
+    public function test_page_update_null_timemodified_defaults_to_current_time(): void {
+        $before = time();
+        $update = new page_update(210, 297, 10, 10);
+        $after = time();
+
+        $this->assertGreaterThanOrEqual($before, $update->timemodified);
+        $this->assertLessThanOrEqual($after, $update->timemodified);
+    }
+
+    /**
+     * page_update uses the explicitly provided $timemodified when given.
+     *
+     * @covers \mod_customcert\service\page_update::__construct
+     */
+    public function test_page_update_explicit_timemodified_is_preserved(): void {
+        $update = new page_update(210, 297, 10, 10, 1_000_000);
+
+        $this->assertSame(1_000_000, $update->timemodified);
     }
 }
