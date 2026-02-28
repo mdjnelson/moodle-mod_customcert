@@ -56,15 +56,6 @@ class element_repository {
     }
 
     /**
-     * Expose the underlying factory to callers that need to construct instances directly.
-     *
-     * @return element_factory
-     */
-    public function get_factory(): element_factory {
-        return $this->factory;
-    }
-
-    /**
      * List raw element records for a given page with standard ordering.
      *
      * @param int $pageid
