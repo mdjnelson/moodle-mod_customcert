@@ -26,9 +26,7 @@ use mod_customcert\edit_element_form;
 use mod_customcert\element;
 use mod_customcert\event\template_updated;
 use mod_customcert\page_helper;
-use mod_customcert\element\element_bootstrap;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
 use mod_customcert\service\persistence_helper;
@@ -40,9 +38,9 @@ require_once('../../config.php');
 
 $templaterepo = new template_repository();
 $pagerepo = new page_repository();
-$registry = new element_registry();
-element_bootstrap::register_defaults($registry);
-$factory = new element_factory($registry);
+
+
+$factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
 
 $tid = required_param('tid', PARAM_INT);
