@@ -113,14 +113,15 @@ class external extends external_api {
         // Start from existing element JSON if present.
         if (!empty($element->data)) {
             $decoded = json_decode((string)$element->data, true);
-            if (is_array($decoded)) {
+            if (is_array($decoded) && !array_is_list($decoded)) {
                 $jsonpayload = $decoded;
             }
         }
         // If caller provided a 'data' JSON string, merge it first.
+        // Only merge JSON objects (associative arrays); ignore JSON arrays to avoid numeric-key pollution.
         if (property_exists($data, 'data') && is_string($data->data) && $data->data !== '') {
             $incoming = json_decode($data->data, true);
-            if (is_array($incoming)) {
+            if (is_array($incoming) && !array_is_list($incoming)) {
                 $jsonpayload = array_merge($jsonpayload, $incoming);
             }
             unset($data->data);
