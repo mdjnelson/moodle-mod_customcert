@@ -292,6 +292,11 @@ final class template_service {
                     continue;
                 }
 
+                debugging(
+                    "Could not resolve element type '{$element->element}' (id={$element->id}) during page delete; " .
+                    "deleting record directly without firing element_deleted event.",
+                    DEBUG_DEVELOPER
+                );
                 $DB->delete_records('customcert_elements', ['id' => $element->id]);
             }
         }
