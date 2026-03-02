@@ -28,6 +28,7 @@ use context;
 use context_module;
 use core_external\util;
 use mod_customcert\certificate;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_time_service;
 use moodle_url;
 use stdClass;
@@ -111,7 +112,8 @@ class mobile {
                 $groupmode = 'aag';
             }
 
-            $recipients = certificate::get_issues($certificate->id, $groupmode, $cm, 0, 0);
+            $issuerepo = new issue_repository();
+            $recipients = $issuerepo->get_issues($certificate->id, $groupmode, $cm, 0, 0);
             foreach ($recipients as $recipient) {
                 $recipient->displayname = fullname($recipient);
                 $recipient->fileurl = new moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,

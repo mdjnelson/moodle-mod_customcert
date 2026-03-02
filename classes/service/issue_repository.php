@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use context_module;
+use core_user\fields;
 use mod_customcert\service\certificate_issue_service;
 use stdClass;
 
@@ -157,6 +159,138 @@ final class issue_repository {
                   FROM {customcert} cert
                  WHERE cert.course = :courseid";
         $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $courseid]);
+    }
+
+    /**
+     * Returns a list of issued customcerts.
+     *
+     * @param int $customcertid
+     * @param bool $groupmode are we in group mode
+     * @param stdClass $cm the course module
+     * @param int $limitfrom
+     * @param int $limitnum
+     * @param string $sort
+     * @return array the users
+     */
+    public function get_issues(
+        int $customcertid,
+        bool $groupmode,
+        stdClass $cm,
+        int $limitfrom,
+        int $limitnum,
+        string $sort = ''
+    ): array {
+        global $DB;
+
+        [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm, $groupmode);
+
+        if (empty($conditionsparams)) {
+            return [];
+        }
+
+        $context = context_module::instance($cm->id);
+        $query = fields::for_identity($context)->with_userpic()->get_sql('u', true, '', '', false);
+
+        $allparams = $query->params + $conditionsparams + ['customcertid' => $customcertid];
+
+        $orderby = $sort ?: $DB->sql_fullname();
+
+        $sql = "SELECT $query->selects, ci.id as issueid, ci.code, ci.timecreated
+                  FROM {user} u
+            INNER JOIN {customcert_issues} ci ON (u.id = ci.userid)
+                       $query->joins
+                 WHERE u.deleted = 0 AND ci.customcertid = :customcertid
+                       $conditionssql
+              ORDER BY $orderby";
+
+        return $DB->get_records_sql($sql, $allparams, $limitfrom, $limitnum);
+    }
+
+    /**
+     * Returns the total number of issues for a given customcert.
+     *
+     * @param int $customcertid
+     * @param stdClass $cm the course module
+     * @param bool $groupmode the group mode
+     * @return int the number of issues
+     */
+    public function get_number_of_issues(int $customcertid, stdClass $cm, bool $groupmode): int {
+        global $DB;
+
+        [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm, $groupmode);
+
+        if (empty($conditionsparams)) {
+            return 0;
+        }
+
+        $allparams = $conditionsparams + ['customcertid' => $customcertid];
+
+        $sql = "SELECT COUNT(u.id) as count
+                  FROM {user} u
+            INNER JOIN {customcert_issues} ci
+                    ON u.id = ci.userid
+                 WHERE u.deleted = 0
+                   AND ci.customcertid = :customcertid
+                       $conditionssql";
+        return $DB->count_records_sql($sql, $allparams);
+    }
+
+    /**
+     * Returns an array of the conditional variables to use in the get_issues SQL query.
+     *
+     * @param stdClass $cm the course module
+     * @param bool $groupmode are we in group mode ?
+     * @return array the conditional variables
+     */
+    public function get_conditional_issues_sql(stdClass $cm, bool $groupmode): array {
+        global $DB, $USER;
+
+        $context = context_module::instance($cm->id);
+        $conditionssql = '';
+        $conditionsparams = [];
+
+        $certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'));
+        $certmanagers = array_merge($certmanagers, array_keys(get_admins()));
+        [$sql, $params] = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
+        $conditionssql .= "AND NOT u.id $sql \n";
+        $conditionsparams += $params;
+
+        if ($groupmode) {
+            $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
+            $currentgroup = groups_get_activity_group($cm);
+
+            if (!$currentgroup && !$canaccessallgroups) {
+                return ['', []];
+            }
+
+            if ($currentgroup) {
+                if (!$canaccessallgroups) {
+                    if (isguestuser()) {
+                        return ['', []];
+                    }
+
+                    $usersgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid);
+                    if ($usersgroups) {
+                        if (!isset($usersgroups[$currentgroup])) {
+                            return ['', []];
+                        }
+                    } else {
+                        return ['', []];
+                    }
+                }
+
+                $groupusers = array_keys(groups_get_members($currentgroup, 'u.*'));
+                if (empty($groupusers)) {
+                    return ['', []];
+                }
+
+                [$sql, $params] = $DB->get_in_or_equal($groupusers, SQL_PARAMS_NAMED, 'grp');
+                $conditionssql .= "AND u.id $sql ";
+                $conditionsparams += $params;
+            }
+        }
+
+        return [$conditionssql, $conditionsparams];
     }
 
     /**

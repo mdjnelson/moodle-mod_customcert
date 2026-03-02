@@ -29,6 +29,7 @@ namespace mod_customcert;
 use context_module;
 use core_user\fields;
 use mod_customcert\service\certificate_download_service;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
 use pdf;
@@ -235,6 +236,7 @@ class certificate {
     /**
      * Returns a list of issued customcerts.
      *
+     * @deprecated since Moodle 5.2
      * @param int $customcertid
      * @param bool $groupmode are we in group mode
      * @param stdClass $cm the course module
@@ -251,130 +253,53 @@ class certificate {
         int $limitnum,
         string $sort = ''
     ): array {
-        global $DB;
+        debugging(
+            'certificate::get_issues() is deprecated since Moodle 5.2. '
+            . 'Use issue_repository::get_issues() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        // Get the conditional SQL.
-        [$conditionssql, $conditionsparams] = self::get_conditional_issues_sql($cm, $groupmode);
-
-        // If it is empty then return an empty array.
-        if (empty($conditionsparams)) {
-            return [];
-        }
-
-        // Return the issues.
-        $context = context_module::instance($cm->id);
-        $query = fields::for_identity($context)->with_userpic()->get_sql('u', true, '', '', false);
-
-        // Add the conditional SQL and the customcertid to form all used parameters.
-        $allparams = $query->params + $conditionsparams + ['customcertid' => $customcertid];
-
-        $orderby = $sort ?: $DB->sql_fullname();
-
-        $sql = "SELECT $query->selects, ci.id as issueid, ci.code, ci.timecreated
-                  FROM {user} u
-            INNER JOIN {customcert_issues} ci ON (u.id = ci.userid)
-                       $query->joins
-                 WHERE u.deleted = 0 AND ci.customcertid = :customcertid
-                       $conditionssql
-              ORDER BY $orderby";
-
-        return $DB->get_records_sql($sql, $allparams, $limitfrom, $limitnum);
+        $repo = new issue_repository();
+        return $repo->get_issues($customcertid, $groupmode, $cm, $limitfrom, $limitnum, $sort);
     }
 
     /**
      * Returns the total number of issues for a given customcert.
      *
+     * @deprecated since Moodle 5.2
      * @param int $customcertid
      * @param stdClass $cm the course module
      * @param bool $groupmode the group mode
      * @return int the number of issues
      */
     public static function get_number_of_issues(int $customcertid, stdClass $cm, bool $groupmode): int {
-        global $DB;
+        debugging(
+            'certificate::get_number_of_issues() is deprecated since Moodle 5.2. '
+            . 'Use issue_repository::get_number_of_issues() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        // Get the conditional SQL.
-        [$conditionssql, $conditionsparams] = self::get_conditional_issues_sql($cm, $groupmode);
-
-        // If it is empty then return 0.
-        if (empty($conditionsparams)) {
-            return 0;
-        }
-
-        // Add the conditional SQL and the customcertid to form all used parameters.
-        $allparams = $conditionsparams + ['customcertid' => $customcertid];
-
-        // Return the number of issues.
-        $sql = "SELECT COUNT(u.id) as count
-                  FROM {user} u
-            INNER JOIN {customcert_issues} ci
-                    ON u.id = ci.userid
-                 WHERE u.deleted = 0
-                   AND ci.customcertid = :customcertid
-                       $conditionssql";
-        return $DB->count_records_sql($sql, $allparams);
+        $repo = new issue_repository();
+        return $repo->get_number_of_issues($customcertid, $cm, $groupmode);
     }
 
     /**
      * Returns an array of the conditional variables to use in the get_issues SQL query.
      *
+     * @deprecated since Moodle 5.2
      * @param stdClass $cm the course module
      * @param bool $groupmode are we in group mode ?
      * @return array the conditional variables
      */
     public static function get_conditional_issues_sql(stdClass $cm, bool $groupmode): array {
-        global $DB, $USER;
+        debugging(
+            'certificate::get_conditional_issues_sql() is deprecated since Moodle 5.2. '
+            . 'Use issue_repository::get_conditional_issues_sql() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        // Get all users that can manage this customcert to exclude them from the report.
-        $context = context_module::instance($cm->id);
-        $conditionssql = '';
-        $conditionsparams = [];
-
-        // Get all users that can manage this certificate to exclude them from the report.
-        $certmanagers = array_keys(get_users_by_capability($context, 'mod/customcert:manage', 'u.id'));
-        $certmanagers = array_merge($certmanagers, array_keys(get_admins()));
-        [$sql, $params] = $DB->get_in_or_equal($certmanagers, SQL_PARAMS_NAMED, 'cert');
-        $conditionssql .= "AND NOT u.id $sql \n";
-        $conditionsparams += $params;
-
-        if ($groupmode) {
-            $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
-            $currentgroup = groups_get_activity_group($cm);
-
-            // If we are viewing all participants and the user does not have access to all groups then return nothing.
-            if (!$currentgroup && !$canaccessallgroups) {
-                return ['', []];
-            }
-
-            if ($currentgroup) {
-                if (!$canaccessallgroups) {
-                    // Guest users do not belong to any groups.
-                    if (isguestuser()) {
-                        return ['', []];
-                    }
-
-                    // Check that the user belongs to the group we are viewing.
-                    $usersgroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid);
-                    if ($usersgroups) {
-                        if (!isset($usersgroups[$currentgroup])) {
-                            return ['', []];
-                        }
-                    } else { // They belong to no group, so return an empty array.
-                        return ['', []];
-                    }
-                }
-
-                $groupusers = array_keys(groups_get_members($currentgroup, 'u.*'));
-                if (empty($groupusers)) {
-                    return ['', []];
-                }
-
-                [$sql, $params] = $DB->get_in_or_equal($groupusers, SQL_PARAMS_NAMED, 'grp');
-                $conditionssql .= "AND u.id $sql ";
-                $conditionsparams += $params;
-            }
-        }
-
-        return [$conditionssql, $conditionsparams];
+        $repo = new issue_repository();
+        return $repo->get_conditional_issues_sql($cm, $groupmode);
     }
 
     /**
