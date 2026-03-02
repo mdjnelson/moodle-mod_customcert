@@ -319,8 +319,108 @@ final class repository_test extends advanced_testcase {
      */
     public function test_issue_email_repository_handles_missing_records(): void {
         $emailrepo = new issue_email_repository();
-
         $this->assertNull($emailrepo->get_customcert_for_email(123456));
         $this->assertNull($emailrepo->get_user_for_issue(123456, 789));
+    }
+
+    /**
+     * delete_for_certificate deletes the issue when it belongs to the certificate.
+     *
+     * @covers \mod_customcert\service\issue_repository::delete_for_certificate
+     */
+    public function test_delete_for_certificate_deletes_matching_issue(): void {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $repo = new issue_repository();
+        $issueid = $repo->create((int)$customcert->id, (int)$user->id);
+        $repo->delete_for_certificate($issueid, (int)$customcert->id);
+        $this->assertFalse($DB->record_exists('customcert_issues', ['id' => $issueid]));
+    }
+
+    /**
+     * delete_for_certificate throws an exception when the issue does not belong to the certificate.
+     *
+     * @covers \mod_customcert\service\issue_repository::delete_for_certificate
+     */
+    public function test_delete_for_certificate_throws_for_wrong_certificate(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $other = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $repo = new issue_repository();
+        $issueid = $repo->create((int)$customcert->id, (int)$user->id);
+        $this->expectException(\moodle_exception::class);
+        $repo->delete_for_certificate($issueid, (int)$other->id);
+    }
+
+    /**
+     * get_issues returns issued users for a certificate.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_issues
+     */
+    public function test_get_issues_returns_issued_users(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('customcert', $customcert->id, $course->id);
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $repo = new issue_repository();
+        $repo->create((int)$customcert->id, (int)$user1->id);
+        $repo->create((int)$customcert->id, (int)$user2->id);
+        $issues = $repo->get_issues((int)$customcert->id, $cm, 0, 0);
+        $this->assertCount(2, $issues);
+    }
+
+    /**
+     * get_number_of_issues returns the correct count.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
+     */
+    public function test_get_number_of_issues_returns_correct_count(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('customcert', $customcert->id, $course->id);
+        $user = $this->getDataGenerator()->create_user();
+        $repo = new issue_repository();
+        $this->assertSame(0, $repo->get_number_of_issues((int)$customcert->id, $cm));
+        $repo->create((int)$customcert->id, (int)$user->id);
+        $this->assertSame(1, $repo->get_number_of_issues((int)$customcert->id, $cm));
+    }
+
+    /**
+     * get_number_of_certificates_for_user returns the correct count.
+     *
+     * @covers \mod_customcert\service\certificate_repository::get_number_of_certificates_for_user
+     */
+    public function test_get_number_of_certificates_for_user(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $issuerepo = new issue_repository();
+        $certrepo = new certificate_repository();
+        $this->assertSame(0, $certrepo->get_number_of_certificates_for_user((int)$user->id));
+        $issuerepo->create((int)$customcert->id, (int)$user->id);
+        $this->assertSame(1, $certrepo->get_number_of_certificates_for_user((int)$user->id));
+    }
+
+    /**
+     * get_certificates_for_user returns the certificates issued to a user.
+     *
+     * @covers \mod_customcert\service\certificate_repository::get_certificates_for_user
+     */
+    public function test_get_certificates_for_user(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $issuerepo = new issue_repository();
+        $certrepo = new certificate_repository();
+        $issuerepo->create((int)$customcert->id, (int)$user->id);
+        $certs = $certrepo->get_certificates_for_user((int)$user->id, 0, 0);
+        $this->assertCount(1, $certs);
+        $cert = reset($certs);
+        $this->assertEquals($customcert->id, $cert->id);
+        $this->assertEquals($course->fullname, $cert->coursename);
     }
 }
