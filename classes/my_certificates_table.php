@@ -25,6 +25,7 @@
 namespace mod_customcert;
 
 use context_module;
+use mod_customcert\service\certificate_repository;
 use core\session\manager;
 use moodle_url;
 use pix_icon;
@@ -166,11 +167,12 @@ class my_certificates_table extends table_sql {
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
     public function query_db($pagesize, $useinitialsbar = true): void {
-        $total = certificate::get_number_of_certificates_for_user($this->userid);
+        $certrepo = new certificate_repository();
+        $total = $certrepo->get_number_of_certificates_for_user($this->userid);
 
         $this->pagesize($pagesize, $total);
 
-        $this->rawdata = certificate::get_certificates_for_user(
+        $this->rawdata = $certrepo->get_certificates_for_user(
             $this->userid,
             $this->get_page_start(),
             $this->get_page_size(),
@@ -188,7 +190,8 @@ class my_certificates_table extends table_sql {
      */
     public function download(): void {
         manager::write_close();
-        $total = certificate::get_number_of_certificates_for_user($this->userid);
+        $certrepo = new certificate_repository();
+        $total = $certrepo->get_number_of_certificates_for_user($this->userid);
         $this->out($total, false);
         exit;
     }

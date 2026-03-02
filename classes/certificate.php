@@ -29,6 +29,7 @@ namespace mod_customcert;
 use context_module;
 use core_user\fields;
 use mod_customcert\service\certificate_download_service;
+use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
@@ -305,23 +306,25 @@ class certificate {
     /**
      * Get number of certificates for a user.
      *
+     * @deprecated since Moodle 5.2
      * @param int $userid
      * @return int
      */
     public static function get_number_of_certificates_for_user(int $userid): int {
-        global $DB;
+        debugging(
+            'certificate::get_number_of_certificates_for_user() is deprecated since Moodle 5.2. '
+            . 'Use certificate_repository::get_number_of_certificates_for_user() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        $sql = "SELECT COUNT(*)
-                  FROM {customcert} c
-            INNER JOIN {customcert_issues} ci
-                    ON c.id = ci.customcertid
-                 WHERE ci.userid = :userid";
-        return $DB->count_records_sql($sql, ['userid' => $userid]);
+        $repo = new certificate_repository();
+        return $repo->get_number_of_certificates_for_user($userid);
     }
 
     /**
      * Gets the certificates for the user.
      *
+     * @deprecated since Moodle 5.2
      * @param int $userid
      * @param int $limitfrom
      * @param int $limitnum
@@ -329,21 +332,14 @@ class certificate {
      * @return array
      */
     public static function get_certificates_for_user(int $userid, int $limitfrom, int $limitnum, string $sort = ''): array {
-        global $DB;
+        debugging(
+            'certificate::get_certificates_for_user() is deprecated since Moodle 5.2. '
+            . 'Use certificate_repository::get_certificates_for_user() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        if (empty($sort)) {
-            $sort = 'ci.timecreated DESC';
-        }
-
-        $sql = "SELECT c.id, c.name, co.fullname as coursename, ci.code, ci.timecreated
-                  FROM {customcert} c
-            INNER JOIN {customcert_issues} ci
-                    ON c.id = ci.customcertid
-            INNER JOIN {course} co
-                    ON c.course = co.id
-                 WHERE ci.userid = :userid
-              ORDER BY $sort";
-        return $DB->get_records_sql($sql, ['userid' => $userid], $limitfrom, $limitnum);
+        $repo = new certificate_repository();
+        return $repo->get_certificates_for_user($userid, $limitfrom, $limitnum, $sort);
     }
 
     /**
