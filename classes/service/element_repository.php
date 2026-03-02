@@ -35,6 +35,7 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
 use mod_customcert\local\ordering;
 use mod_customcert\event\element_created;
+use mod_customcert\service\element_factory;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
 use stdClass;
@@ -329,14 +330,8 @@ final class element_repository {
         $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
         // Fire created event for this element in the template context.
-        $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
-        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
-
-        $data = [
-            'contextid' => (int)$template->contextid,
-            'objectid' => $record->id,
-        ];
-        element_created::create($data)->trigger();
+        $created = element_factory::build_with_defaults()->create($element->get_type(), $record);
+        element_created::create_from_element($created)->trigger();
 
         return $record->id;
     }
