@@ -47,32 +47,44 @@ use stdClass;
 class certificate {
     /**
      * Send the file inline to the browser.
+     *
+     * @deprecated since Moodle 5.2
      */
     public const string DELIVERY_OPTION_INLINE = 'I';
 
     /**
-     * Send to the browser and force a file download
+     * Send to the browser and force a file download.
+     *
+     * @deprecated since Moodle 5.2
      */
     public const string DELIVERY_OPTION_DOWNLOAD = 'D';
 
     /**
      * @var string the print protection variable
+     *
+     * @deprecated since Moodle 5.2
      */
     public const string PROTECTION_PRINT = 'print';
 
     /**
      * @var string the modify protection variable
+     *
+     * @deprecated since Moodle 5.2
      */
     public const string PROTECTION_MODIFY = 'modify';
 
     /**
      * @var string the copy protection variable
+     *
+     * @deprecated since Moodle 5.2
      */
     public const string PROTECTION_COPY = 'copy';
 
     /**
      * @var int the number of issues that will be displayed on each page in the report
      *      If you want to display all customcerts on a page set this to 0.
+     *
+     * @deprecated since Moodle 5.2
      */
     public const int CUSTOMCERT_PER_PAGE = 50;
 
