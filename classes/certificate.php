@@ -32,6 +32,7 @@ use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
+use mod_customcert\element_helper;
 use stdClass;
 
 /**
