@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\certificate;
+use stdClass;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\legacy_element_adapter;
@@ -85,7 +86,7 @@ final class form_service {
 
         foreach ($filemanagers as $fm) {
             if (array_key_exists($fm, $data) && !empty($data[$fm])) {
-                certificate::upload_files((int) $data[$fm], $context->id, $fm === 'digitalsignature' ? 'signature' : 'image');
+                self::upload_files((int) $data[$fm], $context->id, $fm === 'digitalsignature' ? 'signature' : 'image');
             }
         }
 
@@ -100,5 +101,41 @@ final class form_service {
                 $data['filename'] = $file->get_filename();
             }
         }
+    }
+
+    /**
+     * Handles setting the protection field for the customcert.
+     *
+     * @param stdClass $data
+     * @return string the value to insert into the protection field
+     */
+    public static function set_protection(stdClass $data): string {
+        $protection = [];
+
+        if (!empty($data->protection_print)) {
+            $protection[] = certificate::PROTECTION_PRINT;
+        }
+        if (!empty($data->protection_modify)) {
+            $protection[] = certificate::PROTECTION_MODIFY;
+        }
+        if (!empty($data->protection_copy)) {
+            $protection[] = certificate::PROTECTION_COPY;
+        }
+
+        return implode(', ', $protection);
+    }
+
+    /**
+     * Handles uploading an image for the customcert module.
+     *
+     * @param int $draftitemid the draft area containing the files
+     * @param int $contextid the context we are storing this image in
+     * @param string $filearea identifies the file area.
+     */
+    public static function upload_files(int $draftitemid, int $contextid, string $filearea = 'image'): void {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/lib/filelib.php');
+        file_save_draft_area_files($draftitemid, $contextid, 'mod_customcert', $filearea, 0);
     }
 }

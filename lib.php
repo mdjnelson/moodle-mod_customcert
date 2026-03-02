@@ -28,6 +28,7 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
+use mod_customcert\service\form_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -47,7 +48,7 @@ function customcert_add_instance($data, $mform) {
 
     // Add the data to the DB.
     $data->templateid = $template->get_id();
-    $data->protection = \mod_customcert\certificate::set_protection($data);
+    $data->protection = form_service::set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
     $data->id = $DB->insert_record('customcert', $data);
@@ -69,7 +70,7 @@ function customcert_add_instance($data, $mform) {
 function customcert_update_instance($data, $mform) {
     global $DB;
 
-    $data->protection = \mod_customcert\certificate::set_protection($data);
+    $data->protection = form_service::set_protection($data);
     $data->timemodified = time();
     $data->id = $data->instance;
 
