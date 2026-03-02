@@ -214,6 +214,88 @@ final class element_repository_events_test extends advanced_testcase {
     }
 
     /**
+     * Ensure element_updated event is fired by update_position.
+     *
+     * @covers \mod_customcert\service\element_repository::update_position
+     */
+    public function test_update_position_fires_element_updated_event(): void {
+        global $DB;
+
+        $template = template::create('Repo events', \context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        $registry = new element_registry();
+        $registry->register('text', text_element::class);
+        $factory = new element_factory($registry);
+        $repository = new element_repository($factory);
+
+        $now = time();
+        $id = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'Pos event',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'data' => null,
+            'posx' => 0,
+            'posy' => 0,
+        ]);
+
+        $sink = $this->redirectEvents();
+        $repository->update_position($id, 30, 40);
+        $events = $sink->get_events();
+
+        $this->assertCount(1, $events);
+        $event = reset($events);
+        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
+        $this->assertEquals($id, $event->objectid);
+        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Ensure element_updated event is fired by update_name.
+     *
+     * @covers \mod_customcert\service\element_repository::update_name
+     */
+    public function test_update_name_fires_element_updated_event(): void {
+        global $DB;
+
+        $template = template::create('Repo events', \context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        $registry = new element_registry();
+        $registry->register('text', text_element::class);
+        $factory = new element_factory($registry);
+        $repository = new element_repository($factory);
+
+        $now = time();
+        $id = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'element' => 'text',
+            'name' => 'Old name',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'data' => null,
+        ]);
+
+        $sink = $this->redirectEvents();
+        $repository->update_name($id, 'New name');
+        $events = $sink->get_events();
+
+        $this->assertCount(1, $events);
+        $event = reset($events);
+        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
+        $this->assertEquals($id, $event->objectid);
+        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
      * Ensure element_updated event is fired for repository save.
      *
      * @covers \mod_customcert\service\element_repository::save

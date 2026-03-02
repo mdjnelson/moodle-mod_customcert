@@ -34,6 +34,7 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
 
 /**
  * Tests for element_repository list behaviour and ordering.
@@ -210,6 +211,99 @@ final class element_repository_test extends \advanced_testcase {
         $this->assertCount(1, $records);
         $this->assertSame([$page1], [(int) $records[0]->pageid]);
         $this->assertNotSame($otherid, (int) $records[0]->id);
+    }
+
+    /**
+     * Ensures update_position() persists the new coordinates.
+     *
+     * @covers ::update_position
+     */
+    public function test_update_position_persists_coordinates(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $context = context_course::instance($course->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+
+        $now = time();
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Pos test',
+            'element' => 'text',
+            'data' => null,
+            'posx' => 10,
+            'posy' => 20,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+
+        $this->repo->update_position($elementid, 55, 77);
+
+        $record = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $this->assertSame(55, (int) $record->posx);
+        $this->assertSame(77, (int) $record->posy);
+    }
+
+    /**
+     * Ensures update_name() persists the new name.
+     *
+     * @covers ::update_name
+     */
+    public function test_update_name_persists_name(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $context = context_course::instance($course->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+
+        $now = time();
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Old name',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ], true);
+
+        $this->repo->update_name($elementid, 'New name');
+
+        $record = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $this->assertSame('New name', $record->name);
     }
 
     /**
