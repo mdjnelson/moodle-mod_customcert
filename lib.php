@@ -25,6 +25,7 @@
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -97,7 +98,8 @@ function customcert_delete_instance($id) {
     $context = context_module::instance($cm->id);
 
     // Trigger issue_deleted events for each issue.
-    $issues = $DB->get_records('customcert_issues', ['customcertid' => $id]);
+    $issuerepo = new issue_repository();
+    $issues = $issuerepo->list_by_certificate($id);
     foreach ($issues as $issue) {
         $event = issue_deleted::create([
             'objectid' => $issue->id,
@@ -106,11 +108,8 @@ function customcert_delete_instance($id) {
         ]);
         $event->trigger();
     }
-
     // Delete the customcert issues.
-    if (!$DB->delete_records('customcert_issues', ['customcertid' => $id])) {
-        return false;
-    }
+    $issuerepo->delete_by_certificate($id);
 
     // Now, delete the template associated with this certificate.
     if ($DB->record_exists('customcert_templates', ['id' => $customcert->templateid])) {
@@ -188,10 +187,8 @@ function customcert_reset_course_form_defaults($course) {
  * @return stdClass the user outline object
  */
 function customcert_user_outline($course, $user, $mod, $customcert) {
-    global $DB;
-
     $result = new stdClass();
-    if ($issue = $DB->get_record('customcert_issues', ['customcertid' => $customcert->id, 'userid' => $user->id])) {
+    if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
         $result->info = get_string('receiveddate', 'customcert');
         $result->time = $issue->timecreated;
     } else {
@@ -212,9 +209,8 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
  * @return string the user complete information
  */
 function customcert_user_complete($course, $user, $mod, $customcert) {
-    global $DB, $OUTPUT;
-
-    if ($issue = $DB->get_record('customcert_issues', ['customcertid' => $customcert->id, 'userid' => $user->id])) {
+    global $OUTPUT;
+    if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
         echo $OUTPUT->box_start();
         echo get_string('receiveddate', 'customcert') . ": ";
         echo userdate($issue->timecreated);
