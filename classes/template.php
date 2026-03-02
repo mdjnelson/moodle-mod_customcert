@@ -193,7 +193,8 @@ class template {
      */
     public function create_preview_pdf(stdClass $user): pdf {
         debugging(
-            'template::create_preview_pdf() is deprecated since Moodle 5.2. Use pdf_generation_service::create_preview_pdf() instead.',
+            'template::create_preview_pdf() is deprecated since Moodle 5.2. '
+            . 'Use pdf_generation_service::create_preview_pdf() instead.',
             DEBUG_DEVELOPER
         );
         return $this->get_pdf_service()->create_preview_pdf($this, $user);
@@ -211,7 +212,8 @@ class template {
      */
     public function compute_filename_for_user(stdClass $user, ?stdClass $customcert): string {
         debugging(
-            'template::compute_filename_for_user() is deprecated since Moodle 5.2. Use pdf_generation_service::compute_filename_for_user() instead.',
+            'template::compute_filename_for_user() is deprecated since Moodle 5.2. '
+            . 'Use pdf_generation_service::compute_filename_for_user() instead.',
             DEBUG_DEVELOPER
         );
         return $this->get_pdf_service()->compute_filename_for_user($this, $user, $customcert);
