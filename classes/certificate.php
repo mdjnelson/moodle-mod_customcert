@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use mod_customcert\service\certificate_download_service;
+use mod_customcert\service\form_service;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_issue_service;
@@ -75,41 +76,38 @@ class certificate {
     public const int CUSTOMCERT_PER_PAGE = 50;
 
     /**
-     * Handles setting the protection field for the customcert
+     * Handles setting the protection field for the customcert.
      *
+     * @deprecated since Moodle 5.2
      * @param stdClass $data
      * @return string the value to insert into the protection field
      */
     public static function set_protection(stdClass $data): string {
-        $protection = [];
+        debugging(
+            'certificate::set_protection() is deprecated since Moodle 5.2. '
+            . 'Use form_service::set_protection() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        if (!empty($data->protection_print)) {
-            $protection[] = self::PROTECTION_PRINT;
-        }
-        if (!empty($data->protection_modify)) {
-            $protection[] = self::PROTECTION_MODIFY;
-        }
-        if (!empty($data->protection_copy)) {
-            $protection[] = self::PROTECTION_COPY;
-        }
-
-        // Return the protection string.
-        return implode(', ', $protection);
+        return form_service::set_protection($data);
     }
 
     /**
      * Handles uploading an image for the customcert module.
      *
+     * @deprecated since Moodle 5.2
      * @param int $draftitemid the draft area containing the files
      * @param int $contextid the context we are storing this image in
-     * @param string $filearea indentifies the file area.
+     * @param string $filearea identifies the file area.
      */
     public static function upload_files(int $draftitemid, int $contextid, string $filearea = 'image'): void {
-        global $CFG;
+        debugging(
+            'certificate::upload_files() is deprecated since Moodle 5.2. '
+            . 'Use form_service::upload_files() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        // Save the file if it exists that is currently in the draft area.
-        require_once($CFG->dirroot . '/lib/filelib.php');
-        file_save_draft_area_files($draftitemid, $contextid, 'mod_customcert', $filearea, 0);
+        form_service::upload_files($draftitemid, $contextid, $filearea);
     }
 
     /**
