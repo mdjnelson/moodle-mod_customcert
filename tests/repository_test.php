@@ -20,6 +20,7 @@ use advanced_testcase;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_email_repository;
 use mod_customcert\service\issue_repository;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 
 /**
@@ -158,6 +159,156 @@ final class repository_test extends advanced_testcase {
         $this->assertNotNull($loadeduser);
         $this->assertEquals($student->id, (int)$loadeduser->id);
         $this->assertEquals($issueid, (int)$loadeduser->issueid);
+    }
+
+    /**
+     * Ensures get_by_id_or_fail throws when issue does not exist.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_by_id_or_fail
+     */
+    public function test_issue_repository_get_by_id_or_fail_throws_when_missing(): void {
+        $this->expectException(\dml_missing_record_exception::class);
+        (new issue_repository())->get_by_id_or_fail(999999);
+    }
+
+    /**
+     * Ensures get_by_id_or_fail returns the record when it exists.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_by_id_or_fail
+     */
+    public function test_issue_repository_get_by_id_or_fail_returns_record(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $issueid = $repo->create($customcert->id, $student->id);
+        $record = $repo->get_by_id_or_fail($issueid);
+        $this->assertEquals($issueid, (int)$record->id);
+        $this->assertEquals($student->id, (int)$record->userid);
+    }
+
+    /**
+     * Ensures delete removes the issue record.
+     *
+     * @covers \mod_customcert\service\issue_repository::delete
+     */
+    public function test_issue_repository_delete_removes_record(): void {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $issueid = $repo->create($customcert->id, $student->id);
+        $this->assertTrue($DB->record_exists('customcert_issues', ['id' => $issueid]));
+        $repo->delete($issueid);
+        $this->assertFalse($DB->record_exists('customcert_issues', ['id' => $issueid]));
+    }
+
+    /**
+     * Ensures list_by_user_certificate returns all issues for a user/certificate pair.
+     *
+     * @covers \mod_customcert\service\issue_repository::list_by_user_certificate
+     */
+    public function test_issue_repository_list_by_user_certificate(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $issueid = $repo->create($customcert->id, $student->id);
+        $list = $repo->list_by_user_certificate($customcert->id, $student->id);
+        $this->assertCount(1, $list);
+        $this->assertArrayHasKey($issueid, $list);
+    }
+
+    /**
+     * Ensures exists_for_user returns correct boolean.
+     *
+     * @covers \mod_customcert\service\issue_repository::exists_for_user
+     */
+    public function test_issue_repository_exists_for_user(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $this->assertFalse($repo->exists_for_user($customcert->id, $student->id));
+        $repo->create($customcert->id, $student->id);
+        $this->assertTrue($repo->exists_for_user($customcert->id, $student->id));
+    }
+
+    /**
+     * Ensures list_by_certificate returns all issues for a certificate.
+     *
+     * @covers \mod_customcert\service\issue_repository::list_by_certificate
+     */
+    public function test_issue_repository_list_by_certificate(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $repo->create($customcert->id, $student1->id);
+        $repo->create($customcert->id, $student2->id);
+        $list = $repo->list_by_certificate($customcert->id);
+        $this->assertCount(2, $list);
+    }
+
+    /**
+     * Ensures delete_by_certificate removes all issues for a certificate.
+     *
+     * @covers \mod_customcert\service\issue_repository::delete_by_certificate
+     */
+    public function test_issue_repository_delete_by_certificate(): void {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $repo->create($customcert->id, $student->id);
+        $this->assertEquals(1, $DB->count_records('customcert_issues', ['customcertid' => $customcert->id]));
+        $repo->delete_by_certificate($customcert->id);
+        $this->assertEquals(0, $DB->count_records('customcert_issues', ['customcertid' => $customcert->id]));
+    }
+
+    /**
+     * Ensures delete_by_course removes all issues for all certificates in a course.
+     *
+     * @covers \mod_customcert\service\issue_repository::delete_by_course
+     */
+    public function test_issue_repository_delete_by_course(): void {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $cert1 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $cert2 = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $repo = new issue_repository();
+        $repo->create($cert1->id, $student->id);
+        $repo->create($cert2->id, $student->id);
+        $this->assertEquals(2, $DB->count_records('customcert_issues'));
+        $repo->delete_by_course($course->id);
+        $this->assertEquals(0, $DB->count_records('customcert_issues'));
+    }
+
+    /**
+     * Ensures template_repository::get_by_id returns null when not found and the record when found.
+     *
+     * @covers \mod_customcert\service\template_repository::get_by_id
+     */
+    public function test_template_repository_get_by_id(): void {
+        $repo = new template_repository();
+        $this->assertNull($repo->get_by_id(999999));
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $record = $repo->get_by_id((int)$customcert->templateid);
+        $this->assertNotNull($record);
+        $this->assertEquals($customcert->templateid, (int)$record->id);
     }
 
     /**
