@@ -50,6 +50,17 @@ final class template_repository {
     }
 
     /**
+     * Get a template by id, returning null if not found.
+     *
+     * @param int $id
+     * @return stdClass|null
+     */
+    public function get_by_id(int $id): ?stdClass {
+        global $DB;
+        return $DB->get_record('customcert_templates', ['id' => $id]) ?: null;
+    }
+
+    /**
      * List templates for a given context.
      *
      * @param int $contextid

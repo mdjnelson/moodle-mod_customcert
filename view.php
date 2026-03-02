@@ -31,6 +31,7 @@ use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
+use mod_customcert\service\template_repository;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -48,7 +49,7 @@ $perpage = optional_param('perpage', certificate::CUSTOMCERT_PER_PAGE, PARAM_INT
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
-$template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
+$template = (new template_repository())->get_by_id_or_fail((int)$customcert->templateid);
 
 // Ensure the user is allowed to view this page.
 require_login($course, false, $cm);
