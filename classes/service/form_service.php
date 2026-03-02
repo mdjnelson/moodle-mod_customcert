@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\certificate;
 use stdClass;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
@@ -40,6 +39,21 @@ use MoodleQuickForm;
  * Service for handling element forms.
  */
 final class form_service {
+    /**
+     * @var string the print protection variable
+     */
+    public const string PROTECTION_PRINT = 'print';
+
+    /**
+     * @var string the modify protection variable
+     */
+    public const string PROTECTION_MODIFY = 'modify';
+
+    /**
+     * @var string the copy protection variable
+     */
+    public const string PROTECTION_COPY = 'copy';
+
     /**
      * Build the form for an element.
      *
@@ -113,13 +127,13 @@ final class form_service {
         $protection = [];
 
         if (!empty($data->protection_print)) {
-            $protection[] = certificate::PROTECTION_PRINT;
+            $protection[] = self::PROTECTION_PRINT;
         }
         if (!empty($data->protection_modify)) {
-            $protection[] = certificate::PROTECTION_MODIFY;
+            $protection[] = self::PROTECTION_MODIFY;
         }
         if (!empty($data->protection_copy)) {
-            $protection[] = certificate::PROTECTION_COPY;
+            $protection[] = self::PROTECTION_COPY;
         }
 
         return implode(', ', $protection);
