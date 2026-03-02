@@ -58,20 +58,15 @@ class report_table extends table_sql {
      */
     protected stdClass $cm;
 
-    /**
-     * @var int $groupmode the group mode
-     */
-    protected int $groupmode;
 
     /**
      * Sets up the table.
      *
      * @param int $customcertid
      * @param stdClass $cm the course module
-     * @param int $groupmode the group mode
      * @param string|null $download The file type, null if we are not downloading
      */
-    public function __construct($customcertid, $cm, $groupmode, $download = null) {
+    public function __construct($customcertid, $cm, $download = null) {
         parent::__construct('mod_customcert_report_table');
 
         $context = context_module::instance($cm->id);
@@ -133,7 +128,6 @@ class report_table extends table_sql {
 
         $this->customcertid = $customcertid;
         $this->cm = $cm;
-        $this->groupmode = $groupmode;
     }
 
     /**
@@ -241,13 +235,12 @@ class report_table extends table_sql {
      */
     public function query_db($pagesize, $useinitialsbar = true) {
         $issuerepo = new issue_repository();
-        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
+        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm);
 
         $this->pagesize($pagesize, $total);
 
         $this->rawdata = $issuerepo->get_issues(
             $this->customcertid,
-            $this->groupmode,
             $this->cm,
             $this->get_page_start(),
             $this->get_page_size(),
@@ -266,7 +259,7 @@ class report_table extends table_sql {
     public function download() {
         manager::write_close();
         $issuerepo = new issue_repository();
-        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
+        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm);
         $this->out($total, false);
         exit;
     }

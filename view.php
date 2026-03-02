@@ -129,7 +129,7 @@ $issuerepo = new issue_repository();
 // Check if we are downloading all certificates.
 if ($downloadall && $canviewreport && confirm_sesskey()) {
     $template = \mod_customcert\template::load((int)$template->id);
-    $issues = $issuerepo->get_issues($customcert->id, $groupmode, $cm, 0, 0);
+    $issues = $issuerepo->get_issues($customcert->id, $cm, 0, 0);
 
     // The button is not visible if there are no issues, so in this case just redirect back to this page.
     if (empty($issues)) {
@@ -154,7 +154,7 @@ if (!$downloadown && !$downloadissue) {
     // Generate the table to the report if there are issues to display.
     if ($canviewreport) {
         // Get the total number of issues.
-        $reporttable = new report_table($customcert->id, $cm, $groupmode, $downloadtable);
+        $reporttable = new report_table($customcert->id, $cm, $downloadtable);
         $reporttable->define_baseurl($pageurl);
 
         if ($reporttable->is_downloading()) {
@@ -190,7 +190,7 @@ if (!$downloadown && !$downloadissue) {
         }
     }
 
-    $numissues = $issuerepo->get_number_of_issues($customcert->id, $cm, $groupmode);
+    $numissues = $issuerepo->get_number_of_issues($customcert->id, $cm);
 
     $downloadallbutton = '';
     if ($canviewreport && $numissues > 0) {

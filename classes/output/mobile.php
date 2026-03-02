@@ -107,9 +107,8 @@ class mobile {
 
             // Get the groups (if any) to display - also sets active group.
             $groups = self::get_groups($cm, $groupid, $USER->id);
-            $groupmode = groups_get_activity_groupmode($cm);
             $issuerepo = new issue_repository();
-            $recipients = $issuerepo->get_issues($certificate->id, $groupmode, $cm, 0, 0);
+            $recipients = $issuerepo->get_issues($certificate->id, $cm, 0, 0);
             foreach ($recipients as $recipient) {
                 $recipient->displayname = fullname($recipient);
                 $recipient->fileurl = new moodle_url('/mod/customcert/mobile/pluginfile.php', ['certificateid' => $certificate->id,
