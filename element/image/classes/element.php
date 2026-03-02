@@ -31,6 +31,7 @@ use context_system;
 use core_collator;
 use html_writer;
 use mod_customcert\certificate;
+use mod_customcert\service\form_service;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
@@ -214,7 +215,7 @@ class element extends base_element implements
 
         // Handle file uploads.
         if (isset($formdata->customcertimage)) {
-            certificate::upload_files($formdata->customcertimage, $context->id);
+            form_service::upload_files($formdata->customcertimage, $context->id);
         }
 
         $arrtostore = [
