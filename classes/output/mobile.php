@@ -108,10 +108,6 @@ class mobile {
             // Get the groups (if any) to display - also sets active group.
             $groups = self::get_groups($cm, $groupid, $USER->id);
             $groupmode = groups_get_activity_groupmode($cm);
-            if (has_capability('moodle/site:accessallgroups', $context)) {
-                $groupmode = 'aag';
-            }
-
             $issuerepo = new issue_repository();
             $recipients = $issuerepo->get_issues($certificate->id, $groupmode, $cm, 0, 0);
             foreach ($recipients as $recipient) {
