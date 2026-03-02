@@ -445,7 +445,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
 
         // Clean input and update the record.
         $newname = clean_param($newvalue, PARAM_TEXT);
-        $elementrepo->update_name((int)$element->id, $newname);
+        $elementrepo->update_name((int)$element->id, $newname, (int)$template->get_contextid());
 
         return new \core\output\inplace_editable(
             'mod_customcert',
