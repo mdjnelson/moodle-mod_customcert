@@ -238,7 +238,7 @@ class certificate {
         );
 
         $repo = new issue_repository();
-        return $repo->get_issues($customcertid, $groupmode, $cm, $limitfrom, $limitnum, $sort);
+        return $repo->get_issues($customcertid, $cm, $limitfrom, $limitnum, $sort);
     }
 
     /**
@@ -257,7 +257,7 @@ class certificate {
         );
 
         $repo = new issue_repository();
-        return $repo->get_number_of_issues($customcertid, $cm, $groupmode);
+        return $repo->get_number_of_issues($customcertid, $cm);
     }
 
     /**
@@ -276,7 +276,7 @@ class certificate {
         );
 
         $repo = new issue_repository();
-        return $repo->get_conditional_issues_sql($cm, $groupmode);
+        return $repo->get_conditional_issues_sql($cm);
     }
 
     /**
