@@ -145,6 +145,21 @@ final class issue_repository {
     }
 
     /**
+     * Delete all issues for all certificates in a course.
+     *
+     * @param int $courseid
+     * @return void
+     */
+    public function delete_by_course(int $courseid): void {
+        global $DB;
+
+        $sql = "SELECT cert.id
+                  FROM {customcert} cert
+                 WHERE cert.course = :courseid";
+        $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $courseid]);
+    }
+
+    /**
      * List user ids that already have emailed issues for a certificate.
      *
      * @param int $customcertid
