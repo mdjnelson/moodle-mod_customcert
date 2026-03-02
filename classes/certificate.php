@@ -186,7 +186,8 @@ class certificate {
      */
     public static function get_course_time(int $courseid, int $userid = 0): int {
         debugging(
-            'certificate::get_course_time() is deprecated since Moodle 5.2. Use certificate_time_service::get_course_time() instead.',
+            'certificate::get_course_time() is deprecated since Moodle 5.2. '
+            . 'Use certificate_time_service::get_course_time() instead.',
             DEBUG_DEVELOPER
         );
 
@@ -430,7 +431,8 @@ class certificate {
      */
     public static function issue_certificate(int $certificateid, int $userid): int {
         debugging(
-            'certificate::issue_certificate() is deprecated since Moodle 5.2. Use certificate_issue_service::issue_certificate() instead.',
+            'certificate::issue_certificate() is deprecated since Moodle 5.2. '
+            . 'Use certificate_issue_service::issue_certificate() instead.',
             DEBUG_DEVELOPER
         );
 
