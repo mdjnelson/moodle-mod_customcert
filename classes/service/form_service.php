@@ -31,8 +31,6 @@ use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\preparable_form_interface;
-use mod_customcert\element_helper;
-use moodleform;
 use MoodleQuickForm;
 
 /**
