@@ -127,10 +127,12 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }
 
+$issuerepo = new issue_repository();
+
 // Check if we are downloading all certificates.
 if ($downloadall && $canviewreport && confirm_sesskey()) {
     $template = \mod_customcert\template::load((int)$template->id);
-    $issues = certificate::get_issues($customcert->id, $groupmode, $cm, 0, 0);
+    $issues = $issuerepo->get_issues($customcert->id, $groupmode, $cm, 0, 0);
 
     // The button is not visible if there are no issues, so in this case just redirect back to this page.
     if (empty($issues)) {
@@ -166,7 +168,6 @@ if (!$downloadown && !$downloadissue) {
 
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuehtml = '';
-    $issuerepo = new issue_repository();
     $issues = $issuerepo->list_by_user_certificate((int)$customcert->id, (int)$USER->id);
     if ($issues && !$canmanage) {
         // Get the most recent issue (there should only be one).
@@ -192,7 +193,7 @@ if (!$downloadown && !$downloadissue) {
         }
     }
 
-    $numissues = certificate::get_number_of_issues($customcert->id, $cm, $groupmode);
+    $numissues = $issuerepo->get_number_of_issues($customcert->id, $cm, $groupmode);
 
     $downloadallbutton = '';
     if ($canviewreport && $numissues > 0) {

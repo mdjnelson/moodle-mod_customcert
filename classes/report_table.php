@@ -25,6 +25,7 @@
 namespace mod_customcert;
 
 use context_module;
+use mod_customcert\service\issue_repository;
 use core\session\manager;
 use core_user\fields;
 use customcertelement_expiry\element as expiry_element;
@@ -239,11 +240,12 @@ class report_table extends table_sql {
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
     public function query_db($pagesize, $useinitialsbar = true) {
-        $total = certificate::get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
+        $issuerepo = new issue_repository();
+        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
 
         $this->pagesize($pagesize, $total);
 
-        $this->rawdata = certificate::get_issues(
+        $this->rawdata = $issuerepo->get_issues(
             $this->customcertid,
             $this->groupmode,
             $this->cm,
@@ -263,7 +265,8 @@ class report_table extends table_sql {
      */
     public function download() {
         manager::write_close();
-        $total = certificate::get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
+        $issuerepo = new issue_repository();
+        $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm, $this->groupmode);
         $this->out($total, false);
         exit;
     }
