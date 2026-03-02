@@ -105,7 +105,7 @@ final class issue_repository {
      */
     public function delete_for_certificate(int $id, int $customcertid): void {
         $issue = $this->get_by_id_or_fail($id);
-        if ((int)$issue->customcertid !== $customcertid) {
+        if ((int)$issue->customcertid !== (int)$customcertid) {
             throw new \moodle_exception('invalidrequest');
         }
         $this->delete($id);
