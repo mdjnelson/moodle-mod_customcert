@@ -26,6 +26,8 @@ use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\issue_repository;
+use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -112,7 +114,7 @@ function customcert_delete_instance($id) {
     $issuerepo->delete_by_certificate($id);
 
     // Now, delete the template associated with this certificate.
-    if ($DB->record_exists('customcert_templates', ['id' => $customcert->templateid])) {
+    if ((new template_repository())->get_by_id((int)$customcert->templateid) !== null) {
         $templateservice = template_service::create();
         $templateservice->delete(template::load((int)$customcert->templateid));
     }
@@ -420,14 +422,14 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
  * @return \core\output\inplace_editable
  */
 function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
-    global $DB, $PAGE;
+    global $PAGE;
 
     if ($itemtype === 'elementname') {
         $factory = element_factory::build_with_defaults();
         $elementrepo = new element_repository($factory);
 
         $element = $elementrepo->get_by_id_or_fail((int)$itemid);
-        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
         // Set the template object.
         $template = template::load((int)$page->templateid);
