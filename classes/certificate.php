@@ -26,16 +26,12 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
-use context_module;
-use core_user\fields;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
-use pdf;
 use stdClass;
-use TCPDF_FONTS;
 
 /**
  * Class certificate.
@@ -118,64 +114,34 @@ class certificate {
 
     /**
      * Return the list of possible fonts to use.
+     *
+     * @deprecated since Moodle 5.2
+     * @return array
      */
     public static function get_fonts(): array {
-        global $CFG;
+        debugging(
+            'certificate::get_fonts() is deprecated since Moodle 5.2. '
+            . 'Use element_helper::get_fonts() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        require_once($CFG->libdir . '/pdflib.php');
-
-        $arrfonts = [];
-        $pdf = new pdf();
-        $fontfamilies = $pdf->get_font_families();
-        foreach ($fontfamilies as $fontfamily => $fontstyles) {
-            foreach ($fontstyles as $fontstyle) {
-                $fontstyle = strtolower($fontstyle);
-                if ($fontstyle == 'r') {
-                    $filenamewoextension = $fontfamily;
-                } else {
-                    $filenamewoextension = $fontfamily . $fontstyle;
-                }
-                $fullpath = TCPDF_FONTS::_getfontpath() . $filenamewoextension;
-                // Set the name of the font to null, the include next should then set this
-                // value, if it is not set then the file does not include the necessary data.
-                $name = null;
-                // Some files include a display name, the include next should then set this
-                // value if it is present, if not then $name is used to create the display name.
-                $displayname = null;
-                // Some of the TCPDF files include files that are not present, so we have to
-                // suppress warnings, this is the TCPDF libraries fault, grrr.
-                @include($fullpath . '.php');
-                // If no $name variable in file, skip it.
-                if (is_null($name)) {
-                    continue;
-                }
-                // Check if there is no display name to use.
-                if (is_null($displayname)) {
-                    // Format the font name, so "FontName-Style" becomes "Font Name - Style".
-                    $displayname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);
-                    $displayname = preg_replace("/([a-zA-Z])-([a-zA-Z])/", "$1 - $2", $displayname);
-                }
-
-                $arrfonts[$filenamewoextension] = $displayname;
-            }
-        }
-        ksort($arrfonts);
-
-        return $arrfonts;
+        return element_helper::get_fonts();
     }
 
     /**
      * Return the list of possible font sizes to use.
+     *
+     * @deprecated since Moodle 5.2
+     * @return array
      */
     public static function get_font_sizes(): array {
-        // Array to store the sizes.
-        $sizes = [];
+        debugging(
+            'certificate::get_font_sizes() is deprecated since Moodle 5.2. '
+            . 'Use element_helper::get_font_sizes() instead.',
+            DEBUG_DEVELOPER
+        );
 
-        for ($i = 1; $i <= 200; $i++) {
-            $sizes[$i] = $i;
-        }
-
-        return $sizes;
+        return element_helper::get_font_sizes();
     }
 
     /**
