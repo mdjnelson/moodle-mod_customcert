@@ -276,14 +276,14 @@ final class element_repository {
     /**
      * Trigger the element_updated event.
      *
-     * @param int $id Element id.
+     * @param int $elementid Element id.
      * @param int $contextid Context id.
      * @return void
      */
-    private function trigger_element_updated(int $id, int $contextid): void {
+    private function trigger_element_updated(int $elementid, int $contextid): void {
         element_updated::create([
             'contextid' => $contextid,
-            'objectid' => $id,
+            'objectid' => $elementid,
         ])->trigger();
     }
 
