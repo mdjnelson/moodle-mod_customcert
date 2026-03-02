@@ -100,7 +100,10 @@ class template {
      * @return int the id of the page
      */
     public function add_page(bool $triggertemplateupdatedevent = true): int {
-        debugging('template::add_page() is deprecated since Moodle 5.2. Use template_service::add_page() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::add_page() is deprecated since Moodle 5.2. Use template_service::add_page() instead.',
+            DEBUG_DEVELOPER
+        );
         return $this->get_service()->add_page($this, $triggertemplateupdatedevent);
     }
 
@@ -111,7 +114,10 @@ class template {
      * @param stdClass $data the template data
      */
     public function save_page(stdClass $data): void {
-        debugging('template::save_page() is deprecated since Moodle 5.2. Use template_service::save_pages() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::save_page() is deprecated since Moodle 5.2. Use template_service::save_pages() instead.',
+            DEBUG_DEVELOPER
+        );
         $this->get_service()->save_pages($this, $data);
     }
 
@@ -135,7 +141,10 @@ class template {
      * during deletion of template.
      */
     public function delete_page(int $pageid, bool $triggertemplateupdatedevent = true): void {
-        debugging('template::delete_page() is deprecated since Moodle 5.2. Use template_service::delete_page() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::delete_page() is deprecated since Moodle 5.2. Use template_service::delete_page() instead.',
+            DEBUG_DEVELOPER
+        );
         $this->get_service()->delete_page($this, $pageid, $triggertemplateupdatedevent);
     }
 
@@ -146,7 +155,11 @@ class template {
      * @param int $elementid the template page
      */
     public function delete_element(int $elementid): void {
-        debugging('template::delete_element() is deprecated since Moodle 5.2. Use template_service::delete_element() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::delete_element() is deprecated since Moodle 5.2. '
+            . 'Use template_service::delete_element() instead.',
+            DEBUG_DEVELOPER
+        );
         $this->get_service()->delete_element($this, $elementid);
     }
 
@@ -160,7 +173,11 @@ class template {
      * @return string|void Can return the PDF in string format if specified.
      */
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
-        debugging('template::generate_pdf() is deprecated since Moodle 5.2. Use pdf_generation_service::generate_pdf() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::generate_pdf() is deprecated since Moodle 5.2. '
+            . 'Use pdf_generation_service::generate_pdf() instead.',
+            DEBUG_DEVELOPER
+        );
         return $this->get_pdf_service()->generate_pdf($this, $preview, $userid, $return);
     }
 
@@ -207,7 +224,11 @@ class template {
      * @param template $copytotemplate The template instance to copy to
      */
     public function copy_to_template(template $copytotemplate): void {
-        debugging('template::copy_to_template() is deprecated since Moodle 5.2. Use template_service::copy_to_template() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::copy_to_template() is deprecated since Moodle 5.2. '
+            . 'Use template_service::copy_to_template() instead.',
+            DEBUG_DEVELOPER
+        );
         $this->get_service()->copy_to_template($this, $copytotemplate);
     }
 
@@ -220,7 +241,10 @@ class template {
      * @param string $direction the direction
      */
     public function move_item(string $itemname, int $itemid, string $direction): void {
-        debugging('template::move_item() is deprecated since Moodle 5.2. Use template_service::move_item() instead.', DEBUG_DEVELOPER);
+        debugging(
+            'template::move_item() is deprecated since Moodle 5.2. Use template_service::move_item() instead.',
+            DEBUG_DEVELOPER
+        );
         $this->get_service()->move_item($this, $itemname, $itemid, $direction);
     }
 
