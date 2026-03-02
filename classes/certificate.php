@@ -179,14 +179,14 @@ class certificate {
     /**
      * Get the time the user has spent in the course.
      *
+     * @deprecated since Moodle 5.2
      * @param int $courseid
      * @param int $userid
      * @return int the total time spent in seconds
-     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_time_service::get_course_time() instead.
      */
     public static function get_course_time(int $courseid, int $userid = 0): int {
         debugging(
-            'certificate::get_course_time() is deprecated; use certificate_time_service::get_course_time() instead.',
+            'certificate::get_course_time() is deprecated since Moodle 5.2. Use certificate_time_service::get_course_time() instead.',
             DEBUG_DEVELOPER
         );
 
@@ -197,16 +197,16 @@ class certificate {
     /**
      * Download all certificate issues.
      *
+     * @deprecated since Moodle 5.2
      * @param template $template
      * @param array $issues
      * @return void
      * @throws \moodle_exception
-     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_download_service::download_all_issues_for_instance() instead.
      */
     public static function download_all_issues_for_instance(template $template, array $issues): void {
         debugging(
-            'certificate::download_all_issues_for_instance() is deprecated; '
-            . 'use certificate_download_service::download_all_issues_for_instance() instead.',
+            'certificate::download_all_issues_for_instance() is deprecated since Moodle 5.2. '
+            . 'Use certificate_download_service::download_all_issues_for_instance() instead.',
             DEBUG_DEVELOPER
         );
 
@@ -217,13 +217,13 @@ class certificate {
     /**
      * Download all certificates on the site.
      *
+     * @deprecated since Moodle 5.2
      * @return void
-     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_download_service::download_all_for_site() instead.
      */
     public static function download_all_for_site(): void {
         debugging(
-            'certificate::download_all_for_site() is deprecated; '
-            . 'use certificate_download_service::download_all_for_site() instead.',
+            'certificate::download_all_for_site() is deprecated since Moodle 5.2. '
+            . 'Use certificate_download_service::download_all_for_site() instead.',
             DEBUG_DEVELOPER
         );
 
@@ -423,14 +423,14 @@ class certificate {
     /**
      * Issues a certificate to a user.
      *
+     * @deprecated since Moodle 5.2
      * @param int $certificateid The ID of the certificate
      * @param int $userid The ID of the user to issue the certificate to
      * @return int The ID of the issue
-     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_issue_service::issue_certificate() instead.
      */
     public static function issue_certificate(int $certificateid, int $userid): int {
         debugging(
-            'certificate::issue_certificate() is deprecated; use certificate_issue_service::issue_certificate() instead.',
+            'certificate::issue_certificate() is deprecated since Moodle 5.2. Use certificate_issue_service::issue_certificate() instead.',
             DEBUG_DEVELOPER
         );
 
@@ -441,12 +441,12 @@ class certificate {
     /**
      * Generates an unused code of random letters and numbers.
      *
+     * @deprecated since Moodle 5.2
      * @return string
-     * @deprecated since 5.2.0 Use \mod_customcert\service\certificate_issue_service::generate_code() instead.
      */
     public static function generate_code(): string {
         debugging(
-            'certificate::generate_code() is deprecated; use certificate_issue_service::generate_code() instead.',
+            'certificate::generate_code() is deprecated since Moodle 5.2. Use certificate_issue_service::generate_code() instead.',
             DEBUG_DEVELOPER
         );
 
