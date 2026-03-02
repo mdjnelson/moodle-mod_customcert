@@ -250,7 +250,7 @@ final class element_repository {
         $record->timemodified = time();
         $DB->update_record('customcert_elements', $record);
 
-        $this->trigger_element_updated($id, $contextid);
+        element_updated::create(['contextid' => $contextid, 'objectid' => $id])->trigger();
     }
 
     /**
@@ -270,21 +270,7 @@ final class element_repository {
         $record->timemodified = time();
         $DB->update_record('customcert_elements', $record);
 
-        $this->trigger_element_updated($id, $contextid);
-    }
-
-    /**
-     * Trigger the element_updated event.
-     *
-     * @param int $elementid Element id.
-     * @param int $contextid Context id.
-     * @return void
-     */
-    private function trigger_element_updated(int $elementid, int $contextid): void {
-        element_updated::create([
-            'contextid' => $contextid,
-            'objectid' => $elementid,
-        ])->trigger();
+        element_updated::create(['contextid' => $contextid, 'objectid' => $id])->trigger();
     }
 
     /**
