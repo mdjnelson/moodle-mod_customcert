@@ -138,16 +138,11 @@ function customcert_delete_instance($id) {
  * @return array status array
  */
 function customcert_reset_userdata($data) {
-    global $DB;
-
     $componentstr = get_string('modulenameplural', 'customcert');
     $status = [];
 
     if (!empty($data->reset_customcert)) {
-        $sql = "SELECT cert.id
-                  FROM {customcert} cert
-                 WHERE cert.course = :courseid";
-        $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $data->courseid]);
+        (new issue_repository())->delete_by_course((int)$data->courseid);
         $status[] = ['component' => $componentstr, 'item' => get_string('deleteissuedcertificates', 'customcert'),
             'error' => false];
     }
