@@ -117,6 +117,10 @@ final class element_factory {
             return null;
         }
 
+        if (!$this->registry->has($type)) {
+            return null;
+        }
+
         // Preserve legacy behaviour: default the name when not provided so forms/tests relying on
         // legacy construction still see a sensible value (pluginname).
         if (!property_exists($record, 'name') || $record->name === null || $record->name === '') {
