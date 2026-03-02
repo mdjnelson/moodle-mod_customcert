@@ -23,6 +23,8 @@
  */
 
 use mod_customcert\event\issue_deleted;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
@@ -320,10 +322,11 @@ function customcert_cron() {
  * @return string
  */
 function mod_customcert_output_fragment_editelement($args) {
-    global $DB;
+    $factory = element_factory::build_with_defaults();
+    $elementrepo = new element_repository($factory);
 
     // Get the element.
-    $element = $DB->get_record('customcert_elements', ['id' => $args['elementid']], '*', MUST_EXIST);
+    $element = $elementrepo->get_by_id_or_fail((int)$args['elementid']);
 
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
     $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
@@ -429,9 +432,11 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
     global $DB, $PAGE;
 
     if ($itemtype === 'elementname') {
-        $element = $DB->get_record('customcert_elements', ['id' => $itemid], '*', MUST_EXIST);
+        $factory = element_factory::build_with_defaults();
+        $elementrepo = new element_repository($factory);
+
+        $element = $elementrepo->get_by_id_or_fail((int)$itemid);
         $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
-        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
 
         // Set the template object.
         $template = template::load((int)$page->templateid);
@@ -446,18 +451,16 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $template->require_manage();
 
         // Clean input and update the record.
-        $updateelement = new stdClass();
-        $updateelement->id = $element->id;
-        $updateelement->name = clean_param($newvalue, PARAM_TEXT);
-        $DB->update_record('customcert_elements', $updateelement);
+        $newname = clean_param($newvalue, PARAM_TEXT);
+        $elementrepo->update_name((int)$element->id, $newname);
 
         return new \core\output\inplace_editable(
             'mod_customcert',
             'elementname',
             $element->id,
             true,
-            $updateelement->name,
-            $updateelement->name
+            $newname,
+            $newname
         );
     }
 }
