@@ -231,6 +231,60 @@ final class element_repository {
     }
 
     /**
+     * Update the position of an element and fire the updated event.
+     *
+     * @param int $id Element id.
+     * @param int $posx New X position.
+     * @param int $posy New Y position.
+     * @return void
+     */
+    public function update_position(int $id, int $posx, int $posy): void {
+        global $DB;
+
+        $record = new stdClass();
+        $record->id = $id;
+        $record->posx = $posx;
+        $record->posy = $posy;
+        $record->timemodified = time();
+        $DB->update_record('customcert_elements', $record);
+
+        $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+
+        element_updated::create([
+            'contextid' => (int)$template->contextid,
+            'objectid' => $id,
+        ])->trigger();
+    }
+
+    /**
+     * Update the name of an element and fire the updated event.
+     *
+     * @param int $id Element id.
+     * @param string $name New name.
+     * @return void
+     */
+    public function update_name(int $id, string $name): void {
+        global $DB;
+
+        $record = new stdClass();
+        $record->id = $id;
+        $record->name = $name;
+        $record->timemodified = time();
+        $DB->update_record('customcert_elements', $record);
+
+        $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+
+        element_updated::create([
+            'contextid' => (int)$template->contextid,
+            'objectid' => $id,
+        ])->trigger();
+    }
+
+    /**
      * Delete an element record and fire the deleted event.
      *
      * @param element_interface $element
