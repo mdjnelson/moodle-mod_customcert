@@ -104,6 +104,13 @@ After (5.2+):
   - `external::save_element()` ignores JSON list payloads for `data` to prevent numeric-key pollution of stored element JSON.
 
 ### Deprecated
+Static utility methods on `certificate` have been moved to dedicated service/repository classes and deprecated as of 5.2:
+- `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
+- `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
+- `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
+- `certificate::set_protection()` → `form_service`
+- `certificate::upload_files()` → `form_service`
+
 Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::render_form_elements()` → implement `form_buildable_interface::build_form()` and use `element_helper::render_common_form_elements()` for standard fields
 - `element::definition_after_data()` → implement `preparable_form_interface::prepare_form()`
