@@ -243,15 +243,16 @@ final class element_repository_events_test extends advanced_testcase {
             'posy' => 0,
         ]);
 
+        $contextid = \context_system::instance()->id;
         $sink = $this->redirectEvents();
-        $repository->update_position($id, 30, 40);
+        $repository->update_position($id, 30, 40, $contextid);
         $events = $sink->get_events();
 
         $this->assertCount(1, $events);
         $event = reset($events);
         $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
         $this->assertEquals($id, $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals($contextid, $event->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -277,89 +278,6 @@ final class element_repository_events_test extends advanced_testcase {
             'pageid' => $pageid,
             'element' => 'text',
             'name' => 'Old name',
-            'sequence' => 1,
-            'timecreated' => $now,
-            'timemodified' => $now,
-            'data' => null,
-        ]);
-
-        $sink = $this->redirectEvents();
-        $repository->update_name($id, 'New name');
-        $events = $sink->get_events();
-
-        $this->assertCount(1, $events);
-        $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
-        $this->assertEquals($id, $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * Ensure update_position uses the supplied contextid and skips extra DB lookups.
-     *
-     * @covers \mod_customcert\service\element_repository::update_position
-     */
-    public function test_update_position_with_contextid_fires_element_updated_event(): void {
-        global $DB;
-
-        $template = template::create('Repo events', \context_system::instance()->id);
-        $service = template_service::create();
-        $pageid = $service->add_page($template);
-
-        $registry = new element_registry();
-        $registry->register('text', text_element::class);
-        $factory = new element_factory($registry);
-        $repository = new element_repository($factory);
-
-        $now = time();
-        $id = $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
-            'element' => 'text',
-            'name' => 'Pos event contextid',
-            'sequence' => 1,
-            'timecreated' => $now,
-            'timemodified' => $now,
-            'data' => null,
-            'posx' => 0,
-            'posy' => 0,
-        ]);
-
-        $contextid = \context_system::instance()->id;
-        $sink = $this->redirectEvents();
-        $repository->update_position($id, 30, 40, $contextid);
-        $events = $sink->get_events();
-
-        $this->assertCount(1, $events);
-        $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
-        $this->assertEquals($id, $event->objectid);
-        $this->assertEquals($contextid, $event->contextid);
-        $this->assertDebuggingNotCalled();
-    }
-
-    /**
-     * Ensure update_name uses the supplied contextid and skips extra DB lookups.
-     *
-     * @covers \mod_customcert\service\element_repository::update_name
-     */
-    public function test_update_name_with_contextid_fires_element_updated_event(): void {
-        global $DB;
-
-        $template = template::create('Repo events', \context_system::instance()->id);
-        $service = template_service::create();
-        $pageid = $service->add_page($template);
-
-        $registry = new element_registry();
-        $registry->register('text', text_element::class);
-        $factory = new element_factory($registry);
-        $repository = new element_repository($factory);
-
-        $now = time();
-        $id = $DB->insert_record('customcert_elements', (object) [
-            'pageid' => $pageid,
-            'element' => 'text',
-            'name' => 'Old name contextid',
             'sequence' => 1,
             'timecreated' => $now,
             'timemodified' => $now,

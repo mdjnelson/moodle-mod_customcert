@@ -253,7 +253,7 @@ final class element_repository_test extends \advanced_testcase {
             'timemodified' => $now,
         ], true);
 
-        $this->repo->update_position($elementid, 55, 77);
+        $this->repo->update_position($elementid, 55, 77, $context->id);
 
         $record = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
         $this->assertSame(55, (int) $record->posx);
@@ -300,7 +300,7 @@ final class element_repository_test extends \advanced_testcase {
             'timemodified' => $now,
         ], true);
 
-        $this->repo->update_name($elementid, 'New name');
+        $this->repo->update_name($elementid, 'New name', $context->id);
 
         $record = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
         $this->assertSame('New name', $record->name);
