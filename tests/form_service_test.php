@@ -156,4 +156,44 @@ final class form_service_test extends advanced_testcase {
     private function get_calls(array $calls, string $method): array {
         return $calls[$method] ?? [];
     }
+
+    /**
+     * set_protection returns empty string when no flags set.
+     *
+     * @covers \mod_customcert\service\form_service::set_protection
+     */
+    public function test_set_protection_returns_empty_when_no_flags(): void {
+        $data = (object) [];
+        $this->assertSame('', form_service::set_protection($data));
+    }
+
+    /**
+     * set_protection returns all flags when all are set.
+     *
+     * @covers \mod_customcert\service\form_service::set_protection
+     */
+    public function test_set_protection_returns_all_flags(): void {
+        $data = (object) [
+            'protection_print' => 1,
+            'protection_modify' => 1,
+            'protection_copy' => 1,
+        ];
+        $result = form_service::set_protection($data);
+        $this->assertStringContainsString(form_service::PROTECTION_PRINT, $result);
+        $this->assertStringContainsString(form_service::PROTECTION_MODIFY, $result);
+        $this->assertStringContainsString(form_service::PROTECTION_COPY, $result);
+    }
+
+    /**
+     * set_protection returns only the flags that are set.
+     *
+     * @covers \mod_customcert\service\form_service::set_protection
+     */
+    public function test_set_protection_returns_only_set_flags(): void {
+        $data = (object) ['protection_print' => 1];
+        $result = form_service::set_protection($data);
+        $this->assertSame(form_service::PROTECTION_PRINT, $result);
+        $this->assertStringNotContainsString(form_service::PROTECTION_MODIFY, $result);
+        $this->assertStringNotContainsString(form_service::PROTECTION_COPY, $result);
+    }
 }

@@ -419,7 +419,37 @@ final class element_helper_test extends advanced_testcase {
         $this->assertEquals(null, $grade->get_grade());
         $this->assertEquals('-', $grade->get_displaygrade());
         $this->assertEquals(null, $grade->get_dategraded());
-
         grade_get_setting($course->id, null, null, true);
+    }
+
+    /**
+     * get_fonts returns a non-empty array of font names.
+     *
+     * @covers \mod_customcert\element_helper::get_fonts
+     */
+    public function test_get_fonts_returns_non_empty_array(): void {
+        $fonts = element_helper::get_fonts();
+        $this->assertIsArray($fonts);
+        $this->assertNotEmpty($fonts);
+        // Each value should be a string font name.
+        foreach ($fonts as $key => $value) {
+            $this->assertIsString($key);
+            $this->assertIsString($value);
+        }
+    }
+
+    /**
+     * get_font_sizes returns a non-empty array mapping size to size.
+     *
+     * @covers \mod_customcert\element_helper::get_font_sizes
+     */
+    public function test_get_font_sizes_returns_non_empty_array(): void {
+        $sizes = element_helper::get_font_sizes();
+        $this->assertIsArray($sizes);
+        $this->assertNotEmpty($sizes);
+        foreach ($sizes as $key => $value) {
+            $this->assertIsInt($key);
+            $this->assertIsInt($value);
+        }
     }
 }
