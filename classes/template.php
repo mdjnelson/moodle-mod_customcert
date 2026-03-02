@@ -84,82 +84,83 @@ class template {
     /**
      * Handles saving data.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::update instead
+     * @deprecated since Moodle 5.2
      * @param stdClass $data the template data
      */
     public function save(stdClass $data): void {
-        debugging('template::save() is deprecated; use template_service::update() instead.', DEBUG_DEVELOPER);
+        debugging('template::save() is deprecated since Moodle 5.2. Use template_service::update() instead.', DEBUG_DEVELOPER);
         $this->get_service()->update($this, $data);
     }
 
     /**
      * Handles adding another page to the template.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::add_page instead
+     * @deprecated since Moodle 5.2
      * @param bool $triggertemplateupdatedevent
      * @return int the id of the page
      */
     public function add_page(bool $triggertemplateupdatedevent = true): int {
-        debugging('template::add_page() is deprecated; use template_service::add_page() instead.', DEBUG_DEVELOPER);
+        debugging('template::add_page() is deprecated since Moodle 5.2. Use template_service::add_page() instead.', DEBUG_DEVELOPER);
         return $this->get_service()->add_page($this, $triggertemplateupdatedevent);
     }
 
     /**
      * Handles saving page data.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::save_pages instead
+     * @deprecated since Moodle 5.2
      * @param stdClass $data the template data
      */
     public function save_page(stdClass $data): void {
-        debugging('template::save_page() is deprecated; use template_service::save_pages() instead.', DEBUG_DEVELOPER);
+        debugging('template::save_page() is deprecated since Moodle 5.2. Use template_service::save_pages() instead.', DEBUG_DEVELOPER);
         $this->get_service()->save_pages($this, $data);
     }
 
     /**
      * Handles deleting the template.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::delete instead
+     * @deprecated since Moodle 5.2
      * @return bool return true if the deletion was successful, false otherwise
      */
     public function delete(): bool {
-        debugging('template::delete() is deprecated; use template_service::delete() instead.', DEBUG_DEVELOPER);
+        debugging('template::delete() is deprecated since Moodle 5.2. Use template_service::delete() instead.', DEBUG_DEVELOPER);
         return $this->get_service()->delete($this);
     }
 
     /**
      * Handles deleting a page from the template.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::delete_page instead
+     * @deprecated since Moodle 5.2
      * @param int $pageid the template page
      * @param bool $triggertemplateupdatedevent False if page is being deleted
      * during deletion of template.
      */
     public function delete_page(int $pageid, bool $triggertemplateupdatedevent = true): void {
-        debugging('template::delete_page() is deprecated; use template_service::delete_page() instead.', DEBUG_DEVELOPER);
+        debugging('template::delete_page() is deprecated since Moodle 5.2. Use template_service::delete_page() instead.', DEBUG_DEVELOPER);
         $this->get_service()->delete_page($this, $pageid, $triggertemplateupdatedevent);
     }
 
     /**
      * Handles deleting an element from the template.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::delete_element instead
+     * @deprecated since Moodle 5.2
      * @param int $elementid the template page
      */
     public function delete_element(int $elementid): void {
-        debugging('template::delete_element() is deprecated; use template_service::delete_element() instead.', DEBUG_DEVELOPER);
+        debugging('template::delete_element() is deprecated since Moodle 5.2. Use template_service::delete_element() instead.', DEBUG_DEVELOPER);
         $this->get_service()->delete_element($this, $elementid);
     }
 
     /**
      * Generate the PDF for the template.
      *
+     * @deprecated since Moodle 5.2
      * @param bool $preview true if it is a preview, false otherwise
      * @param int|null $userid the id of the user whose certificate we want to view
      * @param bool $return Do we want to return the contents of the PDF?
      * @return string|void Can return the PDF in string format if specified.
      */
     public function generate_pdf(bool $preview = false, ?int $userid = null, bool $return = false) {
-        debugging('template::generate_pdf() is deprecated; use pdf_generation_service::generate_pdf() instead.', DEBUG_DEVELOPER);
+        debugging('template::generate_pdf() is deprecated since Moodle 5.2. Use pdf_generation_service::generate_pdf() instead.', DEBUG_DEVELOPER);
         return $this->get_pdf_service()->generate_pdf($this, $preview, $userid, $return);
     }
 
@@ -169,12 +170,13 @@ class template {
      * This helper mirrors the setup used in {@see template::generate_pdf} for preview
      * and can be used by alternate preview flows (e.g., the V2 orchestrator).
      *
+     * @deprecated since Moodle 5.2
      * @param stdClass $user The user that the preview is for.
      * @return pdf A configured PDF instance ready for element rendering.
      */
     public function create_preview_pdf(stdClass $user): pdf {
         debugging(
-            'template::create_preview_pdf() is deprecated; use pdf_generation_service::create_preview_pdf() instead.',
+            'template::create_preview_pdf() is deprecated since Moodle 5.2. Use pdf_generation_service::create_preview_pdf() instead.',
             DEBUG_DEVELOPER
         );
         return $this->get_pdf_service()->create_preview_pdf($this, $user);
@@ -185,13 +187,14 @@ class template {
      * Compute filename for the current user/certificate using template and pattern settings.
      * Mirrors the logic in generate_pdf(). Returns a clean filename with .pdf suffix.
      *
+     * @deprecated since Moodle 5.2
      * @param stdClass $user
      * @param stdClass|null $customcert
      * @return string
      */
     public function compute_filename_for_user(stdClass $user, ?stdClass $customcert): string {
         debugging(
-            'template::compute_filename_for_user() is deprecated; use pdf_generation_service::compute_filename_for_user() instead.',
+            'template::compute_filename_for_user() is deprecated since Moodle 5.2. Use pdf_generation_service::compute_filename_for_user() instead.',
             DEBUG_DEVELOPER
         );
         return $this->get_pdf_service()->compute_filename_for_user($this, $user, $customcert);
@@ -200,24 +203,24 @@ class template {
     /**
      * Handles copying this template into another.
      *
+     * @deprecated since Moodle 5.2
      * @param template $copytotemplate The template instance to copy to
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::copy_to_template instead
      */
     public function copy_to_template(template $copytotemplate): void {
-        debugging('template::copy_to_template() is deprecated; use template_service::copy_to_template() instead.', DEBUG_DEVELOPER);
+        debugging('template::copy_to_template() is deprecated since Moodle 5.2. Use template_service::copy_to_template() instead.', DEBUG_DEVELOPER);
         $this->get_service()->copy_to_template($this, $copytotemplate);
     }
 
     /**
      * Handles moving an item on a template.
      *
-     * @deprecated since 5.2.0 Use \mod_customcert\service\template_service::move_item instead
+     * @deprecated since Moodle 5.2
      * @param string $itemname the item we are moving
      * @param int $itemid the id of the item
      * @param string $direction the direction
      */
     public function move_item(string $itemname, int $itemid, string $direction): void {
-        debugging('template::move_item() is deprecated; use template_service::move_item() instead.', DEBUG_DEVELOPER);
+        debugging('template::move_item() is deprecated since Moodle 5.2. Use template_service::move_item() instead.', DEBUG_DEVELOPER);
         $this->get_service()->move_item($this, $itemname, $itemid, $direction);
     }
 

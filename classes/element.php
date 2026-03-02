@@ -364,8 +364,8 @@ abstract class element implements stylable_element_interface {
     /**
      * Renders common form elements (font, colour, position, width, refpoint, alignment).
      *
+     * @deprecated since Moodle 5.2
      * @param MoodleQuickForm $mform the edit_form instance.
-     * @deprecated since Moodle 5.2 Use element_helper::render_common_form_elements() instead.
      */
     public function render_form_elements(MoodleQuickForm $mform): void {
         debugging(
@@ -573,7 +573,7 @@ abstract class element implements stylable_element_interface {
      * Handles deleting any data this element may have introduced.
      * Can be overridden if more functionality is needed.
      *
-     * @deprecated since Moodle 5.2. Use element_repository::delete() instead.
+     * @deprecated since Moodle 5.2
      * @return bool success return true if deletion success, false otherwise
      */
     public function delete() {

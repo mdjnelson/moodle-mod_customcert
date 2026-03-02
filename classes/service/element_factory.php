@@ -163,14 +163,14 @@ final class element_factory {
      * This mirrors the old static API `mod_customcert\\element_factory::get_element_instance($element)`
      * so existing call sites can be updated to reference this class without changing behavior.
      *
-     * @deprecated since Moodle 5.2. Use element_factory::create() or create_from_legacy_record() instead.
+     * @deprecated since Moodle 5.2
      *
      * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
      * @return object|false Legacy element instance (customcertelement_*\\element) or false if not found.
      */
     public static function get_element_instance(stdClass $element) {
         debugging(
-            'element_factory::get_element_instance() is deprecated. Use element_factory::create() or ' .
+            'element_factory::get_element_instance() is deprecated since Moodle 5.2. Use element_factory::create() or ' .
             'create_from_legacy_record() instead.',
             DEBUG_DEVELOPER
         );
