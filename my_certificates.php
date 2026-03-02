@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_customcert\certificate;
+use mod_customcert\local\pagination;
 use mod_customcert\my_certificates_table;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\issue_repository;
@@ -46,7 +46,7 @@ if ($downloadcert) {
     }
 }
 $page = optional_param('page', 0, PARAM_INT);
-$perpage = optional_param('perpage', certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
+$perpage = optional_param('perpage', pagination::CUSTOMCERT_PER_PAGE, PARAM_INT);
 $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid' => $userid,
     'page' => $page, 'perpage' => $perpage]);
 

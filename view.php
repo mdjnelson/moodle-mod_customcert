@@ -23,7 +23,7 @@
  */
 
 use core\session\manager;
-use mod_customcert\certificate;
+use mod_customcert\local\pagination;
 use mod_customcert\event\course_module_viewed;
 use mod_customcert\report_table;
 use mod_customcert\service\certificate_download_service;
@@ -44,7 +44,7 @@ $downloadissue = optional_param('downloadissue', 0, PARAM_INT);
 $deleteissue = optional_param('deleteissue', 0, PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 $page = optional_param('page', 0, PARAM_INT);
-$perpage = optional_param('perpage', certificate::CUSTOMCERT_PER_PAGE, PARAM_INT);
+$perpage = optional_param('perpage', pagination::CUSTOMCERT_PER_PAGE, PARAM_INT);
 
 $cm = get_coursemodule_from_id('customcert', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
