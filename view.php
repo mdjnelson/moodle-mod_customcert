@@ -103,6 +103,9 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     // Delete the issue.
     $issuerepo = new issue_repository();
     $issue = $issuerepo->get_by_id_or_fail((int)$deleteissue);
+    if ((int)$issue->customcertid !== (int)$customcert->id) {
+        throw new \moodle_exception('invalidrequest');
+    }
     $issuerepo->delete((int)$deleteissue);
 
     // Trigger event.
