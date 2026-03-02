@@ -41,8 +41,7 @@ final class issue_repository {
 
         return $DB->get_record(
             'customcert_issues',
-            ['userid' => $userid, 'customcertid' => $customcertid],
-            'id, emailed'
+            ['userid' => $userid, 'customcertid' => $customcertid]
         ) ?: null;
     }
 
@@ -69,6 +68,80 @@ final class issue_repository {
         global $DB;
 
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+    }
+
+    /**
+     * Get an issue by id, throwing an exception if not found.
+     *
+     * @param int $id
+     * @return stdClass
+     */
+    public function get_by_id_or_fail(int $id): stdClass {
+        global $DB;
+
+        return $DB->get_record('customcert_issues', ['id' => $id], '*', MUST_EXIST);
+    }
+
+    /**
+     * Delete an issue by id.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function delete(int $id): void {
+        global $DB;
+
+        $DB->delete_records('customcert_issues', ['id' => $id]);
+    }
+
+    /**
+     * List all issues for a user/certificate pair.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return array
+     */
+    public function list_by_user_certificate(int $customcertid, int $userid): array {
+        global $DB;
+
+        return $DB->get_records('customcert_issues', ['userid' => $userid, 'customcertid' => $customcertid]);
+    }
+
+    /**
+     * Check whether an issue exists for a user/certificate pair.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return bool
+     */
+    public function exists_for_user(int $customcertid, int $userid): bool {
+        global $DB;
+
+        return $DB->record_exists('customcert_issues', ['userid' => $userid, 'customcertid' => $customcertid]);
+    }
+
+    /**
+     * List all issues for a certificate.
+     *
+     * @param int $customcertid
+     * @return array
+     */
+    public function list_by_certificate(int $customcertid): array {
+        global $DB;
+
+        return $DB->get_records('customcert_issues', ['customcertid' => $customcertid]);
+    }
+
+    /**
+     * Delete all issues for a certificate.
+     *
+     * @param int $customcertid
+     * @return void
+     */
+    public function delete_by_certificate(int $customcertid): void {
+        global $DB;
+
+        $DB->delete_records('customcert_issues', ['customcertid' => $customcertid]);
     }
 
     /**

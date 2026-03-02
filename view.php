@@ -29,6 +29,7 @@ use mod_customcert\report_table;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\template;
 
@@ -99,8 +100,9 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     }
 
     // Delete the issue.
-    $issue = $DB->get_record('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id], '*', MUST_EXIST);
-    $DB->delete_records('customcert_issues', ['id' => $deleteissue, 'customcertid' => $customcert->id]);
+    $issuerepo = new issue_repository();
+    $issue = $issuerepo->get_by_id_or_fail((int)$deleteissue);
+    $issuerepo->delete((int)$deleteissue);
 
     // Trigger event.
     $cm = get_coursemodule_from_instance('customcert', $customcert->id, 0, false, MUST_EXIST);
@@ -160,7 +162,8 @@ if (!$downloadown && !$downloadissue) {
 
     // If the current user has been issued a customcert generate HTML to display the details.
     $issuehtml = '';
-    $issues = $DB->get_records('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id]);
+    $issuerepo = new issue_repository();
+    $issues = $issuerepo->list_by_user_certificate((int)$customcert->id, (int)$USER->id);
     if ($issues && !$canmanage) {
         // Get the most recent issue (there should only be one).
         $issue = reset($issues);
@@ -223,7 +226,7 @@ if (!$downloadown && !$downloadissue) {
     $userid = $USER->id;
     if ($downloadown) {
         // Create new customcert issue record if one does not already exist.
-        if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
+        if (!(new issue_repository())->exists_for_user((int)$customcert->id, (int)$USER->id)) {
             $issueservice = certificate_issue_service::create();
             $issueservice->issue_certificate((int)$customcert->id, (int)$USER->id);
         }
