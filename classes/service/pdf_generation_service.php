@@ -19,7 +19,6 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use dml_exception;
-use mod_customcert\certificate;
 use mod_customcert\local\preview_renderer;
 use mod_customcert\template;
 use pdf;
@@ -33,6 +32,16 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class pdf_generation_service {
+    /**
+     * Send the file inline to the browser.
+     */
+    public const string DELIVERY_OPTION_INLINE = 'I';
+
+    /**
+     * Send to the browser and force a file download.
+     */
+    public const string DELIVERY_OPTION_DOWNLOAD = 'D';
+
     /** @var page_repository Repository for page records. */
     private page_repository $pages;
 
@@ -93,7 +102,7 @@ final class pdf_generation_service {
 
         $deliveryoption = ($customcert && !empty($customcert->deliveryoption))
             ? $customcert->deliveryoption
-            : certificate::DELIVERY_OPTION_INLINE;
+            : self::DELIVERY_OPTION_INLINE;
         $filename = $this->compute_filename_for_user($template, $user, $customcert);
 
         $pdf->SetTitle($filename);

@@ -22,7 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_customcert\certificate;
+use mod_customcert\service\form_service;
+use mod_customcert\service\pdf_generation_service;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
@@ -59,11 +60,11 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->addElement('header', 'options', get_string('options', 'customcert'));
 
         $deliveryoptions = [
-            certificate::DELIVERY_OPTION_INLINE => get_string('deliveryoptioninline', 'customcert'),
-            certificate::DELIVERY_OPTION_DOWNLOAD => get_string('deliveryoptiondownload', 'customcert'),
+            pdf_generation_service::DELIVERY_OPTION_INLINE => get_string('deliveryoptioninline', 'customcert'),
+            pdf_generation_service::DELIVERY_OPTION_DOWNLOAD => get_string('deliveryoptiondownload', 'customcert'),
         ];
         $mform->addElement('select', 'deliveryoption', get_string('deliveryoptions', 'customcert'), $deliveryoptions);
-        $mform->setDefault('deliveryoption', certificate::DELIVERY_OPTION_INLINE);
+        $mform->setDefault('deliveryoption', pdf_generation_service::DELIVERY_OPTION_INLINE);
 
         // Checkbox to enable custom file name pattern.
         $mform->addElement('advcheckbox', 'usecustomfilename', get_string('usecustomfilename', 'customcert'));
@@ -247,13 +248,13 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         $protection = explode(', ', $protection);
 
-        if (in_array(certificate::PROTECTION_PRINT, $protection)) {
+        if (in_array(form_service::PROTECTION_PRINT, $protection)) {
             $data->protection_print = 1;
         }
-        if (in_array(certificate::PROTECTION_MODIFY, $protection)) {
+        if (in_array(form_service::PROTECTION_MODIFY, $protection)) {
             $data->protection_modify = 1;
         }
-        if (in_array(certificate::PROTECTION_COPY, $protection)) {
+        if (in_array(form_service::PROTECTION_COPY, $protection)) {
             $data->protection_copy = 1;
         }
 
