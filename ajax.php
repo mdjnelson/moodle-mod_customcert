@@ -23,8 +23,9 @@
  */
 
 use mod_customcert\template;
-use mod_customcert\event\element_updated;
 use mod_customcert\event\template_updated;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
 
 require_once(__DIR__ . '/../../config.php');
 
@@ -48,14 +49,12 @@ if ($cm = $template->get_cm()) {
 // Make sure the user has the required capabilities.
 $template->require_manage();
 
+$factory = element_factory::build_with_defaults();
+$elementrepo = new element_repository($factory);
+
 // Loop through the data.
 foreach ($values as $value) {
-    $element = new stdClass();
-    $element->id = $value->id;
-    $element->posx = $value->posx;
-    $element->posy = $value->posy;
-    $DB->update_record('customcert_elements', $element);
-    element_updated::create_from_id($element->id, $template)->trigger();
+    $elementrepo->update_position((int)$value->id, (int)$value->posx, (int)$value->posy);
 }
 
 template_updated::create_from_template($template)->trigger();
