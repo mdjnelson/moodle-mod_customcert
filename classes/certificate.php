@@ -203,7 +203,7 @@ class certificate {
      *
      * @deprecated since Moodle 5.2
      * @param int $customcertid
-     * @param bool $groupmode are we in group mode
+     * @param int $groupmode the group mode
      * @param stdClass $cm the course module
      * @param int $limitfrom
      * @param int $limitnum
@@ -212,7 +212,7 @@ class certificate {
      */
     public static function get_issues(
         int $customcertid,
-        bool $groupmode,
+        int $groupmode,
         stdClass $cm,
         int $limitfrom,
         int $limitnum,
@@ -234,10 +234,9 @@ class certificate {
      * @deprecated since Moodle 5.2
      * @param int $customcertid
      * @param stdClass $cm the course module
-     * @param bool $groupmode the group mode
-     * @return int the number of issues
+     * @param int $groupmode the group mode
      */
-    public static function get_number_of_issues(int $customcertid, stdClass $cm, bool $groupmode): int {
+    public static function get_number_of_issues(int $customcertid, stdClass $cm, int $groupmode): int {
         debugging(
             'certificate::get_number_of_issues() is deprecated since Moodle 5.2. '
             . 'Use issue_repository::get_number_of_issues() instead.',
@@ -253,10 +252,10 @@ class certificate {
      *
      * @deprecated since Moodle 5.2
      * @param stdClass $cm the course module
-     * @param bool $groupmode are we in group mode ?
+     * @param int $groupmode the group mode
      * @return array the conditional variables
      */
-    public static function get_conditional_issues_sql(stdClass $cm, bool $groupmode): array {
+    public static function get_conditional_issues_sql(stdClass $cm, int $groupmode): array {
         debugging(
             'certificate::get_conditional_issues_sql() is deprecated since Moodle 5.2. '
             . 'Use issue_repository::get_conditional_issues_sql() instead.',

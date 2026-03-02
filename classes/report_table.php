@@ -59,16 +59,16 @@ class report_table extends table_sql {
     protected stdClass $cm;
 
     /**
-     * @var bool $groupmode are we in group mode?
+     * @var int $groupmode the group mode
      */
-    protected bool $groupmode;
+    protected int $groupmode;
 
     /**
      * Sets up the table.
      *
      * @param int $customcertid
      * @param stdClass $cm the course module
-     * @param bool $groupmode are we in group mode?
+     * @param int $groupmode the group mode
      * @param string|null $download The file type, null if we are not downloading
      */
     public function __construct($customcertid, $cm, $groupmode, $download = null) {

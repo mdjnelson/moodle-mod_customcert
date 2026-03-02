@@ -165,7 +165,7 @@ final class issue_repository {
      * Returns a list of issued customcerts.
      *
      * @param int $customcertid
-     * @param bool $groupmode are we in group mode
+     * @param int $groupmode are we in group mode
      * @param stdClass $cm the course module
      * @param int $limitfrom
      * @param int $limitnum
@@ -174,7 +174,7 @@ final class issue_repository {
      */
     public function get_issues(
         int $customcertid,
-        bool $groupmode,
+        int $groupmode,
         stdClass $cm,
         int $limitfrom,
         int $limitnum,
@@ -211,10 +211,9 @@ final class issue_repository {
      *
      * @param int $customcertid
      * @param stdClass $cm the course module
-     * @param bool $groupmode the group mode
-     * @return int the number of issues
+     * @param int $groupmode the group mode
      */
-    public function get_number_of_issues(int $customcertid, stdClass $cm, bool $groupmode): int {
+    public function get_number_of_issues(int $customcertid, stdClass $cm, int $groupmode): int {
         global $DB;
 
         [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm, $groupmode);
@@ -239,10 +238,10 @@ final class issue_repository {
      * Returns an array of the conditional variables to use in the get_issues SQL query.
      *
      * @param stdClass $cm the course module
-     * @param bool $groupmode are we in group mode ?
+     * @param int $groupmode are we in group mode ?
      * @return array the conditional variables
      */
-    public function get_conditional_issues_sql(stdClass $cm, bool $groupmode): array {
+    public function get_conditional_issues_sql(stdClass $cm, int $groupmode): array {
         global $DB, $USER;
 
         $context = context_module::instance($cm->id);
