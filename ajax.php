@@ -53,8 +53,9 @@ $factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
 
 // Loop through the data.
+$contextid = $template->get_contextid();
 foreach ($values as $value) {
-    $elementrepo->update_position((int)$value->id, (int)$value->posx, (int)$value->posy);
+    $elementrepo->update_position((int)$value->id, (int)$value->posx, (int)$value->posy, $contextid);
 }
 
 template_updated::create_from_template($template)->trigger();

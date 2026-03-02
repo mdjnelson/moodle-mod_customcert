@@ -237,9 +237,10 @@ final class element_repository {
      * @param int $id Element id.
      * @param int $posx New X position.
      * @param int $posy New Y position.
+     * @param int|null $contextid Optional context id to avoid extra DB lookups.
      * @return void
      */
-    public function update_position(int $id, int $posx, int $posy): void {
+    public function update_position(int $id, int $posx, int $posy, ?int $contextid = null): void {
         global $DB;
 
         $record = new stdClass();
@@ -249,14 +250,7 @@ final class element_repository {
         $record->timemodified = time();
         $DB->update_record('customcert_elements', $record);
 
-        $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
-        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
-        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
-
-        element_updated::create([
-            'contextid' => (int)$template->contextid,
-            'objectid' => $id,
-        ])->trigger();
+        $this->trigger_element_updated($id, $contextid);
     }
 
     /**
@@ -264,9 +258,10 @@ final class element_repository {
      *
      * @param int $id Element id.
      * @param string $name New name.
+     * @param int|null $contextid Optional context id to avoid extra DB lookups.
      * @return void
      */
-    public function update_name(int $id, string $name): void {
+    public function update_name(int $id, string $name, ?int $contextid = null): void {
         global $DB;
 
         $record = new stdClass();
@@ -275,12 +270,32 @@ final class element_repository {
         $record->timemodified = time();
         $DB->update_record('customcert_elements', $record);
 
-        $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
-        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
-        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+        $this->trigger_element_updated($id, $contextid);
+    }
+
+    /**
+     * Trigger the element_updated event.
+     *
+     * If $contextid is provided it is used directly, avoiding extra DB lookups
+     * to resolve the template context (useful in bulk-update scenarios such as
+     * ajax.php where the template is already loaded).
+     *
+     * @param int $id Element id.
+     * @param int|null $contextid Context id, or null to resolve via DB.
+     * @return void
+     */
+    private function trigger_element_updated(int $id, ?int $contextid): void {
+        global $DB;
+
+        if ($contextid === null) {
+            $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+            $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+            $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+            $contextid = (int)$template->contextid;
+        }
 
         element_updated::create([
-            'contextid' => (int)$template->contextid,
+            'contextid' => $contextid,
             'objectid' => $id,
         ])->trigger();
     }
