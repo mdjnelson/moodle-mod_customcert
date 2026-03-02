@@ -92,8 +92,23 @@ final class issue_repository {
      */
     public function delete(int $id): void {
         global $DB;
-
         $DB->delete_records('customcert_issues', ['id' => $id]);
+    }
+
+    /**
+     * Delete an issue by id, enforcing that it belongs to the given customcert.
+     *
+     * @param int $id
+     * @param int $customcertid
+     * @return void
+     * @throws \moodle_exception if the issue does not belong to the given customcert
+     */
+    public function delete_for_certificate(int $id, int $customcertid): void {
+        $issue = $this->get_by_id_or_fail($id);
+        if ((int)$issue->customcertid !== $customcertid) {
+            throw new \moodle_exception('invalidrequest');
+        }
+        $this->delete($id);
     }
 
     /**
