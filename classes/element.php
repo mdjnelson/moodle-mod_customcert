@@ -478,11 +478,7 @@ abstract class element implements stylable_element_interface {
                 if (is_array($decoded)) {
                     $decoded['width'] = (int)$data->width;
                     $merged = json_encode($decoded);
-                } else if (ctype_digit(trim((string)$current))) {
-                    // Historical case: scalar width stored as string in data.
-                    $merged = json_encode(['width' => (int)$data->width]);
                 } else {
-                    // Non-JSON text – start a JSON envelope with width only.
                     $merged = json_encode(['width' => (int)$data->width]);
                 }
             }

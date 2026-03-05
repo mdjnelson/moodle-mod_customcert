@@ -195,13 +195,6 @@ class element extends base_element implements
             if (is_array($decoded) && array_key_exists('value', $decoded)) {
                 return (int)$decoded['value'];
             }
-            if (ctype_digit(trim($raw))) {
-                return (int)$raw;
-            }
-        }
-        // Already numeric.
-        if (is_int($raw)) {
-            return $raw;
         }
         return null;
     }

@@ -239,12 +239,6 @@ class element extends base_element implements
         $payload = $this->get_payload();
         if (isset($payload['gradeitem'])) {
             $mform->getElement('gradeitem')->setValue((string)$payload['gradeitem']);
-        } else {
-            // Legacy scalar in data.
-            $value = $this->get_value();
-            if ($value !== null && ctype_digit(trim($value))) {
-                $mform->getElement('gradeitem')->setValue((string)$value);
-            }
         }
         if (isset($payload['gradeformat'])) {
             $mform->getElement('gradeformat')->setValue((int)$payload['gradeformat']);
