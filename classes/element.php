@@ -230,9 +230,8 @@ abstract class element implements stylable_element_interface {
     }
 
     /**
-     * Return a best-effort scalar value for legacy/simple elements.
+     * Return a scalar value for simple elements.
      *
-     * For historical elements that stored a plain scalar in 'data', this returns the raw string.
      * For JSON payloads containing {"value": <scalar>}, this returns that scalar cast to string.
      * For structured payloads without a single 'value', returns null.
      *
@@ -240,16 +239,11 @@ abstract class element implements stylable_element_interface {
      */
     public function get_value(): ?string {
         $raw = $this->get_data();
-        if (is_string($raw)) {
-            if (json_validate($raw)) {
-                $decoded = json_decode($raw, true);
-                if (is_array($decoded) && array_key_exists('value', $decoded)) {
-                    return is_scalar($decoded['value']) ? (string)$decoded['value'] : null;
-                }
-                return null;
+        if (is_string($raw) && json_validate($raw)) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && array_key_exists('value', $decoded)) {
+                return is_scalar($decoded['value']) ? (string)$decoded['value'] : null;
             }
-            // Historical scalar storage.
-            return $raw;
         }
         return null;
     }
