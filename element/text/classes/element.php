@@ -75,7 +75,6 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Text content is stored as a scalar 'value' in JSON or as a historical plain string.
         $value = $this->get_value();
         if ($value !== null) {
             $mform->getElement('text')->setValue($value);
