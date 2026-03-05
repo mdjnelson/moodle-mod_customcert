@@ -324,16 +324,13 @@ final class template_service_test extends advanced_testcase {
             'timemodified' => time(),
         ], true);
 
-        $this->resetDebugging();
         $service->delete_page($template, $pageid);
 
         $this->assertFalse($DB->record_exists('customcert_pages', ['id' => $pageid]));
         $this->assertFalse($DB->record_exists('customcert_elements', ['pageid' => $pageid]));
-        $messages = array_column($this->getDebuggingMessages(), 'message');
-        $this->assertContains(
+        $this->assertDebuggingCalled(
             "Could not resolve element type 'idontexist' (id={$elementid}) during page delete; " .
-            "deleting record directly without firing element_deleted event.",
-            $messages
+            "deleting record directly without firing element_deleted event."
         );
     }
 
@@ -363,15 +360,12 @@ final class template_service_test extends advanced_testcase {
             'timemodified' => time(),
         ]);
 
-        $this->resetDebugging();
         $service->delete_element($template, $elementid);
 
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
-        $messages = array_column($this->getDebuggingMessages(), 'message');
-        $this->assertContains(
+        $this->assertDebuggingCalled(
             "Could not resolve element type 'idontexist' (id={$elementid}) during element delete; " .
-            "deleting record directly without firing element_deleted event.",
-            $messages
+            "deleting record directly without firing element_deleted event."
         );
     }
 }
