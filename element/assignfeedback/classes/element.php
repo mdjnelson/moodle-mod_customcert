@@ -55,12 +55,7 @@ class element extends \mod_customcert\element {
 
         $assignments = self::get_course_assignments($COURSE->id);
 
-        $mform->addElement(
-            'select',
-            'assignid',
-            get_string('assignment', 'customcertelement_assignfeedback'),
-            $assignments
-        );
+        $mform->addElement('select', 'assignid', get_string('assignment', 'customcertelement_assignfeedback'), $assignments);
         $mform->addHelpButton('assignid', 'assignment', 'customcertelement_assignfeedback');
 
         parent::render_form_elements($mform);
