@@ -18,7 +18,7 @@
  * PHPUnit tests for the assignfeedback customcert element.
  *
  * @package    customcertelement_assignfeedback
- * @copyright  2026 Joe Rebbeck <joerebbeck@hotmail.com>
+ * @copyright  2026 Joe Rebbeck <tjr@the-ela.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \customcertelement_assignfeedback\element
  */
@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * string is returned for each scenario.
  *
  * @package    customcertelement_assignfeedback
- * @copyright  2026 Joe Rebbeck <joerebbeck@hotmail.com>
+ * @copyright  2026 Joe Rebbeck <tjr@the-ela.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element_test extends \advanced_testcase {
