@@ -21,7 +21,7 @@
  * on a generated certificate PDF.
  *
  * @package    customcertelement_assignfeedback
- * @copyright  2026 Joe Rebbeck <joerebbeck@hotmail.com>
+ * @copyright  2026 Joe Rebbeck <tjr@the-ela.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * submission directly onto the certificate PDF.
  *
  * @package    customcertelement_assignfeedback
- * @copyright  2026 Joe Rebbeck <joerebbeck@hotmail.com>
+ * @copyright  2026 Joe Rebbeck <tjr@the-ela.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {
