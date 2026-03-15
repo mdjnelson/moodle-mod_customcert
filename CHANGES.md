@@ -127,8 +127,19 @@ Legacy certificate/template shims now emit developer debugging in 5.2 and should
   `generate_pdf`, `create_preview_pdf`, `compute_filename_for_user`) now delegate to `template_service` and `pdf_generation_service`
 
 Deprecation notes:
-- Deprecated APIs will continue to work during the 5.2 line, but new development should use Element System v2 interfaces.
+- Deprecated APIs are expected to continue working during the 5.2 line for most common usage patterns, but **some edge cases may break** — see "Plugin developer migration risks" below. New development should use Element System v2 interfaces.
 - New element plugins should not rely on `customcert_elements` legacy columns or legacy element hooks.
+
+#### Plugin developer migration risks
+
+While deprecated APIs include shims for backward compatibility, the following changes may affect third-party element plugins:
+
+1. **JSON data format** — The `data` column now stores a JSON object payload. Plugins that previously treated `get_data()` as a plain scalar string must be updated to work with JSON. Use `get_payload()` to decode, or `get_value()` for simple scalar elements.
+2. **Save path changes** — Element saves (both from the edit form and via the web service) now route through `persistence_helper::to_json_data()` and `element_repository::save()`. Plugins with custom save-time side effects in `save_form_elements()` or `save_unique_data()` should verify that these are still called via the legacy adapter path.
+3. **DB columns removed** — The `font`, `fontsize`, `colour`, and `width` columns no longer exist in `customcert_elements`. Any direct SQL queries referencing these columns will fail.
+4. **`normalise_data()` scalar wrapping** — If a `persistable_element_interface` element's `normalise_data()` returns a plain string that is not already a JSON object, it will be wrapped as `{"value": "..."}` before storage. Plugins that return a raw scalar from `normalise_data()` and read it back directly via `get_data()` must switch to `get_value()`.
+
+**Recommendation:** Test your element plugin against 5.2 on a test site before release. Implement the Element System v2 interfaces (Option A below) for the most robust forward compatibility.
 
 ### Migration Guide (Third-party element developers)
 
