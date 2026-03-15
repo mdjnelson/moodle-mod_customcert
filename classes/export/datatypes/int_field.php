@@ -28,7 +28,6 @@ use Exception;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class int_field extends float_field {
     /**
      * Imports and validates a numeric value, casting the result to an integer.

@@ -30,7 +30,6 @@ use mod_customcert\export\template_import_logger_interface;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class element_null_exporter extends subplugin_exportable {
     /**
      * Logs a warning that import for the given plugin type is not supported.

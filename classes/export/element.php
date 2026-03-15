@@ -38,7 +38,6 @@ use stored_file;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class element {
     /**
      * @var clock Clock instance used to retrieve current timestamps.

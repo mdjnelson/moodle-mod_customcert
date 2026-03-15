@@ -27,7 +27,6 @@ namespace mod_customcert\export;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 interface template_file_manager_interface {
     /**
      * Exports as a zip file contains infos about a custom certificate template.

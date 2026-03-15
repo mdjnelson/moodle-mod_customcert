@@ -32,7 +32,6 @@ use stored_file;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class file_field implements field_interface, file_field_interface {
     /**
      * @var template_appendix_manager_interface Reference to the template appendix manager used for file lookup and identification.

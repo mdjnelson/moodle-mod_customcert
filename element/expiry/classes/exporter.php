@@ -33,7 +33,6 @@ use mod_customcert\export\datatypes\enum_field;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class exporter extends subplugin_text_exportable {
     /**
      * Defines the custom data fields

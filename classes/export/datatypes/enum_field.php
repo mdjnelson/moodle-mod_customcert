@@ -29,7 +29,6 @@ namespace mod_customcert\export\datatypes;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class enum_field implements field_interface {
     /**
      * @var array List of allowed option values for the field.

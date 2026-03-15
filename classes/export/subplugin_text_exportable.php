@@ -31,7 +31,6 @@ use mod_customcert\export\datatypes\string_field;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class subplugin_text_exportable extends subplugin_exportable {
     /**
      * Standard fields for subplugins with texts.

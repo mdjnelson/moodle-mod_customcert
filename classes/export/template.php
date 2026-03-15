@@ -32,7 +32,6 @@ use mod_customcert\export\import_exception;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class template {
     /**
      * @var clock Clock service for generating consistent timestamps.
