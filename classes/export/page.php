@@ -56,6 +56,9 @@ class page {
 
     /**
      * Constructor.
+     *
+     * @param clock $clock Clock instance used to retrieve current timestamps.
+     * @param element $element Element handler for import/export of page elements.
      */
     public function __construct(
         /** @var clock Clock instance used to retrieve current timestamps. */

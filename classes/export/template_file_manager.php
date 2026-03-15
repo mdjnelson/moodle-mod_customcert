@@ -45,6 +45,7 @@ class template_file_manager implements template_file_manager_interface {
      * Constructor.
      *
      * @param template_appendix_manager_interface $filemng The manager for appendix file operations.
+     * @param template $template Template handler for import/export operations.
      */
     public function __construct(
         template_appendix_manager_interface $filemng,

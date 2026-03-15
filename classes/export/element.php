@@ -69,6 +69,10 @@ class element {
 
     /**
      * Constructor.
+     *
+     * @param clock $clock Clock instance used to retrieve current timestamps.
+     * @param template_import_logger_interface $logger Logger instance for import warnings.
+     * @param template_appendix_manager_interface $filemng File manager for appendix operations.
      */
     public function __construct(
         /** @var clock Clock instance used to retrieve current timestamps. */
