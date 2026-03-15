@@ -30,19 +30,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-use moodle_database;
-
 class user_field implements field_interface {
-    /**
-     * @var moodle_database Reference to the Moodle database instance used for user lookups.
-     */
-
     /**
      * Constructor.
      */
-    public function __construct(
-        private readonly moodle_database $db,
-    ) {
+    public function __construct() {
     }
 
     /**
@@ -59,8 +51,8 @@ class user_field implements field_interface {
         $userid = $data['userid'] ?? -1;
         $username = $data['fullname'] ?? null;
 
-        $user = $this->db->get_record('user', ['id' => $userid]);
-
+        global $DB;
+        $user = $DB->get_record('user', ['id' => $userid]);
         if (!$user) {
             throw new format_exception("User with $userid does not exist");
         }
@@ -87,8 +79,8 @@ class user_field implements field_interface {
         }
 
         $userid = (int) $value;
-        $user = $this->db->get_record('user', ['id' => $userid]);
-
+        global $DB;
+        $user = $DB->get_record('user', ['id' => $userid]);
         if (!$user) {
             return [];
         }

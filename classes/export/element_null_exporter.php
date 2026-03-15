@@ -28,9 +28,8 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use mod_customcert\export\subplugin_exportable;
-use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_appendix_manager_interface;
-use moodle_database;
+use mod_customcert\export\template_import_logger_interface;
 
 class element_null_exporter extends subplugin_exportable {
 
@@ -43,9 +42,8 @@ class element_null_exporter extends subplugin_exportable {
         string $pluginname,
         template_import_logger_interface $logger,
         template_appendix_manager_interface $filemng,
-        moodle_database $db,
     ) {
-        parent::__construct($pluginname, $logger, $filemng, $db);
+        parent::__construct($pluginname, $logger, $filemng);
     }
 
     /**

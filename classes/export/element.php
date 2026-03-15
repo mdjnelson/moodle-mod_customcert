@@ -37,7 +37,6 @@ use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\subplugin_exportable;
-use moodle_database;
 use stored_file;
 
 class element {
@@ -74,7 +73,6 @@ class element {
      */
     public function __construct(
         private readonly clock $clock,
-        private readonly moodle_database $db,
         private readonly template_import_logger_interface $logger,
         private readonly template_appendix_manager_interface $filemng,
     ) {
@@ -88,7 +86,8 @@ class element {
      * @return array List of element IDs.
      */
     public static function get_elementids_from_page(int $pageid): array {
-        $elementids = $db->get_fieldset(static::$dbtable, 'id', ['pageid' => $pageid]);
+        global $DB;
+        $elementids = $DB->get_fieldset(static::$dbtable, 'id', ['pageid' => $pageid]);
         return $elementids;
     }
 
@@ -115,7 +114,8 @@ class element {
             return;
         }
 
-        $db->insert_record(static::$dbtable, [
+        global $DB;
+        $DB->insert_record(static::$dbtable, [
             'pageid' => $pageid,
             'name' => $data['name'],
             'element' => $data['element'],
@@ -174,12 +174,11 @@ class element {
         $classname = '\\customcertelement_' . $pluginname . '\\exporter';
 
         if (!class_exists($classname)) {
-            return new element_null_exporter($pluginname);
+            return new element_null_exporter($pluginname, $this->logger, $this->filemng);
         }
-
-        $exporter = new $classname($pluginname);
+        $exporter = new $classname($pluginname, $this->logger, $this->filemng);
         if (!$exporter instanceof subplugin_exportable) {
-            return new element_null_exporter($pluginname);
+            return new element_null_exporter($pluginname, $this->logger, $this->filemng);
         }
 
         return $exporter;

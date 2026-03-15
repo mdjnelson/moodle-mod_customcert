@@ -31,7 +31,6 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use core\clock;
-use moodle_database;
 
 class page {
     /**
@@ -61,7 +60,6 @@ class page {
      */
     public function __construct(
         private readonly clock $clock,
-        private readonly moodle_database $db,
         private readonly element $element,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);
@@ -74,7 +72,8 @@ class page {
      * @return array List of page IDs.
      */
     public static function get_pageids_from_template(int $templateid): array {
-        $pageids = $db->get_fieldset(static::$dbtable, 'id', ['templateid' => $templateid]);
+        global $DB;
+        $pageids = $DB->get_fieldset(static::$dbtable, 'id', ['templateid' => $templateid]);
         return $pageids;
     }
 
@@ -87,7 +86,8 @@ class page {
      * @param array $pagedata The page data to import, including elements.
      */
     public function import(int $templateid, array $pagedata): void {
-        $pageid = $db->insert_record(static::$dbtable, [
+        global $DB;
+        $pageid = $DB->insert_record(static::$dbtable, [
             'templateid' => $templateid,
             'width' => (int) $pagedata['width'],
             'height' => (int) $pagedata['height'],

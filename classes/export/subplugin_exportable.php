@@ -27,10 +27,10 @@ declare(strict_types=1);
 
 namespace mod_customcert\export;
 
-use mod_customcert\export\datatypes\format_error;
-use mod_customcert\export\datatypes\format_exception;
 use mod_customcert\export\datatypes\field_interface;
 use mod_customcert\export\datatypes\file_field_interface;
+use mod_customcert\export\datatypes\format_error;
+use mod_customcert\export\datatypes\format_exception;
 use stored_file;
 
 abstract class subplugin_exportable {
@@ -48,18 +48,15 @@ abstract class subplugin_exportable {
      * @param string $pluginname Name of the plugin from the element
      * @param template_import_logger_interface $logger Logger instance
      * @param template_appendix_manager_interface $filemng File manager
-     * @param moodle_database $db Database instance
      */
     public function __construct(
         string $pluginname,
         template_import_logger_interface $logger,
         template_appendix_manager_interface $filemng,
-        moodle_database $db,
     ) {
         $this->pluginname = $pluginname;
         $this->logger = $logger;
         $this->filemng = $filemng;
-        $this->db = $db;
     }
 
     /**

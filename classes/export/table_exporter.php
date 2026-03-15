@@ -27,12 +27,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\export;
 
-use moodle_database;
-
 class table_exporter {
-    /**
-     * @var moodle_database Database connection
-     */
     /** @var string The name of the table to export from. */
     public readonly string $tablename;
 
@@ -43,7 +38,6 @@ class table_exporter {
      */
     public function __construct(
         string $tablename,
-        private readonly moodle_database $db,
     ) {
         $this->tablename = $tablename;
     }
@@ -56,7 +50,8 @@ class table_exporter {
      * @return array Associative array of the retrieved record data.
      */
     public function export(int $id, array $fields): array {
-        $data = (array) $this->db->get_record(
+        global $DB;
+        $data = (array) $DB->get_record(
             $this->tablename,
             ['id' => $id],
             implode(', ', $fields)
