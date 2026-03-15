@@ -32,7 +32,6 @@ use stored_file;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 abstract class subplugin_exportable {
     /**
      * @var string Name of the plugin for debugging reasons.

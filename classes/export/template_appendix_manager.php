@@ -36,7 +36,6 @@ use mod_customcert\export\element;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class template_appendix_manager implements template_appendix_manager_interface {
     /**
      * Constructor.

@@ -37,7 +37,6 @@ use mod_customcert\export\template;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class template_file_manager implements template_file_manager_interface {
     /** @var template_appendix_manager_interface The manager for appendix file operations. */
     private readonly template_appendix_manager_interface $filemng;

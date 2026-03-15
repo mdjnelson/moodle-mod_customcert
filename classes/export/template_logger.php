@@ -29,7 +29,6 @@ use mod_customcert\export\template_import_logger_interface;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class template_logger implements template_import_logger_interface {
     /**
      * @var array Stores warning messages collected during the import process.

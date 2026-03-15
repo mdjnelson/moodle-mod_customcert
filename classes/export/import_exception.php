@@ -30,6 +30,5 @@ use moodle_exception;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class import_exception extends moodle_exception {
 }

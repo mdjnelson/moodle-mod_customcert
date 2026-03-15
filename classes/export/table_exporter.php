@@ -26,7 +26,6 @@ namespace mod_customcert\export;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 class table_exporter {
     /** @var string The name of the table to export from. */
     public readonly string $tablename;
