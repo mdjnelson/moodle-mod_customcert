@@ -33,7 +33,7 @@ namespace mod_customcert\export\datatypes;
 use mod_customcert\export\template_appendix_manager_interface;
 use stored_file;
 
-class file_field implements field_interface, i_file_field {
+class file_field implements field_interface, file_field_interface {
     /**
      * @var template_appendix_manager_interface Reference to the template appendix manager used for file lookup and identification.
      */
