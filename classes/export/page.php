@@ -33,9 +33,6 @@ use core\clock;
  */
 class page {
     /**
-     * @var clock Clock instance used to retrieve current timestamps.
-     */
-    /**
      * @var table_exporter Table exporter responsible for retrieving page data from the database.
      */
     private table_exporter $exporter;

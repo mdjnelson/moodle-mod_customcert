@@ -34,9 +34,6 @@ use mod_customcert\export\import_exception;
  */
 class template {
     /**
-     * @var clock Clock service for generating consistent timestamps.
-     */
-    /**
      * @var table_exporter Table exporter for retrieving template-level data.
      */
     private table_exporter $exporter;
