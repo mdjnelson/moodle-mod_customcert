@@ -101,7 +101,7 @@ class element {
      * @throws import_exception If required fields like 'name' are missing.
      */
     public function import(int $pageid, array $data): void {
-        if (($data['name'] ?? null) == null) {
+        if (($data['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }
 

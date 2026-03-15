@@ -37,7 +37,7 @@ class unimported_field implements i_field {
      * @param array $data Input data array (ignored).
      * @throws format_exception Always thrown to block import attempts.
      */
-    public function import(array $data) {
+    public function import(array $data): mixed {
         throw new format_exception('can not be imported');
     }
 
@@ -47,7 +47,7 @@ class unimported_field implements i_field {
      * @param mixed $value Ignored value.
      * @return array Always returns an empty array.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         return [];
     }
 
@@ -56,7 +56,7 @@ class unimported_field implements i_field {
      *
      * @return string Empty fallback.
      */
-    public function get_fallback() {
+    public function get_fallback(): mixed {
         return "";
     }
 }
