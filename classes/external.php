@@ -91,6 +91,12 @@ class external extends external_api {
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
+        // Verify the element belongs to the given template to prevent cross-template tampering.
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        if ($page->templateid != $templateid) {
+            throw new \moodle_exception('Invalid access');
+        }
+
         // Set the values we are going to save.
         $data = new \stdClass();
         $data->id = $element->id;
@@ -158,6 +164,12 @@ class external extends external_api {
             self::validate_context(\context_module::instance($cm->id));
         } else {
             self::validate_context(\context_system::instance());
+        }
+
+        // Verify the element belongs to the given template to prevent cross-template information disclosure.
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        if ($page->templateid != $templateid) {
+            throw new \moodle_exception('Invalid access');
         }
 
         // Get an instance of the element class.

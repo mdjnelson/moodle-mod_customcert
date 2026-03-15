@@ -320,6 +320,13 @@ function mod_customcert_output_fragment_editelement($args) {
     // Get the element.
     $element = $DB->get_record('customcert_elements', ['id' => $args['elementid']], '*', MUST_EXIST);
 
+    // Verify the element belongs to the authorized context to prevent cross-course information disclosure.
+    $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+    $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
+    if ((int)$args['context']->id !== (int)$template->contextid) {
+        throw new \moodle_exception('Invalid access');
+    }
+
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
     $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
 
