@@ -33,10 +33,10 @@ namespace mod_customcert\export;
 
 use coding_exception;
 use Exception;
-use mod_customcert\export\i_template_appendix_manager;
+use mod_customcert\export\template_appendix_manager_interface;
 use stored_file;
 
-class template_appendix_manager implements i_template_appendix_manager {
+class template_appendix_manager implements template_appendix_manager_interface {
     /** @var array<string, stored_file> In-memory index of imported files, mapped by content hash. */
     private array $index = [];
 

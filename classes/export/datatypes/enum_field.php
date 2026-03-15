@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-class enum_field implements i_field {
+class enum_field implements field_interface {
     /**
      * @var array List of allowed option values for the field.
      */

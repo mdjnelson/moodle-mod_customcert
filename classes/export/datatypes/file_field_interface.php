@@ -15,38 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines logging capabilities for custom certificate template import feature.
+ * Defines a contract for export fields that involve stored file references.
  *
  * @package    mod_customcert
+ * @copyright  2026, onCampus GmbH
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
- * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 declare(strict_types=1);
 
-namespace mod_customcert\export;
+namespace mod_customcert\export\datatypes;
 
 
-interface i_template_import_logger {
+interface file_field_interface {
     /**
-     * Logs a warning message to the import process logger.
+     * Retrieves the file associated with the given field data.
      *
-     * @param string $message The warning message to log.
+     * @param array $data Array containing file reference information.
+     * @return mixed The resolved file object (typically a stored_file instance).
      */
-    public function warning(string $message): void;
-
-    /**
-     * Logs an informational message during the import process.
-     *
-     * @param string $message The info message to log.
-     */
-    public function info(string $message): void;
-
-    /**
-     * Outputs or displays the collected log notifications.
-     *
-     * This method should be called after import operations to show relevant messages.
-     */
-    public function print_notification(): void;
+    public function get_file(array $data): mixed;
 }

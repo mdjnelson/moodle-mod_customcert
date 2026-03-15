@@ -29,7 +29,7 @@ namespace mod_customcert\export;
 
 use stored_file;
 
-interface i_template_appendix_manager {
+interface template_appendix_manager_interface {
     /**
      * Exports appendix files linked to a custom certificate template to a target directory.
      *

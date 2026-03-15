@@ -30,20 +30,19 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-use core\di;
 use moodle_database;
 
-class user_field implements i_field {
+class user_field implements field_interface {
     /**
      * @var moodle_database Reference to the Moodle database instance used for user lookups.
      */
-    private moodle_database $db;
 
     /**
      * Constructor.
      */
-    public function __construct() {
-        $this->db = di::get(moodle_database::class);
+    public function __construct(
+        private readonly moodle_database $db,
+    ) {
     }
 
     /**

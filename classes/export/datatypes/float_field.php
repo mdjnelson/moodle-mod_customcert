@@ -32,7 +32,7 @@ namespace mod_customcert\export\datatypes;
 
 use Exception;
 
-class float_field implements i_field {
+class float_field implements field_interface {
     /**
      * @var float|null Minimum allowed value, or null if no lower bound.
      */

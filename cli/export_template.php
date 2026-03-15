@@ -24,7 +24,7 @@
  */
 
 use core\di;
-use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\template_file_manager_interface;
 
 define('WORKING_DIR', getcwd());
 define('CLI_SCRIPT', true);
@@ -76,7 +76,7 @@ if ($tid < 1) {
     exit(2);
 }
 
-$exporter = di::get(i_template_file_manager::class);
+$exporter = di::get(template_file_manager_interface::class);
 $zippath = $exporter->export($tid);
 $filename = basename($zippath);
 $exportpath = make_filepath_absolute($options['output'], $filename, WORKING_DIR);

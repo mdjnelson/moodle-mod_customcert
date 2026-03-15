@@ -34,20 +34,20 @@ namespace mod_customcert\export;
 
 use coding_exception;
 use mod_customcert\export\import_exception;
-use mod_customcert\export\i_template_file_manager;
-use mod_customcert\export\i_template_appendix_manager;
+use mod_customcert\export\template_file_manager_interface;
+use mod_customcert\export\template_appendix_manager_interface;
 
-class template_file_manager implements i_template_file_manager {
-    /** @var i_template_appendix_manager The manager for appendix file operations. */
-    private readonly i_template_appendix_manager $filemng;
+class template_file_manager implements template_file_manager_interface {
+    /** @var template_appendix_manager_interface The manager for appendix file operations. */
+    private readonly template_appendix_manager_interface $filemng;
 
     /**
      * Constructor.
      *
-     * @param i_template_appendix_manager $filemng The manager for appendix file operations.
+     * @param template_appendix_manager_interface $filemng The manager for appendix file operations.
      */
     public function __construct(
-        i_template_appendix_manager $filemng
+        template_appendix_manager_interface $filemng
     ) {
         $this->filemng = $filemng;
     }

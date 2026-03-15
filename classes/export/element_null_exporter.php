@@ -73,7 +73,7 @@ class element_null_exporter extends subplugin_exportable {
     /**
      * Non-existent subplugin dont have fields
      *
-     * @return i_field[] empty array
+     * @return field_interface[] empty array
      */
     protected function get_fields(): array {
         return [];

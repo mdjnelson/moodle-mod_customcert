@@ -35,7 +35,7 @@ class exporter extends subplugin_exportable {
     /**
      * Defines the custom data fields
      *
-     * @return i_field[] plugin-specific custom data fields
+     * @return field_interface[] plugin-specific custom data fields
      */
     protected function get_fields(): array {
         return [

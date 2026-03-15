@@ -30,15 +30,13 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-use core\di;
-use mod_customcert\export\i_template_appendix_manager;
+use mod_customcert\export\template_appendix_manager_interface;
 use stored_file;
 
-class file_field implements i_field, i_file_field {
+class file_field implements field_interface, i_file_field {
     /**
-     * @var i_template_appendix_manager Reference to the template appendix manager used for file lookup and identification.
+     * @var template_appendix_manager_interface Reference to the template appendix manager used for file lookup and identification.
      */
-    private i_template_appendix_manager $filemng;
 
     /**
      * @var string $component Component of the file storage
@@ -50,9 +48,11 @@ class file_field implements i_field, i_file_field {
      *
      * @param string $component Component of the file storage
      */
-    public function __construct(string $component) {
+    public function __construct(
+        string $component,
+        private readonly template_appendix_manager_interface $filemng,
+    ) {
         $this->component = $component;
-        $this->filemng = di::get(i_template_appendix_manager::class);
     }
 
     /**

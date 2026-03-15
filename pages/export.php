@@ -31,13 +31,13 @@ require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 
 use core\di;
-use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\template_file_manager_interface;
 
 require_login();
 
 $tid = required_param("tid", PARAM_INT);
 
-$exporter = di::get(i_template_file_manager::class);
+$exporter = di::get(template_file_manager_interface::class);
 $zippath = $exporter->export($tid);
 
 @ob_clean();

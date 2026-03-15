@@ -28,9 +28,9 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use core\notification;
-use mod_customcert\export\i_template_import_logger;
+use mod_customcert\export\template_import_logger_interface;
 
-class template_logger implements i_template_import_logger {
+class template_logger implements template_import_logger_interface {
     /**
      * @var array Stores warning messages collected during the import process.
      */
