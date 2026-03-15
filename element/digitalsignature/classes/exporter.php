@@ -27,20 +27,11 @@ declare(strict_types=1);
 
 namespace customcertelement_digitalsignature;
 
-use mod_customcert\export\datatypes\file_field;
 use mod_customcert\export\datatypes\float_field;
-use mod_customcert\export\datatypes\i_field;
 use mod_customcert\export\datatypes\string_field;
 use mod_customcert\export\subplugin_exportable;
 
 class exporter extends subplugin_exportable {
-    public function __construct(
-        string $pluginname,
-        template_import_logger_interface $logger,
-        private readonly file_field $filefield,
-    ) {
-        parent::__construct($pluginname, $logger);
-    }
 
     /**
      * Defines the custom data fields

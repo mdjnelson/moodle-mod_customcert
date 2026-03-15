@@ -28,11 +28,11 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use mod_customcert\export\subplugin_exportable;
-use mod_customcert\export\datatypes\i_field;
+use mod_customcert\export\template_import_logger_interface;
+use mod_customcert\export\template_appendix_manager_interface;
+use moodle_database;
 
 class element_null_exporter extends subplugin_exportable {
-    /** @var string The name of the unknown or unsupported plugin */
-    private readonly string $pluginname;
 
     /**
      * Initializes the null exporter with the name of the unrecognized plugin.
@@ -40,10 +40,12 @@ class element_null_exporter extends subplugin_exportable {
      * @param string $pluginname The name of the unknown or unsupported plugin.
      */
     public function __construct(
-        string $pluginname
+        string $pluginname,
+        template_import_logger_interface $logger,
+        template_appendix_manager_interface $filemng,
+        moodle_database $db,
     ) {
-        $this->pluginname = $pluginname;
-        parent::__construct();
+        parent::__construct($pluginname, $logger, $filemng, $db);
     }
 
     /**

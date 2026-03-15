@@ -34,7 +34,6 @@ namespace customcertelement_coursefield;
 use core_course\customfield\course_handler;
 use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
-use mod_customcert\export\datatypes\i_field;
 
 class exporter extends subplugin_text_exportable {
     /**

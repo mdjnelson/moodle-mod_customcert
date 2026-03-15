@@ -34,6 +34,7 @@ namespace mod_customcert\export;
 use core\clock;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\template_import_logger_interface;
+use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\subplugin_exportable;
 use moodle_database;
@@ -75,6 +76,7 @@ class element {
         private readonly clock $clock,
         private readonly moodle_database $db,
         private readonly template_import_logger_interface $logger,
+        private readonly template_appendix_manager_interface $filemng,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);
     }

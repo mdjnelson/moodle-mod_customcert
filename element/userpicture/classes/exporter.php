@@ -29,7 +29,6 @@ namespace customcertelement_userpicture;
 
 use mod_customcert\export\datatypes\float_field;
 use mod_customcert\export\subplugin_exportable;
-use mod_customcert\export\datatypes\i_field;
 
 class exporter extends subplugin_exportable {
     /**

@@ -33,7 +33,6 @@ namespace customcertelement_expiry;
 
 use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
-use mod_customcert\export\datatypes\i_field;
 
 class exporter extends subplugin_text_exportable {
     /**
