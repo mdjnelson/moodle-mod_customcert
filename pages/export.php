@@ -37,6 +37,10 @@ require_login();
 
 $tid = required_param("tid", PARAM_INT);
 
+$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
+$context = context::instance_by_id($template->contextid);
+require_capability('mod/customcert:manage', $context);
+
 $exporter = di::get(template_file_manager_interface::class);
 $zippath = $exporter->export($tid);
 

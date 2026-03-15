@@ -189,6 +189,18 @@ class template_appendix_manager implements template_appendix_manager_interface {
     }
 
     /**
+     * Deletes all files that were imported during the current import operation.
+     *
+     * Called on rollback to clean up any files stored before a later failure.
+     */
+    public function delete_imported_files(): void {
+        foreach ($this->index as $file) {
+            $file->delete();
+        }
+        $this->index = [];
+    }
+
+    /**
      * Retrieves a previously imported file based on its identifier.
      *
      * @param string $identifier The content hash of the file.

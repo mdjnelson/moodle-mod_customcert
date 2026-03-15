@@ -46,6 +46,13 @@ interface template_appendix_manager_interface {
     public function import(int $contextid, string $importpath): void;
 
     /**
+     * Deletes all files that were imported during the current import operation.
+     *
+     * Called on rollback to clean up any files stored before a later failure.
+     */
+    public function delete_imported_files(): void;
+
+    /**
      * Finds and returns a stored file based on a given identifier.
      *
      * @param string $identifier The unique identifier for the file.

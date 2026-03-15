@@ -40,6 +40,7 @@ require_login();
 $contextid = required_param('context_id', PARAM_INT);
 
 $context = context::instance_by_id($contextid);
+require_capability('mod/customcert:manage', $context);
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/customcert/pages/import.php'));
 $PAGE->set_title(get_string('import'));
