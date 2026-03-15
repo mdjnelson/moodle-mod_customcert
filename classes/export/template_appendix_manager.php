@@ -51,6 +51,9 @@ class template_appendix_manager implements template_appendix_manager_interface {
     /** @var array<string, stored_file> In-memory index of imported files, mapped by content hash. */
     private array $index = [];
 
+    /** @var array<string, stored_file> Tracks only newly created files for rollback purposes. */
+    private array $created = [];
+
     /**
      * Exports appendix files linked to a certificate template and writes a manifest file.
      *
@@ -123,7 +126,8 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * Imports appendix files into the Moodle file storage based on the manifest.
      *
      * Verifies file existence, deduplicates where possible, and stores new files
-     * under the appropriate context and path.
+     * under the appropriate context and path. Only newly created files are tracked
+     * for rollback; pre-existing files that are reused are never deleted on failure.
      *
      * @param int $contextid The context ID to import files into.
      * @param string $importpath Path to the extracted ZIP directory containing files and manifest.
@@ -135,6 +139,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
         if (!file_exists($manifestpath)) {
             // Allow "no files" exports.
             $this->index = [];
+            $this->created = [];
             return;
         }
 
@@ -142,6 +147,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
         if (!is_array($manifest) || empty($manifest['files']) || !is_array($manifest['files'])) {
             // Also allow empty.
             $this->index = [];
+            $this->created = [];
             return;
         }
 
@@ -168,7 +174,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 'filename'  => $filename,
             ];
 
-            // Avoid duplicates: if the exact pathname exists, reuse.
+            // Avoid duplicates: if the exact pathname exists, reuse but do not track for rollback.
             $existing = $fs->get_file(
                 $filerecord['contextid'],
                 $filerecord['component'],
@@ -185,19 +191,22 @@ class template_appendix_manager implements template_appendix_manager_interface {
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
             $this->index[$contenthash] = $stored;
+            $this->created[$contenthash] = $stored;
         }
     }
 
     /**
-     * Deletes all files that were imported during the current import operation.
+     * Deletes only the files that were newly created during the current import operation.
      *
      * Called on rollback to clean up any files stored before a later failure.
+     * Pre-existing files that were reused are never deleted.
      */
     public function delete_imported_files(): void {
-        foreach ($this->index as $file) {
+        foreach ($this->created as $file) {
             $file->delete();
         }
         $this->index = [];
+        $this->created = [];
     }
 
     /**
