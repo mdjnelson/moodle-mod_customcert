@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.4.9] - 2026-03-15
+
+### Security
+
+- Fixed authorization bypass (CVE-2026-30884, CWE-639) where a user with mod/customcert:manage in any
+  single course could read and overwrite certificate elements belonging to other courses by supplying
+  an arbitrary elementid. Element ownership is now validated against the authorised context/template
+  before any read or write operation is performed.
+
 ## [4.4.8] - 2025-12-18
 
 ### Fixed
