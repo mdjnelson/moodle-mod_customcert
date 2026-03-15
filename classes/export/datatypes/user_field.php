@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\datatypes;
-
-use core\di;
-use moodle_database;
-
 /**
  * Handles export and import of user data fields for custom certificate subplugins.
  *
@@ -30,6 +25,14 @@ use moodle_database;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
+use core\di;
+use moodle_database;
+
 class user_field implements i_field {
     /**
      * @var moodle_database Reference to the Moodle database instance used for user lookups.

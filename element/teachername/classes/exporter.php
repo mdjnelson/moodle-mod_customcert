@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace customcertelement_teachername;
-
-use mod_customcert\export\contracts\subplugin_text_exportable;
-use mod_customcert\export\datatypes\i_field;
-use mod_customcert\export\datatypes\user_field;
-
 /**
  * Handles import and export of teacher name elements for custom certificates.
  *
@@ -28,6 +22,15 @@ use mod_customcert\export\datatypes\user_field;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace customcertelement_teachername;
+
+use mod_customcert\export\subplugin_text_exportable;
+use mod_customcert\export\datatypes\i_field;
+use mod_customcert\export\datatypes\user_field;
+
 class exporter extends subplugin_text_exportable {
     /**
      * Defines the custom data fields

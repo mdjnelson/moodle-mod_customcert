@@ -14,17 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export;
-
-use core\clock;
-use core\di;
-use mod_customcert\export\datatypes\format_error;
-use mod_customcert\export\contracts\i_template_import_logger;
-use mod_customcert\export\contracts\import_exception;
-use mod_customcert\export\contracts\subplugin_exportable;
-use moodle_database;
-use stored_file;
-
 /**
  * Manages the import, export, and file referencing of certificate elements.
  *
@@ -37,6 +26,20 @@ use stored_file;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\clock;
+use core\di;
+use mod_customcert\export\datatypes\format_error;
+use mod_customcert\export\i_template_import_logger;
+use mod_customcert\export\import_exception;
+use mod_customcert\export\subplugin_exportable;
+use moodle_database;
+use stored_file;
+
 class element {
     /**
      * @var clock Clock instance used to retrieve current timestamps.

@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace customcertelement_userfield;
-
-use availability_profile\condition;
-use mod_customcert\export\contracts\subplugin_text_exportable;
-use mod_customcert\export\datatypes\enum_field;
-use mod_customcert\export\datatypes\i_field;
-
 /**
  * Handles import and export of user field elements for custom certificates.
  *
@@ -33,6 +26,16 @@ use mod_customcert\export\datatypes\i_field;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace customcertelement_userfield;
+
+use availability_profile\condition;
+use mod_customcert\export\subplugin_text_exportable;
+use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\i_field;
+
 class exporter extends subplugin_text_exportable {
     /**
      * Defines the custom data fields

@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\contracts;
-
-use stored_file;
-
 /**
  * Manages appendix files for custom certificate templates during import and export.
  *
@@ -26,6 +22,13 @@ use stored_file;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use stored_file;
+
 interface i_template_appendix_manager {
     /**
      * Exports appendix files linked to a custom certificate template to a target directory.

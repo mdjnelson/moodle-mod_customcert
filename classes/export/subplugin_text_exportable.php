@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\contracts;
-
-use mod_customcert\certificate;
-use mod_customcert\export\datatypes\int_field;
-use mod_customcert\export\datatypes\enum_field;
-use mod_customcert\export\datatypes\string_field;
-
 /**
  * Defines exportable fields for subplugins with texts.
  *
@@ -29,6 +22,16 @@ use mod_customcert\export\datatypes\string_field;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use mod_customcert\certificate;
+use mod_customcert\export\datatypes\int_field;
+use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\string_field;
+
 class subplugin_text_exportable extends subplugin_exportable {
     /**
      * Standard fields for subplugins with texts.

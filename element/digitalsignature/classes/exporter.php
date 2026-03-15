@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace customcertelement_digitalsignature;
-
-use mod_customcert\export\datatypes\file_field;
-use mod_customcert\export\datatypes\float_field;
-use mod_customcert\export\datatypes\i_field;
-use mod_customcert\export\datatypes\string_field;
-use mod_customcert\export\contracts\subplugin_exportable;
-
 /**
  * Handles import and export of digital signature elements for custom certificates.
  *
@@ -30,6 +22,17 @@ use mod_customcert\export\contracts\subplugin_exportable;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace customcertelement_digitalsignature;
+
+use mod_customcert\export\datatypes\file_field;
+use mod_customcert\export\datatypes\float_field;
+use mod_customcert\export\datatypes\i_field;
+use mod_customcert\export\datatypes\string_field;
+use mod_customcert\export\subplugin_exportable;
+
 class exporter extends subplugin_exportable {
     /**
      * Defines the custom data fields

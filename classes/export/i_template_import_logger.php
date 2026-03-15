@@ -14,33 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\contracts;
-
 /**
- * Handles the import and export of custom certificate templates.
+ * Defines logging capabilities for custom certificate template import feature.
  *
  * @package    mod_customcert
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-interface i_template_file_manager {
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+
+interface i_template_import_logger {
     /**
-     * Exports as a zip file contains infos about a custom certificate template.
+     * Logs a warning message to the import process logger.
      *
-     * Call this export function to download the zip.
-     *
-     * @param int $templateid The ID of the certificate template to export.
-     * @return string The exported file path
+     * @param string $message The warning message to log.
      */
-    public function export(int $templateid): string;
+    public function warning(string $message): void;
 
     /**
-     * Imports certificate template files into a context from a temporary directory.
+     * Logs an informational message during the import process.
      *
-     * @param int $contextid The context ID where the template files will be imported.
-     * @param string $tempdir The path to the temporary directory containing the template file.
-     *                        Must be a zip named import.zip
+     * @param string $message The info message to log.
      */
-    public function import(int $contextid, string $tempdir): void;
+    public function info(string $message): void;
+
+    /**
+     * Outputs or displays the collected log notifications.
+     *
+     * This method should be called after import operations to show relevant messages.
+     */
+    public function print_notification(): void;
 }

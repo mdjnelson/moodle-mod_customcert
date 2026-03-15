@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\datatypes;
-
 /**
  * Defines a contract for export fields that involve stored file references.
  *
@@ -24,6 +22,12 @@ namespace mod_customcert\export\datatypes;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
+
 interface i_file_field {
     /**
      * Retrieves the file associated with the given field data.

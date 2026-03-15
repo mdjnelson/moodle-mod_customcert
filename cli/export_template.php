@@ -24,7 +24,7 @@
  */
 
 use core\di;
-use mod_customcert\export\contracts\i_template_file_manager;
+use mod_customcert\export\i_template_file_manager;
 
 define('WORKING_DIR', getcwd());
 define('CLI_SCRIPT', true);

@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\contracts;
-
-defined('MOODLE_INTERNAL') || die();
-require_once("$CFG->libdir/formslib.php");
-
-use moodleform;
-
 /**
  * Defines the form for importing custom certificate backup files.
  *
@@ -29,6 +22,16 @@ use moodleform;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+defined('MOODLE_INTERNAL') || die();
+require_once("$CFG->libdir/formslib.php");
+
+use moodleform;
+
 class import_form extends moodleform {
     /**
      * Builds the import form UI elements.

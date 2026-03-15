@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\datatypes;
-
 /**
  * Handles import and export of simple string values for certificate subplugin fields.
  *
@@ -27,6 +25,12 @@ namespace mod_customcert\export\datatypes;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
+
 class string_field implements i_field {
     /**
      * @var string Indicates whether empty strings are allowed for this field.

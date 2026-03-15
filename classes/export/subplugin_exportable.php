@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\contracts;
-
-use core\di;
-use mod_customcert\export\datatypes\format_error;
-use mod_customcert\export\datatypes\format_exception;
-use mod_customcert\export\datatypes\i_field;
-use mod_customcert\export\datatypes\i_file_field;
-use stored_file;
-
 /**
  * Provides a base structure for exportable custom certificate subplugins.
  *
@@ -31,6 +22,18 @@ use stored_file;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\di;
+use mod_customcert\export\datatypes\format_error;
+use mod_customcert\export\datatypes\format_exception;
+use mod_customcert\export\datatypes\i_field;
+use mod_customcert\export\datatypes\i_file_field;
+use stored_file;
+
 abstract class subplugin_exportable {
     /**
      * @var i_template_import_logger Logger instance used for reporting import issues and notices.

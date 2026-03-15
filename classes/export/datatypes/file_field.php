@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export\datatypes;
-
-use core\di;
-use mod_customcert\export\contracts\i_template_appendix_manager;
-use stored_file;
-
 /**
  * Field which exports and import a file.
  *
@@ -31,6 +25,15 @@ use stored_file;
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
+use core\di;
+use mod_customcert\export\i_template_appendix_manager;
+use stored_file;
+
 class file_field implements i_field, i_file_field {
     /**
      * @var i_template_appendix_manager Reference to the template appendix manager used for file lookup and identification.
