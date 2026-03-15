@@ -40,7 +40,6 @@ use mod_customcert\export\datatypes\format_exception;
  */
 final class export_datatype_fields_test extends advanced_testcase {
     // String_field tests.
-    // -------------------------------------------------------------------------
 
     /**
      * Test string_field imports a valid string.
@@ -84,7 +83,6 @@ final class export_datatype_fields_test extends advanced_testcase {
     }
 
     // Float_field tests.
-    // -------------------------------------------------------------------------
 
     /**
      * Test float_field imports a value within range.
@@ -137,7 +135,6 @@ final class export_datatype_fields_test extends advanced_testcase {
     }
 
     // Int_field tests.
-    // -------------------------------------------------------------------------
 
     /**
      * Test int_field imports and casts to integer.
@@ -164,7 +161,6 @@ final class export_datatype_fields_test extends advanced_testcase {
     }
 
     // Enum_field tests.
-    // -------------------------------------------------------------------------
 
     /**
      * Test enum_field imports a valid option.
