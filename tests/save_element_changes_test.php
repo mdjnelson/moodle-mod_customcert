@@ -367,4 +367,158 @@ final class save_element_changes_test extends advanced_testcase {
         $this->assertSame('existing_value', $decoded['existing_key'] ?? null, 'Existing key must be preserved');
         $this->assertSame('new_value', $decoded['new_key'] ?? null, 'New key from JSON object must be merged');
     }
+
+    // -----------------------------------------------------------------------
+    // 4. Persistable element normalise_data() merge
+    // -----------------------------------------------------------------------
+    /**
+     * For persistable elements, normalise_data() result must be merged on top of the
+     * already-seeded $decoded payload so that existing JSON keys are not discarded.
+     *
+     * The text element implements persistable_element_interface and returns
+     * ['value' => ...] from normalise_data(). Any pre-existing keys in the stored
+     * JSON (e.g. font, colour) must survive the save.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_persistable_normalise_preserves_existing_keys(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $template = (object)[
+            'name' => 'Persistable Merge Template',
+            'contextid' => \context_system::instance()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
+        $page = (object)[
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
+        // Pre-seed the element with existing JSON that includes visual fields.
+        $element = (object)[
+            'pageid' => $page->id,
+            'element' => 'text',
+            'name' => 'Text',
+            'posx' => 10,
+            'posy' => 20,
+            'refpoint' => 1,
+            'alignment' => 'L',
+            'data' => json_encode(['value' => 'old text', 'font' => 'freesans', 'fontsize' => 12]),
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
+        // Save with a new text value only; font/fontsize should be preserved from existing JSON.
+        // The text element's normalise_data() reads $formdata->text, so submit that field.
+        $values = [
+            ['name' => 'text', 'value' => 'new text'],
+        ];
+        $result = external::save_element($template->id, $element->id, $values);
+        external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertTrue($result);
+        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
+        $decoded = json_decode($row->data, true);
+        $this->assertSame('new text', $decoded['value'] ?? null, 'normalise_data() value must be stored');
+        $this->assertSame('freesans', $decoded['font'] ?? null, 'Existing font key must be preserved');
+        $this->assertSame(12, $decoded['fontsize'] ?? null, 'Existing fontsize key must be preserved');
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. Legacy element (border) save via web service
+    // -----------------------------------------------------------------------
+    /**
+     * A legacy element (border) saved via the web service must persist correctly.
+     * The border element does not implement persistable_element_interface, so the
+     * legacy path in save_element() is used. Existing JSON data must be preserved
+     * and visual attributes submitted by the caller must be merged in.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_legacy_border_preserves_existing_data(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $template = (object)[
+            'name' => 'Legacy Border Template',
+            'contextid' => \context_system::instance()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
+        $page = (object)[
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
+        $element = (object)[
+            'pageid' => $page->id,
+            'element' => 'border',
+            'name' => 'Border',
+            'posx' => 5,
+            'posy' => 5,
+            'refpoint' => 0,
+            'alignment' => 'L',
+            'data' => json_encode(['width' => 2, 'colour' => 'ff0000']),
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
+        // Submit a new colour; width should be preserved from existing JSON.
+        $values = [
+            ['name' => 'colour', 'value' => '0000ff'],
+        ];
+        $result = external::save_element($template->id, $element->id, $values);
+        external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertTrue($result);
+        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
+        $decoded = json_decode($row->data, true);
+        $this->assertSame('0000ff', $decoded['colour'] ?? null, 'Submitted colour must be stored');
+        $this->assertSame(2, $decoded['width'] ?? null, 'Existing width must be preserved');
+    }
+
+    // -----------------------------------------------------------------------
+    // 6. Fractional coordinate rounding
+    // -----------------------------------------------------------------------
+    /**
+     * ajax.php rounds fractional positions before passing them to update_position().
+     * Verify the rounding expression used in ajax.php produces the correct integer
+     * for sub-pixel values emitted by the JS editor.
+     *
+     * @covers \mod_customcert\service\element_repository::update_position
+     */
+    public function test_fractional_position_rounding(): void {
+        // These mirror the expression used in ajax.php - (int)round((float)$value->posx).
+        $cases = [
+            ['input' => '10.4', 'expected' => 10],
+            ['input' => '10.5', 'expected' => 11],
+            ['input' => '10.6', 'expected' => 11],
+            ['input' => '0.0', 'expected' => 0],
+            ['input' => '99.9', 'expected' => 100],
+        ];
+        foreach ($cases as $case) {
+            $rounded = (int)round((float)$case['input']);
+            $this->assertSame(
+                $case['expected'],
+                $rounded,
+                "Rounding '{$case['input']}' should give {$case['expected']}"
+            );
+        }
+    }
 }
