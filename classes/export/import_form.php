@@ -32,6 +32,14 @@ require_once("$CFG->libdir/formslib.php");
 
 use moodleform;
 
+/**
+ * Defines the form for importing custom certificate backup files.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class import_form extends moodleform {
     /**
      * Builds the import form UI elements.

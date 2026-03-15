@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\clock;
+use mod_customcert\export\import_exception;
 /**
  * Handles the import and export of custom certificate templates.
  *
@@ -27,12 +33,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-declare(strict_types=1);
-
-namespace mod_customcert\export;
-
-use core\clock;
-use mod_customcert\export\import_exception;
 class template {
     /**
      * @var clock Clock service for generating consistent timestamps.
@@ -54,7 +54,9 @@ class template {
      * Constructor.
      */
     public function __construct(
+        /** @var clock Clock instance used to retrieve current timestamps. */
         private readonly clock $clock,
+        /** @var page Page handler for import/export of template pages. */
         private readonly page $page,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);

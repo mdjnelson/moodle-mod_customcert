@@ -39,9 +39,7 @@ use mod_customcert\export\datatypes\format_exception;
  * @covers     \mod_customcert\export\datatypes\enum_field
  */
 final class export_datatype_fields_test extends advanced_testcase {
-
-    // -------------------------------------------------------------------------
-    // string_field
+    // String_field tests.
     // -------------------------------------------------------------------------
 
     /**
@@ -85,8 +83,7 @@ final class export_datatype_fields_test extends advanced_testcase {
         $this->assertSame('mydefault', $field->get_fallback());
     }
 
-    // -------------------------------------------------------------------------
-    // float_field
+    // Float_field tests.
     // -------------------------------------------------------------------------
 
     /**
@@ -139,8 +136,7 @@ final class export_datatype_fields_test extends advanced_testcase {
         $this->assertSame(10.0, $field->get_fallback());
     }
 
-    // -------------------------------------------------------------------------
-    // int_field
+    // Int_field tests.
     // -------------------------------------------------------------------------
 
     /**
@@ -167,8 +163,7 @@ final class export_datatype_fields_test extends advanced_testcase {
         $this->assertSame(9.0, $field->get_fallback());
     }
 
-    // -------------------------------------------------------------------------
-    // enum_field
+    // Enum_field tests.
     // -------------------------------------------------------------------------
 
     /**

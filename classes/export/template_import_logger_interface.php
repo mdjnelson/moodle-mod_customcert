@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+
 /**
  * Defines logging capabilities for custom certificate template import feature.
  *
@@ -22,11 +27,6 @@
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace mod_customcert\export;
-
 
 interface template_import_logger_interface {
     /**

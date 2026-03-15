@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Provides a base structure for exportable custom certificate subplugins.
- *
- * @package    mod_customcert
- * @author     Konrad Ebel <konrad.ebel@oncampus.de>
- * @copyright  2025, oncampus GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 declare(strict_types=1);
 
 namespace mod_customcert\export;
@@ -32,6 +23,15 @@ use mod_customcert\export\datatypes\file_field_interface;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\datatypes\format_exception;
 use stored_file;
+
+/**
+ * Provides a base structure for exportable custom certificate subplugins.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 abstract class subplugin_exportable {
     /**

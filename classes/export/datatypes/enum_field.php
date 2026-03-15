@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
 /**
  * Represents a field with a fixed set of valid options (select).
  *
@@ -25,10 +29,6 @@
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace mod_customcert\export\datatypes;
 
 class enum_field implements field_interface {
     /**

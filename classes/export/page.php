@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\clock;
+
 /**
  * Handles the import and export of certificate pages and their elements.
  *
@@ -25,12 +31,6 @@
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace mod_customcert\export;
-
-use core\clock;
 
 class page {
     /**
@@ -59,7 +59,9 @@ class page {
      * Constructor.
      */
     public function __construct(
+        /** @var clock Clock instance used to retrieve current timestamps. */
         private readonly clock $clock,
+        /** @var element Element handler for import/export of page elements. */
         private readonly element $element,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);

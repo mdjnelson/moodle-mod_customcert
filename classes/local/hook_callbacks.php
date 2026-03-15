@@ -14,18 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Registers dependency injection definitions for custom certificate export services.
- *
- * This class defines service bindings for appendix manager, file manager, and logger,
- * integrating them into Moodle's core DI container during plugin initialization.
- *
- * @package    mod_customcert
- * @author     Konrad Ebel <konrad.ebel@oncampus.de>
- * @copyright  2025, oncampus GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 declare(strict_types=1);
 
 namespace mod_customcert\local;
@@ -38,6 +26,17 @@ use mod_customcert\export\template_appendix_manager;
 use mod_customcert\export\template_file_manager;
 use mod_customcert\export\template_logger;
 
+/**
+ * Registers dependency injection definitions for custom certificate export services.
+ *
+ * This class defines service bindings for appendix manager, file manager, and logger,
+ * integrating them into Moodle's core DI container during plugin initialization.
+ *
+ * @package    mod_customcert
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class hook_callbacks {
     /**
      * Configures the dependency injection container with service definitions.

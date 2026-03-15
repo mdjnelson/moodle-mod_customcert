@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace customcertelement_grade;
+
+use mod_customcert\export\subplugin_text_exportable;
+use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\unimported_field;
+
 /**
  * Handles import and export of grade elements for custom certificates.
  *
@@ -22,14 +30,6 @@
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace customcertelement_grade;
-
-use mod_customcert\export\subplugin_text_exportable;
-use mod_customcert\export\datatypes\enum_field;
-use mod_customcert\export\datatypes\unimported_field;
 
 class exporter extends subplugin_text_exportable {
     /**
