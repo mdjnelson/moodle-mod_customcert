@@ -38,8 +38,8 @@ $usage = "
  Imports a template to the moodle
 
  Usage:
-     # php mod/customcert/cli/export_template.php [--help|-h]
-     # php mod/customcert/cli/export_template.php [--input=<file>|-i]
+     # php mod/customcert/cli/import_template.php [--help|-h]
+     # php mod/customcert/cli/import_template.php [--input=<file>|-i]
 
  Options:
      -h --help                     Print this help.
