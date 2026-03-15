@@ -31,10 +31,11 @@ use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
-use mod_customcert\event\element_updated;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\pdf_generation_service;
+use mod_customcert\service\persistence_helper;
 use stdClass;
 use Throwable;
 
@@ -99,50 +100,49 @@ class external extends external_api {
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
-        // Set the values we are going to save.
-        $data = new stdClass();
-        $data->id = $element->id;
-        $data->name = $element->name;
+        // Build the updated record by merging submitted values onto the existing element.
+        $record = clone $element;
         foreach ($values as $value) {
             $field = $value['name'];
-            $data->$field = $value['value'];
+            $record->$field = $value['value'];
         }
 
-        // Normalise JSON-backed visual attributes (font, fontsize, colour, width): merge into data JSON.
-        $jsonpayload = [];
-        // Start from existing element JSON if present.
+        // Merge visual attributes into the JSON payload before normalisation.
+        // Seed from the existing element JSON, then overlay any caller-submitted 'data' field.
+        $decoded = [];
         if (!empty($element->data)) {
-            $decoded = json_decode((string)$element->data, true);
-            if (is_array($decoded) && !array_is_list($decoded)) {
-                $jsonpayload = $decoded;
+            $existing = json_decode((string)$element->data, true);
+            if (is_array($existing) && !array_is_list($existing)) {
+                $decoded = $existing;
             }
         }
-        // If caller provided a 'data' JSON string, merge it first.
-        // Only merge JSON objects (associative arrays); ignore JSON arrays to avoid numeric-key pollution.
-        if (property_exists($data, 'data') && is_string($data->data) && $data->data !== '') {
-            $incoming = json_decode($data->data, true);
+        // If caller explicitly submitted a 'data' JSON string, merge it (only objects, not arrays).
+        $submittedfields = array_column($values, 'name');
+        if (in_array('data', $submittedfields, true) && is_string($record->data) && $record->data !== '') {
+            $incoming = json_decode($record->data, true);
             if (is_array($incoming) && !array_is_list($incoming)) {
-                $jsonpayload = array_merge($jsonpayload, $incoming);
+                $decoded = array_merge($decoded, $incoming);
             }
-            unset($data->data);
         }
-        // Merge scalar visual attributes into JSON payload and remove them from the DB update payload.
         foreach (['font', 'fontsize', 'colour', 'width'] as $jk) {
-            if (property_exists($data, $jk) && $data->$jk !== '' && $data->$jk !== null) {
-                $jsonpayload[$jk] = in_array($jk, ['fontsize', 'width'], true) ? (int)$data->$jk : (string)$data->$jk;
-                unset($data->$jk);
+            if (property_exists($record, $jk) && $record->$jk !== '' && $record->$jk !== null) {
+                $decoded[$jk] = in_array($jk, ['fontsize', 'width'], true) ? (int)$record->$jk : (string)$record->$jk;
             }
         }
-        // Persist the merged JSON payload.
-        $data->data = json_encode($jsonpayload);
+        $record->data = json_encode($decoded);
 
-        // Update the element record directly to avoid deprecated save_form_elements().
-        // Only update fields provided via $values; preserve existing values for others.
-        $data->timemodified = time();
-        $DB->update_record('customcert_elements', $data);
+        // Instantiate the element via the factory so element-specific normalisation is applied.
+        $factory = element_factory::build_with_defaults();
+        $instance = $factory->create_from_legacy_record($record);
+        if (!$instance) {
+            throw new \moodle_exception('invalidelementtype', 'customcert');
+        }
 
-        // Fire updated event.
-        element_updated::create_from_id((int)$elementid, $template)->trigger();
+        // Run element-specific data normalisation through the canonical path, then persist.
+        $record->data = persistence_helper::to_json_data($instance, (object)(array)$record);
+        $instance = $factory->create($record->element, $record);
+        $elementrepo = new element_repository($factory);
+        $elementrepo->save($instance);
 
         // For compatibility keep a simple truthy result.
         return true;
