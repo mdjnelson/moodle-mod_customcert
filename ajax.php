@@ -55,7 +55,14 @@ $elementrepo = new element_repository($factory);
 // Loop through the data.
 $contextid = $template->get_contextid();
 foreach ($values as $value) {
-    $elementrepo->update_position((int)$value->id, (int)$value->posx, (int)$value->posy, $contextid);
+    // Round fractional positions to the nearest integer — the DB column is INT
+    // but the JS editor may emit sub-pixel values.
+    $elementrepo->update_position(
+        (int)$value->id,
+        (int)round((float)$value->posx),
+        (int)round((float)$value->posy),
+        $contextid
+    );
 }
 
 template_updated::create_from_template($template)->trigger();
