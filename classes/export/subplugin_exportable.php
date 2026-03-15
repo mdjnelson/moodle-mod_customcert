@@ -22,6 +22,7 @@ use mod_customcert\export\datatypes\field_interface;
 use mod_customcert\export\datatypes\file_field_interface;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\datatypes\format_exception;
+use mod_customcert\export\datatypes\user_field;
 use stored_file;
 
 /**
@@ -45,6 +46,10 @@ abstract class subplugin_exportable {
      * @var template_appendix_manager_interface File manager instance.
      */
     protected readonly template_appendix_manager_interface $filemng;
+    /**
+     * @var user_field User field instance for exporting and importing user references.
+     */
+    protected readonly user_field $userfield;
 
     /**
      * Constructor.
@@ -61,6 +66,7 @@ abstract class subplugin_exportable {
         $this->pluginname = $pluginname;
         $this->logger = $logger;
         $this->filemng = $filemng;
+        $this->userfield = new user_field();
     }
 
     /**
