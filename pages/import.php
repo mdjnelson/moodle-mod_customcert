@@ -57,12 +57,12 @@ if ($fromform = $mform->get_data()) {
     $backupmng->import($fromform->context_id, $tempdir);
 
     di::get(i_template_import_logger::class)->print_notification();
-    notification::success("Successfully imported template");
+    notification::success(get_string('importsuccessful', 'mod_customcert'));
 }
 
 echo $OUTPUT->header();
 
-// Formular anzeigen.
+// Display the form.
 $mform->display();
 
 echo $OUTPUT->footer();
