@@ -73,6 +73,7 @@ class page {
      */
     public static function get_pageids_from_template(int $templateid): array {
         global $DB;
+
         $pageids = $DB->get_fieldset(static::$dbtable, 'id', ['templateid' => $templateid]);
         return $pageids;
     }
@@ -87,6 +88,7 @@ class page {
      */
     public function import(int $templateid, array $pagedata): void {
         global $DB;
+
         $pageid = $DB->insert_record(static::$dbtable, [
             'templateid' => $templateid,
             'width' => (int) $pagedata['width'],

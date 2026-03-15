@@ -73,6 +73,7 @@ class template {
      */
     public function import(int $contextid, array $templatedata): void {
         global $DB;
+
         if (($templatedata['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }

@@ -87,6 +87,7 @@ class element {
      */
     public static function get_elementids_from_page(int $pageid): array {
         global $DB;
+
         $elementids = $DB->get_fieldset(static::$dbtable, 'id', ['pageid' => $pageid]);
         return $elementids;
     }
@@ -103,6 +104,7 @@ class element {
      */
     public function import(int $pageid, array $data): void {
         global $DB;
+
         if (($data['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }
