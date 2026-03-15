@@ -322,6 +322,14 @@ function mod_customcert_output_fragment_editelement($args) {
     // Get the element.
     $element = $elementrepo->get_by_id_or_fail((int)$args['elementid']);
 
+    // Verify the element belongs to the authorised context so that a teacher in
+    // Course A cannot read elements from Course B by supplying a foreign elementid.
+    $authorisedcontext = \context::instance_by_id((int)$args['context']->id);
+    $elementcontextid = $elementrepo->get_template_context_id_for_element((int)$args['elementid']);
+    if ($elementcontextid === null || $elementcontextid !== (int)$authorisedcontext->id) {
+        throw new \moodle_exception('nopermissions', 'error', '', 'editelement');
+    }
+
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
     $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
 

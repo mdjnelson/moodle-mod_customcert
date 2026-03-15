@@ -122,6 +122,163 @@ final class external_test extends advanced_testcase {
     }
 
     /**
+     * A teacher with mod/customcert:manage in Course A must not be able to overwrite
+     * an element belonging to Course B by supplying a foreign elementid.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_foreign_elementid(): void {
+        global $DB;
+
+        // Set up Course A with a customcert and a teacher.
+        $coursea = $this->getDataGenerator()->create_course();
+        $courseb = $this->getDataGenerator()->create_course();
+
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        // Course A certificate — teacher has manage capability here.
+        $customcerta = $this->getDataGenerator()->create_module('customcert', ['course' => $coursea->id]);
+        $templateida = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcerta->id], MUST_EXIST);
+
+        // Course B certificate — teacher has no access.
+        $customcertb = $this->getDataGenerator()->create_module('customcert', ['course' => $courseb->id]);
+        $templateidb = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcertb->id], MUST_EXIST);
+
+        // Insert an element into Course B's template.
+        $pageb = (object)[
+            'templateid' => $templateidb,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $pageb->id = (int)$DB->insert_record('customcert_pages', $pageb, true);
+
+        $elementb = (object)[
+            'pageid' => $pageb->id,
+            'element' => 'text',
+            'name' => 'Secret element',
+            'posx' => 0, 'posy' => 0,
+            'refpoint' => 0, 'alignment' => 'L',
+            'data' => json_encode(['value' => 'secret']),
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $elementb->id = (int)$DB->insert_record('customcert_elements', $elementb, true);
+
+        // Authenticate as the Course A teacher and attempt to overwrite Course B's element.
+        $this->setUser($teacher);
+
+        $this->expectException(\moodle_exception::class);
+        external::save_element($templateida, $elementb->id, [
+            ['name' => 'name', 'value' => 'Modified by attacker'],
+        ]);
+    }
+
+    /**
+     * A teacher with mod/customcert:manage in Course A must not be able to read
+     * an element belonging to Course B via get_element_html.
+     *
+     * @covers \mod_customcert\external::get_element_html
+     */
+    public function test_get_element_html_rejects_foreign_elementid(): void {
+        global $DB;
+
+        $coursea = $this->getDataGenerator()->create_course();
+        $courseb = $this->getDataGenerator()->create_course();
+
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        $customcerta = $this->getDataGenerator()->create_module('customcert', ['course' => $coursea->id]);
+        $templateida = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcerta->id], MUST_EXIST);
+
+        $customcertb = $this->getDataGenerator()->create_module('customcert', ['course' => $courseb->id]);
+        $templateidb = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcertb->id], MUST_EXIST);
+
+        $pageb = (object)[
+            'templateid' => $templateidb,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $pageb->id = (int)$DB->insert_record('customcert_pages', $pageb, true);
+
+        $elementb = (object)[
+            'pageid' => $pageb->id,
+            'element' => 'text',
+            'name' => 'Confidential',
+            'posx' => 0, 'posy' => 0,
+            'refpoint' => 0, 'alignment' => 'L',
+            'data' => json_encode(['value' => 'confidential text']),
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $elementb->id = (int)$DB->insert_record('customcert_elements', $elementb, true);
+
+        $this->setUser($teacher);
+
+        $this->expectException(\moodle_exception::class);
+        external::get_element_html($templateida, $elementb->id);
+    }
+
+    /**
+     * A teacher with mod/customcert:manage in Course A must not be able to read
+     * an element belonging to Course B via the editelement fragment callback.
+     *
+     * @covers \mod_customcert_output_fragment_editelement
+     */
+    public function test_editelement_fragment_rejects_foreign_elementid(): void {
+        global $DB;
+
+        $coursea = $this->getDataGenerator()->create_course();
+        $courseb = $this->getDataGenerator()->create_course();
+
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        $customcerta = $this->getDataGenerator()->create_module('customcert', ['course' => $coursea->id]);
+        $cma = get_coursemodule_from_instance('customcert', $customcerta->id, $coursea->id, false, MUST_EXIST);
+        $contexta = \context_module::instance($cma->id);
+
+        $customcertb = $this->getDataGenerator()->create_module('customcert', ['course' => $courseb->id]);
+        $templateidb = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcertb->id], MUST_EXIST);
+
+        $pageb = (object)[
+            'templateid' => $templateidb,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $pageb->id = (int)$DB->insert_record('customcert_pages', $pageb, true);
+
+        $elementb = (object)[
+            'pageid' => $pageb->id,
+            'element' => 'text',
+            'name' => 'Confidential',
+            'posx' => 0, 'posy' => 0,
+            'refpoint' => 0, 'alignment' => 'L',
+            'data' => json_encode(['value' => 'confidential text']),
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $elementb->id = (int)$DB->insert_record('customcert_elements', $elementb, true);
+
+        $this->setUser($teacher);
+
+        // The fragment callback receives the already-validated context (Course A's module context).
+        // Supplying Course B's elementid must be rejected.
+        $this->expectException(\moodle_exception::class);
+        mod_customcert_output_fragment_editelement([
+            'elementid' => $elementb->id,
+            'context'   => $contexta,
+        ]);
+    }
+
+    /**
      * Test the delete_issue web service.
      *
      * @covers \external::delete_issue

@@ -75,6 +75,27 @@ final class element_repository {
     }
 
     /**
+     * Return the template contextid that owns the given element, or null if the chain is broken.
+     *
+     * Traverses customcert_elements → customcert_pages → customcert_templates.
+     *
+     * @param int $elementid
+     * @return int|null
+     */
+    public function get_template_context_id_for_element(int $elementid): ?int {
+        global $DB;
+
+        $sql = 'SELECT t.contextid
+                  FROM {customcert_elements} e
+                  JOIN {customcert_pages} p ON p.id = e.pageid
+                  JOIN {customcert_templates} t ON t.id = p.templateid
+                 WHERE e.id = :elementid';
+
+        $contextid = $DB->get_field_sql($sql, ['elementid' => $elementid]);
+        return $contextid !== false ? (int)$contextid : null;
+    }
+
+    /**
      * Load a single element record by id or throw if missing.
      *
      * @param int $id

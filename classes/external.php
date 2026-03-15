@@ -101,6 +101,14 @@ class external extends external_api {
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
+        // Verify the element belongs to the authorised template so that a teacher in
+        // Course A cannot overwrite elements from Course B by supplying a foreign elementid.
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
+        if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
+            throw new \moodle_exception('nopermissions', 'error', '', 'save_element');
+        }
+
         // Build the updated record by merging submitted values onto the existing element.
         $record = clone $element;
         foreach ($values as $value) {
@@ -152,7 +160,6 @@ class external extends external_api {
 
         // Create the final instance from the normalised record and persist.
         $instance = $factory->create_from_legacy_record($record);
-        $elementrepo = new element_repository($factory);
         $elementrepo->save($instance);
 
         // For compatibility keep a simple truthy result.
@@ -208,6 +215,14 @@ class external extends external_api {
             self::validate_context(context_module::instance($cm->id));
         } else {
             self::validate_context(context_system::instance());
+        }
+
+        // Verify the element belongs to the authorised template so that a teacher in
+        // Course A cannot read elements from Course B by supplying a foreign elementid.
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
+        if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
+            throw new \moodle_exception('nopermissions', 'error', '', 'get_element_html');
         }
 
         // Get an instance of the element class.
