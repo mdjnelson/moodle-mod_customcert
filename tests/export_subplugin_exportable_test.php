@@ -170,7 +170,8 @@ final class export_subplugin_exportable_test extends advanced_testcase {
         $logger = $this->createMock(template_import_logger_interface::class);
         $logger->expects($this->once())->method('warning');
         $filemng = $this->createMock(template_appendix_manager_interface::class);
-        $exportable = new class ('testplugin', $logger, $filemng, ['title' => new string_field(false, 'FALLBACK')]) extends subplugin_exportable {
+        $fields = ['title' => new string_field(false, 'FALLBACK')];
+        $exportable = new class ('testplugin', $logger, $filemng, $fields) extends subplugin_exportable {
             /** @var array Test fields for this anonymous exportable. */
             private array $testfields;
 

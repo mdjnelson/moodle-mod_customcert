@@ -31,7 +31,6 @@ use mod_customcert\export\subplugin_exportable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class exporter extends subplugin_exportable {
-
     /**
      * Defines the custom data fields
      *
