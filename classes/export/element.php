@@ -102,6 +102,7 @@ class element {
      * @throws import_exception If required fields like 'name' are missing.
      */
     public function import(int $pageid, array $data): void {
+        global $DB;
         if (($data['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }
@@ -114,7 +115,6 @@ class element {
             return;
         }
 
-        global $DB;
         $DB->insert_record(static::$dbtable, [
             'pageid' => $pageid,
             'name' => $data['name'],

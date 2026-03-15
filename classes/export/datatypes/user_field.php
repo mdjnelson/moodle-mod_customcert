@@ -48,10 +48,9 @@ class user_field implements field_interface {
      * @throws format_exception If the user does not exist or the name does not match.
      */
     public function import(array $data): mixed {
+        global $DB;
         $userid = $data['userid'] ?? -1;
         $username = $data['fullname'] ?? null;
-
-        global $DB;
         $user = $DB->get_record('user', ['id' => $userid]);
         if (!$user) {
             throw new format_exception("User with $userid does not exist");
@@ -74,12 +73,12 @@ class user_field implements field_interface {
      * @return array Exported data with 'userid' and 'fullname' keys, or an empty array.
      */
     public function export(mixed $value): array {
+        global $DB;
         if (empty($value)) {
             return [];
         }
 
         $userid = (int) $value;
-        global $DB;
         $user = $DB->get_record('user', ['id' => $userid]);
         if (!$user) {
             return [];

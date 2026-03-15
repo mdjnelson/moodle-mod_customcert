@@ -72,11 +72,10 @@ class template {
      * @throws import_exception If required template fields are missing.
      */
     public function import(int $contextid, array $templatedata): void {
+        global $DB;
         if (($templatedata['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }
-
-        global $DB;
         $DB->transactions_forbidden();
         $transaction = $DB->start_delegated_transaction();
         $tid = $DB->insert_record(static::$dbtable, [
