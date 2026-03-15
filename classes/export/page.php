@@ -62,6 +62,7 @@ class page {
     public function __construct(
         private readonly clock $clock,
         private readonly moodle_database $db,
+        private readonly element $element,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);
     }
@@ -97,7 +98,7 @@ class page {
             'timemodified' => $this->clock->time(),
         ]);
 
-        $element = new element();
+        $element = $this->element;
         foreach ($pagedata['elements'] as $elementdata) {
             $element->import($pageid, $elementdata);
         }
@@ -115,7 +116,7 @@ class page {
         $data = $this->exporter->export($pageid, $this->fields);
 
         $elementids = element::get_elementids_from_page($pageid);
-        $element = new element();
+        $element = $this->element;
         $data['elements'] = array_map(function ($elementid) use ($element) {
             return $element->export($elementid);
         }, $elementids);

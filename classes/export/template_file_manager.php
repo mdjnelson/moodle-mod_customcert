@@ -36,6 +36,7 @@ use coding_exception;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\template_appendix_manager_interface;
+use mod_customcert\export\template;
 
 class template_file_manager implements template_file_manager_interface {
     /** @var template_appendix_manager_interface The manager for appendix file operations. */
@@ -47,7 +48,8 @@ class template_file_manager implements template_file_manager_interface {
      * @param template_appendix_manager_interface $filemng The manager for appendix file operations.
      */
     public function __construct(
-        template_appendix_manager_interface $filemng
+        template_appendix_manager_interface $filemng,
+        private readonly template $template,
     ) {
         $this->filemng = $filemng;
     }
@@ -63,7 +65,7 @@ class template_file_manager implements template_file_manager_interface {
      * @throws coding_exception If JSON encoding fails.
      */
     public function export(int $templateid): string {
-        $jsondata = (new template())->export($templateid);
+        $jsondata = $this->template->export($templateid);
 
         $json = json_encode($jsondata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -126,6 +128,6 @@ class template_file_manager implements template_file_manager_interface {
         if (!is_array($data)) {
             throw new import_exception('Invalid template.json (not valid JSON)');
         }
-        (new template())->import($contextid, $data);
+        $this->template->import($contextid, $data);
     }
 }

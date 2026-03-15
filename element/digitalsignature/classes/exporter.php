@@ -34,6 +34,14 @@ use mod_customcert\export\datatypes\string_field;
 use mod_customcert\export\subplugin_exportable;
 
 class exporter extends subplugin_exportable {
+    public function __construct(
+        string $pluginname,
+        template_import_logger_interface $logger,
+        private readonly file_field $filefield,
+    ) {
+        parent::__construct($pluginname, $logger);
+    }
+
     /**
      * Defines the custom data fields
      *
@@ -41,8 +49,8 @@ class exporter extends subplugin_exportable {
      */
     protected function get_fields(): array {
         return [
-            '$' => new file_field('mod_customcert'),
-            'signature$' => new file_field('mod_customcert'),
+            '$' => $this->filefield,
+            'signature$' => $this->filefield,
             'signaturename' => new string_field(true),
             'signaturepassword' => new string_field(true),
             'signaturelocation' => new string_field(true),

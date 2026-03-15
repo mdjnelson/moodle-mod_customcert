@@ -32,6 +32,14 @@ use mod_customcert\export\datatypes\i_field;
 use mod_customcert\export\datatypes\user_field;
 
 class exporter extends subplugin_text_exportable {
+    public function __construct(
+        string $pluginname,
+        template_import_logger_interface $logger,
+        private readonly user_field $userfield,
+    ) {
+        parent::__construct($pluginname, $logger);
+    }
+
     /**
      * Defines the custom data fields
      *
@@ -39,7 +47,7 @@ class exporter extends subplugin_text_exportable {
      */
     protected function get_fields(): array {
         return parent::get_fields() + [
-            'teacher' => new user_field(),
+            'teacher' => $this->userfield,
         ];
     }
 }

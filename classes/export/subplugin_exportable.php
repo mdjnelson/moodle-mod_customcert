@@ -47,6 +47,7 @@ abstract class subplugin_exportable {
      * Constructor.
      *
      * @param string $pluginname Name of the plugin from the element
+     * @param template_import_logger_interface $logger Logger instance
      */
     public function __construct(string $pluginname, template_import_logger_interface $logger) {
         $this->pluginname = $pluginname;
