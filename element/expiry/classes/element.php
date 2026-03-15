@@ -181,7 +181,7 @@ class element extends base_element implements
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
         $dateitem = $payload['dateitem'] ?? '';
-        $date = $this->expiry($user->id, $preview);
+        $date = $this->expiry((int) $user->id, $preview);
 
         // Ensure that a date has been set.
         if (!empty($date)) {
