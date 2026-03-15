@@ -35,8 +35,14 @@ use coding_exception;
 use Exception;
 use mod_customcert\export\template_appendix_manager_interface;
 use stored_file;
+use mod_customcert\export\element;
 
 class template_appendix_manager implements template_appendix_manager_interface {
+    public function __construct(
+        private readonly element $element,
+    ) {
+    }
+
     /** @var array<string, stored_file> In-memory index of imported files, mapped by content hash. */
     private array $index = [];
 
@@ -102,7 +108,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
             $elementids[] = element::get_elementids_from_page($pageid);
         }
         $elementids = array_merge(...$elementids);
-        $element = new element();
+        $element = $this->element;
 
         $files = array_map(fn ($elementid) => $element->get_files($elementid), $elementids);
         return array_merge(...$files);

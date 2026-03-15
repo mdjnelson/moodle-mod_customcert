@@ -58,6 +58,7 @@ class template {
     public function __construct(
         private readonly clock $clock,
         private readonly moodle_database $db,
+        private readonly page $page,
     ) {
         $this->exporter = new table_exporter(self::$dbtable);
     }
@@ -88,7 +89,7 @@ class template {
             'timemodified' => $this->clock->time(),
         ]);
 
-        $page = new page();
+        $page = $this->page;
         foreach ($templatedata['pages'] as $pagedata) {
             $page->import($tid, $pagedata);
         }
@@ -107,7 +108,7 @@ class template {
         $data = $this->exporter->export($templateid, $this->fields);
 
         $pageids = page::get_pageids_from_template($templateid);
-        $page = new page();
+        $page = $this->page;
         $data['pages'] = array_map(function ($pageid) use ($page) {
             return $page->export($pageid);
         }, $pageids);

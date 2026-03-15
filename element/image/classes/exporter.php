@@ -33,6 +33,14 @@ use mod_customcert\export\subplugin_exportable;
 use mod_customcert\export\datatypes\i_field;
 
 class exporter extends subplugin_exportable {
+    public function __construct(
+        string $pluginname,
+        template_import_logger_interface $logger,
+        private readonly file_field $filefield,
+    ) {
+        parent::__construct($pluginname, $logger);
+    }
+
     /**
      * Defines the custom data fields
      *
@@ -43,7 +51,7 @@ class exporter extends subplugin_exportable {
             'width' => new float_field(0),
             'height' => new float_field(0),
             'alphachannel' => new float_field(0, 1),
-            '$' => new file_field('mod_customcert'),
+            '$' => $this->filefield,
         ];
     }
 }
