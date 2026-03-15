@@ -49,6 +49,7 @@ class user_field implements field_interface {
      */
     public function import(array $data): mixed {
         global $DB;
+
         $userid = $data['userid'] ?? -1;
         $username = $data['fullname'] ?? null;
         $user = $DB->get_record('user', ['id' => $userid]);
@@ -74,6 +75,7 @@ class user_field implements field_interface {
      */
     public function export(mixed $value): array {
         global $DB;
+
         if (empty($value)) {
             return [];
         }

@@ -51,6 +51,7 @@ class table_exporter {
      */
     public function export(int $id, array $fields): array {
         global $DB;
+
         $data = (array) $DB->get_record(
             $this->tablename,
             ['id' => $id],
