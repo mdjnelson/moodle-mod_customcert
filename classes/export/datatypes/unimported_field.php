@@ -30,7 +30,7 @@ declare(strict_types=1);
 namespace mod_customcert\export\datatypes;
 
 
-class unimported_field implements i_field {
+class unimported_field implements field_interface {
     /**
      * Throws an exception to indicate that this field is not importable.
      *

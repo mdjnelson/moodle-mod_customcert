@@ -25,7 +25,7 @@
 
 use core\di;
 use core\session\manager;
-use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\template_file_manager_interface;
 
 define('WORKING_DIR', getcwd());
 define('CLI_SCRIPT', true);
@@ -96,7 +96,7 @@ cli_writeln("  ZIP:        {$input}");
 cli_writeln("  Temp dir:   {$tempdir}");
 
 try {
-    $backupmng = di::get(i_template_file_manager::class);
+    $backupmng = di::get(template_file_manager_interface::class);
     $backupmng->import($contextid, $tempdir);
 
     cli_writeln("Successfully imported template.");

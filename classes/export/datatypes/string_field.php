@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-class string_field implements i_field {
+class string_field implements field_interface {
     /**
      * @var bool Indicates whether empty strings are allowed for this field.
      */

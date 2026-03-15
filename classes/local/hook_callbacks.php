@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace mod_customcert\local;
 
 use core\hook\di_configuration;
-use mod_customcert\export\i_template_appendix_manager;
-use mod_customcert\export\i_template_file_manager;
-use mod_customcert\export\i_template_import_logger;
+use mod_customcert\export\template_appendix_manager_interface;
+use mod_customcert\export\template_file_manager_interface;
+use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_appendix_manager;
 use mod_customcert\export\template_file_manager;
 use mod_customcert\export\template_logger;
@@ -49,24 +49,24 @@ class hook_callbacks {
      */
     public static function di_configuration(di_configuration $config): void {
         $config->add_definition(
-            id: i_template_appendix_manager::class,
-            definition: function (): i_template_appendix_manager {
+            id: template_appendix_manager_interface::class,
+            definition: function (): template_appendix_manager_interface {
                 return new template_appendix_manager();
             }
         );
 
         $config->add_definition(
-            id: i_template_file_manager::class,
+            id: template_file_manager_interface::class,
             definition: function (
-                i_template_appendix_manager $filemng
-            ): i_template_file_manager {
+                template_appendix_manager_interface $filemng
+            ): template_file_manager_interface {
                 return new template_file_manager($filemng);
             }
         );
 
         $config->add_definition(
-            id: i_template_import_logger::class,
-            definition: function (): i_template_import_logger {
+            id: template_import_logger_interface::class,
+            definition: function (): template_import_logger_interface {
                 return new template_logger();
             }
         );

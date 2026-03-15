@@ -31,7 +31,7 @@ declare(strict_types=1);
 namespace mod_customcert\export\datatypes;
 
 
-interface i_field {
+interface field_interface {
     /**
      * Validates and converts input data to an internal value.
      *

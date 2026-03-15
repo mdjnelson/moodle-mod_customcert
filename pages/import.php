@@ -31,8 +31,8 @@ require_once(__DIR__ . '/../../../config.php');
 
 use core\di;
 use core\notification;
-use mod_customcert\export\i_template_import_logger;
-use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\template_import_logger_interface;
+use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\import_form;
 
 require_login();
@@ -53,10 +53,10 @@ if ($fromform = $mform->get_data()) {
     $zippath = "$tempdir/import.zip";
     file_put_contents($zippath, $zipstring);
 
-    $backupmng = di::get(i_template_file_manager::class);
+    $backupmng = di::get(template_file_manager_interface::class);
     $backupmng->import($fromform->context_id, $tempdir);
 
-    di::get(i_template_import_logger::class)->print_notification();
+    di::get(template_import_logger_interface::class)->print_notification();
     notification::success(get_string('importsuccessful', 'mod_customcert'));
 }
 

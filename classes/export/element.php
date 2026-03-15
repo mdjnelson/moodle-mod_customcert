@@ -32,9 +32,8 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use core\clock;
-use core\di;
 use mod_customcert\export\datatypes\format_error;
-use mod_customcert\export\i_template_import_logger;
+use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\subplugin_exportable;
 use moodle_database;
@@ -44,7 +43,6 @@ class element {
     /**
      * @var clock Clock instance used to retrieve current timestamps.
      */
-    private clock $clock;
 
     /**
      * @var table_exporter Table exporter responsible for retrieving element data from the database.
@@ -73,9 +71,12 @@ class element {
     /**
      * Constructor.
      */
-    public function __construct() {
+    public function __construct(
+        private readonly clock $clock,
+        private readonly moodle_database $db,
+        private readonly template_import_logger_interface $logger,
+    ) {
         $this->exporter = new table_exporter(self::$dbtable);
-        $this->clock = di::get(clock::class);
     }
 
     /**
@@ -85,7 +86,6 @@ class element {
      * @return array List of element IDs.
      */
     public static function get_elementids_from_page(int $pageid): array {
-        $db = di::get(moodle_database::class);
         $elementids = $db->get_fieldset(static::$dbtable, 'id', ['pageid' => $pageid]);
         return $elementids;
     }
@@ -109,11 +109,10 @@ class element {
         try {
             $subpugindata = $specificexporter->convert_for_import($data['data']);
         } catch (format_error $e) {
-            di::get(i_template_import_logger::class)->warning('subplugin data is not valid: ' . $e->getMessage());
+            $this->logger->warning('subplugin data is not valid: ' . $e->getMessage());
             return;
         }
 
-        $db = di::get(moodle_database::class);
         $db->insert_record(static::$dbtable, [
             'pageid' => $pageid,
             'name' => $data['name'],

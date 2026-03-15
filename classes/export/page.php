@@ -31,14 +31,12 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use core\clock;
-use core\di;
 use moodle_database;
 
 class page {
     /**
      * @var clock Clock instance used to retrieve current timestamps.
      */
-    private clock $clock;
     /**
      * @var table_exporter Table exporter responsible for retrieving page data from the database.
      */
@@ -61,9 +59,11 @@ class page {
     /**
      * Constructor.
      */
-    public function __construct() {
+    public function __construct(
+        private readonly clock $clock,
+        private readonly moodle_database $db,
+    ) {
         $this->exporter = new table_exporter(self::$dbtable);
-        $this->clock = di::get(clock::class);
     }
 
     /**
@@ -73,7 +73,6 @@ class page {
      * @return array List of page IDs.
      */
     public static function get_pageids_from_template(int $templateid): array {
-        $db = di::get(moodle_database::class);
         $pageids = $db->get_fieldset(static::$dbtable, 'id', ['templateid' => $templateid]);
         return $pageids;
     }
@@ -87,7 +86,6 @@ class page {
      * @param array $pagedata The page data to import, including elements.
      */
     public function import(int $templateid, array $pagedata): void {
-        $db = di::get(moodle_database::class);
         $pageid = $db->insert_record(static::$dbtable, [
             'templateid' => $templateid,
             'width' => (int) $pagedata['width'],

@@ -32,7 +32,6 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 use core\clock;
-use core\di;
 use mod_customcert\export\import_exception;
 use moodle_database;
 
@@ -40,7 +39,6 @@ class template {
     /**
      * @var clock Clock service for generating consistent timestamps.
      */
-    private clock $clock;
     /**
      * @var table_exporter Table exporter for retrieving template-level data.
      */
@@ -57,9 +55,11 @@ class template {
     /**
      * Constructor.
      */
-    public function __construct() {
+    public function __construct(
+        private readonly clock $clock,
+        private readonly moodle_database $db,
+    ) {
         $this->exporter = new table_exporter(self::$dbtable);
-        $this->clock = di::get(clock::class);
     }
 
     /**
@@ -78,7 +78,6 @@ class template {
             throw new import_exception('Certificate missing the attribute name');
         }
 
-        $db = di::get(moodle_database::class);
         $db->transactions_forbidden();
         $transaction = $db->start_delegated_transaction();
 

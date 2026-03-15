@@ -27,7 +27,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export;
 
-use core\di;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\datatypes\format_exception;
 use mod_customcert\export\datatypes\i_field;
@@ -36,9 +35,9 @@ use stored_file;
 
 abstract class subplugin_exportable {
     /**
-     * @var i_template_import_logger Logger instance used for reporting import issues and notices.
+     * @var template_import_logger_interface Logger instance used for reporting import issues and notices.
      */
-    protected readonly i_template_import_logger $logger;
+    protected readonly template_import_logger_interface $logger;
     /**
      * @var string Name of the plugin for debugging reasons.
      */
@@ -49,15 +48,15 @@ abstract class subplugin_exportable {
      *
      * @param string $pluginname Name of the plugin from the element
      */
-    public function __construct(string $pluginname) {
+    public function __construct(string $pluginname, template_import_logger_interface $logger) {
         $this->pluginname = $pluginname;
-        $this->logger = di::get(i_template_import_logger::class);
+        $this->logger = $logger;
     }
 
     /**
      * Returns the customdata fields of the subplugin
      *
-     * @return i_field[] customdata fields
+     * @return field_interface[] customdata fields
      */
     abstract protected function get_fields(): array;
 
@@ -131,7 +130,7 @@ abstract class subplugin_exportable {
         $files = [];
 
         foreach ($fields as $key => $field) {
-            if (!$field instanceof i_file_field) {
+            if (!$field instanceof file_field_interface) {
                 continue;
             }
 

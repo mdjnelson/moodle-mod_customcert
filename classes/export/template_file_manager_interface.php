@@ -28,7 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert\export;
 
 
-interface i_template_file_manager {
+interface template_file_manager_interface {
     /**
      * Exports as a zip file contains infos about a custom certificate template.
      *
