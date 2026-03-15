@@ -47,7 +47,19 @@ final class persistence_helper {
         // Persistable path.
         if ($element instanceof persistable_element_interface) {
             $normalised = $element->normalise_data($formdata);
-            return is_array($normalised) ? json_encode($normalised) : (string)$normalised;
+            if (is_array($normalised)) {
+                return json_encode($normalised);
+            }
+            // Scalar or non-array return: wrap in a JSON object to guarantee
+            // the "always object JSON" convention for stored payloads.
+            if (is_string($normalised) && $normalised !== '' && json_validate($normalised)) {
+                // If already valid JSON object, return as-is.
+                $decoded = json_decode($normalised, true);
+                if (is_array($decoded) && !array_is_list($decoded)) {
+                    return $normalised;
+                }
+            }
+            return json_encode(['value' => $normalised]);
         }
 
         // Legacy path.
