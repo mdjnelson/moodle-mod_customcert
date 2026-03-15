@@ -178,15 +178,30 @@ class template_file_manager implements template_file_manager_interface {
             throw new import_exception('Too many files in archive (max ' . $maxfiles . ')');
         }
 
-        // 50 MB per-entry size limit.
+        // 50 MB per-entry size limit; 200 MB cumulative uncompressed size limit.
         $maxbytes = 50 * 1024 * 1024;
+        $maxtotalbytes = 200 * 1024 * 1024;
+        $totalbytes = 0;
         foreach ($files as $file) {
+            // Reject absolute paths and any path segment that is or contains '..'.
+            if (str_starts_with($file->pathname, '/')) {
+                throw new import_exception('Absolute path in archive: ' . $file->pathname);
+            }
+            foreach (explode('/', $file->pathname) as $segment) {
+                if ($segment === '..' || $segment === '.') {
+                    throw new import_exception('Path traversal in archive: ' . $file->pathname);
+                }
+            }
             // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
             if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
                 throw new import_exception('Unsafe filename in archive: ' . $file->pathname);
             }
             if ($file->size > $maxbytes) {
                 throw new import_exception('File too large in archive: ' . $file->pathname);
+            }
+            $totalbytes += $file->size;
+            if ($totalbytes > $maxtotalbytes) {
+                throw new import_exception('Archive total uncompressed size exceeds limit');
             }
         }
     }
