@@ -35,12 +35,17 @@ use stored_file;
 
 abstract class subplugin_exportable {
     /**
+     * @var string Name of the plugin for debugging reasons.
+     */
+    protected readonly string $pluginname;
+    /**
      * @var template_import_logger_interface Logger instance used for reporting import issues and notices.
      */
     protected readonly template_import_logger_interface $logger;
     /**
-     * @var string Name of the plugin for debugging reasons.
+     * @var template_appendix_manager_interface File manager instance.
      */
+    protected readonly template_appendix_manager_interface $filemng;
 
     /**
      * Constructor.
