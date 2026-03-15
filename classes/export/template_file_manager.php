@@ -23,6 +23,7 @@ use mod_customcert\export\import_exception;
 use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\template;
+use Throwable;
 
 /**
  * Manages the export and import of custom certificate template files.
@@ -101,19 +102,31 @@ class template_file_manager implements template_file_manager_interface {
      * Extracts the archive, validates its contents, loads the JSON structure,
      * and invokes the import logic for both template data and appendix files.
      *
+     * The import is atomic: if template data import fails after files have already been
+     * stored, all stored files are deleted before the exception is re-thrown.
+     *
+     * Note: all imported files are normalised to component=mod_customcert, filearea=image,
+     * itemid=0, filepath=/ regardless of the metadata recorded in the export manifest.
+     * This matches the runtime storage model used by customcert image elements and is
+     * intentional. Round-trips for other file-backed element types are not supported.
+     *
      * @param int $contextid The context ID into which the template will be imported.
      * @param string $tempdir The directory containing the uploaded ZIP archive.
-     * @throws import_exception If extraction fails or required files are missing.
+     * @throws import_exception If extraction fails, required files are missing, or ZIP
+     *                          content fails validation.
      */
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
             throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
         }
 
+        $zippath = "$tempdir/import.zip";
+        $this->validate_zip($zippath);
+
         $unpackdir = "$tempdir/unzipped";
         check_dir_exists($unpackdir);
 
-        if (!$packer->extract_to_pathname("$tempdir/import.zip", $unpackdir)) {
+        if (!$packer->extract_to_pathname($zippath, $unpackdir)) {
             throw new import_exception('errorunzippingfile', 'error');
         }
 
@@ -122,13 +135,59 @@ class template_file_manager implements template_file_manager_interface {
             throw new import_exception('filenotfound', 'error', '', 'template.json');
         }
 
-        $this->filemng->import($contextid, $unpackdir);
-
         $json = file_get_contents($jsonpath);
         $data = json_decode($json, true);
         if (!is_array($data)) {
             throw new import_exception('Invalid template.json (not valid JSON)');
         }
-        $this->template->import($contextid, $data);
+
+        // Import files first, then template data inside a DB transaction.
+        // If the DB import fails, roll back stored files to keep the system clean.
+        $this->filemng->import($contextid, $unpackdir);
+        try {
+            $this->template->import($contextid, $data);
+        } catch (Throwable $e) {
+            $this->filemng->delete_imported_files();
+            throw $e;
+        }
+    }
+
+    /**
+     * Validates the ZIP archive before extraction.
+     *
+     * Checks that the archive can be listed, contains an acceptable number of entries,
+     * that no single entry exceeds the maximum allowed size, and that all entry names
+     * consist only of safe characters.
+     *
+     * @param string $zippath Full path to the ZIP file.
+     * @throws import_exception If any validation check fails.
+     */
+    private function validate_zip(string $zippath): void {
+        if (!$packer = get_file_packer()) {
+            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
+        }
+
+        $files = $packer->list_files($zippath);
+        if ($files === false) {
+            throw new import_exception('errorunzippingfile', 'error');
+        }
+
+        // Limit archive entry count to guard against zip bombs.
+        $maxfiles = 500;
+        if (count($files) > $maxfiles) {
+            throw new import_exception('Too many files in archive (max ' . $maxfiles . ')');
+        }
+
+        // 50 MB per-entry size limit.
+        $maxbytes = 50 * 1024 * 1024;
+        foreach ($files as $file) {
+            // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
+            if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
+                throw new import_exception('Unsafe filename in archive: ' . $file->pathname);
+            }
+            if ($file->size > $maxbytes) {
+                throw new import_exception('File too large in archive: ' . $file->pathname);
+            }
+        }
     }
 }
