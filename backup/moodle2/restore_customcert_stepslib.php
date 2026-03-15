@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\local\upgrade\row_migrator;
+
 /**
  * Define the complete customcert structure for restore, with file and id annotations.
  *
@@ -157,13 +159,23 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $legacycolour = property_exists($data, 'colour') ? $data->colour : null;
 
         if ($legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null) {
-            $data->data = \mod_customcert\local\upgrade\row_migrator::migrate_row(
-                $data->data ?? null,
-                $legacywidth,
-                $legacyfont,
-                $legacyfontsize,
-                $legacycolour
-            );
+            // Use the border-specific migration path for border elements, mirroring
+            // the logic in db/upgrade.php so that legacy border thickness is preserved.
+            $data->data = (($data->element ?? null) === 'border')
+                ? row_migrator::migrate_border_row(
+                    $data->data ?? null,
+                    $legacywidth,
+                    $legacyfont,
+                    $legacyfontsize,
+                    $legacycolour
+                )
+                : row_migrator::migrate_row(
+                    $data->data ?? null,
+                    $legacywidth,
+                    $legacyfont,
+                    $legacyfontsize,
+                    $legacycolour
+                );
         }
 
         // Unset legacy fields so they are not inserted as separate columns.
