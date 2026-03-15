@@ -197,7 +197,7 @@ abstract class subplugin_exportable {
         }
 
         $decoded = json_decode($customdata, true);
-        if (json_last_error() == JSON_ERROR_NONE) {
+        if (json_last_error() === JSON_ERROR_NONE) {
             if (is_array($decoded)) {
                 return $decoded;
             }
