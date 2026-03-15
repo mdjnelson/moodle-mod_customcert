@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export;
-
-use core\notification;
-use mod_customcert\export\contracts\i_template_import_logger;
-
 /**
  * Collects and outputs info and warning messages during template import.
  *
@@ -27,6 +22,14 @@ use mod_customcert\export\contracts\i_template_import_logger;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\notification;
+use mod_customcert\export\i_template_import_logger;
+
 class template_logger implements i_template_import_logger {
     /**
      * @var array Stores warning messages collected during the import process.

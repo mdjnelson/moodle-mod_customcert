@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\local;
-
-use core\hook\di_configuration;
-use mod_customcert\export\template_file_manager;
-use mod_customcert\export\contracts\i_template_import_logger;
-use mod_customcert\export\contracts\i_template_file_manager;
-use mod_customcert\export\contracts\i_template_appendix_manager;
-use mod_customcert\export\template_appendix_manager;
-use mod_customcert\export\template_logger;
-
 /**
  * Registers dependency injection definitions for custom certificate export services.
  *
@@ -35,6 +25,19 @@ use mod_customcert\export\template_logger;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\local;
+
+use core\hook\di_configuration;
+use mod_customcert\export\template_file_manager;
+use mod_customcert\export\i_template_import_logger;
+use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\i_template_appendix_manager;
+use mod_customcert\export\template_appendix_manager;
+use mod_customcert\export\template_logger;
+
 class hook_callbacks {
     /**
      * Configures the dependency injection container with service definitions.
@@ -44,7 +47,7 @@ class hook_callbacks {
      *
      * @param di_configuration $config The DI configuration instance to register definitions in.
      */
-    public static function di_configuration(di_configuration $config) {
+    public static function di_configuration(di_configuration $config): void {
         $config->add_definition(
             id: i_template_appendix_manager::class,
             definition: function (): i_template_appendix_manager {

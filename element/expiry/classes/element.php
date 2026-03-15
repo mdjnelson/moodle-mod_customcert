@@ -318,7 +318,7 @@ class element extends base_element implements
      * expiry date from now, false otherwise.
      * @return int Timestamp in Unix format (number of seconds since epoch).
      */
-    private function expiry($userid, $preview = false) {
+    private function expiry(int $userid, bool $preview = false): int {
         global $DB;
 
         $payload = $this->get_payload();

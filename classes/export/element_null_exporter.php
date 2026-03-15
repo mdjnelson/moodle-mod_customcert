@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export;
-
-use mod_customcert\export\contracts\subplugin_exportable;
-use mod_customcert\export\datatypes\i_field;
-
 /**
  * Handles unsupported or unrecognized subplugin types during export and import.
  *
@@ -27,6 +22,14 @@ use mod_customcert\export\datatypes\i_field;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use mod_customcert\export\subplugin_exportable;
+use mod_customcert\export\datatypes\i_field;
+
 class element_null_exporter extends subplugin_exportable {
     /** @var string The name of the unknown or unsupported plugin */
     private readonly string $pluginname;

@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\export;
-
-use core\clock;
-use core\di;
-use moodle_database;
-
 /**
  * Handles the import and export of certificate pages and their elements.
  *
@@ -31,6 +25,15 @@ use moodle_database;
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use core\clock;
+use core\di;
+use moodle_database;
+
 class page {
     /**
      * @var clock Clock instance used to retrieve current timestamps.
