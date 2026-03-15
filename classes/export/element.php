@@ -40,10 +40,6 @@ use stored_file;
  */
 class element {
     /**
-     * @var clock Clock instance used to retrieve current timestamps.
-     */
-
-    /**
      * @var table_exporter Table exporter responsible for retrieving element data from the database.
      */
     private table_exporter $exporter;
