@@ -131,16 +131,17 @@ class external extends external_api {
         }
         $record->data = json_encode($decoded);
 
-        // Instantiate the element via the factory so element-specific normalisation is applied.
+        // Instantiate the element via the factory so element-specific normalisation is applied,
+        // then run canonical data normalisation and rebuild the instance with the final payload.
         $factory = element_factory::build_with_defaults();
-        $instance = $factory->create_from_legacy_record($record);
-        if (!$instance) {
+        $tempinstance = $factory->create_from_legacy_record($record);
+        if (!$tempinstance) {
             throw new \moodle_exception('invalidelementtype', 'customcert');
         }
+        $record->data = persistence_helper::to_json_data($tempinstance, (object)(array)$record);
 
-        // Run element-specific data normalisation through the canonical path, then persist.
-        $record->data = persistence_helper::to_json_data($instance, (object)(array)$record);
-        $instance = $factory->create($record->element, $record);
+        // Create the final instance from the normalised record and persist.
+        $instance = $factory->create_from_legacy_record($record);
         $elementrepo = new element_repository($factory);
         $elementrepo->save($instance);
 
