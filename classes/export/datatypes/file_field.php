@@ -45,7 +45,8 @@ class file_field implements field_interface, file_field_interface {
     /**
      * Constructor.
      *
-     * @param string $component Component of the file storage
+     * @param string $component Component of the file storage.
+     * @param template_appendix_manager_interface $filemng File manager for appendix operations.
      */
     public function __construct(
         string $component,

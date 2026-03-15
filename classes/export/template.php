@@ -51,6 +51,9 @@ class template {
 
     /**
      * Constructor.
+     *
+     * @param clock $clock Clock instance used to retrieve current timestamps.
+     * @param page $page Page handler for import/export of template pages.
      */
     public function __construct(
         /** @var clock Clock instance used to retrieve current timestamps. */
