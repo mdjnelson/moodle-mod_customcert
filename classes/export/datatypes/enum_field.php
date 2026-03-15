@@ -30,7 +30,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-
 class enum_field implements i_field {
     /**
      * @var array List of allowed option values for the field.
@@ -44,9 +43,9 @@ class enum_field implements i_field {
      * Constructor.
      *
      * @param array $options Array of valid options
-     * @param mixed $firstasdefault True if the first field should be used as default, else uses null
+     * @param bool $firstasdefault True if the first field should be used as default, else uses null
      */
-    public function __construct(array $options, $firstasdefault = true) {
+    public function __construct(array $options, bool $firstasdefault = true) {
         $this->options = $options;
         $this->firstasdefault = $firstasdefault;
     }
@@ -61,7 +60,7 @@ class enum_field implements i_field {
      * @return mixed The validated input value.
      * @throws format_exception If the input is not a valid option.
      */
-    public function import(array $data) {
+    public function import(array $data): mixed {
         $option = $data['value'];
 
         if (!in_array($option, $this->options)) {
@@ -77,7 +76,7 @@ class enum_field implements i_field {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         return [
             'value' => $value,
         ];
@@ -88,7 +87,7 @@ class enum_field implements i_field {
      *
      * @return mixed Returns the first element as fallback
      */
-    public function get_fallback() {
+    public function get_fallback(): mixed {
         if ($this->firstasdefault) {
             return reset($this->options);
         }

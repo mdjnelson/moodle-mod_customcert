@@ -65,14 +65,14 @@ class float_field implements i_field {
      * @return float The validated float value.
      * @throws format_exception If the value is outside the defined bounds.
      */
-    public function import(array $data) {
+    public function import(array $data): mixed {
         $value = $data['value'];
 
-        if ($this->min != null && $value < $this->min) {
+        if ($this->min !== null && $value < $this->min) {
             throw new format_exception("Value should be less than $this->min");
         }
 
-        if ($this->min != null && $value > $this->max) {
+        if ($this->max !== null && $value > $this->max) {
             throw new format_exception("Value should be higher than $this->max");
         }
 
@@ -85,7 +85,7 @@ class float_field implements i_field {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         return [
             'value' => $value,
         ];
@@ -96,10 +96,10 @@ class float_field implements i_field {
      *
      * @return float Default value
      */
-    public function get_fallback() {
-        if ($this->min != null) {
+    public function get_fallback(): mixed {
+        if ($this->min !== null) {
             return $this->min;
-        } else if ($this->max != null) {
+        } else if ($this->max !== null) {
             return $this->max;
         }
 

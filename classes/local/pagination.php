@@ -29,6 +29,7 @@ namespace mod_customcert\local;
 /**
  * Pagination constants for customcert.
  */
+
 final class pagination {
     /**
      * @var int the number of issues that will be displayed on each page in the report.

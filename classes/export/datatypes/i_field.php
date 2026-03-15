@@ -40,7 +40,7 @@ interface i_field {
      * @throws format_exception If the input format is incorrect or not supported.
      * @throws format_error If a fatal formatting issue occurs.
      */
-    public function import(array $data);
+    public function import(array $data): mixed;
 
     /**
      * Converts an internal value to a structured export format.
@@ -48,12 +48,12 @@ interface i_field {
      * @param mixed $value The internal value to be exported.
      * @return array Associative array representing the exported structure.
      */
-    public function export($value): array;
+    public function export(mixed $value): array;
 
     /**
      * Gets the fallback if an exception occurs
      *
      * @return mixed Valid value for fallback cases
      */
-    public function get_fallback();
+    public function get_fallback(): mixed;
 }

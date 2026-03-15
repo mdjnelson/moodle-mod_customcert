@@ -27,6 +27,7 @@ use InvalidArgumentException;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 final class ordering {
     /** @var array<string, 'ASC'|'DESC'> */
     private readonly array $fields;

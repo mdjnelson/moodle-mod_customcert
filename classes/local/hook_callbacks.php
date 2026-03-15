@@ -31,11 +31,11 @@ declare(strict_types=1);
 namespace mod_customcert\local;
 
 use core\hook\di_configuration;
-use mod_customcert\export\template_file_manager;
-use mod_customcert\export\i_template_import_logger;
-use mod_customcert\export\i_template_file_manager;
 use mod_customcert\export\i_template_appendix_manager;
+use mod_customcert\export\i_template_file_manager;
+use mod_customcert\export\i_template_import_logger;
 use mod_customcert\export\template_appendix_manager;
+use mod_customcert\export\template_file_manager;
 use mod_customcert\export\template_logger;
 
 class hook_callbacks {

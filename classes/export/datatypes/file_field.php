@@ -61,7 +61,7 @@ class file_field implements i_field, i_file_field {
      * @param array $data Associative array containing a 'file_ref' key
      * @return array The validated input value. (Local file reference)
      */
-    public function import(array $data) {
+    public function import(array $data): mixed {
         if (!$fileref = ($data['file_ref'] ?? null)) {
             throw new format_exception("File reference not set");
         }
@@ -76,7 +76,7 @@ class file_field implements i_field, i_file_field {
      * @param mixed $value Field value containing file location data.
      * @return array Array containing the 'file_ref' identifier.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         if (!$file = $this->get_file($value)) {
             return [];
         }
@@ -91,7 +91,7 @@ class file_field implements i_field, i_file_field {
      *
      * @return array No fallback needed.
      */
-    public function get_fallback() {
+    public function get_fallback(): mixed {
         return [];
     }
 

@@ -43,6 +43,7 @@ use stdClass;
  * This class is BC-safe and does not affect normal runtime; callers must
  * explicitly invoke it to use the new path.
  */
+
 final class preview_renderer {
     /** @var element_factory */
     private element_factory $factory;

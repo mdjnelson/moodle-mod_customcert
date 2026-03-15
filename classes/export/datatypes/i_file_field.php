@@ -35,5 +35,5 @@ interface i_file_field {
      * @param array $data Array containing file reference information.
      * @return mixed The resolved file object (typically a stored_file instance).
      */
-    public function get_file(array $data);
+    public function get_file(array $data): mixed;
 }

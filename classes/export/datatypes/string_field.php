@@ -30,12 +30,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-
 class string_field implements i_field {
     /**
-     * @var string Indicates whether empty strings are allowed for this field.
+     * @var bool Indicates whether empty strings are allowed for this field.
      */
-    private string $emptyallowed;
+    private bool $emptyallowed;
 
     /** @var string Default value */
     private string $default;
@@ -43,10 +42,10 @@ class string_field implements i_field {
     /**
      * Constructor.
      *
-     * @param string $emptyallowed Indicates whether empty strings are allowed for this field
+     * @param bool $emptyallowed Indicates whether empty strings are allowed for this field
      * @param string $default Default value
      */
-    public function __construct(string $emptyallowed, string $default = 'TODO') {
+    public function __construct(bool $emptyallowed = false, string $default = 'TODO') {
         $this->emptyallowed = $emptyallowed;
         $this->default = $default;
     }
@@ -58,8 +57,8 @@ class string_field implements i_field {
      * @return string The validated string value.
      * @throws format_exception If the value is empty and empty values are not allowed.
      */
-    public function import(array $data) {
-        if ($data['value'] == "" && !$this->emptyallowed) {
+    public function import(array $data): mixed {
+        if ($data['value'] === '' && !$this->emptyallowed) {
             throw new format_exception('is empty');
         }
 
@@ -72,7 +71,7 @@ class string_field implements i_field {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         return [
             'value' => $value,
         ];
@@ -83,7 +82,7 @@ class string_field implements i_field {
      *
      * @return string predefined default
      */
-    public function get_fallback() {
+    public function get_fallback(): mixed {
         return $this->default;
     }
 }

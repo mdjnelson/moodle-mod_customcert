@@ -74,7 +74,7 @@ class template {
      * @throws import_exception If required template fields are missing.
      */
     public function import(int $contextid, array $templatedata): void {
-        if (($templatedata['name'] ?? null) == null) {
+        if (($templatedata['name'] ?? null) === null) {
             throw new import_exception('Certificate missing the attribute name');
         }
 

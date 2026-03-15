@@ -56,7 +56,7 @@ class user_field implements i_field {
      * @return int The validated user ID.
      * @throws format_exception If the user does not exist or the name does not match.
      */
-    public function import(array $data) {
+    public function import(array $data): mixed {
         $userid = $data['userid'] ?? -1;
         $username = $data['fullname'] ?? null;
 
@@ -66,7 +66,7 @@ class user_field implements i_field {
             throw new format_exception("User with $userid does not exist");
         }
 
-        if (fullname($user) != $username) {
+        if (fullname($user) !== $username) {
             throw new format_exception("User with $userid is not the same as in backup.");
         }
 
@@ -82,7 +82,7 @@ class user_field implements i_field {
      * @param mixed $value The user ID to export.
      * @return array Exported data with 'userid' and 'fullname' keys, or an empty array.
      */
-    public function export($value): array {
+    public function export(mixed $value): array {
         if (empty($value)) {
             return [];
         }
@@ -105,7 +105,7 @@ class user_field implements i_field {
      *
      * @return string Empty fallback.
      */
-    public function get_fallback() {
+    public function get_fallback(): mixed {
         return "";
     }
 }
