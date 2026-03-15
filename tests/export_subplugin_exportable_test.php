@@ -37,7 +37,6 @@ use mod_customcert\export\datatypes\format_error;
  * @covers     \mod_customcert\export\subplugin_exportable
  */
 final class export_subplugin_exportable_test extends advanced_testcase {
-
     /**
      * Build a minimal concrete subplugin_exportable with given fields.
      *
@@ -47,10 +46,18 @@ final class export_subplugin_exportable_test extends advanced_testcase {
     private function make_exportable(array $fields): subplugin_exportable {
         $logger = $this->createMock(template_import_logger_interface::class);
         $filemng = $this->createMock(template_appendix_manager_interface::class);
-
-        return new class('testplugin', $logger, $filemng, $fields) extends subplugin_exportable {
+        return new class ('testplugin', $logger, $filemng, $fields) extends subplugin_exportable {
+            /** @var array Test fields for this anonymous exportable. */
             private array $testfields;
 
+            /**
+             * Constructor.
+             *
+             * @param string $pluginname Plugin name.
+             * @param template_import_logger_interface $logger Logger.
+             * @param template_appendix_manager_interface $filemng File manager.
+             * @param array $fields Fields to use.
+             */
             public function __construct(
                 string $pluginname,
                 template_import_logger_interface $logger,
@@ -61,6 +68,11 @@ final class export_subplugin_exportable_test extends advanced_testcase {
                 $this->testfields = $fields;
             }
 
+            /**
+             * Returns the test fields.
+             *
+             * @return field_interface[]
+             */
             protected function get_fields(): array {
                 return $this->testfields;
             }
@@ -158,10 +170,18 @@ final class export_subplugin_exportable_test extends advanced_testcase {
         $logger = $this->createMock(template_import_logger_interface::class);
         $logger->expects($this->once())->method('warning');
         $filemng = $this->createMock(template_appendix_manager_interface::class);
-
-        $exportable = new class('testplugin', $logger, $filemng, ['title' => new string_field(false, 'FALLBACK')]) extends subplugin_exportable {
+        $exportable = new class ('testplugin', $logger, $filemng, ['title' => new string_field(false, 'FALLBACK')]) extends subplugin_exportable {
+            /** @var array Test fields for this anonymous exportable. */
             private array $testfields;
 
+            /**
+             * Constructor.
+             *
+             * @param string $pluginname Plugin name.
+             * @param template_import_logger_interface $logger Logger.
+             * @param template_appendix_manager_interface $filemng File manager.
+             * @param array $fields Fields to use.
+             */
             public function __construct(
                 string $pluginname,
                 template_import_logger_interface $logger,
@@ -172,11 +192,15 @@ final class export_subplugin_exportable_test extends advanced_testcase {
                 $this->testfields = $fields;
             }
 
+            /**
+             * Returns the test fields.
+             *
+             * @return field_interface[]
+             */
             protected function get_fields(): array {
                 return $this->testfields;
             }
         };
-
         // Empty string triggers format_exception in string_field (emptyallowed=false).
         $result = $exportable->convert_for_import(['title' => ['value' => '']]);
         $this->assertSame(['title' => 'FALLBACK'], json_decode($result, true));

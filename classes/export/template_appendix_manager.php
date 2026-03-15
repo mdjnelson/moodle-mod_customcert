@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use coding_exception;
+use Exception;
+use mod_customcert\export\template_appendix_manager_interface;
+use stored_file;
+use mod_customcert\export\element;
+
 /**
  * Manages the export and import of appendix files for custom certificate templates.
  *
@@ -27,18 +37,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-declare(strict_types=1);
-
-namespace mod_customcert\export;
-
-use coding_exception;
-use Exception;
-use mod_customcert\export\template_appendix_manager_interface;
-use stored_file;
-use mod_customcert\export\element;
-
 class template_appendix_manager implements template_appendix_manager_interface {
+    /**
+     * Constructor.
+     *
+     * @param element $element Element handler used for file lookups.
+     */
     public function __construct(
+        /** @var element Element handler used for file lookups. */
         private readonly element $element,
     ) {
     }

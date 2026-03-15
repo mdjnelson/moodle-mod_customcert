@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export\datatypes;
+
+use mod_customcert\export\template_appendix_manager_interface;
+use stored_file;
+
 /**
  * Field which exports and import a file.
  *
@@ -25,13 +32,6 @@
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace mod_customcert\export\datatypes;
-
-use mod_customcert\export\template_appendix_manager_interface;
-use stored_file;
 
 class file_field implements field_interface, file_field_interface {
     /**
@@ -50,6 +50,7 @@ class file_field implements field_interface, file_field_interface {
      */
     public function __construct(
         string $component,
+        /** @var template_appendix_manager_interface File manager for appendix operations. */
         private readonly template_appendix_manager_interface $filemng,
     ) {
         $this->component = $component;

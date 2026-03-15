@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
+use mod_customcert\export\subplugin_exportable;
+use mod_customcert\export\template_appendix_manager_interface;
+use mod_customcert\export\template_import_logger_interface;
+
 /**
  * Handles unsupported or unrecognized subplugin types during export and import.
  *
@@ -23,29 +31,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-declare(strict_types=1);
-
-namespace mod_customcert\export;
-
-use mod_customcert\export\subplugin_exportable;
-use mod_customcert\export\template_appendix_manager_interface;
-use mod_customcert\export\template_import_logger_interface;
-
 class element_null_exporter extends subplugin_exportable {
-
-    /**
-     * Initializes the null exporter with the name of the unrecognized plugin.
-     *
-     * @param string $pluginname The name of the unknown or unsupported plugin.
-     */
-    public function __construct(
-        string $pluginname,
-        template_import_logger_interface $logger,
-        template_appendix_manager_interface $filemng,
-    ) {
-        parent::__construct($pluginname, $logger, $filemng);
-    }
-
     /**
      * Logs a warning that import for the given plugin type is not supported.
      *

@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace mod_customcert\export;
+
 /**
  * Exports database records from a specified table by ID and selected fields.
  *
@@ -22,10 +26,6 @@
  * @copyright  2025, oncampus GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-declare(strict_types=1);
-
-namespace mod_customcert\export;
 
 class table_exporter {
     /** @var string The name of the table to export from. */

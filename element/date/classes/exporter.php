@@ -34,6 +34,14 @@ use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
 use mod_customcert\element_helper;
 
+/**
+ * Handles import and export of date elements for custom certificates.
+ *
+ * @package    customcertelement_date
+ * @author     Konrad Ebel <konrad.ebel@oncampus.de>
+ * @copyright  2025, oncampus GmbH
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class exporter extends subplugin_text_exportable {
     /**
      * Defines the custom data fields

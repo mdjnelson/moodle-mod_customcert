@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Orchestrator for V2 preview rendering (registry -> factory -> renderer).
- *
- * @package    mod_customcert
- * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 declare(strict_types=1);
 
 namespace mod_customcert\local;
@@ -42,8 +34,11 @@ use stdClass;
  *
  * This class is BC-safe and does not affect normal runtime; callers must
  * explicitly invoke it to use the new path.
+ *
+ * @package    mod_customcert
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 final class preview_renderer {
     /** @var element_factory */
     private element_factory $factory;
