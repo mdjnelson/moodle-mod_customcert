@@ -65,8 +65,19 @@ final class form_service {
             // Fallback for elements not yet migrated or third-party elements.
             $element->render_form_elements($mform);
         }
+    }
 
-        // Per-element hook for form preparation (e.g., filemanager draft areas, default values).
+    /**
+     * Run element-specific form preparation at the definition_after_data() lifecycle point.
+     *
+     * This must be called from the form's definition_after_data() method, after
+     * common fields have been populated. It handles both v2 elements (via
+     * preparable_form_interface) and legacy elements (via definition_after_data()).
+     *
+     * @param MoodleQuickForm $mform
+     * @param element_interface $element
+     */
+    public function prepare_after_data(MoodleQuickForm $mform, element_interface $element): void {
         if ($element instanceof preparable_form_interface) {
             $element->prepare_form($mform);
         } else if ($element instanceof legacy_element_adapter) {

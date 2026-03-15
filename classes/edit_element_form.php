@@ -104,8 +104,8 @@ class edit_element_form extends moodleform {
      * Fill in the current page data for this customcert.
      *
      * This method populates standard element fields (name, font, fontsize, colour, position, width,
-     * refpoint, alignment) from the element's getter methods. Element-specific fields are populated
-     * by each element's prepare_form() method via the preparable_form_interface.
+     * refpoint, alignment) from the element's getter methods. Element-specific fields are then
+     * populated by calling prepare_after_data() on the form service at the correct lifecycle point.
      */
     public function definition_after_data() {
         $mform = $this->_form;
@@ -128,6 +128,12 @@ class edit_element_form extends moodleform {
                 $mform->getElement($property)->setValue($value);
             }
         }
+
+        // Run element-specific form preparation (e.g., filemanager draft areas,
+        // dependent selects, default values). This is the correct lifecycle point
+        // for these operations — after set_data() has been called.
+        $formservice = new form_service();
+        $formservice->prepare_after_data($mform, $this->element);
     }
 
     /**
