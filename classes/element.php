@@ -221,9 +221,9 @@ abstract class element implements stylable_element_interface {
     public function get_payload(): array {
         $raw = $this->get_data();
         if (is_string($raw)) {
-            if (json_validate($raw)) {
-                $decoded = json_decode($raw, true);
-                return is_array($decoded) ? $decoded : [];
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return $decoded;
             }
         }
         return [];
@@ -239,7 +239,7 @@ abstract class element implements stylable_element_interface {
      */
     public function get_value(): ?string {
         $raw = $this->get_data();
-        if (is_string($raw) && json_validate($raw)) {
+        if (is_string($raw)) {
             $decoded = json_decode($raw, true);
             if (is_array($decoded) && array_key_exists('value', $decoded)) {
                 return is_scalar($decoded['value']) ? (string)$decoded['value'] : null;
