@@ -6,7 +6,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.2.0] - 2026-XX-YY
 
+### Requirements
+- Minimum supported version is **Moodle 5.2** (**PHP 8.3+**).
+
 ### Added
+
+#### Element System v2
 - **Element System v2** (interfaces + services) to improve stability and long-term extensibility of Custom Certificate elements.
 - **New element capability interfaces** (implement as needed):
   - `mod_customcert\element\form_buildable_interface`
@@ -19,37 +24,22 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   - Restore migration helper to merge legacy backup fields into the JSON payload during restore.
 - **Expanded automated tests** covering Element System v2 behaviour and upgrade/restore data migration paths.
 
+#### Service layer
+- New service-layer APIs for template/page/element CRUD:
+  - `mod_customcert\service\template_service` (plus repositories/DTOs such as `page_update`)
+  - `mod_customcert\service\pdf_generation_service` for PDF generation, preview, and filename computation
+- `mod_customcert\template::load(int $id)` is the supported entry point for instantiating templates; production code should no longer call `new template($record)`.
+- Static utility methods on `certificate` have been moved to dedicated service/repository classes:
+  - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
+  - `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
+  - `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
+  - `certificate::set_protection()` → `form_service`
+  - `certificate::upload_files()` → `form_service`
+
 ### Changed
 
-#### Requirements
-- Minimum supported version is **Moodle 5.2** (**PHP 8.3+**).
-
-### Security
-
-- Fixed authorization bypass (CVE-2026-30884, CWE-639) where a user with mod/customcert:manage in any
-  single course could read and overwrite certificate elements belonging to other courses by supplying
-  an arbitrary elementid. Element ownership is now validated against the authorised context/template
-  before any read or write operation is performed.
-
-#### Template / page / element orchestration
-- New service-layer APIs for template/page/element CRUD live in:
-  - `mod_customcert\service\template_service` (plus repositories/DTOs such as `page_update`)
-  - PDF generation/preview/filenames now live in `mod_customcert\service\pdf_generation_service`
-- `mod_customcert\template::load(int $id)` is the supported entry point for instantiating templates; production code should no longer call `new template($record)`.
-
-Deprecated template methods (now shims that emit developer debugging):
-- `template::save()` → `template_service::update()`
-- `template::add_page()` / `template::save_page()` → `template_service::add_page()` / `template_service::save_pages()`
-- `template::delete()` / `template::delete_page()` / `template::delete_element()` → `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
-- `template::copy_to_template()` → `template_service::copy_to_template()`
-- `template::move_item()` → `template_service::move_item()` (service constants are available; raw strings remain supported)
-- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → corresponding `pdf_generation_service` methods
-
-Third-party developers should swap legacy calls for the service methods above; the shims will be removed in a future release.
-
 #### Element storage and data format
-- `customcert_elements` no longer has `font`, `fontsize`, `colour`, or `width` columns.
-- These values are now stored inside the JSON payload in `customcert_elements.data`.
+- `customcert_elements` no longer has `font`, `fontsize`, `colour`, or `width` columns; these values are now stored inside the JSON payload in `customcert_elements.data`.
 - `customcert_elements.data` is now treated as a JSON payload:
   - Legacy scalar values are migrated into a JSON envelope (e.g. legacy `"Hello"` → `{ "value": "Hello" }`).
   - Upgrade and restore routines automatically migrate existing data.
@@ -110,14 +100,36 @@ After (5.2+):
 - Web service hardening:
   - `external::save_element()` ignores JSON list payloads for `data` to prevent numeric-key pollution of stored element JSON.
 
+### Security
+
+- Fixed authorization bypass (CVE-2026-30884, CWE-639) where a user with mod/customcert:manage in any
+  single course could read and overwrite certificate elements belonging to other courses by supplying
+  an arbitrary elementid. Element ownership is now validated against the authorised context/template
+  before any read or write operation is performed.
+
 ### Deprecated
-Static utility methods on `certificate` have been moved to dedicated service/repository classes and deprecated as of 5.2:
+
+#### Template methods
+The following `template` methods are now shims that emit developer debugging and delegate to service classes. Third-party developers should swap legacy calls for the service methods; the shims will be removed in a future release.
+- `template::save()` → `template_service::update()`
+- `template::add_page()` / `template::save_page()` → `template_service::add_page()` / `template_service::save_pages()`
+- `template::delete()` / `template::delete_page()` / `template::delete_element()` → `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
+- `template::copy_to_template()` → `template_service::copy_to_template()`
+- `template::move_item()` → `template_service::move_item()` (service constants are available; raw strings remain supported)
+- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → corresponding `pdf_generation_service` methods
+
+#### Certificate methods
+The following `certificate` methods are now shims that emit developer debugging and should be replaced with service calls:
+- `certificate::issue_certificate()` / `certificate::generate_code()` → `certificate_issue_service::issue_certificate()` / `::generate_code()`
+- `certificate::download_all_issues_for_instance()` / `certificate::download_all_for_site()` → `certificate_download_service` equivalents
+- `certificate::get_course_time()` → `certificate_time_service::get_course_time()`
 - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
 - `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
 - `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
 - `certificate::set_protection()` → `form_service`
 - `certificate::upload_files()` → `form_service`
 
+#### Element APIs
 Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::render_form_elements()` → implement `form_buildable_interface::build_form()` and use `element_helper::render_common_form_elements()` for standard fields
 - `element::definition_after_data()` → implement `preparable_form_interface::prepare_form()`
@@ -126,16 +138,22 @@ Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::after_restore()` → implement `restorable_element_interface::after_restore_from_backup()`
 - `element::delete()` → use `mod_customcert\repository\element_repository::delete()` (elements should not delete themselves; deletion is handled by the repository/service layer)
 
-Legacy certificate/template shims now emit developer debugging in 5.2 and should be replaced with services:
-- `certificate::issue_certificate()` / `certificate::generate_code()` → `certificate_issue_service::issue_certificate()` / `::generate_code()`
-- `certificate::download_all_issues_for_instance()` / `certificate::download_all_for_site()` → `certificate_download_service` equivalents
-- `certificate::get_course_time()` → `certificate_time_service::get_course_time()`
-- `template` shims (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `copy_to_template`, `move_item`,
-  `generate_pdf`, `create_preview_pdf`, `compute_filename_for_user`) now delegate to `template_service` and `pdf_generation_service`
-
-Deprecation notes:
+#### Deprecation notes
 - Deprecated APIs are expected to continue working during the 5.2 line for most common usage patterns, but **some edge cases may break** — see "Plugin developer migration risks" below. New development should use Element System v2 interfaces.
 - New element plugins should not rely on `customcert_elements` legacy columns or legacy element hooks.
+
+### Removed
+- DB columns removed from `customcert_elements`:
+  - `font`
+  - `fontsize`
+  - `colour`
+  - `width`
+
+- Element removed from the plugin distribution:
+  - `daterange` — if you use this element, install it separately before upgrading:
+    - Clone it from: https://github.com/mdjnelson/moodle-customcertelement_daterange
+
+### Migration Guide (Third-party element developers)
 
 #### Plugin developer migration risks
 
@@ -147,8 +165,6 @@ While deprecated APIs include shims for backward compatibility, the following ch
 4. **`normalise_data()` scalar wrapping** — If a `persistable_element_interface` element's `normalise_data()` returns a plain string that is not already a JSON object, it will be wrapped as `{"value": "..."}` before storage. Plugins that return a raw scalar from `normalise_data()` and read it back directly via `get_data()` must switch to `get_value()`.
 
 **Recommendation:** Test your element plugin against 5.2 on a test site before release. Implement the Element System v2 interfaces (Option A below) for the most robust forward compatibility.
-
-### Migration Guide (Third-party element developers)
 
 #### Option A (Recommended): Adopt Element System v2
 Update your element class to implement interfaces as needed:
@@ -202,17 +218,6 @@ Existing element plugins may continue using legacy hooks in 5.2, but must be upd
 - Do not assume `get_data()` returns a scalar string; it may be JSON with multiple keys.
 - Do not overwrite the whole JSON payload with a single scalar; always normalise to an object payload via Element System v2 interfaces.
 - Do not store standard visual fields (`font`/`fontsize`/`colour`/`width`) in custom keys; rely on the core merge behaviour.
-
-### Removed
-- DB columns removed from `customcert_elements`:
-  - `font`
-  - `fontsize`
-  - `colour`
-  - `width`
-
-- Element removed from the plugin distribution:
-  - `daterange` — if you use this element, install it separately before upgrading:
-    - Clone it from: https://github.com/mdjnelson/moodle-customcertelement_daterange
 
 ## [5.0.2] - 2025-12-18
 
