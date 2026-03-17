@@ -24,6 +24,13 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 #### Requirements
 - Minimum supported version is **Moodle 5.2** (**PHP 8.3+**).
 
+### Security
+
+- Fixed authorization bypass (CVE-2026-30884, CWE-639) where a user with mod/customcert:manage in any
+  single course could read and overwrite certificate elements belonging to other courses by supplying
+  an arbitrary elementid. Element ownership is now validated against the authorised context/template
+  before any read or write operation is performed.
+
 #### Template / page / element orchestration
 - New service-layer APIs for template/page/element CRUD live in:
   - `mod_customcert\service\template_service` (plus repositories/DTOs such as `page_update`)
