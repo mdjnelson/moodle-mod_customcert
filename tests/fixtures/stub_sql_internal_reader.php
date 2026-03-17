@@ -17,6 +17,7 @@
 namespace mod_customcert\tests\fixtures;
 
 use core\log\sql_internal_table_reader;
+use EmptyIterator;
 
 /**
  * Minimal sql_internal_table_reader stub to satisfy the contract for time calculations.
@@ -121,7 +122,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @return \Traversable
      */
     public function get_events_select_iterator($selectwhere, array $params, $sort, $limitfrom, $limitnum) {
-        return new \EmptyIterator();
+        return new EmptyIterator();
     }
 
     /**

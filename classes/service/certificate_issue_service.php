@@ -20,6 +20,7 @@ namespace mod_customcert\service;
 
 use context_module;
 use mod_customcert\event\issue_created;
+use moodle_exception;
 use stdClass;
 
 /**
@@ -116,7 +117,7 @@ final class certificate_issue_service {
             }
         }
 
-        throw new \moodle_exception('Could not generate a unique certificate code after ' . $maxattempts . ' attempts.');
+        throw new moodle_exception('Could not generate a unique certificate code after ' . $maxattempts . ' attempts.');
     }
 
     /**

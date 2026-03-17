@@ -29,6 +29,7 @@ namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
 use mod_customcert\element\element_interface;
+use RuntimeException;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
 use pdf;
@@ -72,7 +73,7 @@ final class dummy_validatable_element extends element implements element_interfa
      */
     public function validate(array $data): array {
         if ($this->throwonvalidate) {
-            throw new \RuntimeException('Boom');
+            throw new RuntimeException('Boom');
         }
         return $this->customerrors;
     }

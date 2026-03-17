@@ -25,6 +25,7 @@
 namespace mod_customcert;
 
 use core_text;
+use moodle_exception;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
@@ -78,7 +79,7 @@ class edit_element_form extends moodleform {
         $factory = $this->_customdata['factory'] ?? element_factory::build_with_defaults();
         $this->element = $factory->create_from_legacy_record($element);
         if (!$this->element) {
-            throw new \moodle_exception('invalidrecord', 'error');
+            throw new moodle_exception('invalidrecord', 'error');
         }
         $this->element->set_edit_element_form($this);
 

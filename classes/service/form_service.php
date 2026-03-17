@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use context_course;
+use context_system;
 use stdClass;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_buildable_interface;
@@ -96,12 +98,12 @@ final class form_service {
 
         // Determine context for file operations.
         if (isset($COURSE) && isset($SITE) && $COURSE->id == $SITE->id) {
-            $context = \context_system::instance();
+            $context = context_system::instance();
         } else if (isset($COURSE)) {
-            $context = \context_course::instance($COURSE->id);
+            $context = context_course::instance($COURSE->id);
         } else {
             // Fallback to system context if course is not available here.
-            $context = \context_system::instance();
+            $context = context_system::instance();
         }
 
         // Known filemanager fields across elements.

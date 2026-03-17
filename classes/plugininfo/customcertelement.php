@@ -23,6 +23,7 @@
  */
 namespace mod_customcert\plugininfo;
 
+use admin_settingpage;
 use core\plugininfo\base;
 
 /**
@@ -63,7 +64,7 @@ class customcertelement extends base {
         }
 
         $section = $this->get_settings_section_name();
-        $settings = new \admin_settingpage($section, $this->displayname, 'moodle/site:config', false);
+        $settings = new admin_settingpage($section, $this->displayname, 'moodle/site:config', false);
 
         include($this->full_path('settings.php'));
         $ADMIN->add($parentnodename, $settings);

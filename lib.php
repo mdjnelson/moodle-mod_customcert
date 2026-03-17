@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\inplace_editable;
+use mod_customcert\edit_element_form;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
@@ -327,11 +329,11 @@ function mod_customcert_output_fragment_editelement($args) {
     $authorisedcontext = \context::instance_by_id((int)$args['context']->id);
     $elementcontextid = $elementrepo->get_template_context_id_for_element((int)$args['elementid']);
     if ($elementcontextid === null || $elementcontextid !== (int)$authorisedcontext->id) {
-        throw new \moodle_exception('nopermissions', 'error', '', 'editelement');
+        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
     }
 
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
-    $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
+    $form = new edit_element_form($pageurl, ['element' => $element]);
 
     return $form->render();
 }
@@ -456,7 +458,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $newname = clean_param($newvalue, PARAM_TEXT);
         $elementrepo->update_name((int)$element->id, $newname, (int)$template->get_contextid());
 
-        return new \core\output\inplace_editable(
+        return new inplace_editable(
             'mod_customcert',
             'elementname',
             $element->id,

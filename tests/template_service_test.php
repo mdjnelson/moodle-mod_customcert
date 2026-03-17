@@ -19,6 +19,10 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\event\page_created;
+use mod_customcert\event\page_deleted;
+use mod_customcert\event\template_deleted;
+use mod_customcert\event\template_updated;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
 
@@ -186,8 +190,8 @@ final class template_service_test extends advanced_testcase {
         // Expect at least page_deleted and template_deleted (element deletion may be emitted by element class).
         $this->assertGreaterThanOrEqual(2, count($events));
         $names = array_map(fn($event) => $event->eventname, $events);
-        $this->assertContains('\\mod_customcert\\event\\page_deleted', $names);
-        $this->assertContains('\\mod_customcert\\event\\template_deleted', $names);
+        $this->assertContains('\\' . page_deleted::class, $names);
+        $this->assertContains('\\' . template_deleted::class, $names);
         $this->assertFalse($DB->record_exists('customcert_templates', ['id' => $template->get_id()]));
         $this->assertFalse($DB->record_exists('customcert_pages', ['templateid' => $template->get_id()]));
         $this->assertFalse($DB->record_exists('customcert_elements', ['pageid' => $pageid]));
@@ -230,7 +234,7 @@ final class template_service_test extends advanced_testcase {
         // Always expect template_updated; element_deleted may be emitted by the element class implementation.
         $this->assertNotEmpty($events);
         $names = array_map(fn($event) => $event->eventname, $events);
-        $this->assertContains('\\mod_customcert\\event\\template_updated', $names);
+        $this->assertContains('\\' . template_updated::class, $names);
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $id1]));
 
         // Remaining element resequenced to 1.
@@ -268,7 +272,7 @@ final class template_service_test extends advanced_testcase {
         // At minimum we expect the page_created event for the target.
         $this->assertNotEmpty($events);
         $names = array_map(fn($event) => $event->eventname, $events);
-        $this->assertContains('\\mod_customcert\\event\\page_created', $names);
+        $this->assertContains('\\' . page_created::class, $names);
 
         $targetpages = $DB->get_records('customcert_pages', ['templateid' => $target->get_id()]);
         $this->assertCount(1, $targetpages);

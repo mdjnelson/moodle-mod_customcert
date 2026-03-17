@@ -149,7 +149,7 @@ final class template_repository {
         if (property_exists($data, 'name')) {
             $name = trim((string)$data->name);
             if ($name === '') {
-                throw new \invalid_parameter_exception('Missing/invalid template name');
+                throw new invalid_parameter_exception('Missing/invalid template name');
             }
             $record->name = $name;
         }
@@ -183,7 +183,7 @@ final class template_repository {
         if ($newname !== null) {
             $trimmed = trim($newname);
             if ($trimmed === '') {
-                throw new \invalid_parameter_exception('Missing/invalid template name');
+                throw new invalid_parameter_exception('Missing/invalid template name');
             }
             $copy->name = $trimmed;
         } else {

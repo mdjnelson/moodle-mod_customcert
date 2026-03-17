@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use action_link;
 use mod_customcert\element;
 use mod_customcert\element_helper;
 use mod_customcert\page_helper;
@@ -79,12 +80,12 @@ $PAGE->activityheader->set_attrs(['hidecompletion' => true,
 if (!$cm = $template->get_cm()) {
     $str = get_string('managetemplates', 'customcert');
     $link = new moodle_url('/mod/customcert/manage_templates.php');
-    $PAGE->navbar->add($str, new \action_link($link, $str));
+    $PAGE->navbar->add($str, new action_link($link, $str));
 }
 
 $str = get_string('editcustomcert', 'customcert');
 $link = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]);
-$PAGE->navbar->add($str, new \action_link($link, $str));
+$PAGE->navbar->add($str, new action_link($link, $str));
 
 $PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
 

@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use action_link;
 use mod_customcert\page_helper;
 use mod_customcert\service\template_load_service;
 use mod_customcert\template;
@@ -73,7 +74,7 @@ $PAGE->activityheader->set_attrs(['hidecompletion' => true,
 
 $str = get_string('editcustomcert', 'customcert');
 $link = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]);
-$PAGE->navbar->add($str, new \action_link($link, $str));
+$PAGE->navbar->add($str, new action_link($link, $str));
 $PAGE->navbar->add(get_string('loadtemplate', 'customcert'));
 
 // Show a confirmation page.

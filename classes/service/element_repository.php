@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\unknown_element;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
 use mod_customcert\local\ordering;
@@ -135,7 +136,7 @@ final class element_repository {
                     }
                 }
                 // Return an HTML placeholder element for preview/admin. It renders nothing in PDF.
-                $elements[] = new \mod_customcert\element\unknown_element($record, $type);
+                $elements[] = new unknown_element($record, $type);
                 continue;
             }
         }

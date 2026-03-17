@@ -17,6 +17,7 @@
 namespace mod_customcert;
 
 use advanced_testcase;
+use xmldb_table;
 use mod_customcert\service\certificate_time_service;
 use mod_customcert\tests\fixtures\stub_log_manager;
 use mod_customcert\tests\fixtures\stub_sql_internal_reader;
@@ -107,7 +108,7 @@ final class certificate_time_service_test extends advanced_testcase {
         global $DB;
 
         $dbman = $DB->get_manager();
-        $table = new \xmldb_table($tablename);
+        $table = new xmldb_table($tablename);
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
         $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
@@ -129,7 +130,7 @@ final class certificate_time_service_test extends advanced_testcase {
         global $DB;
 
         $dbman = $DB->get_manager();
-        $table = new \xmldb_table($tablename);
+        $table = new xmldb_table($tablename);
         if ($dbman->table_exists($table)) {
             $dbman->drop_table($table);
         }
