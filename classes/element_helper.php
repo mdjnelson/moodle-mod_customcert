@@ -26,6 +26,8 @@ namespace mod_customcert;
 
 use context;
 use context_module;
+use DirectoryIterator;
+use grade_grade;
 use mod_customcert\element\element_interface;
 use MoodleQuickForm;
 use pdf;
@@ -550,7 +552,7 @@ class element_helper {
         $elementdir = "$CFG->dirroot/mod/customcert/element";
         if (file_exists($elementdir)) {
             // Get directory contents.
-            $elementfolders = new \DirectoryIterator($elementdir);
+            $elementfolders = new DirectoryIterator($elementdir);
             // Loop through the elements folder.
             foreach ($elementfolders as $elementfolder) {
                 // If it is not a directory or it is '.' or '..', skip it.
@@ -635,7 +637,7 @@ class element_helper {
             return false;
         }
 
-        $grade = new \grade_grade(['itemid' => $courseitem->id, 'userid' => $userid]);
+        $grade = new grade_grade(['itemid' => $courseitem->id, 'userid' => $userid]);
 
         return new grade_information(
             $courseitem->get_name(),
@@ -719,7 +721,7 @@ class element_helper {
             return false;
         }
 
-        $grade = new \grade_grade(['itemid' => $gradeitem->id, 'userid' => $userid]);
+        $grade = new grade_grade(['itemid' => $gradeitem->id, 'userid' => $userid]);
 
         return new grade_information(
             $gradeitem->get_name(),

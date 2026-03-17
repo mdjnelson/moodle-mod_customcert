@@ -25,6 +25,7 @@ namespace mod_customcert;
 
 use context_module;
 use context_system;
+use moodle_exception;
 use core_external\external_api;
 use core_external\external_value;
 use core_external\external_single_structure;
@@ -106,7 +107,7 @@ class external extends external_api {
         $elementrepo = new element_repository(element_factory::build_with_defaults());
         $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
         if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
-            throw new \moodle_exception('nopermissions', 'error', '', 'save_element');
+            throw new moodle_exception('nopermissions', 'error', '', 'save_element');
         }
 
         // Build the updated record by merging submitted values onto the existing element.
@@ -144,7 +145,7 @@ class external extends external_api {
         $factory = element_factory::build_with_defaults();
         $tempinstance = $factory->create_from_legacy_record($record);
         if (!$tempinstance) {
-            throw new \moodle_exception('invalidelementtype', 'customcert');
+            throw new moodle_exception('invalidelementtype', 'customcert');
         }
         // For persistable elements, merge normalise_data() result on top of the already-seeded
         // $decoded payload (existing JSON + visual attrs + caller data) so existing keys are preserved.
@@ -222,7 +223,7 @@ class external extends external_api {
         $elementrepo = new element_repository(element_factory::build_with_defaults());
         $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
         if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
-            throw new \moodle_exception('nopermissions', 'error', '', 'get_element_html');
+            throw new moodle_exception('nopermissions', 'error', '', 'get_element_html');
         }
 
         // Get an instance of the element class.

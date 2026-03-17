@@ -17,6 +17,7 @@
 namespace mod_customcert;
 
 use advanced_testcase;
+use zip_archive;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\pdf_generation_service;
@@ -87,7 +88,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $this->assertNotEmpty($sent);
         $this->assertFileExists($sent['path']);
 
-        $zip = new \zip_archive();
+        $zip = new zip_archive();
         $zip->open($sent['path'], \file_archive::OPEN);
         $files = $zip->list_files();
         $zip->close();
@@ -145,7 +146,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $this->assertNotEmpty($sent);
         $this->assertFileExists($sent['path']);
 
-        $zip = new \zip_archive();
+        $zip = new zip_archive();
         $zip->open($sent['path'], \file_archive::OPEN);
         $files = $zip->list_files();
         $zip->close();

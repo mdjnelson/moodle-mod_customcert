@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use context_module;
+use moodle_exception;
 use core_user\fields;
 use mod_customcert\service\certificate_issue_service;
 use stdClass;
@@ -106,7 +107,7 @@ final class issue_repository {
     public function delete_for_certificate(int $id, int $customcertid): void {
         $issue = $this->get_by_id_or_fail($id);
         if ((int)$issue->customcertid !== (int)$customcertid) {
-            throw new \moodle_exception('invalidrequest');
+            throw new moodle_exception('invalidrequest');
         }
         $this->delete($id);
     }

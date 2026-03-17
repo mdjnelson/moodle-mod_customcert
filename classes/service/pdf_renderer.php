@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use coding_exception;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
@@ -85,7 +86,7 @@ final class pdf_renderer implements element_renderer {
      */
     public function render_content(element_interface $element, string $content): void {
         if ($this->pdf === null) {
-            throw new \coding_exception('PDF object not set in pdf_renderer');
+            throw new coding_exception('PDF object not set in pdf_renderer');
         }
         element_helper::render_content($this->pdf, $element, $content);
     }

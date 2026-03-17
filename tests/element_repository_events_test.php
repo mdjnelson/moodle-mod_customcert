@@ -28,7 +28,10 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use context_system;
 use mod_customcert\element\element_interface;
+use mod_customcert\event\element_created;
+use mod_customcert\event\element_updated;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
@@ -188,7 +191,7 @@ final class element_repository_events_test extends advanced_testcase {
      */
     public function test_create_fires_element_created_event(): void {
         // Create a template and a page to ensure a valid context for events.
-        $template = template::create('Repo events', \context_system::instance()->id);
+        $template = template::create('Repo events', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -207,9 +210,9 @@ final class element_repository_events_test extends advanced_testcase {
         $this->assertCount(1, $events);
 
         $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_created', $event);
+        $this->assertInstanceOf(element_created::class, $event);
         $this->assertEquals($newid, $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -221,7 +224,7 @@ final class element_repository_events_test extends advanced_testcase {
     public function test_update_position_fires_element_updated_event(): void {
         global $DB;
 
-        $template = template::create('Repo events', \context_system::instance()->id);
+        $template = template::create('Repo events', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -243,14 +246,14 @@ final class element_repository_events_test extends advanced_testcase {
             'posy' => 0,
         ]);
 
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $sink = $this->redirectEvents();
         $repository->update_position($id, 30, 40, $contextid);
         $events = $sink->get_events();
 
         $this->assertCount(1, $events);
         $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
+        $this->assertInstanceOf(element_updated::class, $event);
         $this->assertEquals($id, $event->objectid);
         $this->assertEquals($contextid, $event->contextid);
         $this->assertDebuggingNotCalled();
@@ -264,7 +267,7 @@ final class element_repository_events_test extends advanced_testcase {
     public function test_update_name_fires_element_updated_event(): void {
         global $DB;
 
-        $template = template::create('Repo events', \context_system::instance()->id);
+        $template = template::create('Repo events', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -284,14 +287,14 @@ final class element_repository_events_test extends advanced_testcase {
             'data' => null,
         ]);
 
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $sink = $this->redirectEvents();
         $repository->update_name($id, 'New name', $contextid);
         $events = $sink->get_events();
 
         $this->assertCount(1, $events);
         $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
+        $this->assertInstanceOf(element_updated::class, $event);
         $this->assertEquals($id, $event->objectid);
         $this->assertEquals($contextid, $event->contextid);
         $this->assertDebuggingNotCalled();
@@ -305,7 +308,7 @@ final class element_repository_events_test extends advanced_testcase {
     public function test_save_fires_element_updated_event(): void {
         global $DB;
 
-        $template = template::create('Repo events', \context_system::instance()->id);
+        $template = template::create('Repo events', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -336,9 +339,9 @@ final class element_repository_events_test extends advanced_testcase {
 
         $this->assertCount(1, $events);
         $event = reset($events);
-        $this->assertInstanceOf('\\mod_customcert\\event\\element_updated', $event);
+        $this->assertInstanceOf(element_updated::class, $event);
         $this->assertEquals($id, $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
         $this->assertDebuggingNotCalled();
     }
 }

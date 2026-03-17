@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
+use context;
 use mod_customcert\event\template_created;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\pdf_generation_service;
@@ -293,7 +294,7 @@ class template {
      * @return \context the context
      */
     public function get_context(): \context {
-        return \context::instance_by_id($this->contextid);
+        return context::instance_by_id($this->contextid);
     }
 
     /**

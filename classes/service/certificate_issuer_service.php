@@ -19,6 +19,8 @@ namespace mod_customcert\service;
 use core\task\manager;
 use mod_customcert\certificate;
 use mod_customcert\task\email_certificate_task;
+use context_module;
+use core_availability\info_module;
 use mod_customcert\service\certificate_time_service;
 
 /**
@@ -226,7 +228,7 @@ final class certificate_issuer_service {
         $issuedusers = $this->issues->list_emailed_users((int)$customcert->id);
 
         // Get the context of the Custom Certificate module.
-        $cmcontext = \context_module::instance($cm->id);
+        $cmcontext = context_module::instance($cm->id);
 
         // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
         $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
@@ -236,7 +238,7 @@ final class certificate_issuer_service {
         $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
         // Filter remaining users by availability conditions.
-        $infomodule = new \core_availability\info_module($cm);
+        $infomodule = new info_module($cm);
         $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
         $candidates = [];

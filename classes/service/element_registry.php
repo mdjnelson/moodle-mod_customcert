@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use moodle_exception;
+
 /**
  * Simple in-memory registry of element types to class names.
  */
@@ -62,7 +64,7 @@ final class element_registry {
      */
     public function get(string $type): string {
         if (!$this->has($type)) {
-            throw new \moodle_exception('Unknown element type: ' . $type);
+            throw new moodle_exception('Unknown element type: ' . $type);
         }
         return $this->map[$type];
     }

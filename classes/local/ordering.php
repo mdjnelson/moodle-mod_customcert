@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\local;
 
+use InvalidArgumentException;
+
 /**
  * Simple value object to represent ordering instructions.
  *
@@ -77,7 +79,7 @@ final class ordering {
 
             if (!$ok) {
                 if ($throwoninvalid) {
-                    throw new \InvalidArgumentException("Invalid ORDER BY field: {$field}");
+                    throw new InvalidArgumentException("Invalid ORDER BY field: {$field}");
                 }
                 continue;
             }

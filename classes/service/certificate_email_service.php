@@ -23,7 +23,9 @@
  */
 namespace mod_customcert\service;
 
+use context;
 use core\cron;
+use moodle_page;
 use core_shutdown_manager;
 use mod_customcert\output\email_certificate;
 use mod_customcert\template;
@@ -108,7 +110,7 @@ final class certificate_email_service {
         // Setup the user for the cron.
         cron::setup_user($user);
 
-        $context = \context::instance_by_id($customcert->contextid);
+        $context = context::instance_by_id($customcert->contextid);
         $userfrom = \core_user::get_noreply_user();
 
         $courseshortname = format_string($customcert->courseshortname, true, ['context' => $context]);
@@ -121,7 +123,7 @@ final class certificate_email_service {
         $info->coursefullname = $coursefullname;
         $info->certificatename = $certificatename;
 
-        $page = new \moodle_page();
+        $page = new moodle_page();
         $htmlrenderer = $page->get_renderer('mod_customcert', 'email', 'htmlemail');
         $textrenderer = $page->get_renderer('mod_customcert', 'email', 'textemail');
 

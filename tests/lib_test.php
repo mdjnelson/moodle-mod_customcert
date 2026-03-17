@@ -26,6 +26,8 @@
 namespace mod_customcert;
 
 use advanced_testcase;
+use moodle_exception;
+use tool_langimport\controller;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -267,12 +269,12 @@ final class lib_test extends advanced_testcase {
         \core_php_time_limit::raise();
         get_string_manager()->reset_caches();
 
-        $controller = new \tool_langimport\controller();
+        $controller = new controller();
         try {
             $controller->install_languagepacks($codes);
             return true;
-        } catch (\moodle_exception $e) {
-            $this->assertInstanceOf('moodle_exception', $e);
+        } catch (moodle_exception $e) {
+            $this->assertInstanceOf(moodle_exception::class, $e);
         }
 
         return false;

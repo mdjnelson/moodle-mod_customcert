@@ -27,6 +27,7 @@
 namespace mod_customcert;
 
 use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 
 /**
  * Tests for page_repository behaviour (ordering, resequencing, bulk create).
@@ -57,7 +58,7 @@ final class page_repository_test extends \advanced_testcase {
         $context = \context_course::instance($course->id);
 
         // Create a template to attach pages to, using the template repository directly.
-        $trepo = new \mod_customcert\service\template_repository();
+        $trepo = new template_repository();
         $templateid = $trepo->create((object)[
             'name' => 'T',
             'contextid' => $context->id,
@@ -105,7 +106,7 @@ final class page_repository_test extends \advanced_testcase {
         $course = $generator->create_course();
         $context = \context_course::instance($course->id);
 
-        $trepo = new \mod_customcert\service\template_repository();
+        $trepo = new template_repository();
         $templateid = $trepo->create((object)[
             'name' => 'T2',
             'contextid' => $context->id,
@@ -153,7 +154,7 @@ final class page_repository_test extends \advanced_testcase {
         $course = $generator->create_course();
         $context = \context_course::instance($course->id);
 
-        $trepo = new \mod_customcert\service\template_repository();
+        $trepo = new template_repository();
         $templateid = $trepo->create((object)[
             'name' => 'T3',
             'contextid' => $context->id,
