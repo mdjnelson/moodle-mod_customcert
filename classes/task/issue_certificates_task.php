@@ -151,6 +151,11 @@ class issue_certificates_task extends \core\task\scheduled_task {
             $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
             foreach ($filteredusers as $filtereduser) {
+                // Do not issue certs to suspended users.
+                if ($filtereduser->suspended) {
+                    continue;
+                }
+
                 // Skip if the user has already been issued and emailed.
                 if (in_array($filtereduser->id, array_keys((array)$issuedusers))) {
                     continue;
