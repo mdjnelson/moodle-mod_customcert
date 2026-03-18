@@ -152,15 +152,20 @@ final class email_certificate_task_test extends advanced_testcase {
         // Create some users.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
 
-        // Enrol two of them in the course as students.
+        // Enrol three of them in the course as students.
         $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
         $this->getDataGenerator()->enrol_user($user1->id, $course->id);
         $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course->id);
 
         // Enrol one of the users as a teacher.
-        $this->getDataGenerator()->enrol_user($user3->id, $course->id, $roleids['editingteacher']);
+        $this->getDataGenerator()->enrol_user($user4->id, $course->id, $roleids['editingteacher']);
+
+        // Suspend one of the users.
+        $DB->set_field('user', 'suspended', '1', ['id' => $user3->id]);
 
         // Create a custom certificate.
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
@@ -199,10 +204,11 @@ final class email_certificate_task_test extends advanced_testcase {
         $issues = $DB->get_records('customcert_issues');
         $this->assertCount(2, $issues);
 
-        // Confirm that it was marked as emailed and was not issued to the teacher.
+        // Confirm that it was marked as emailed and was not issued to the teacher or suspended student.
         foreach ($issues as $issue) {
             $this->assertEquals(1, $issue->emailed);
             $this->assertNotEquals($user3->id, $issue->userid);
+            $this->assertNotEquals($user4->id, $issue->userid);
         }
 
         // Confirm that we sent out emails to the two users.
