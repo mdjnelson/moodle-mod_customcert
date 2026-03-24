@@ -249,7 +249,7 @@ class element extends base_element implements
                         $user->id
                     );
                 } else if (strpos($dateitem, 'gradeitem:') === 0) {
-                    $gradeitemid = substr($dateitem, 10);
+                    $gradeitemid = (int)substr($dateitem, 10);
                     $grade = element_helper::get_grade_item_info(
                         $gradeitemid,
                         $dateitem,
@@ -271,7 +271,7 @@ class element extends base_element implements
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            $content = element_helper::get_date_format_string($date, $dateformat);
+            $content = element_helper::get_date_format_string((int)$date, $dateformat);
             if ($renderer) {
                 $renderer->render_content($this, $content);
             } else {
