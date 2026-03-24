@@ -227,6 +227,45 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * list_email_candidates should not include suspended users.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_skips_suspended_users(): void {
+        global $DB;
+
+        // Create a course and enrol two students.
+        $course = $this->getDataGenerator()->create_course();
+        $student1 = $this->getDataGenerator()->create_user();
+        $student2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($student2->id, $course->id);
+
+        // Suspend student2.
+        $DB->set_field('user', 'suspended', '1', ['id' => $student2->id]);
+
+        // Create a certificate with emailing enabled.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::load((int)$customcert->templateid);
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issuer = certificate_issuer_service::create();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        // Active student should be a candidate; suspended student should not.
+        $this->assertArrayHasKey($student1->id, $candidates);
+        $this->assertArrayNotHasKey($student2->id, $candidates);
+    }
+
+    /**
      * list_email_candidates should skip hidden courses when configuration excludes them.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
