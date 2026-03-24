@@ -245,6 +245,11 @@ final class certificate_issuer_service {
         $timeservice = certificate_time_service::create();
 
         foreach ($filteredusers as $filtereduser) {
+            // Do not issue certs to suspended users.
+            if ($filtereduser->suspended) {
+                continue;
+            }
+
             // Skip if the user has already been issued and emailed.
             if (array_key_exists($filtereduser->id, $issuedusers)) {
                 continue;
