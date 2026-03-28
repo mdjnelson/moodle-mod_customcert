@@ -50,7 +50,7 @@ $PAGE->navbar->add(
     get_string('managetemplates', 'customcert'),
     new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid])
 );
-$PAGE->navbar->add(get_string('import', 'customcert'));
+$PAGE->navbar->add(get_string('importtemplate', 'customcert'));
 
 $mform = new import_form();
 

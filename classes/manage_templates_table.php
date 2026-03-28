@@ -105,7 +105,7 @@ class manage_templates_table extends table_sql {
         $exportlink = new moodle_url('/mod/customcert/export_template.php', ['tid' => $template->id]);
         $exporticon = $OUTPUT->action_icon(
             $exportlink,
-            new pix_icon('t/download', get_string('export', 'customcert')),
+            new pix_icon('t/download', get_string('exporttemplate', 'customcert')),
             null,
             ['class' => 'action-icon export-icon']
         );
