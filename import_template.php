@@ -34,6 +34,7 @@ use core\notification;
 use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\import_form;
+use mod_customcert\page_helper;
 
 require_login();
 
@@ -42,10 +43,14 @@ $contextid = required_param('context_id', PARAM_INT);
 $context = context::instance_by_id($contextid);
 require_capability('mod/customcert:manage', $context);
 
-$PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/mod/customcert/import_template.php'));
-$PAGE->set_title(get_string('import', 'customcert'));
-$PAGE->set_heading(get_string('import', 'customcert'));
+$pageurl = new moodle_url('/mod/customcert/import_template.php', ['context_id' => $contextid]);
+page_helper::page_setup($pageurl, $context, $SITE->fullname);
+
+$PAGE->navbar->add(
+    get_string('managetemplates', 'customcert'),
+    new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid])
+);
+$PAGE->navbar->add(get_string('import', 'customcert'));
 
 $mform = new import_form();
 
