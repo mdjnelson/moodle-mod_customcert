@@ -126,6 +126,7 @@ final class export_template_file_manager_test extends advanced_testcase {
      * Test that import from a valid ZIP inserts a template record.
      */
     public function test_import_inserts_template_record(): void {
+        $this->preventResetByRollback();
         global $DB;
         $tempdir = $this->make_import_zip([
             'name' => 'Imported via ZIP',
@@ -143,6 +144,7 @@ final class export_template_file_manager_test extends advanced_testcase {
      * Test that import with pages inserts page records.
      */
     public function test_import_with_pages_inserts_page_records(): void {
+        $this->preventResetByRollback();
         global $DB;
         $tempdir = $this->make_import_zip([
             'name' => 'Template with pages',
@@ -216,6 +218,7 @@ final class export_template_file_manager_test extends advanced_testcase {
      * Test export → import round-trip preserves template name and page count.
      */
     public function test_export_import_round_trip(): void {
+        $this->preventResetByRollback();
         global $DB;
         // Add a page to the template.
         $DB->insert_record('customcert_pages', [

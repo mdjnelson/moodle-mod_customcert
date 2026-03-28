@@ -72,6 +72,7 @@ final class export_template_test extends advanced_testcase {
      * Test that importing a valid template inserts a record.
      */
     public function test_import_inserts_template_record(): void {
+        $this->preventResetByRollback();
         global $DB;
         $before = $DB->count_records('customcert_templates');
         $this->template->import(1, [
@@ -90,6 +91,7 @@ final class export_template_test extends advanced_testcase {
      * Test that importing a template with pages inserts page records.
      */
     public function test_import_with_pages_inserts_page_records(): void {
+        $this->preventResetByRollback();
         global $DB;
         $this->template->import(1, [
             'name' => 'Template with pages',
