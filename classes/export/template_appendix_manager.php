@@ -178,7 +178,9 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 'filename'  => $filename,
             ];
 
-            // Avoid duplicates: if the exact pathname exists, reuse but do not track for rollback.
+            // Avoid duplicates: reuse only if the existing file has the same content hash.
+            // Matching by pathname alone is not sufficient — a file with the same name but
+            // different content would silently produce the wrong result on round-trip.
             $existing = $fs->get_file(
                 $filerecord['contextid'],
                 $filerecord['component'],
@@ -188,9 +190,15 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 $filerecord['filename']
             );
 
-            if ($existing) {
+            if ($existing && $existing->get_contenthash() === $contenthash) {
                 $this->index[$contenthash] = $existing;
                 continue;
+            }
+
+            // A file with the same name but different content exists — delete it so we can
+            // store the correct version from the archive.
+            if ($existing) {
+                $existing->delete();
             }
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
