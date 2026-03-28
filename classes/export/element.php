@@ -108,7 +108,7 @@ class element {
         global $DB;
 
         if (($data['name'] ?? null) === null || ($data['element'] ?? null) === null) {
-            throw new import_exception('importerror_missingname', 'customcert');
+            throw new import_exception('Template is missing the required name attribute');
         }
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);

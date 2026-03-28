@@ -92,7 +92,7 @@ class template_file_manager implements template_file_manager_interface {
         $this->filemng->export($templateid, $tempdir);
 
         if (!$packer = get_file_packer()) {
-            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
+            throw new import_exception('ZIP packer is not available');
         }
         $zipfile = "$tempdir/certificate-template-$templateid.zip";
 
@@ -129,7 +129,7 @@ class template_file_manager implements template_file_manager_interface {
      */
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
-            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
+            throw new import_exception('ZIP packer is not available');
         }
 
         $zippath = "$tempdir/import.zip";
@@ -139,18 +139,18 @@ class template_file_manager implements template_file_manager_interface {
         check_dir_exists($unpackdir);
 
         if (!$packer->extract_to_pathname($zippath, $unpackdir)) {
-            throw new import_exception('errorunzippingfile', 'error');
+            throw new import_exception('Failed to extract the ZIP archive');
         }
 
         $jsonpath = $unpackdir . '/template.json';
         if (!file_exists($jsonpath)) {
-            throw new import_exception('filenotfound', 'error', '', 'template.json');
+            throw new import_exception('template.json not found in archive');
         }
 
         $json = file_get_contents($jsonpath);
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            throw new import_exception('importerror_invalidjson', 'customcert');
+            throw new import_exception('Invalid template.json (not valid JSON)');
         }
 
         // Import files first, then template data inside a DB transaction.
@@ -176,18 +176,18 @@ class template_file_manager implements template_file_manager_interface {
      */
     private function validate_zip(string $zippath): void {
         if (!$packer = get_file_packer()) {
-            throw new import_exception('errorpackermissing', 'error', '', 'ZIP');
+            throw new import_exception('ZIP packer is not available');
         }
 
         $files = $packer->list_files($zippath);
         if ($files === false) {
-            throw new import_exception('errorunzippingfile', 'error');
+            throw new import_exception('Failed to read the ZIP archive');
         }
 
         // Limit archive entry count to guard against zip bombs.
         $maxfiles = self::MAX_ARCHIVE_FILES;
         if (count($files) > $maxfiles) {
-            throw new import_exception('importerror_pathtoomanyfiles', 'customcert', '', $maxfiles);
+            throw new import_exception('Too many files in archive (max ' . $maxfiles . ')');
         }
 
         // 50 MB per-entry size limit; 200 MB cumulative uncompressed size limit.
@@ -197,23 +197,23 @@ class template_file_manager implements template_file_manager_interface {
         foreach ($files as $file) {
             // Reject absolute paths and any path segment that is or contains '..'.
             if (str_starts_with($file->pathname, '/')) {
-                throw new import_exception('importerror_absolutepath', 'customcert', '', $file->pathname);
+                throw new import_exception('Archive contains an absolute path: ' . $file->pathname);
             }
             foreach (explode('/', $file->pathname) as $segment) {
                 if ($segment === '..' || $segment === '.') {
-                    throw new import_exception('importerror_pathtraversal', 'customcert', '', $file->pathname);
+                    throw new import_exception('Archive contains a path traversal entry: ' . $file->pathname);
                 }
             }
             // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
             if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
-                throw new import_exception('importerror_unsafefilename', 'customcert', '', $file->pathname);
+                throw new import_exception('Archive contains an unsafe filename: ' . $file->pathname);
             }
             if ($file->size > $maxbytes) {
-                throw new import_exception('importerror_filetoolarge', 'customcert', '', $file->pathname);
+                throw new import_exception('A file in the archive exceeds the size limit: ' . $file->pathname);
             }
             $totalbytes += $file->size;
             if ($totalbytes > $maxtotalbytes) {
-                throw new import_exception('importerror_totalsizelimit', 'customcert');
+                throw new import_exception('Archive total uncompressed size exceeds the allowed limit');
             }
         }
     }

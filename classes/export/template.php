@@ -76,7 +76,7 @@ class template {
         global $DB;
 
         if (($templatedata['name'] ?? null) === null) {
-            throw new import_exception('importerror_missingname', 'customcert');
+            throw new import_exception('Template is missing the required name attribute');
         }
         $DB->transactions_forbidden();
         $transaction = $DB->start_delegated_transaction();
