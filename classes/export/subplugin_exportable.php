@@ -152,7 +152,10 @@ abstract class subplugin_exportable {
 
             $fielddata = $this->get_relevant_data($key, $data);
             try {
-                $files[] = $field->get_file($fielddata);
+                $file = $field->get_file($fielddata);
+                if ($file !== false) {
+                    $files[] = $file;
+                }
             } catch (format_exception $e) {
                 $this->logger->warning($key . ': ' . $e->getMessage());
             }
