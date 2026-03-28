@@ -76,7 +76,7 @@ class page {
         global $DB;
 
         $pageids = $DB->get_fieldset(static::$dbtable, 'id', ['templateid' => $templateid]);
-        return $pageids;
+        return array_map('intval', $pageids);
     }
 
     /**

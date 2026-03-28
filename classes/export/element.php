@@ -91,7 +91,7 @@ class element {
         global $DB;
 
         $elementids = $DB->get_fieldset(static::$dbtable, 'id', ['pageid' => $pageid]);
-        return $elementids;
+        return array_map('intval', $elementids);
     }
 
     /**
