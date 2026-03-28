@@ -68,11 +68,10 @@ class float_field implements field_interface {
         $value = $data['value'];
 
         if ($this->min !== null && $value < $this->min) {
-            throw new format_exception("Value should be less than $this->min");
+            throw new format_exception("Value should be higher than or equal to $this->min");
         }
-
         if ($this->max !== null && $value > $this->max) {
-            throw new format_exception("Value should be higher than $this->max");
+            throw new format_exception("Value should be less than or equal to $this->max");
         }
 
         return $value;
