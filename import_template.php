@@ -31,7 +31,6 @@ require_once('../../config.php');
 
 use core\di;
 use core\notification;
-use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\import_form;
 use mod_customcert\page_helper;
@@ -62,8 +61,6 @@ if ($fromform = $mform->get_data()) {
 
     $backupmng = di::get(template_file_manager_interface::class);
     $backupmng->import($fromform->context_id, $tempdir);
-
-    di::get(template_import_logger_interface::class)->print_notification();
 
     redirect(
         new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid]),
