@@ -113,12 +113,12 @@ class element {
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);
         try {
-            $subpugindata = $specificexporter->convert_for_import($data['data']);
+            $subplugindata = $specificexporter->convert_for_import($data['data']);
         } catch (format_error $e) {
             $this->logger->warning('subplugin data is not valid: ' . $e->getMessage());
             return;
         }
-        if ($subpugindata === null) {
+        if ($subplugindata === null) {
             // Unsupported element type — skip insertion rather than storing a broken record.
             return;
         }
@@ -126,7 +126,7 @@ class element {
             'pageid' => $pageid,
             'name' => $data['name'],
             'element' => $data['element'],
-            'data' => $subpugindata,
+            'data' => $subplugindata,
             'posx' => (int) $data['posx'],
             'posy' => (int) $data['posy'],
             'refpoint' => (int) $data['refpoint'],
