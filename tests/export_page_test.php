@@ -89,9 +89,9 @@ final class export_page_test extends advanced_testcase {
     }
 
     /**
-     * Test that importing a page with elements inserts element records.
+     * Test that importing a page with an unknown subplugin element skips the element record.
      */
-    public function test_import_with_elements_inserts_element_records(): void {
+    public function test_import_with_unknown_element_skips_record(): void {
         global $DB;
         $this->page->import($this->templateid, [
             'width' => 210,
@@ -112,7 +112,8 @@ final class export_page_test extends advanced_testcase {
                 ],
             ],
         ]);
-        $this->assertSame(1, $DB->count_records('customcert_elements'));
+        // Unknown subplugin elements are skipped, so no element record should be inserted.
+        $this->assertSame(0, $DB->count_records('customcert_elements'));
     }
 
     /**
