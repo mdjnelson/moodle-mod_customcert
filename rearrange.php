@@ -39,8 +39,6 @@ $pid = required_param('pid', PARAM_INT);
 $pagerepo = new page_repository();
 $page = $pagerepo->get_by_id_or_fail($pid);
 
-
-
 $factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
 
