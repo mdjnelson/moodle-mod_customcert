@@ -53,8 +53,14 @@ class hook_callbacks {
     public static function di_configuration(di_configuration $config): void {
         $config->add_definition(
             id: template_appendix_manager_interface::class,
-            definition: function (): template_appendix_manager_interface {
-                return new template_appendix_manager();
+            definition: function (
+                clock $clock,
+            ): template_appendix_manager_interface {
+                $logger = new template_logger();
+                $filemng = new template_appendix_manager();
+                $element = new element($clock, $logger, $filemng);
+                $filemng->set_element($element);
+                return $filemng;
             }
         );
 

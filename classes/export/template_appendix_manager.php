@@ -37,15 +37,16 @@ use mod_customcert\export\element;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_appendix_manager implements template_appendix_manager_interface {
+    /** @var element|null Element handler used for file lookups. */
+    private ?element $element = null;
+
     /**
-     * Constructor.
+     * Sets the element handler used for file lookups during export.
      *
-     * @param element $element Element handler used for file lookups.
+     * @param element $element Element handler.
      */
-    public function __construct(
-        /** @var element Element handler used for file lookups. */
-        private readonly element $element,
-    ) {
+    public function set_element(element $element): void {
+        $this->element = $element;
     }
 
     /** @var array<string, stored_file> In-memory index of imported files, mapped by content hash. */
@@ -116,6 +117,9 @@ class template_appendix_manager implements template_appendix_manager_interface {
             $elementids[] = element::get_elementids_from_page($pageid);
         }
         $elementids = array_merge(...$elementids);
+        if ($this->element === null) {
+            throw new coding_exception('Element handler not set. Call set_element() before exporting.');
+        }
         $element = $this->element;
 
         $files = array_map(fn ($elementid) => $element->get_files($elementid), $elementids);
