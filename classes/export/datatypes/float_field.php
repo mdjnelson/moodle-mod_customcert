@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-use Exception;
+use coding_exception;
 
 /**
  * Handles floating-point number validation and export for custom certificate fields.
@@ -62,10 +62,14 @@ class float_field implements field_interface {
      *
      * @param array $data Associative array with a 'value' key.
      * @return float The validated float value.
-     * @throws format_exception If the value is outside the defined bounds.
+     * @throws format_exception If the value is not numeric or is outside the defined bounds.
      */
     public function import(array $data): mixed {
         $value = $data['value'];
+
+        if (!is_numeric($value)) {
+            throw new format_exception('Value is not numeric');
+        }
 
         if ($this->min !== null && $value < $this->min) {
             throw new format_exception("Value should be higher than or equal to $this->min");
@@ -101,6 +105,6 @@ class float_field implements field_interface {
             return $this->max;
         }
 
-        throw new Exception("This should never happen");
+        throw new coding_exception('float_field requires at least one of $min or $max to be set');
     }
 }

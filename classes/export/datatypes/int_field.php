@@ -18,8 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-use Exception;
-
 /**
  * Handles integer-specific import functionality for certificate subplugin fields.
  *
