@@ -136,11 +136,11 @@ final class export_remaining_fields_test extends advanced_testcase {
     }
 
     /**
-     * Test user_field fallback returns empty string.
+     * Test user_field fallback returns 0 (no user) since cross-site user IDs cannot be matched.
      */
-    public function test_user_field_fallback_returns_empty_string(): void {
+    public function test_user_field_fallback_returns_zero(): void {
         $field = new user_field();
-        $this->assertSame('', $field->get_fallback());
+        $this->assertSame(0, $field->get_fallback());
     }
 
     // Table_exporter tests.

@@ -111,6 +111,15 @@ final class export_datatype_fields_test extends advanced_testcase {
     }
 
     /**
+     * Test float_field throws when value is not numeric.
+     */
+    public function test_float_field_import_non_numeric_throws(): void {
+        $field = new float_field(0.0, 100.0);
+        $this->expectException(format_exception::class);
+        $field->import(['value' => 'not-a-number']);
+    }
+
+    /**
      * Test float_field export wraps value in array.
      */
     public function test_float_field_export(): void {
