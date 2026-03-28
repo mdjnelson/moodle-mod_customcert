@@ -64,9 +64,13 @@ if ($fromform = $mform->get_data()) {
     $backupmng->import($fromform->context_id, $tempdir);
 
     di::get(template_import_logger_interface::class)->print_notification();
-    notification::success(get_string('importsuccessful', 'mod_customcert'));
 
-    redirect(new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid]));
+    redirect(
+        new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid]),
+        get_string('importsuccessful', 'mod_customcert'),
+        null,
+        notification::SUCCESS
+    );
 }
 
 echo $OUTPUT->header();
