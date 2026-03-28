@@ -147,7 +147,7 @@ class template_file_manager implements template_file_manager_interface {
         $json = file_get_contents($jsonpath);
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            throw new import_exception('Invalid template.json (not valid JSON)');
+            throw new import_exception('importerror_invalidjson', 'customcert');
         }
 
         // Import files first, then template data inside a DB transaction.
@@ -184,7 +184,7 @@ class template_file_manager implements template_file_manager_interface {
         // Limit archive entry count to guard against zip bombs.
         $maxfiles = self::MAX_ARCHIVE_FILES;
         if (count($files) > $maxfiles) {
-            throw new import_exception('Too many files in archive (max ' . $maxfiles . ')');
+            throw new import_exception('importerror_pathtoomanyfiles', 'customcert', '', $maxfiles);
         }
 
         // 50 MB per-entry size limit; 200 MB cumulative uncompressed size limit.
@@ -194,23 +194,23 @@ class template_file_manager implements template_file_manager_interface {
         foreach ($files as $file) {
             // Reject absolute paths and any path segment that is or contains '..'.
             if (str_starts_with($file->pathname, '/')) {
-                throw new import_exception('Absolute path in archive: ' . $file->pathname);
+                throw new import_exception('importerror_absolutepath', 'customcert', '', $file->pathname);
             }
             foreach (explode('/', $file->pathname) as $segment) {
                 if ($segment === '..' || $segment === '.') {
-                    throw new import_exception('Path traversal in archive: ' . $file->pathname);
+                    throw new import_exception('importerror_pathtraversal', 'customcert', '', $file->pathname);
                 }
             }
             // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
             if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
-                throw new import_exception('Unsafe filename in archive: ' . $file->pathname);
+                throw new import_exception('importerror_unsafefilename', 'customcert', '', $file->pathname);
             }
             if ($file->size > $maxbytes) {
-                throw new import_exception('File too large in archive: ' . $file->pathname);
+                throw new import_exception('importerror_filetoolarge', 'customcert', '', $file->pathname);
             }
             $totalbytes += $file->size;
             if ($totalbytes > $maxtotalbytes) {
-                throw new import_exception('Archive total uncompressed size exceeds limit');
+                throw new import_exception('importerror_totalsizelimit', 'customcert');
             }
         }
     }

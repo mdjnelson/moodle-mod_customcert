@@ -107,8 +107,8 @@ class element {
     public function import(int $pageid, array $data): void {
         global $DB;
 
-        if (($data['name'] ?? null) === null) {
-            throw new import_exception('Certificate missing the attribute name');
+        if (($data['name'] ?? null) === null || ($data['element'] ?? null) === null) {
+            throw new import_exception('importerror_missingname', 'customcert');
         }
 
         $specificexporter = $this->get_plugin_specific_exporter($data['element']);
