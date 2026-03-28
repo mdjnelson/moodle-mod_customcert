@@ -195,10 +195,13 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 continue;
             }
 
-            // A file with the same name but different content exists — delete it so we can
-            // store the correct version from the archive.
+            // A file with the same name but different content exists. Do not delete it —
+            // it may be referenced by another template or element and we do not own it.
+            // Instead, import under a collision-free name derived from the content hash.
             if ($existing) {
-                $existing->delete();
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                $base = pathinfo($filename, PATHINFO_FILENAME);
+                $filerecord['filename'] = $ext !== '' ? "$base-$contenthash.$ext" : "$base-$contenthash";
             }
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
