@@ -99,8 +99,10 @@ class file_field implements field_interface, file_field_interface {
      * @return stored_file|false The resolved image file or false if not found.
      */
     public function get_file(array $data): stored_file|false {
-        if (empty($data["contextid"]) || empty($data["filearea"]) ||
-                !isset($data["itemid"]) || !isset($data["filepath"]) || !isset($data["filename"])) {
+        if (
+            empty($data["contextid"]) || empty($data["filearea"]) ||
+            !isset($data["itemid"]) || !isset($data["filepath"]) || !isset($data["filename"])
+        ) {
             return false;
         }
 
