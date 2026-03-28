@@ -27,7 +27,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__ . '/../../../config.php');
+require_once('../../config.php');
 
 use core\di;
 use core\notification;
@@ -41,10 +41,11 @@ $contextid = required_param('context_id', PARAM_INT);
 
 $context = context::instance_by_id($contextid);
 require_capability('mod/customcert:manage', $context);
+
 $PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/mod/customcert/pages/import.php'));
-$PAGE->set_title(get_string('import'));
-$PAGE->set_heading(get_string('import'));
+$PAGE->set_url(new moodle_url('/mod/customcert/import_template.php'));
+$PAGE->set_title(get_string('import', 'customcert'));
+$PAGE->set_heading(get_string('import', 'customcert'));
 
 $mform = new import_form();
 
@@ -62,8 +63,5 @@ if ($fromform = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-
-// Display the form.
 $mform->display();
-
 echo $OUTPUT->footer();

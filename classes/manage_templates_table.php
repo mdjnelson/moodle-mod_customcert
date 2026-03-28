@@ -101,6 +101,15 @@ class manage_templates_table extends table_sql {
         $editlink = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->id]);
         $editicon = $OUTPUT->action_icon($editlink, new pix_icon('t/edit', get_string('edit')));
 
+        // Link to export the template.
+        $exportlink = new moodle_url('/mod/customcert/export_template.php', ['tid' => $template->id]);
+        $exporticon = $OUTPUT->action_icon(
+            $exportlink,
+            new pix_icon('t/download', get_string('export', 'customcert')),
+            null,
+            ['class' => 'action-icon export-icon']
+        );
+
         // Link to duplicate the template.
         $duplicatelink = new moodle_url(
             '/mod/customcert/manage_templates.php',
@@ -133,7 +142,7 @@ class manage_templates_table extends table_sql {
             ['class' => 'action-icon delete-icon']
         );
 
-        return $editicon . $duplicateicon . $deleteicon;
+        return $editicon . $exporticon . $duplicateicon . $deleteicon;
     }
 
     /**
