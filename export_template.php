@@ -32,12 +32,14 @@ require_once($CFG->libdir . '/filelib.php');
 
 use core\di;
 use mod_customcert\export\template_file_manager_interface;
+use mod_customcert\service\template_repository;
 
 require_login();
 
 $tid = required_param("tid", PARAM_INT);
 
-$template = $DB->get_record('customcert_templates', ['id' => $tid], '*', MUST_EXIST);
+$repo = new template_repository();
+$template = $repo->get_by_id_or_fail($tid);
 $context = context::instance_by_id($template->contextid);
 require_capability('mod/customcert:manage', $context);
 
