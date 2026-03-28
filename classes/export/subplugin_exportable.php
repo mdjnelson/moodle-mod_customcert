@@ -89,7 +89,7 @@ abstract class subplugin_exportable {
         foreach ($fields as $key => $field) {
             $value = $data[$key] ?? null;
             if (!is_array($value)) {
-                throw new format_error('Subplugin data is missing');
+                throw new format_error("Field '$key' is missing or has an unexpected format");
             }
 
             try {
