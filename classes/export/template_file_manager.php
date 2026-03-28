@@ -39,6 +39,15 @@ use Throwable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_file_manager implements template_file_manager_interface {
+    /** @var int Maximum number of files allowed in an imported archive. */
+    const MAX_ARCHIVE_FILES = 500;
+
+    /** @var int Maximum size in bytes for a single file in an imported archive (50 MB). */
+    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+
+    /** @var int Maximum total size in bytes for all files in an imported archive (200 MB). */
+    const MAX_TOTAL_BYTES = 200 * 1024 * 1024;
+
     /** @var template_appendix_manager_interface The manager for appendix file operations. */
     private readonly template_appendix_manager_interface $filemng;
 
@@ -173,14 +182,14 @@ class template_file_manager implements template_file_manager_interface {
         }
 
         // Limit archive entry count to guard against zip bombs.
-        $maxfiles = 500;
+        $maxfiles = self::MAX_ARCHIVE_FILES;
         if (count($files) > $maxfiles) {
             throw new import_exception('Too many files in archive (max ' . $maxfiles . ')');
         }
 
         // 50 MB per-entry size limit; 200 MB cumulative uncompressed size limit.
-        $maxbytes = 50 * 1024 * 1024;
-        $maxtotalbytes = 200 * 1024 * 1024;
+        $maxbytes = self::MAX_FILE_BYTES;
+        $maxtotalbytes = self::MAX_TOTAL_BYTES;
         $totalbytes = 0;
         foreach ($files as $file) {
             // Reject absolute paths and any path segment that is or contains '..'.
