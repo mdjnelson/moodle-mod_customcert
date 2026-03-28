@@ -35,7 +35,7 @@ class string_field implements field_interface {
      */
     private bool $emptyallowed;
 
-    /** @var string Default value */
+    /** @var string Fallback value used when import validation fails. */
     private string $default;
 
     /**
@@ -44,7 +44,7 @@ class string_field implements field_interface {
      * @param bool $emptyallowed Indicates whether empty strings are allowed for this field
      * @param string $default Default value
      */
-    public function __construct(bool $emptyallowed = false, string $default = 'TODO') {
+    public function __construct(bool $emptyallowed = false, string $default = '') {
         $this->emptyallowed = $emptyallowed;
         $this->default = $default;
     }
