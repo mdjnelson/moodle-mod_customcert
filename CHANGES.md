@@ -34,6 +34,16 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - **`mod_customcert\service\validation_service`** — centralises element form-data validation, delegating to `validatable_element_interface` when available.
 - **Expanded automated tests** covering Element System v2 behaviour and upgrade/restore data migration paths.
 
+#### Template export and import
+- Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
+- **Export**: from the *Manage templates* page, click the download icon next to any template to download a `.zip` file containing the template structure (pages and elements) and any associated files (e.g. images used by elements).
+- **Import**: from the *Manage templates* page, click *Import template* to upload a previously exported `.zip` and recreate the template in the current context.
+- New export/import service layer under `mod_customcert\export`:
+  - `template_file_manager` — orchestrates ZIP creation and extraction, delegates to `template` for DB writes, and rolls back copied files on failure.
+  - `template` / `page` / `element` — transactional DB import of template structure; each level delegates to the next.
+  - `template_appendix_manager` — handles copying element-associated files in and out of the ZIP (manifest-driven, with path-traversal and size-limit guards).
+  - `template_import_logger_interface` / `template_logger` — collects warnings produced during import (e.g. unknown element types) and surfaces them as Moodle notifications.
+
 #### Service layer
 - New service-layer APIs for template/page/element CRUD:
   - `mod_customcert\service\template_service` — orchestrates template/page/element create, update, delete, and move operations (plus DTOs such as `page_update`)
