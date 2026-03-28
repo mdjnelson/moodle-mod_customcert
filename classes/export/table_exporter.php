@@ -54,7 +54,8 @@ class table_exporter {
         $data = (array) $DB->get_record(
             $this->tablename,
             ['id' => $id],
-            implode(', ', $fields)
+            implode(', ', $fields),
+            MUST_EXIST
         );
 
         return $data;
