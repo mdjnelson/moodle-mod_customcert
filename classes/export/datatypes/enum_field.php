@@ -63,7 +63,7 @@ class enum_field implements field_interface {
         $option = $data['value'];
 
         if (!in_array($option, $this->options)) {
-            throw new format_exception("$option is not an valid option");
+            throw new format_exception("$option is not a valid option");
         }
 
         return $option;
