@@ -78,5 +78,8 @@ class template_logger implements template_import_logger_interface {
         foreach ($this->infos as $info) {
             notification::info($info);
         }
+
+        $this->warnings = [];
+        $this->infos = [];
     }
 }
