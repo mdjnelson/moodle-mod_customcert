@@ -102,7 +102,7 @@ class page {
         ]);
 
         $element = $this->element;
-        foreach ($pagedata['elements'] as $elementdata) {
+        foreach ($pagedata['elements'] ?? [] as $elementdata) {
             $element->import($pageid, $elementdata);
         }
     }

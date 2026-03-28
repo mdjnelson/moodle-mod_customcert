@@ -88,7 +88,7 @@ class template {
         ]);
 
         $page = $this->page;
-        foreach ($templatedata['pages'] as $pagedata) {
+        foreach ($templatedata['pages'] ?? [] as $pagedata) {
             $page->import($tid, $pagedata);
         }
         $transaction->allow_commit();
