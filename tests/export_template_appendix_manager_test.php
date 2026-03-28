@@ -146,6 +146,58 @@ final class export_template_appendix_manager_test extends advanced_testcase {
     }
 
     /**
+     * Test that a same-name file with different content is imported under a collision-free name
+     * and the pre-existing file is not deleted.
+     */
+    public function test_import_collision_uses_hash_suffix_and_preserves_existing(): void {
+        $fs = get_file_storage();
+        $contextid = \context_system::instance()->id;
+
+        // Create a pre-existing file called photo.png with different content.
+        $existing = $fs->create_file_from_string([
+            'contextid' => $contextid,
+            'component' => 'mod_customcert',
+            'filearea'  => 'image',
+            'itemid'    => 0,
+            'filepath'  => '/',
+            'filename'  => 'photo.png',
+        ], 'original content');
+
+        // Import a different file that also wants to be called photo.png.
+        $filesdir = $this->tempdir . '/files';
+        check_dir_exists($filesdir);
+        $contenthash = sha1('different content');
+        file_put_contents("$filesdir/$contenthash", 'different content');
+        $manifest = json_encode([
+            'version' => 1,
+            'files' => [
+                $contenthash => [
+                    'filename' => 'photo.png',
+                    'mimetype' => 'image/png',
+                    'filepath' => '/',
+                    'itemid'   => 0,
+                    'filearea' => 'image',
+                    'component' => 'mod_customcert',
+                ],
+            ],
+        ]);
+        file_put_contents($this->tempdir . '/files.json', $manifest);
+        $this->manager->import($contextid, $this->tempdir);
+
+        // The pre-existing file must still exist.
+        $this->assertTrue(
+            $fs->file_exists($contextid, 'mod_customcert', 'image', 0, '/', 'photo.png'),
+            'Pre-existing photo.png must not be deleted'
+        );
+
+        // The imported file must exist under a collision-free name.
+        $found = $this->manager->find($contenthash);
+        $this->assertNotFalse($found);
+        $this->assertStringContainsString($contenthash, $found->get_filename());
+        $this->assertNotSame('photo.png', $found->get_filename());
+    }
+
+    /**
      * Test that delete_imported_files removes newly created files.
      */
     public function test_delete_imported_files_removes_created_files(): void {
