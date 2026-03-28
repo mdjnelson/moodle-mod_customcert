@@ -94,9 +94,8 @@ final class export_element_test extends advanced_testcase {
             'timecreated' => 1000000,
             'timemodified' => 1000000,
         ]);
-        // The null exporter logs a warning for unknown plugins but still inserts the record.
+        // The null exporter logs a warning and skips insertion — no broken record should be stored.
         $this->logger->expects($this->once())->method('warning');
-        // A null exporter with empty data should import cleanly (no format_error).
         $before = $DB->count_records('customcert_elements');
         $this->element->import($pageid, [
             'name' => 'Test element',
@@ -109,7 +108,7 @@ final class export_element_test extends advanced_testcase {
             'sequence' => 1,
         ]);
         $after = $DB->count_records('customcert_elements');
-        $this->assertSame($before + 1, $after);
+        $this->assertSame($before, $after);
     }
 
     /**
