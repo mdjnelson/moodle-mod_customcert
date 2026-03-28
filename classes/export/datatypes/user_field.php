@@ -40,7 +40,9 @@ class user_field implements field_interface {
      * Validates and imports user data from a provided array.
      *
      * Ensures the user exists in the database and that the full name matches
-     * the expected value from the import data.
+     * the expected value from the import data. Note: this will always fail on
+     * cross-site imports since user IDs and names differ between Moodle instances,
+     * causing the fallback (userid = 0) to be used instead.
      *
      * @param array $data Associative array with 'userid' and 'fullname'.
      * @return int The validated user ID.
@@ -92,11 +94,12 @@ class user_field implements field_interface {
     }
 
     /**
-     * Empty cause import not possible
+     * Returns 0 as fallback since user IDs will not match across different Moodle instances.
+     * Elements that depend on a user reference will receive an empty/unset user on import.
      *
-     * @return string Empty fallback.
+     * @return int Fallback user ID (0 = no user).
      */
     public function get_fallback(): mixed {
-        return "";
+        return 0;
     }
 }
