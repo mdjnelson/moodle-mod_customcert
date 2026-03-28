@@ -34,10 +34,6 @@ use stored_file;
  */
 class file_field implements field_interface, file_field_interface {
     /**
-     * @var template_appendix_manager_interface Reference to the template appendix manager used for file lookup and identification.
-     */
-
-    /**
      * @var string $component Component of the file storage
      */
     private string $component;
@@ -103,6 +99,11 @@ class file_field implements field_interface, file_field_interface {
      * @return stored_file|false The resolved image file or false if not found.
      */
     public function get_file(array $data): stored_file|false {
+        if (empty($data["contextid"]) || empty($data["filearea"]) ||
+                !isset($data["itemid"]) || !isset($data["filepath"]) || !isset($data["filename"])) {
+            return false;
+        }
+
         $fs = get_file_storage();
         return $fs->get_file(
             (int) $data["contextid"],
