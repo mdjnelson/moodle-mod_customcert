@@ -65,6 +65,8 @@ if ($fromform = $mform->get_data()) {
 
     di::get(template_import_logger_interface::class)->print_notification();
     notification::success(get_string('importsuccessful', 'mod_customcert'));
+
+    redirect(new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid]));
 }
 
 echo $OUTPUT->header();
