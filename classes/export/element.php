@@ -118,7 +118,10 @@ class element {
             $this->logger->warning('subplugin data is not valid: ' . $e->getMessage());
             return;
         }
-
+        if ($subpugindata === null) {
+            // Unsupported element type — skip insertion rather than storing a broken record.
+            return;
+        }
         $DB->insert_record(static::$dbtable, [
             'pageid' => $pageid,
             'name' => $data['name'],
