@@ -128,5 +128,5 @@ $table->out($perpage, false);
 $url = new moodle_url('/mod/customcert/edit.php?contextid=' . $contextid);
 echo $OUTPUT->single_button($url, get_string('createtemplate', 'customcert'), 'get');
 $importurl = new moodle_url('/mod/customcert/import_template.php', ['context_id' => $contextid]);
-echo $OUTPUT->single_button($importurl, get_string('import', 'customcert'), 'get');
+echo $OUTPUT->single_button($importurl, get_string('importtemplate', 'customcert'), 'get');
 echo $OUTPUT->footer();
