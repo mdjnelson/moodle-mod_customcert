@@ -18,7 +18,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\local;
 
+use core\clock;
 use core\hook\di_configuration;
+use mod_customcert\export\element;
+use mod_customcert\export\page;
+use mod_customcert\export\template;
 use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\template_file_manager_interface;
 use mod_customcert\export\template_import_logger_interface;
@@ -57,9 +61,14 @@ class hook_callbacks {
         $config->add_definition(
             id: template_file_manager_interface::class,
             definition: function (
-                template_appendix_manager_interface $filemng
+                template_appendix_manager_interface $filemng,
+                clock $clock,
             ): template_file_manager_interface {
-                return new template_file_manager($filemng);
+                $logger = new template_logger();
+                $element = new element($clock, $logger, $filemng);
+                $page = new page($clock, $element);
+                $tmpl = new template($clock, $page);
+                return new template_file_manager($filemng, $tmpl);
             }
         );
 
