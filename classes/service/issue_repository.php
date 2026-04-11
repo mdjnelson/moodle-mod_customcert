@@ -89,11 +89,11 @@ final class issue_repository {
      * Delete an issue by id.
      *
      * @param int $id
-     * @return void
+     * @return bool True on success.
      */
-    public function delete(int $id): void {
+    public function delete(int $id): bool {
         global $DB;
-        $DB->delete_records('customcert_issues', ['id' => $id]);
+        return $DB->delete_records('customcert_issues', ['id' => $id]);
     }
 
     /**
@@ -101,15 +101,15 @@ final class issue_repository {
      *
      * @param int $id
      * @param int $customcertid
-     * @return void
+     * @return bool True on success.
      * @throws \moodle_exception if the issue does not belong to the given customcert
      */
-    public function delete_for_certificate(int $id, int $customcertid): void {
+    public function delete_for_certificate(int $id, int $customcertid): bool {
         $issue = $this->get_by_id_or_fail($id);
         if ((int)$issue->customcertid !== (int)$customcertid) {
             throw new moodle_exception('invalidrequest');
         }
-        $this->delete($id);
+        return $this->delete($id);
     }
 
     /**
@@ -154,27 +154,27 @@ final class issue_repository {
      * Delete all issues for a certificate.
      *
      * @param int $customcertid
-     * @return void
+     * @return bool True on success.
      */
-    public function delete_by_certificate(int $customcertid): void {
+    public function delete_by_certificate(int $customcertid): bool {
         global $DB;
 
-        $DB->delete_records('customcert_issues', ['customcertid' => $customcertid]);
+        return $DB->delete_records('customcert_issues', ['customcertid' => $customcertid]);
     }
 
     /**
      * Delete all issues for all certificates in a course.
      *
      * @param int $courseid
-     * @return void
+     * @return bool True on success.
      */
-    public function delete_by_course(int $courseid): void {
+    public function delete_by_course(int $courseid): bool {
         global $DB;
 
         $sql = "SELECT cert.id
                   FROM {customcert} cert
                  WHERE cert.course = :courseid";
-        $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $courseid]);
+        return $DB->delete_records_select('customcert_issues', "customcertid IN ($sql)", ['courseid' => $courseid]);
     }
 
     /**
