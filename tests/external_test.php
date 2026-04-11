@@ -50,11 +50,11 @@ final class external_test extends advanced_testcase {
     }
 
     /**
-     * Test that save_element merges visual fields into JSON data and avoids writing removed columns.
+     * Test that save_element saves the data JSON field as provided.
      *
      * @covers \mod_customcert\external::save_element
      */
-    public function test_save_element_merges_visuals_into_json(): void {
+    public function test_save_element_saves_data_json(): void {
         global $DB;
 
         $this->setAdminUser();
@@ -96,12 +96,8 @@ final class external_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
 
-        // Call the WS with visual scalars and an incoming data JSON to ensure merge and type handling.
+        // Call the WS with a new data JSON value.
         $values = [
-            ['name' => 'width', 'value' => '25'],
-            ['name' => 'font', 'value' => 'helvetica'],
-            ['name' => 'fontsize', 'value' => '12'],
-            ['name' => 'colour', 'value' => '#112233'],
             ['name' => 'data', 'value' => json_encode(['baz' => 'qux'])],
         ];
 
@@ -110,17 +106,12 @@ final class external_test extends advanced_testcase {
         external_api::clean_returnvalue(external::save_element_returns(), $result);
         $this->assertTrue($result);
 
-        // Verify DB JSON was merged and numeric types are handled.
+        // Verify the submitted data JSON was saved.
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $this->assertIsString($row->data);
         $decoded = json_decode($row->data, true);
         $this->assertIsArray($decoded);
-        $this->assertSame('bar', $decoded['foo'] ?? null, 'Existing JSON should be preserved');
-        $this->assertSame('qux', $decoded['baz'] ?? null, 'Incoming data JSON should be merged');
-        $this->assertSame(25, $decoded['width'] ?? null, 'Width should be merged as int');
-        $this->assertSame(12, $decoded['fontsize'] ?? null, 'Font size should be merged as int');
-        $this->assertSame('helvetica', $decoded['font'] ?? null);
-        $this->assertSame('#112233', $decoded['colour'] ?? null);
+        $this->assertSame('qux', $decoded['baz'] ?? null, 'Incoming data JSON should be saved');
     }
 
     /**

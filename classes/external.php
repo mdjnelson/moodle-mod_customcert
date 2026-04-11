@@ -33,7 +33,6 @@ use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
 use mod_customcert\event\issue_deleted;
-use mod_customcert\element\persistable_element_interface;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\pdf_generation_service;
@@ -116,47 +115,13 @@ class external extends external_api {
             $record->$field = $value['value'];
         }
 
-        // Merge visual attributes into the JSON payload before normalisation.
-        // Seed from the existing element JSON, then overlay any caller-submitted 'data' field.
-        $decoded = [];
-        if (!empty($element->data)) {
-            $existing = json_decode((string)$element->data, true);
-            if (is_array($existing) && !array_is_list($existing)) {
-                $decoded = $existing;
-            }
-        }
-        // If caller explicitly submitted a 'data' JSON string, merge it (only objects, not arrays).
-        $submittedfields = array_column($values, 'name');
-        if (in_array('data', $submittedfields, true) && is_string($record->data) && $record->data !== '') {
-            $incoming = json_decode($record->data, true);
-            if (is_array($incoming) && !array_is_list($incoming)) {
-                $decoded = array_merge($decoded, $incoming);
-            }
-        }
-        foreach (['font', 'fontsize', 'colour', 'width'] as $jk) {
-            if (property_exists($record, $jk) && $record->$jk !== '' && $record->$jk !== null) {
-                $decoded[$jk] = in_array($jk, ['fontsize', 'width'], true) ? (int)$record->$jk : (string)$record->$jk;
-            }
-        }
-        $record->data = json_encode($decoded);
-
         // Instantiate the element via the factory so element-specific normalisation is applied.
         $factory = element_factory::build_with_defaults();
-        $tempinstance = $factory->create_from_legacy_record($record);
-        if (!$tempinstance) {
+        $instance = $factory->create_from_legacy_record($record);
+        if (!$instance) {
             throw new moodle_exception('invalidelementtype', 'customcert');
         }
-        // For persistable elements, merge normalise_data() result on top of the already-seeded
-        // $decoded payload (existing JSON + visual attrs + caller data) so existing keys are preserved.
-        // For legacy elements, $record->data already contains the correctly merged JSON payload.
-        if ($tempinstance instanceof persistable_element_interface) {
-            $normalised = $tempinstance->normalise_data((object)(array)$record);
-            if (is_array($normalised)) {
-                $record->data = json_encode(array_merge($decoded, $normalised));
-            } else {
-                $record->data = persistence_helper::to_json_data($tempinstance, (object)(array)$record);
-            }
-        }
+        $record->data = persistence_helper::to_json_data($instance, (object)(array)$record);
 
         // Create the final instance from the normalised record and persist.
         $instance = $factory->create_from_legacy_record($record);
