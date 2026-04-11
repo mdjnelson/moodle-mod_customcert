@@ -495,13 +495,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
         // Verify element exists.
         $this->assertTrue($DB->record_exists('customcert_elements', ['id' => $elementid]));
 
-        // Delegates to inner element's delete(), which emits the deprecation notice.
+        // Adapter calls element_repository::delete() directly (no deprecation notice).
         $result = $adapter->delete();
-
-        $this->assertDebuggingCalled(
-            'element::delete() is deprecated since Moodle 5.2. Use element_repository::delete() instead.',
-            DEBUG_DEVELOPER
-        );
 
         // Should return true and delete the record.
         $this->assertTrue($result);
