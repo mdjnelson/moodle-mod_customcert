@@ -32,6 +32,8 @@ use mod_customcert\element as legacy_base;
 use MoodleQuickForm;
 use stdClass;
 use mod_customcert\service\element_renderer;
+use mod_customcert\service\element_repository;
+use mod_customcert\service\element_factory;
 
 /**
  * Adapts a legacy element (extending mod_customcert\element) to element_interface.
@@ -274,6 +276,7 @@ final class legacy_element_adapter implements element_interface {
      * @return bool success return true if deletion success, false otherwise
      */
     public function delete(): bool {
-        return $this->inner->delete();
+        $repository = new element_repository(element_factory::build_with_defaults());
+        return $repository->delete($this);
     }
 }
