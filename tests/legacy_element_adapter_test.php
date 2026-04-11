@@ -380,7 +380,11 @@ final class legacy_element_adapter_test extends advanced_testcase {
     /**
      * Ensure adapter delegates after_restore to inner element when method exists.
      *
-     * @covers \mod_customcert\element\legacy_element_adapter::after_restore
+     * The adapter implements restorable_element_interface so the restore task hits the
+     * instanceof branch and never emits a deprecation warning. The inner legacy element's
+     * after_restore() is called silently by the adapter as the designated compatibility bridge.
+     *
+     * @covers \mod_customcert\element\legacy_element_adapter::after_restore_from_backup
      */
     public function test_adapter_delegates_after_restore(): void {
         $this->resetAfterTest();
@@ -397,11 +401,13 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
         $adapter = new legacy_element_adapter($legacy);
 
-        // Create a simple mock restore task (stdClass is sufficient for testing delegation).
-        $restore = new \stdClass();
+        // Mock the restore task — only the type hint matters for delegation.
+        $restore = $this->getMockBuilder(\restore_customcert_activity_task::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        // Should delegate to inner element's after_restore (deprecation notice fires at the call site, not the adapter).
-        $adapter->after_restore($restore);
+        // Should delegate to inner element's after_restore without emitting a deprecation warning.
+        $adapter->after_restore_from_backup($restore);
 
         // Verify the inner element's method was called.
         $this->assertTrue($legacy->called);
