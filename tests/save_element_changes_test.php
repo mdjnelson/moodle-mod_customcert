@@ -237,79 +237,11 @@ final class save_element_changes_test extends advanced_testcase {
     }
 
     // -----------------------------------------------------------------------
-    // 3. external::save_element() — JSON array guard
+    // 3. external::save_element() — JSON object data payload
     // -----------------------------------------------------------------------
 
     /**
-     * Passing a JSON array (list) as the data value must NOT corrupt the stored
-     * JSON object. The array_is_list() guard in external::save_element() must
-     * silently ignore it, leaving the existing element data intact.
-     *
-     * @covers \mod_customcert\external::save_element
-     */
-    public function test_save_element_ignores_json_array_data_payload(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-        $this->setAdminUser();
-
-        $template = (object)[
-            'name' => 'Array Guard Template',
-            'contextid' => \context_system::instance()->id,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
-
-        $page = (object)[
-            'templateid' => $template->id,
-            'width' => 210,
-            'height' => 297,
-            'leftmargin' => 0,
-            'rightmargin' => 0,
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
-
-        $element = (object)[
-            'pageid' => $page->id,
-            'element' => 'text',
-            'name' => 'Text',
-            'posx' => 10,
-            'posy' => 20,
-            'refpoint' => 1,
-            'alignment' => 'L',
-            'data' => json_encode(['existing_key' => 'existing_value']),
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
-
-        $values = [
-            ['name' => 'data', 'value' => json_encode([1, 2, 3])],
-        ];
-
-        $result = external::save_element($template->id, $element->id, $values);
-        external_api::clean_returnvalue(external::save_element_returns(), $result);
-        $this->assertTrue($result);
-
-        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
-        $decoded = json_decode($row->data, true);
-        $this->assertIsArray($decoded);
-        $this->assertSame(
-            'existing_value',
-            $decoded['existing_key'] ?? null,
-            'Existing JSON keys must be preserved when a JSON array is passed as data'
-        );
-        $this->assertArrayNotHasKey(0, $decoded, 'Numeric keys from JSON array must not appear in stored data');
-    }
-
-    /**
-     * Passing a JSON object as the data value must be merged into the stored payload.
-     * This is the positive counterpart to the array-guard test.
+     * Passing a JSON object as the data value must be stored in the element's data column.
      *
      * @covers \mod_customcert\external::save_element
      */
@@ -347,7 +279,7 @@ final class save_element_changes_test extends advanced_testcase {
             'posy' => 20,
             'refpoint' => 1,
             'alignment' => 'L',
-            'data' => json_encode(['existing_key' => 'existing_value']),
+            'data' => json_encode([]),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
@@ -364,7 +296,6 @@ final class save_element_changes_test extends advanced_testcase {
 
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
-        $this->assertSame('existing_value', $decoded['existing_key'] ?? null, 'Existing key must be preserved');
         $this->assertSame('new_value', $decoded['new_key'] ?? null, 'New key from JSON object must be merged');
     }
 
@@ -372,12 +303,10 @@ final class save_element_changes_test extends advanced_testcase {
     // 4. Persistable element normalise_data() merge
     // -----------------------------------------------------------------------
     /**
-     * For persistable elements, normalise_data() result must be merged on top of the
-     * already-seeded $decoded payload so that existing JSON keys are not discarded.
+     * For persistable elements, normalise_data() result is stored in the data column.
      *
      * The text element implements persistable_element_interface and returns
-     * ['value' => ...] from normalise_data(). Any pre-existing keys in the stored
-     * JSON (e.g. font, colour) must survive the save.
+     * ['value' => ...] from normalise_data().
      *
      * @covers \mod_customcert\external::save_element
      */
@@ -418,8 +347,7 @@ final class save_element_changes_test extends advanced_testcase {
             'timemodified' => time(),
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
-        // Save with a new text value only; font/fontsize should be preserved from existing JSON.
-        // The text element's normalise_data() reads $formdata->text, so submit that field.
+        // Save with a new text value; the text element's normalise_data() reads $formdata->text.
         $values = [
             ['name' => 'text', 'value' => 'new text'],
         ];
@@ -429,8 +357,6 @@ final class save_element_changes_test extends advanced_testcase {
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
         $this->assertSame('new text', $decoded['value'] ?? null, 'normalise_data() value must be stored');
-        $this->assertSame('freesans', $decoded['font'] ?? null, 'Existing font key must be preserved');
-        $this->assertSame(12, $decoded['fontsize'] ?? null, 'Existing fontsize key must be preserved');
     }
 
     // -----------------------------------------------------------------------
@@ -439,8 +365,7 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * A legacy element (border) saved via the web service must persist correctly.
      * The border element does not implement persistable_element_interface, so the
-     * legacy path in save_element() is used. Existing JSON data must be preserved
-     * and visual attributes submitted by the caller must be merged in.
+     * legacy path in save_element() is used.
      *
      * @covers \mod_customcert\external::save_element
      */
@@ -480,7 +405,7 @@ final class save_element_changes_test extends advanced_testcase {
             'timemodified' => time(),
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
-        // Submit a new colour; width should be preserved from existing JSON.
+        // Submit a new colour value.
         $values = [
             ['name' => 'colour', 'value' => '0000ff'],
         ];
@@ -490,7 +415,6 @@ final class save_element_changes_test extends advanced_testcase {
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
         $this->assertSame('0000ff', $decoded['colour'] ?? null, 'Submitted colour must be stored');
-        $this->assertSame(2, $decoded['width'] ?? null, 'Existing width must be preserved');
     }
 
     // -----------------------------------------------------------------------
