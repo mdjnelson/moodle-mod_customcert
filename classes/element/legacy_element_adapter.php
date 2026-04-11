@@ -37,6 +37,15 @@ use mod_customcert\service\element_factory;
 
 /**
  * Adapts a legacy element (extending mod_customcert\element) to element_interface.
+ *
+ * @deprecated since Moodle 5.2 — one-release compatibility bridge only.
+ *   This class exists to allow third-party element plugins that extend the legacy
+ *   mod_customcert\element base class to continue working after the v2 refactor without
+ *   modification. It is NOT part of the long-term architecture.
+ *
+ *   Plugin authors should migrate their elements to implement element_interface directly.
+ *   This adapter and the legacy mod_customcert\element base class are candidates for
+ *   removal in a future major release once the transition period has ended.
  */
 final class legacy_element_adapter implements element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
@@ -272,6 +281,12 @@ final class legacy_element_adapter implements element_interface {
 
     /**
      * Handle element deletion.
+     *
+     * @deprecated since Moodle 5.2 — compatibility bridge only.
+     *   This method exists so that legacy code calling $adapter->delete() continues to work
+     *   during the transition period. New code should use element_repository::delete() directly.
+     *   This method and the element_repository/element_factory imports in this class are
+     *   candidates for removal once all callers have been migrated.
      *
      * @return bool success return true if deletion success, false otherwise
      */
