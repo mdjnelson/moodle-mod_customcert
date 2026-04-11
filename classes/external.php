@@ -33,8 +33,10 @@ use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
 use mod_customcert\event\issue_deleted;
+use mod_customcert\service\certificate_repository;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\persistence_helper;
 use stdClass;
@@ -78,8 +80,6 @@ class external extends external_api {
      * @return bool
      */
     public static function save_element($templateid, $elementid, $values) {
-        global $DB;
-
         $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
@@ -87,7 +87,8 @@ class external extends external_api {
         ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
-        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $element = $elementrepo->get_by_id_or_fail((int)$elementid);
 
         // Set the template.
         $template = template::load((int)$templateid);
@@ -102,7 +103,6 @@ class external extends external_api {
         $template->require_manage();
 
         // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
-        $elementrepo = new element_repository(element_factory::build_with_defaults());
         $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
         if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
             throw new moodle_exception('nopermissions', 'error', '', 'save_element');
@@ -117,7 +117,7 @@ class external extends external_api {
 
         // Instantiate the element via the factory so element-specific normalisation is applied.
         $factory = element_factory::build_with_defaults();
-        $instance = $factory->create_from_legacy_record($record);
+        $instance = $factory->create_from_legacy_record((object)(array)$record);
         if (!$instance) {
             throw new moodle_exception('invalidelementtype', 'customcert');
         }
@@ -162,15 +162,14 @@ class external extends external_api {
      * @return string
      */
     public static function get_element_html($templateid, $elementid) {
-        global $DB;
-
         $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
         ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
-        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $element = $elementrepo->get_by_id_or_fail((int)$elementid);
 
         // Set the template.
         $template = template::load((int)$templateid);
@@ -183,7 +182,6 @@ class external extends external_api {
         }
 
         // Verify the element belongs to the exact template being viewed to prevent cross-template information disclosure.
-        $elementrepo = new element_repository(element_factory::build_with_defaults());
         $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
         if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
             throw new moodle_exception('nopermissions', 'error', '', 'get_element_html');
@@ -229,16 +227,21 @@ class external extends external_api {
      * @return bool
      */
     public static function delete_issue($certificateid, $issueid) {
-        global $DB;
-
         $params = [
             'certificateid' => $certificateid,
             'issueid' => $issueid,
         ];
         self::validate_parameters(self::delete_issue_parameters(), $params);
 
-        $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
-        $issue = $DB->get_record('customcert_issues', ['id' => $issueid, 'customcertid' => $certificateid], '*', MUST_EXIST);
+        $certrepo = new certificate_repository();
+        $issuerepo = new issue_repository();
+
+        $certificate = $certrepo->get_by_id_or_fail((int)$certificateid);
+        $issue = $issuerepo->get_by_id_or_fail((int)$issueid);
+
+        if ((int)$issue->customcertid !== (int)$certificateid) {
+            throw new moodle_exception('nopermissions', 'error', '', 'delete_issue');
+        }
 
         $cm = get_coursemodule_from_instance('customcert', $certificate->id, 0, false, MUST_EXIST);
 
@@ -248,7 +251,7 @@ class external extends external_api {
         require_capability('mod/customcert:manage', $context);
 
         // Delete the issue.
-        $deleted = $DB->delete_records('customcert_issues', ['id' => $issue->id]);
+        $deleted = $issuerepo->delete((int)$issue->id);
 
         // Trigger event if deletion succeeded.
         if ($deleted) {
