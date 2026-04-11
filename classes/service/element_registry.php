@@ -26,7 +26,9 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use coding_exception;
 use moodle_exception;
+use mod_customcert\element;
 
 /**
  * Simple in-memory registry of element types to class names.
@@ -39,10 +41,18 @@ final class element_registry {
      * Register a class for a given element type key.
      *
      * @param string $type
-     * @param string $class Must implement element_interface
+     * @param string $class Must extend element
      * @return void
      */
     public function register(string $type, string $class): void {
+        if (!class_exists($class)) {
+            throw new coding_exception("Cannot register element type '{$type}': class '{$class}' does not exist.");
+        }
+        if (!is_a($class, element::class, true)) {
+            throw new coding_exception(
+                "Cannot register element type '{$type}': '{$class}' must extend element."
+            );
+        }
         $this->map[$type] = $class;
     }
 
