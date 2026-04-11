@@ -168,6 +168,18 @@ final class page_repository {
     }
 
     /**
+     * Delete a page by id.
+     *
+     * @param int $id
+     * @return void
+     * @throws dml_exception For database errors.
+     */
+    public function delete(int $id): void {
+        global $DB;
+        $DB->delete_records('customcert_pages', ['id' => $id]);
+    }
+
+    /**
      * Update a page's dimensions/margins.
      *
      * @param int $pageid
