@@ -50,11 +50,11 @@ final class external_test extends advanced_testcase {
     }
 
     /**
-     * Test that save_element saves the data JSON field as provided.
+     * Test that save_element persists element data via normalise_data().
      *
      * @covers \mod_customcert\external::save_element
      */
-    public function test_save_element_saves_data_json(): void {
+    public function test_save_element_saves_text_value(): void {
         global $DB;
 
         $this->setAdminUser();
@@ -80,7 +80,7 @@ final class external_test extends advanced_testcase {
         ];
         $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
 
-        // Insert an element with some existing JSON data.
+        // Insert a text element.
         $element = (object) [
             'pageid' => $page->id,
             'element' => 'text',
@@ -89,16 +89,16 @@ final class external_test extends advanced_testcase {
             'posy' => 20,
             'refpoint' => 1,
             'alignment' => 'L',
-            'data' => json_encode(['foo' => 'bar']),
+            'data' => json_encode(['value' => 'old text']),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
 
-        // Call the WS with a new data JSON value.
+        // Submit a new text value via the field that normalise_data() reads.
         $values = [
-            ['name' => 'data', 'value' => json_encode(['baz' => 'qux'])],
+            ['name' => 'text', 'value' => 'new text'],
         ];
 
         $result = external::save_element($template->id, $element->id, $values);
@@ -106,12 +106,12 @@ final class external_test extends advanced_testcase {
         external_api::clean_returnvalue(external::save_element_returns(), $result);
         $this->assertTrue($result);
 
-        // Verify the submitted data JSON was saved.
+        // Verify the submitted value was normalised and saved.
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $this->assertIsString($row->data);
         $decoded = json_decode($row->data, true);
         $this->assertIsArray($decoded);
-        $this->assertSame('qux', $decoded['baz'] ?? null, 'Incoming data JSON should be saved');
+        $this->assertSame('new text', $decoded['value'] ?? null, 'Submitted text value should be saved');
     }
 
     /**
