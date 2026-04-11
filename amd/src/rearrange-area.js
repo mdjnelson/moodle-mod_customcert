@@ -62,8 +62,10 @@ define(['jquery',
     RearrangeArea.prototype._editElement = function(event) {
         var elementid = event.currentTarget.id.substr(8);
         var contextid = this._node.attr('data-contextid');
+        var templateid = this._node.attr('data-templateid');
         var params = {
-            'elementid': elementid
+            'elementid': elementid,
+            'templateid': templateid
         };
 
         fragment.loadFragment('mod_customcert', 'editelement', contextid, params).done(function(html, js) {

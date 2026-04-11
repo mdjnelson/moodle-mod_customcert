@@ -102,11 +102,10 @@ class external extends external_api {
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
-        // Verify the element belongs to the authorised template so that a teacher in
-        // Course A cannot overwrite elements from Course B by supplying a foreign elementid.
+        // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
         $elementrepo = new element_repository(element_factory::build_with_defaults());
-        $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
-        if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
+        $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
+        if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
             throw new moodle_exception('nopermissions', 'error', '', 'save_element');
         }
 
@@ -218,11 +217,10 @@ class external extends external_api {
             self::validate_context(context_system::instance());
         }
 
-        // Verify the element belongs to the authorised template so that a teacher in
-        // Course A cannot read elements from Course B by supplying a foreign elementid.
+        // Verify the element belongs to the exact template being viewed to prevent cross-template information disclosure.
         $elementrepo = new element_repository(element_factory::build_with_defaults());
-        $elementcontextid = $elementrepo->get_template_context_id_for_element($elementid);
-        if ($elementcontextid === null || $elementcontextid !== (int)$template->get_contextid()) {
+        $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
+        if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
             throw new moodle_exception('nopermissions', 'error', '', 'get_element_html');
         }
 

@@ -321,14 +321,25 @@ function mod_customcert_output_fragment_editelement($args) {
     $factory = element_factory::build_with_defaults();
     $elementrepo = new element_repository($factory);
 
+    // Require both elementid and templateid to be supplied.
+    if (empty($args['elementid']) || empty($args['templateid'])) {
+        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
+    }
+
+    // Verify the supplied templateid belongs to the supplied fragment context.
+    $templaterepo = new template_repository();
+    $templaterecord = $templaterepo->get_by_id_or_fail((int)$args['templateid']);
+    $authorisedcontext = \context::instance_by_id((int)$args['context']->id);
+    if ((int)$templaterecord->contextid !== (int)$authorisedcontext->id) {
+        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
+    }
+
     // Get the element.
     $element = $elementrepo->get_by_id_or_fail((int)$args['elementid']);
 
-    // Verify the element belongs to the authorised context so that a teacher in
-    // Course A cannot read elements from Course B by supplying a foreign elementid.
-    $authorisedcontext = \context::instance_by_id((int)$args['context']->id);
-    $elementcontextid = $elementrepo->get_template_context_id_for_element((int)$args['elementid']);
-    if ($elementcontextid === null || $elementcontextid !== (int)$authorisedcontext->id) {
+    // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
+    $elementtemplateid = $elementrepo->get_template_id_for_element((int)$args['elementid']);
+    if ($elementtemplateid === null || $elementtemplateid !== (int)$args['templateid']) {
         throw new moodle_exception('nopermissions', 'error', '', 'editelement');
     }
 

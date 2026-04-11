@@ -26,7 +26,10 @@
 namespace mod_customcert;
 
 use advanced_testcase;
+use context_module;
+use mod_customcert\service\template_service;
 use moodle_exception;
+use stdClass;
 use tool_langimport\controller;
 
 defined('MOODLE_INTERNAL') || die();
@@ -286,5 +289,84 @@ final class lib_test extends advanced_testcase {
     private function ensure_base_langs(): void {
         // Only what we truly need for test coverage.
         $this->install_languages(['es', 'fr', 'cs']);
+    }
+
+    /**
+     * Helper to create a customcert with a template, page, and element.
+     *
+     * @param stdClass $course
+     * @return array [$customcert, $pageid, $elementid, $templateid, $context]
+     */
+    private function create_cert_with_element(stdClass $course): array {
+        global $DB;
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $templaterecord = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
+        $template = new template($templaterecord);
+
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Test element';
+        $element->element = 'text';
+        $element->sequence = 1;
+        $element->timecreated = time();
+        $element->timemodified = time();
+        $elementid = $DB->insert_record('customcert_elements', $element);
+
+        $context = context_module::instance($customcert->cmid);
+        return [$customcert, $pageid, $elementid, (int)$customcert->templateid, $context];
+    }
+
+    /**
+     * Test that mod_customcert_output_fragment_editelement throws when the element
+     * belongs to a different template (cross-template access attempt).
+     *
+     * @covers ::mod_customcert_output_fragment_editelement
+     */
+    public function test_output_fragment_editelement_cross_template_denied(): void {
+        $this->setAdminUser();
+
+        // Course A — attacker has access to this template.
+        $coursea = $this->getDataGenerator()->create_course();
+        [, , , $templateida, $contexta] = $this->create_cert_with_element($coursea);
+
+        // Course B — element belongs here.
+        $courseb = $this->getDataGenerator()->create_course();
+        [, , $elementidb] = $this->create_cert_with_element($courseb);
+
+        // Pass Course A's templateid but Course B's elementid.
+        $args = [
+            'elementid'  => $elementidb,
+            'templateid' => $templateida,
+            'context'    => $contexta,
+        ];
+
+        $this->expectException(\moodle_exception::class);
+        mod_customcert_output_fragment_editelement($args);
+    }
+
+    /**
+     * Test that mod_customcert_output_fragment_editelement succeeds when the element
+     * belongs to the supplied template.
+     *
+     * @covers ::mod_customcert_output_fragment_editelement
+     */
+    public function test_output_fragment_editelement_same_template_allowed(): void {
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        [, , $elementid, $templateid, $context] = $this->create_cert_with_element($course);
+        $args = [
+            'elementid'  => $elementid,
+            'templateid' => $templateid,
+            'context'    => $context,
+        ];
+
+        // Should not throw — element belongs to the same template.
+        $html = mod_customcert_output_fragment_editelement($args);
+        $this->assertIsString($html);
     }
 }
