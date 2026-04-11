@@ -180,6 +180,74 @@ final class upgrade_visuals_migration_test extends \advanced_testcase {
     }
 
     /**
+     * Data provider for migrate_border_row cases.
+     *
+     * @return array
+     */
+    public static function migrate_border_row_provider(): array {
+        return [
+            // Scalar integer in data column promoted to width when width column is null.
+            'scalar int data promoted to width' => [
+                '3', null, null, null, null,
+                ['width' => 3],
+            ],
+            // Scalar string digit in data column promoted to width when width column is null.
+            'scalar string digit promoted to width' => [
+                '"5"', null, null, null, null,
+                ['width' => 5],
+            ],
+            // Width column takes precedence when both width column and scalar data are present.
+            // rawdata '3' is not promoted (width column is non-null), so it becomes {"value":3,"width":7}.
+            'width column wins over scalar data' => [
+                '3', 7, null, null, null,
+                ['value' => 3, 'width' => 7],
+            ],
+            // Existing JSON object is preserved and visuals merged.
+            'existing json object merges visuals' => [
+                '{"colour":"#ff0000"}', null, null, null, '#ff0000',
+                ['colour' => '#ff0000'],
+            ],
+            // Non-numeric string data is not promoted; stored as value.
+            'non-numeric string not promoted' => [
+                'sometext', null, null, null, null,
+                ['value' => 'sometext'],
+            ],
+            // Null data with visuals produces JSON with visuals only.
+            'null data with visuals' => [
+                null, 4, 'Arial', 10, '#000000',
+                ['width' => 4, 'font' => 'Arial', 'fontsize' => 10, 'colour' => '#000000'],
+            ],
+        ];
+    }
+
+    /**
+     * Test migrate_border_row handles legacy border scalar-width promotion and other cases.
+     *
+     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_border_row
+     * @dataProvider migrate_border_row_provider
+     *
+     * @param mixed $data
+     * @param ?int $width
+     * @param ?string $font
+     * @param ?int $fontsize
+     * @param ?string $colour
+     * @param array $expected
+     */
+    public function test_migrate_border_row_cases(
+        $data,
+        ?int $width,
+        ?string $font,
+        ?int $fontsize,
+        ?string $colour,
+        array $expected
+    ): void {
+        $json = row_migrator::migrate_border_row($data, $width, $font, $fontsize, $colour);
+        $this->assertNotNull($json, 'Expected a JSON string, got null.');
+        $arr = $this->decode_json_to_array($json);
+        $this->assert_array_contains_expected($expected, $arr);
+    }
+
+    /**
      * Verify runtime getters read from JSON as the single source of truth.
      */
     public function test_element_getters_read_from_json_data(): void {
