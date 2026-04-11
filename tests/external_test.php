@@ -25,7 +25,9 @@
 
 namespace mod_customcert;
 
+use context_module;
 use core_external\external_api;
+use stdClass;
 use advanced_testcase;
 use mod_customcert\service\certificate_issue_service;
 
@@ -545,7 +547,122 @@ final class external_test extends advanced_testcase {
      */
     private function issue_certificate(int $customcertid, int $userid): int {
         $service = certificate_issue_service::create();
-
         return $service->issue_certificate($customcertid, $userid);
+    }
+
+    /**
+     * Helper to create a customcert with a template, page, and element.
+     *
+     * @param stdClass $course
+     * @return array [$customcert, $template, $pageid, $elementid]
+     */
+    private function create_cert_with_element(stdClass $course): array {
+        global $DB;
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $templaterecord = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
+        $template = new template($templaterecord);
+
+        $pageid = $template->add_page();
+
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Test element';
+        $element->element = 'text';
+        $element->data = 'Sample text';
+        $element->font = 'freesans';
+        $element->fontsize = 12;
+        $element->colour = '#000000';
+        $element->posx = 0;
+        $element->posy = 0;
+        $element->width = 0;
+        $element->refpoint = 0;
+        $element->sequence = 1;
+        $element->timecreated = time();
+        $element->timemodified = time();
+        $elementid = $DB->insert_record('customcert_elements', $element);
+
+        return [$customcert, $template, $pageid, $elementid];
+    }
+
+    /**
+     * Test that save_element rejects an element belonging to a different template.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_cross_template_access_denied(): void {
+        $this->setAdminUser();
+
+        // Course A with its own certificate and element.
+        $coursea = $this->getDataGenerator()->create_course();
+        [$certa] = $this->create_cert_with_element($coursea);
+
+        // Course B with its own certificate and element.
+        $courseb = $this->getDataGenerator()->create_course();
+        [, , , $elementidb] = $this->create_cert_with_element($courseb);
+
+        // Try to save element from Course B using Course A's templateid.
+        $this->expectException(\moodle_exception::class);
+        external::save_element($certa->templateid, $elementidb, []);
+    }
+
+    /**
+     * Test that save_element succeeds when element belongs to the given template.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_same_template_allowed(): void {
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        [$cert, , , $elementid] = $this->create_cert_with_element($course);
+
+        // Should not throw — element belongs to the template.
+        $result = external::save_element(
+            $cert->templateid,
+            $elementid,
+            [
+                ['name' => 'name', 'value' => 'Updated'],
+                ['name' => 'text', 'value' => 'Updated text'],
+            ]
+        );
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test that get_element_html rejects an element belonging to a different template.
+     *
+     * @covers \mod_customcert\external::get_element_html
+     */
+    public function test_get_element_html_cross_template_access_denied(): void {
+        $this->setAdminUser();
+
+        // Course A.
+        $coursea = $this->getDataGenerator()->create_course();
+        [$certa] = $this->create_cert_with_element($coursea);
+
+        // Course B.
+        $courseb = $this->getDataGenerator()->create_course();
+        [, , , $elementidb] = $this->create_cert_with_element($courseb);
+
+        // Try to get HTML for element from Course B using Course A's templateid.
+        $this->expectException(\moodle_exception::class);
+        external::get_element_html($certa->templateid, $elementidb);
+    }
+
+    /**
+     * Test that get_element_html succeeds when element belongs to the given template.
+     *
+     * @covers \mod_customcert\external::get_element_html
+     */
+    public function test_get_element_html_same_template_allowed(): void {
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        [$cert, , , $elementid] = $this->create_cert_with_element($course);
+
+        // Should not throw — element belongs to the template.
+        $result = external::get_element_html($cert->templateid, $elementid);
+        $this->assertIsString($result);
     }
 }

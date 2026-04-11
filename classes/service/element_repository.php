@@ -76,6 +76,26 @@ final class element_repository {
     }
 
     /**
+     * Return the templateid that owns the given element, or null if the chain is broken.
+     *
+     * Traverses customcert_elements → customcert_pages to find the owning template.
+     *
+     * @param int $elementid
+     * @return int|null
+     */
+    public function get_template_id_for_element(int $elementid): ?int {
+        global $DB;
+
+        $sql = 'SELECT p.templateid
+                  FROM {customcert_elements} e
+                  JOIN {customcert_pages} p ON p.id = e.pageid
+                 WHERE e.id = :elementid';
+
+        $templateid = $DB->get_field_sql($sql, ['elementid' => $elementid]);
+        return $templateid !== false ? (int)$templateid : null;
+    }
+
+    /**
      * Return the template contextid that owns the given element, or null if the chain is broken.
      *
      * Traverses customcert_elements → customcert_pages → customcert_templates.
