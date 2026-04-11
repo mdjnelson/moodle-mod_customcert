@@ -48,13 +48,16 @@ final class pdf_generation_service {
     /** @var certificate_repository Repository for certificate records. */
     private certificate_repository $certificates;
 
+    /** @var issue_repository Repository for issue records. */
+    private issue_repository $issues;
+
     /**
      * Create a pdf_generation_service with default dependencies.
      *
      * @return self
      */
     public static function create(): self {
-        return new self(new page_repository(), new certificate_repository());
+        return new self(new page_repository(), new certificate_repository(), new issue_repository());
     }
 
     /**
@@ -62,10 +65,12 @@ final class pdf_generation_service {
      *
      * @param page_repository $pages
      * @param certificate_repository $certificates
+     * @param issue_repository $issues
      */
-    public function __construct(page_repository $pages, certificate_repository $certificates) {
+    public function __construct(page_repository $pages, certificate_repository $certificates, issue_repository $issues) {
         $this->pages = $pages;
         $this->certificates = $certificates;
+        $this->issues = $issues;
     }
 
     /**
@@ -166,10 +171,7 @@ final class pdf_generation_service {
         if (!$haspattern) {
             $basename = rtrim(format_string($template->get_name(), true, ['context' => $template->get_context()]), '.');
         } else {
-            $issue = $DB->get_record('customcert_issues', [
-                'userid' => (int)$user->id,
-                'customcertid' => (int)$customcert->id,
-            ]);
+            $issue = $this->issues->find_by_user_certificate((int)$customcert->id, (int)$user->id);
 
             $issuedate = ($issue && !empty($issue->timecreated))
                 ? date('Y-m-d', (int)$issue->timecreated)
