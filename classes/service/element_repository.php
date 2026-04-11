@@ -321,11 +321,11 @@ final class element_repository {
      * Use this only when the element type cannot be resolved and event firing is not possible.
      *
      * @param int $id
-     * @return void
+     * @return bool True on success.
      */
-    public function delete_by_id(int $id): void {
+    public function delete_by_id(int $id): bool {
         global $DB;
-        $DB->delete_records('customcert_elements', ['id' => $id]);
+        return $DB->delete_records('customcert_elements', ['id' => $id]);
     }
 
     /**

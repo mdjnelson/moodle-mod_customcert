@@ -205,12 +205,12 @@ final class template_repository {
      * Delete a template record.
      *
      * @param int $id
-     * @return void
+     * @return bool True on success.
      * @throws dml_exception For database errors.
      */
-    public function delete(int $id): void {
+    public function delete(int $id): bool {
         global $DB;
-        $DB->delete_records('customcert_templates', ['id' => $id]);
+        return $DB->delete_records('customcert_templates', ['id' => $id]);
     }
 
     /**

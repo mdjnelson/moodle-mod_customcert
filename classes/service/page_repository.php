@@ -171,12 +171,12 @@ final class page_repository {
      * Delete a page by id.
      *
      * @param int $id
-     * @return void
+     * @return bool True on success.
      * @throws dml_exception For database errors.
      */
-    public function delete(int $id): void {
+    public function delete(int $id): bool {
         global $DB;
-        $DB->delete_records('customcert_pages', ['id' => $id]);
+        return $DB->delete_records('customcert_pages', ['id' => $id]);
     }
 
     /**
