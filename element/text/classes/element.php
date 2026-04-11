@@ -90,6 +90,10 @@ class element extends base_element implements
     public function normalise_data(stdClass $formdata): array {
         return [
             'value' => (string)($formdata->text ?? ''),
+            'font' => (string)($formdata->font ?? ''),
+            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'colour' => (string)($formdata->colour ?? ''),
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
         ];
     }
 

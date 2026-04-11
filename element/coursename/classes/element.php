@@ -119,7 +119,13 @@ class element extends base_element implements
      */
     public function normalise_data(stdClass $formdata): array {
         // Store selection in a consistent JSON structure.
-        return ['value' => isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : 0];
+        return [
+            'value' => isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : 0,
+            'font' => (string)($formdata->font ?? ''),
+            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'colour' => (string)($formdata->colour ?? ''),
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+        ];
     }
 
     /**

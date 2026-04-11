@@ -105,7 +105,13 @@ class element extends base_element implements
      */
     public function normalise_data(stdClass $formdata): array {
         // Persist the selected user field identifier under the key 'userfield'.
-        return ['userfield' => (string)($formdata->userfield ?? '')];
+        return [
+            'userfield' => (string)($formdata->userfield ?? ''),
+            'font' => (string)($formdata->font ?? ''),
+            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'colour' => (string)($formdata->colour ?? ''),
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+        ];
     }
 
     /**
