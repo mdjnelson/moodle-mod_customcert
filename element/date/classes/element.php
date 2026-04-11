@@ -137,6 +137,10 @@ class element extends base_element implements
         return [
             'dateitem' => $formdata->dateitem ?? '',
             'dateformat' => $formdata->dateformat ?? '',
+            'font' => (string)($formdata->font ?? ''),
+            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'colour' => (string)($formdata->colour ?? ''),
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
         ];
     }
 

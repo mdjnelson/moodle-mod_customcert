@@ -98,7 +98,13 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return ['coursefield' => (string)($formdata->coursefield ?? '')];
+        return [
+            'coursefield' => (string)($formdata->coursefield ?? ''),
+            'font' => (string)($formdata->font ?? ''),
+            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'colour' => (string)($formdata->colour ?? ''),
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+        ];
     }
 
     /**

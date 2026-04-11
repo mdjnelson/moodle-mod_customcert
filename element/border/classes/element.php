@@ -125,8 +125,10 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        // No unique payload beyond the common visual properties handled elsewhere.
-        return [];
+        return [
+            'colour' => isset($formdata->colour) ? (string)$formdata->colour : '',
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+        ];
     }
 
     /**
