@@ -27,6 +27,8 @@ namespace mod_customcert\event;
 use context_system;
 use core\event\base;
 use mod_customcert\element\element_interface;
+use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 use moodle_url;
 
 /**
@@ -78,10 +80,8 @@ class element_created extends base {
      * @return element_created
      */
     public static function create_from_element(element_interface $element): element_created {
-        global $DB;
-
-        $page = $DB->get_record('customcert_pages', ['id' => $element->get_pageid()]);
-        $template = $DB->get_record('customcert_templates', ['id' => $page->templateid]);
+        $page = (new page_repository())->get_by_id_or_fail($element->get_pageid());
+        $template = (new template_repository())->get_by_id_or_fail((int)$page->templateid);
 
         $data = [
             'contextid' => $template->contextid,
