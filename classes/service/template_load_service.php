@@ -21,6 +21,7 @@ namespace mod_customcert\service;
 use context;
 use dml_exception;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\template_service;
 use mod_customcert\event\template_updated;
 use mod_customcert\template;
 
@@ -35,6 +36,9 @@ final class template_load_service {
     /** @var template_repository */
     private template_repository $templates;
 
+    /** @var template_service */
+    private template_service $templateservice;
+
     /** @var page_repository */
     private page_repository $pages;
 
@@ -47,11 +51,11 @@ final class template_load_service {
      * @return self
      */
     public static function create(): self {
-        $factory = element_factory::build_with_defaults();
         return new self(
             new template_repository(),
+            template_service::create(),
             new page_repository(),
-            new element_repository($factory),
+            new element_repository(element_factory::build_with_defaults()),
         );
     }
 
@@ -59,15 +63,18 @@ final class template_load_service {
      * Constructor.
      *
      * @param template_repository $templates
+     * @param template_service $templateservice
      * @param page_repository $pages
      * @param element_repository $elements
      */
     public function __construct(
         template_repository $templates,
+        template_service $templateservice,
         page_repository $pages,
         element_repository $elements,
     ) {
         $this->templates = $templates;
+        $this->templateservice = $templateservice;
         $this->pages = $pages;
         $this->elements = $elements;
     }
@@ -94,11 +101,11 @@ final class template_load_service {
 
         $transaction = $DB->start_delegated_transaction();
 
-        // Remove existing pages/elements on target.
+        // Remove existing pages/elements on target via the service so that element
+        // cleanup hooks, file deletions, and events are all fired correctly.
         $existingpages = $this->pages->list_by_template($targetid);
         foreach ($existingpages as $page) {
-            $DB->delete_records('customcert_elements', ['pageid' => $page->id]);
-            $DB->delete_records('customcert_pages', ['id' => $page->id]);
+            $this->templateservice->delete_page($targettemplate, (int)$page->id, false);
         }
 
         // Copy pages and elements from source to target.
