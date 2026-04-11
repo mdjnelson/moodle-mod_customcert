@@ -34,6 +34,7 @@ use stdClass;
 use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\element_factory;
+use restore_customcert_activity_task;
 
 /**
  * Adapts a legacy element (extending mod_customcert\element) to element_interface.
@@ -47,7 +48,7 @@ use mod_customcert\service\element_factory;
  *   This adapter and the legacy mod_customcert\element base class are candidates for
  *   removal in a future major release once the transition period has ended.
  */
-final class legacy_element_adapter implements element_interface {
+final class legacy_element_adapter implements element_interface, restorable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 
@@ -270,10 +271,15 @@ final class legacy_element_adapter implements element_interface {
     /**
      * Handle restoration process for legacy elements.
      *
-     * @param \restore_customcert_activity_task $restore
+     * Implements restorable_element_interface so the restore task hits the instanceof branch
+     * and never emits a deprecation warning for adapted elements. If the wrapped legacy element
+     * has its own after_restore() method, it is called silently here as the adapter is the
+     * designated compatibility bridge.
+     *
+     * @param restore_customcert_activity_task $restore
      * @return void
      */
-    public function after_restore($restore): void {
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         if (method_exists($this->inner, 'after_restore')) {
             $this->inner->after_restore($restore);
         }
