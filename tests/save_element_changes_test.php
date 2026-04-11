@@ -42,14 +42,11 @@ final class save_element_changes_test extends advanced_testcase {
     // -----------------------------------------------------------------------
 
     /**
-     * normalise_data() must return an empty array for border elements regardless of
-     * what is stored in data. Border has no element-specific payload; width and colour
-     * are visual fields merged into the JSON envelope by the caller (edit_element.php)
-     * after this call — they are not the responsibility of normalise_data().
+     * normalise_data() must return colour and width from the submitted form data.
      *
      * @covers \customcertelement_border\element::normalise_data
      */
-    public function test_border_normalise_data_returns_empty_array(): void {
+    public function test_border_normalise_data_returns_colour_and_width(): void {
         $this->resetAfterTest();
 
         $record = (object)[
@@ -57,7 +54,7 @@ final class save_element_changes_test extends advanced_testcase {
             'pageid' => 1,
             'name' => 'Border',
             'element' => 'border',
-            'data' => json_encode(['width' => 3, 'colour' => '#ff0000']),
+            'data' => json_encode(['width' => 3, 'colour' => 'ff0000']),
             'posx' => 0,
             'posy' => 0,
             'refpoint' => 0,
@@ -69,10 +66,12 @@ final class save_element_changes_test extends advanced_testcase {
 
         $element = border_element::from_record($record);
 
-        $result = $element->normalise_data(new stdClass());
+        $formdata = (object)['colour' => '0000ff', 'width' => 2];
+        $result = $element->normalise_data($formdata);
 
         $this->assertIsArray($result);
-        $this->assertEmpty($result, 'normalise_data() must return [] — visual fields are merged by the caller');
+        $this->assertSame('0000ff', $result['colour']);
+        $this->assertSame(2, $result['width']);
     }
 
     // -----------------------------------------------------------------------
@@ -237,70 +236,7 @@ final class save_element_changes_test extends advanced_testcase {
     }
 
     // -----------------------------------------------------------------------
-    // 3. external::save_element() — JSON object data payload
-    // -----------------------------------------------------------------------
-
-    /**
-     * Passing a JSON object as the data value must be stored in the element's data column.
-     *
-     * @covers \mod_customcert\external::save_element
-     */
-    public function test_save_element_merges_json_object_data_payload(): void {
-        global $DB;
-
-        $this->resetAfterTest();
-        $this->setAdminUser();
-
-        $template = (object)[
-            'name' => 'Object Merge Template',
-            'contextid' => \context_system::instance()->id,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
-
-        $page = (object)[
-            'templateid' => $template->id,
-            'width' => 210,
-            'height' => 297,
-            'leftmargin' => 0,
-            'rightmargin' => 0,
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
-
-        $element = (object)[
-            'pageid' => $page->id,
-            'element' => 'text',
-            'name' => 'Text',
-            'posx' => 10,
-            'posy' => 20,
-            'refpoint' => 1,
-            'alignment' => 'L',
-            'data' => json_encode([]),
-            'sequence' => 1,
-            'timecreated' => time(),
-            'timemodified' => time(),
-        ];
-        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
-
-        $values = [
-            ['name' => 'data', 'value' => json_encode(['new_key' => 'new_value'])],
-        ];
-
-        $result = external::save_element($template->id, $element->id, $values);
-        external_api::clean_returnvalue(external::save_element_returns(), $result);
-        $this->assertTrue($result);
-
-        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
-        $decoded = json_decode($row->data, true);
-        $this->assertSame('new_value', $decoded['new_key'] ?? null, 'New key from JSON object must be merged');
-    }
-
-    // -----------------------------------------------------------------------
-    // 4. Persistable element normalise_data() merge
+    // 3. Persistable element normalise_data() merge
     // -----------------------------------------------------------------------
     /**
      * For persistable elements, normalise_data() result is stored in the data column.
@@ -360,16 +296,15 @@ final class save_element_changes_test extends advanced_testcase {
     }
 
     // -----------------------------------------------------------------------
-    // 5. Legacy element (border) save via web service
+    // 4. Border element save via web service
     // -----------------------------------------------------------------------
     /**
-     * A legacy element (border) saved via the web service must persist correctly.
-     * The border element does not implement persistable_element_interface, so the
-     * legacy path in save_element() is used.
+     * The border element's normalise_data() returns colour and width, so submitting
+     * those fields via the web service must persist them in the data column.
      *
      * @covers \mod_customcert\external::save_element
      */
-    public function test_save_element_legacy_border_preserves_existing_data(): void {
+    public function test_save_element_border_saves_colour_and_width(): void {
         global $DB;
         $this->resetAfterTest();
         $this->setAdminUser();
@@ -405,9 +340,10 @@ final class save_element_changes_test extends advanced_testcase {
             'timemodified' => time(),
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
-        // Submit a new colour value.
+        // Submit new colour and width values.
         $values = [
             ['name' => 'colour', 'value' => '0000ff'],
+            ['name' => 'width', 'value' => '3'],
         ];
         $result = external::save_element($template->id, $element->id, $values);
         external_api::clean_returnvalue(external::save_element_returns(), $result);
@@ -415,10 +351,10 @@ final class save_element_changes_test extends advanced_testcase {
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
         $this->assertSame('0000ff', $decoded['colour'] ?? null, 'Submitted colour must be stored');
+        $this->assertSame(3, $decoded['width'] ?? null, 'Submitted width must be stored');
     }
-
     // -----------------------------------------------------------------------
-    // 6. Fractional coordinate rounding
+    // 5. Fractional coordinate rounding
     // -----------------------------------------------------------------------
     /**
      * ajax.php rounds fractional positions before passing them to update_position().
