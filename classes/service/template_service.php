@@ -268,8 +268,6 @@ final class template_service {
      * @throws dml_exception
      */
     public function delete_page(template $template, int $pageid, bool $triggertemplateupdatedevent = true): void {
-        global $DB;
-
         $page = $this->pages->get_by_id_or_fail($pageid);
 
         // Defensive: ensure the page belongs to this template.
@@ -277,7 +275,7 @@ final class template_service {
             throw new invalid_parameter_exception('Page does not belong to template');
         }
 
-        if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
+        if ($elements = $this->elements->list_by_page((int)$page->id)) {
             foreach ($elements as $element) {
                 $instance = $this->create_element_from_record($element);
                 if ($instance) {
@@ -290,11 +288,11 @@ final class template_service {
                     "deleting record directly without firing element_deleted event.",
                     DEBUG_DEVELOPER
                 );
-                $DB->delete_records('customcert_elements', ['id' => $element->id]);
+                $this->elements->delete_by_id((int)$element->id);
             }
         }
 
-        $DB->delete_records('customcert_pages', ['id' => $page->id]);
+        $this->pages->delete((int)$page->id);
 
         page_deleted::create_from_page($page, $template)->trigger();
 
@@ -378,21 +376,22 @@ final class template_service {
             $newpage = $this->pages->get_by_id_or_fail($newpageid);
             page_created::create_from_page($newpage, $target)->trigger();
 
-            if ($templateelements = $DB->get_records('customcert_elements', ['pageid' => $sourcepage->id])) {
-                foreach ($templateelements as $templateelement) {
-                    $element = clone($templateelement);
-                    $element->pageid = $newpage->id;
-                    $element->timecreated = $now;
-                    $element->timemodified = $now;
-                    $element->id = $DB->insert_record('customcert_elements', $element);
+            foreach ($this->elements->list_by_page((int)$sourcepage->id) as $templateelement) {
+                $element = clone($templateelement);
+                $element->pageid = $newpage->id;
+                $element->timecreated = $now;
+                $element->timemodified = $now;
+                unset($element->id);
 
-                    if ($instance = $this->create_element_from_record($element)) {
-                        $inner = $this->unwrap_element($instance);
-                        if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
-                            $this->elements->delete($instance);
-                        } else {
-                            element_created::create_from_element($instance)->trigger();
-                        }
+                $newid = $DB->insert_record('customcert_elements', $element);
+                $element->id = $newid;
+
+                if ($instance = $this->create_element_from_record($element)) {
+                    $inner = $this->unwrap_element($instance);
+                    if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
+                        $this->elements->delete($instance);
+                    } else {
+                        element_created::create_from_element($instance)->trigger();
                     }
                 }
             }

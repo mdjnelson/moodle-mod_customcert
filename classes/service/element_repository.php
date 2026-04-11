@@ -296,6 +296,19 @@ final class element_repository {
     }
 
     /**
+     * Delete an element record by id without firing the deleted event.
+     *
+     * Use this only when the element type cannot be resolved and event firing is not possible.
+     *
+     * @param int $id
+     * @return void
+     */
+    public function delete_by_id(int $id): void {
+        global $DB;
+        $DB->delete_records('customcert_elements', ['id' => $id]);
+    }
+
+    /**
      * Delete an element record and fire the deleted event.
      *
      * @param element_interface $element
