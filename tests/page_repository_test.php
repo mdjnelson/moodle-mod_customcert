@@ -187,4 +187,32 @@ final class page_repository_test extends \advanced_testcase {
         $seqs = array_map(static fn($r) => (int)$r->sequence, array_values($this->repo->list_by_template($templateid)));
         $this->assertSame([1, 2], $seqs);
     }
+
+    /**
+     * Ensures delete() removes the page record from the database.
+     *
+     * @covers ::delete
+     */
+    public function test_delete_removes_page_record(): void {
+        global $DB;
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = \context_course::instance($course->id);
+        $trepo = new template_repository();
+        $templateid = $trepo->create((object)[
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+        $pageid = $this->repo->create((object)[
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $this->assertTrue($DB->record_exists('customcert_pages', ['id' => $pageid]));
+        $this->repo->delete($pageid);
+        $this->assertFalse($DB->record_exists('customcert_pages', ['id' => $pageid]));
+    }
 }
