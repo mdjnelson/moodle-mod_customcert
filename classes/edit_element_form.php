@@ -29,6 +29,7 @@ use moodle_exception;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
+use mod_customcert\element\element_interface;
 use mod_customcert\element\preparable_form_interface;
 use moodleform;
 use MoodleQuickForm;
@@ -55,9 +56,9 @@ MoodleQuickForm::registerElementType(
  */
 class edit_element_form extends moodleform {
     /**
-     * @var element The element object.
+     * @var element_interface The element object.
      */
-    protected element $element;
+    protected element_interface $element;
 
     /**
      * Form definition.
