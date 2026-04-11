@@ -360,4 +360,97 @@ final class element_repository_test extends \advanced_testcase {
         $eventclasses = array_map(fn($e) => get_class($e), $events);
         $this->assertContains(\mod_customcert\event\element_deleted::class, $eventclasses);
     }
+
+    /**
+     * Ensures get_template_id_for_element returns the owning templateid.
+     *
+     * @covers ::get_template_id_for_element
+     */
+    public function test_get_template_id_for_element_returns_templateid(): void {
+        global $DB;
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'E',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $result = $this->repo->get_template_id_for_element($elementid);
+        $this->assertSame($templateid, $result);
+    }
+
+    /**
+     * Ensures get_template_id_for_element returns null for a non-existent element.
+     *
+     * @covers ::get_template_id_for_element
+     */
+    public function test_get_template_id_for_element_returns_null_for_missing(): void {
+        $result = $this->repo->get_template_id_for_element(999999);
+        $this->assertNull($result);
+    }
+
+    /**
+     * Ensures delete_by_id removes the DB record without firing an event.
+     *
+     * @covers ::delete_by_id
+     */
+    public function test_delete_by_id_removes_record(): void {
+        global $DB;
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'To delete by id',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $sink = $this->redirectEvents();
+        $this->repo->delete_by_id($elementid);
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
+        $eventclasses = array_map(fn($e) => get_class($e), $events);
+        $this->assertNotContains(\mod_customcert\event\element_deleted::class, $eventclasses);
+    }
 }
