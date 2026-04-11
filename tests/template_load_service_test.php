@@ -25,6 +25,7 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_load_service;
 use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
 
 /**
  * Tests for template_load_service behaviour.
@@ -53,7 +54,12 @@ final class template_load_service_test extends \advanced_testcase {
         $this->templates = new template_repository();
         $this->pages = new page_repository();
         $factory = element_factory::build_with_defaults();
-        $this->service = new template_load_service($this->templates, $this->pages, new element_repository($factory));
+        $this->service = new template_load_service(
+            $this->templates,
+            template_service::create(),
+            $this->pages,
+            new element_repository($factory)
+        );
     }
 
     /**
