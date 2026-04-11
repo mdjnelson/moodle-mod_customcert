@@ -30,6 +30,7 @@ use core_external\external_api;
 use stdClass;
 use advanced_testcase;
 use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\template_service;
 
 /**
  * Unit tests for the webservices.
@@ -554,7 +555,7 @@ final class external_test extends advanced_testcase {
         $templaterecord = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
         $template = new template($templaterecord);
 
-        $pageid = $template->add_page();
+        $pageid = template_service::create()->add_page($template);
 
         $element = new stdClass();
         $element->pageid = $pageid;
