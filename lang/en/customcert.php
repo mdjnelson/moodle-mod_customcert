@@ -226,6 +226,7 @@ $string['showposxy_desc'] = 'This will show the X and Y position when editing of
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
 $string['subplugintype_customcertelement'] = 'Element';
 $string['subplugintype_customcertelement_plural'] = 'Elements';
+$string['taskcompletionbackfill'] = 'Backfill activity completion for existing issued certificates.';
 $string['taskemailcertificate'] = 'Handles emailing certificates.';
 $string['taskissuecertificate'] = 'Issue certificates task';
 $string['templatename'] = 'Template name';

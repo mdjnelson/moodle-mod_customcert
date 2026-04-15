@@ -139,6 +139,45 @@ class mod_customcert_mod_form extends moodleform_mod {
     }
 
     /**
+     * Add elements to form.
+     */
+    public function add_completion_rules() {
+        $mform =& $this->_form;
+
+        $mform->addElement('checkbox', 'completionissued', '', get_string('completionissued', 'customcert'));
+        $mform->setType('completionissued', PARAM_BOOL);
+        $mform->addHelpButton('completionissued', 'completionissued', 'customcert');
+
+        // Disable the completion checkbox if email to students is not enabled.
+        // Check if the user has permission to manage email students setting.
+        if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
+            // If user can manage email students, disable completion when emailstudents is not checked.
+            $mform->disabledIf('completionissued', 'emailstudents', 'eq', 0);
+        } else {
+            // If user can't manage email students, check global setting.
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (!$globalemailstudents) {
+                // If global setting is disabled, disable the completion checkbox entirely.
+                $mform->addElement('static', 'completionissued_disabled_note', '',
+                    get_string('completionissuedemailerror', 'customcert'));
+                $mform->setConstant('completionissued', 0);
+            }
+        }
+
+        return ['completionissued'];
+    }
+
+    /**
+     * Called during validation. Indicates whether a module-specific completion rule is selected.
+     *
+     * @param array $data Input data (not yet validated)
+     * @return bool True if one or more rules is enabled, false if none are.
+     */
+    public function completion_rule_enabled($data) {
+        return (!empty($data['completionissued']));
+    }
+
+    /**
      * Any data processing needed before the form is displayed.
      *
      * @param array $defaultvalues
