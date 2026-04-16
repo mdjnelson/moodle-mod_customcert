@@ -32,6 +32,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use coding_exception;
+use mod_customcert\element as element_base;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
@@ -81,10 +82,10 @@ final class pdf_renderer implements element_renderer {
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param element_interface $element the customcert element
+     * @param element_base $element the customcert element
      * @param string $content the content to render
      */
-    public function render_content(element_interface $element, string $content): void {
+    public function render_content(element_base $element, string $content): void {
         if ($this->pdf === null) {
             throw new coding_exception('PDF object not set in pdf_renderer');
         }
