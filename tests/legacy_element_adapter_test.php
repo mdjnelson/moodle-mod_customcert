@@ -58,11 +58,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
      * @covers \mod_customcert\element\legacy_element_adapter::get_font
      * @covers \mod_customcert\element\legacy_element_adapter::get_fontsize
      * @covers \mod_customcert\element\legacy_element_adapter::get_colour
-     * @covers \mod_customcert\element\legacy_element_adapter::get_posx
-     * @covers \mod_customcert\element\legacy_element_adapter::get_posy
      * @covers \mod_customcert\element\legacy_element_adapter::get_width
-     * @covers \mod_customcert\element\legacy_element_adapter::get_refpoint
-     * @covers \mod_customcert\element\legacy_element_adapter::get_alignment
      */
     public function test_adapter_mirrors_legacy_getters(): void {
         $this->resetAfterTest();
@@ -103,11 +99,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertSame('helvetica', $adapter->get_font());
         $this->assertSame(12, $adapter->get_fontsize());
         $this->assertSame('#112233', $adapter->get_colour());
-        $this->assertSame(10, $adapter->get_posx());
-        $this->assertSame(20, $adapter->get_posy());
         $this->assertSame(100, $adapter->get_width());
-        $this->assertSame(0, $adapter->get_refpoint());
-        $this->assertSame('L', $adapter->get_alignment());
 
         // Ensure get_inner returns the original instance.
         $this->assertSame($legacy, $adapter->get_inner());

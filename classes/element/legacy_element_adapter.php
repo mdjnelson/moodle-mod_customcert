@@ -134,24 +134,6 @@ final class legacy_element_adapter implements element_interface, restorable_elem
     }
 
     /**
-     * Get the X coordinate position.
-     *
-     * @return int|null
-     */
-    public function get_posx(): ?int {
-        return $this->inner->get_posx();
-    }
-
-    /**
-     * Get the Y coordinate position.
-     *
-     * @return int|null
-     */
-    public function get_posy(): ?int {
-        return $this->inner->get_posy();
-    }
-
-    /**
      * Get the width allocated to the element.
      *
      * @return int|null
@@ -160,23 +142,6 @@ final class legacy_element_adapter implements element_interface, restorable_elem
         return $this->inner->get_width();
     }
 
-    /**
-     * Get the reference point used for positioning.
-     *
-     * @return int|null
-     */
-    public function get_refpoint(): ?int {
-        return $this->inner->get_refpoint();
-    }
-
-    /**
-     * Get the alignment for this element (e.g., left, center, right).
-     *
-     * @return string
-     */
-    public function get_alignment(): string {
-        return $this->inner->get_alignment();
-    }
 
     /**
      * Returns the type of the element.

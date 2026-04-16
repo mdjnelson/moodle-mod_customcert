@@ -61,6 +61,11 @@ class edit_element_form extends moodleform {
     protected element_interface $element;
 
     /**
+     * @var \stdClass Raw DB record for the element (carries layout columns).
+     */
+    protected \stdClass $rawrecord;
+
+    /**
      * Form definition.
      */
     public function definition() {
@@ -69,6 +74,8 @@ class edit_element_form extends moodleform {
         $mform->updateAttributes(['id' => 'editelementform']);
 
         $element = $this->_customdata['element'];
+
+        $this->rawrecord = is_object($element) ? $element : new \stdClass();
 
         // Add the field for the name of the element, this is required for all elements.
         $mform->addElement('text', 'name', get_string('elementname', 'customcert'), 'maxlength="255"');
@@ -104,25 +111,20 @@ class edit_element_form extends moodleform {
 
     /**
      * Fill in the current page data for this customcert.
-     *
-     * This method populates standard element fields (name, font, fontsize, colour, position, width,
-     * refpoint, alignment) from the element's getter methods. Element-specific fields are then
-     * populated by calling prepare_after_data() on the form service at the correct lifecycle point.
      */
     public function definition_after_data() {
         $mform = $this->_form;
 
-        // Populate standard fields from element getters.
         $properties = [
             'name' => $this->element->get_name(),
             'font' => $this->element->get_font(),
             'fontsize' => $this->element->get_fontsize(),
             'colour' => $this->element->get_colour(),
-            'posx' => $this->element->get_posx(),
-            'posy' => $this->element->get_posy(),
             'width' => $this->element->get_width(),
-            'refpoint' => $this->element->get_refpoint(),
-            'alignment' => $this->element->get_alignment(),
+            'posx' => $this->rawrecord->posx ?? null,
+            'posy' => $this->rawrecord->posy ?? null,
+            'refpoint' => $this->rawrecord->refpoint ?? null,
+            'alignment' => $this->rawrecord->alignment ?? null,
         ];
 
         foreach ($properties as $property => $value) {
