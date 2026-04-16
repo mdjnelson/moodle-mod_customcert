@@ -34,6 +34,7 @@ use mod_customcert\element\element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
+use mod_customcert\service\element_layout;
 use mod_customcert\local\ordering;
 use mod_customcert\event\element_created;
 use mod_customcert\service\element_factory;
@@ -184,20 +185,21 @@ final class element_repository {
      * Persist an element.
      *
      * @param element_interface $element
+     * @param element_layout $layout Layout columns for the element.
      * @return void
      */
-    public function save(element_interface $element): void {
+    public function save(element_interface $element, element_layout $layout): void {
         global $DB;
 
         $record = new stdClass();
         $record->id = $element->get_id();
         $record->pageid = $element->get_pageid();
         $record->name = $element->get_name();
-        $record->posx = $element->get_posx();
-        $record->posy = $element->get_posy();
+        $record->posx = $layout->posx;
+        $record->posy = $layout->posy;
         // Width is stored inside the JSON data; no DB column write.
-        $record->refpoint = $element->get_refpoint();
-        $record->alignment = $element->get_alignment();
+        $record->refpoint = $layout->refpoint;
+        $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
         // Persist data exactly as provided by the element implementation.
@@ -347,23 +349,22 @@ final class element_repository {
     /**
      * Create a new element record and fire the created event.
      *
-     * This mirrors the legacy behaviour of element::save_form_elements() for inserts.
-     *
      * @param element_interface $element
+     * @param element_layout $layout Layout columns for the element.
      * @return int Newly created element id
      */
-    public function create(element_interface $element): int {
+    public function create(element_interface $element, element_layout $layout): int {
         global $DB;
 
         $record = new stdClass();
         $record->pageid = $element->get_pageid();
         $record->element = $element->get_type();
         $record->name = $element->get_name();
-        $record->posx = $element->get_posx();
-        $record->posy = $element->get_posy();
+        $record->posx = $layout->posx;
+        $record->posy = $layout->posy;
         // Width is stored inside the JSON data; no DB column write.
-        $record->refpoint = $element->get_refpoint();
-        $record->alignment = $element->get_alignment();
+        $record->refpoint = $layout->refpoint;
+        $record->alignment = $layout->alignment;
         $record->data = $element->get_data();
         $record->sequence = element_helper::get_element_sequence($record->pageid);
         $now = time();

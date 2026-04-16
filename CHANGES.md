@@ -14,9 +14,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 #### Element System v2
 - **Element System v2** (interfaces + services) to improve stability and long-term extensibility of Custom Certificate elements.
 - **Base element contract**: `mod_customcert\element\element_interface` — all v2 elements implement this; the factory returns this type.
+  - Layout columns (`posx`, `posy`, `refpoint`, `alignment`) are **framework-owned DB columns** (#786) managed exclusively by `element_repository`; they are intentionally excluded from `element_interface` by design. The repository requires an explicit `element_layout` DTO on `save()` and `create()` rather than reading layout from the element. The concrete `mod_customcert\element` base class retains the getters for use by rendering helpers.
 - **New element capability interfaces** (implement as needed):
   - `mod_customcert\element\form_buildable_interface` — provides `build_form(MoodleQuickForm $mform)` to add element-specific fields to the edit form; replaces the legacy `render_form_elements()` hook.
-  - `mod_customcert\element\persistable_element_interface` — provides `normalise_data(stdClass $formdata): array` to return a typed, element-specific associative array ready for JSON encoding; standard visual fields are merged centrally by `persistence_helper`.
+  - `mod_customcert\element\persistable_element_interface` — provides `normalise_data(stdClass $formdata): array` to return a typed, element-specific associative array ready for JSON encoding into the `data` column. Standard visual fields (font, fontsize, colour, width) must be included here if the element uses them; they are **not** merged automatically. Layout columns (posx, posy, refpoint, alignment) are handled separately via `element_layout` and must not be returned from `normalise_data()`.
   - `mod_customcert\element\validatable_element_interface` — provides `validate(array $data): array` to return field-keyed error messages; `validation_service` detects and invokes this automatically.
   - `mod_customcert\element\preparable_form_interface` — provides `prepare_form(MoodleQuickForm $mform)` to populate form fields from the stored JSON payload after the form is built (replaces `definition_after_data()`).
   - `mod_customcert\element\stylable_element_interface` — typed contract for elements that expose standard visual attributes (`get_font()`, `get_fontsize()`, `get_colour()`, `get_width()`); values are read from the JSON payload rather than removed DB columns.
@@ -26,7 +27,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - **`unknown_element`** — safe fallback used by the factory when a requested element type is not registered; renders gracefully rather than throwing.
 - **New persistence + migration helpers**:
   - JSON payload helpers (`get_payload()`, `get_value()`, safe decode/encode helpers with validation).
-  - `mod_customcert\service\persistence_helper` — centralises JSON normalisation and merging of standard visual fields at save time.
+  - `mod_customcert\service\persistence_helper` — converts a form submission to the JSON string stored in `customcert_elements.data`, delegating to `normalise_data()` for persistable elements or `save_unique_data()` for legacy ones.
   - Restore migration helper to merge legacy backup fields into the JSON payload during restore.
 - **Element registry + factory**:
   - `mod_customcert\service\element_registry` — maps element type keys to class names; replaces hard-coded class resolution.

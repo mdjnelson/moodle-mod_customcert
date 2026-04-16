@@ -35,6 +35,7 @@ use core_user\fields;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_layout;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
@@ -125,7 +126,8 @@ class external extends external_api {
 
         // Create the final instance from the normalised record and persist.
         $instance = $factory->create_from_legacy_record($record);
-        $elementrepo->save($instance);
+        $layout = element_layout::from_record($record);
+        $elementrepo->save($instance, $layout);
 
         // For compatibility keep a simple truthy result.
         return true;

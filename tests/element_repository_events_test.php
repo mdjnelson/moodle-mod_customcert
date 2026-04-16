@@ -33,6 +33,7 @@ use mod_customcert\element\element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_layout;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
@@ -138,8 +139,9 @@ final class element_repository_events_test extends advanced_testcase {
 
         $element = $this->make_dummy_element($pageid, 'text');
 
+        $layout = new element_layout(null, null, null);
         $sink = $this->redirectEvents();
-        $newid = $repository->create($element);
+        $newid = $repository->create($element, $layout);
         $events = $sink->get_events();
 
         $this->assertGreaterThan(0, $newid);
@@ -270,7 +272,8 @@ final class element_repository_events_test extends advanced_testcase {
         $element = $elements[0];
 
         $sink = $this->redirectEvents();
-        $repository->save($element);
+        $layout = new element_layout(null, null, null);
+        $repository->save($element, $layout);
         $events = $sink->get_events();
 
         $this->assertCount(1, $events);

@@ -27,6 +27,7 @@ use mod_customcert\element;
 use mod_customcert\event\template_updated;
 use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_layout;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
 use mod_customcert\service\persistence_helper;
@@ -155,11 +156,13 @@ if ($data = $mform->get_data()) {
 
         $instance = $factory->create($record->element, $record);
 
+        $layout = element_layout::from_record($record);
+
         if (!empty($record->id)) {
-            $elementrepo->save($instance);
+            $elementrepo->save($instance, $layout);
             $newlyid = $record->id;
         } else {
-            $newlyid = $elementrepo->create($instance);
+            $newlyid = $elementrepo->create($instance, $layout);
         }
 
         // Trigger updated event for the template containing the element.
