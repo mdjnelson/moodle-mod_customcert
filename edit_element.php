@@ -143,33 +143,13 @@ if ($data = $mform->get_data()) {
             $record->alignment = $element->alignment ?? element::ALIGN_LEFT;
         }
         // Persist JSON using helper (supports persistable and legacy elements).
+        // Visual fields (font, fontsize, colour, width) are expected to be returned
+        // explicitly by the element's normalise_data() implementation.
         $record->data = persistence_helper::to_json_data($elementinstance, $data);
-        // Merge font-related fields into JSON 'data' rather than separate DB columns.
-        $rawjson = $record->data;
-        $decoded = is_string($rawjson) && $rawjson !== '' ? json_decode($rawjson, true) : null;
-        if (!is_array($decoded)) {
-            // Start from an envelope if we had scalar/non-JSON previously.
-            $decoded = [];
-        }
-        if (isset($data->font) && $data->font !== '') {
-            $decoded['font'] = (string)$data->font;
-        }
-        if (isset($data->fontsize) && $data->fontsize !== '') {
-            $decoded['fontsize'] = (int)$data->fontsize;
-        }
-        if (isset($data->colour) && $data->colour !== '') {
-            $decoded['colour'] = (string)$data->colour;
-        }
         if (!empty(get_config('customcert', 'showposxy'))) {
             $record->posx = $data->posx ?? null;
             $record->posy = $data->posy ?? null;
         }
-        // Merge width into JSON 'data' rather than a dropped DB column.
-        if (isset($data->width) && $data->width !== '') {
-            $decoded['width'] = (int)$data->width;
-        }
-        // Persist the merged JSON payload.
-        $record->data = json_encode($decoded);
         $record->refpoint = $data->refpoint ?? $record->refpoint ?? null;
         $record->alignment = $data->alignment ?? $record->alignment ?? element::ALIGN_LEFT;
 
