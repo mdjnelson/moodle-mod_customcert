@@ -29,11 +29,9 @@ namespace mod_customcert\element;
 /**
  * Interface element_interface
  *
- * Defines the contract for an element, providing functions related to its metadata,
- * positioning, and fundamental attributes. This interface is focused on the
- * minimal set of attributes useful across various element types without coupling
- * to specific implementations or rendering requirements. Styling and other
- * content-specific data should be part of the element's editable payload.
+ * Defines the minimal contract for a certificate element: identity, page
+ * membership, name, data payload and type. Layout and rendering are handled
+ * by the concrete base class and the repository respectively.
  */
 interface element_interface {
     /**
@@ -63,43 +61,6 @@ interface element_interface {
      * @return mixed
      */
     public function get_data(): mixed;
-
-    // Presentation-related styling such as font, fontsize, and colour are
-    // no longer part of the base element contract. These values should be
-    // stored in the element's data payload and consumed by renderers or
-    // element-specific helpers. If shared styling contracts are needed,
-    // prefer dedicated opt-in interfaces.
-
-    /**
-     * Returns the X coordinate used for positioning.
-     *
-     * @return int|null
-     */
-    public function get_posx(): ?int;
-
-    /**
-     * Returns the Y coordinate used for positioning.
-     *
-     * @return int|null
-     */
-    public function get_posy(): ?int;
-
-    // Width is persisted inside the element data payload and is not part of
-    // the base contract to avoid coupling to specific element types.
-
-    /**
-     * Returns the reference point constant used for positioning.
-     *
-     * @return int|null
-     */
-    public function get_refpoint(): ?int;
-
-    /**
-     * Returns the alignment value (e.g., left, center, right).
-     *
-     * @return string
-     */
-    public function get_alignment(): string;
 
     /**
      * Returns the type of the element.
