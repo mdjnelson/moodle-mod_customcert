@@ -27,6 +27,7 @@ namespace mod_customcert;
 use core_text;
 use moodle_exception;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_layout;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
 use mod_customcert\element\element_interface;
@@ -61,9 +62,9 @@ class edit_element_form extends moodleform {
     protected element_interface $element;
 
     /**
-     * @var \stdClass Raw DB record for the element (carries layout columns).
+     * @var element_layout Layout DTO carrying position/alignment values.
      */
-    protected \stdClass $rawrecord;
+    protected element_layout $layout;
 
     /**
      * Form definition.
@@ -75,7 +76,9 @@ class edit_element_form extends moodleform {
 
         $element = $this->_customdata['element'];
 
-        $this->rawrecord = is_object($element) ? $element : new \stdClass();
+        $this->layout = element_layout::from_record(
+            is_object($element) ? $element : new \stdClass()
+        );
 
         // Add the field for the name of the element, this is required for all elements.
         $mform->addElement('text', 'name', get_string('elementname', 'customcert'), 'maxlength="255"');
@@ -121,10 +124,10 @@ class edit_element_form extends moodleform {
             'fontsize' => $this->element->get_fontsize(),
             'colour' => $this->element->get_colour(),
             'width' => $this->element->get_width(),
-            'posx' => $this->rawrecord->posx ?? null,
-            'posy' => $this->rawrecord->posy ?? null,
-            'refpoint' => $this->rawrecord->refpoint ?? null,
-            'alignment' => $this->rawrecord->alignment ?? null,
+            'posx' => $this->layout->posx,
+            'posy' => $this->layout->posy,
+            'refpoint' => $this->layout->refpoint,
+            'alignment' => $this->layout->alignment,
         ];
 
         foreach ($properties as $property => $value) {
