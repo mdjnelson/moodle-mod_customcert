@@ -231,9 +231,9 @@ Update your element class to implement interfaces as needed:
                 'value' => (string)($formdata->myfield ?? ''),
                 // Return visual fields explicitly — they are not merged centrally.
                 'font'     => (string)($formdata->font ?? ''),
-                'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+                'fontsize' => (int)($formdata->fontsize ?? 0),
                 'colour'   => (string)($formdata->colour ?? ''),
-                'width'    => isset($formdata->width) ? (int)$formdata->width : 0,
+                'width'    => (int)($formdata->width ?? 0),
             ];
         }
 
