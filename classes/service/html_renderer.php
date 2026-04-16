@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use mod_customcert\element as element_base;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
@@ -79,11 +80,11 @@ final class html_renderer implements element_renderer {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element_interface $element the customcert element
+     * @param element_base $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
-    public function render_content(element_interface $element, string $content): string {
+    public function render_content(element_base $element, string $content): string {
         return element_helper::render_html_content($element, $content);
     }
 }

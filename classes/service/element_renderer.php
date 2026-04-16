@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use mod_customcert\element as element_base;
 use mod_customcert\element\element_interface;
 use pdf;
 use stdClass;
@@ -64,9 +65,9 @@ interface element_renderer {
     /**
      * Common behaviour for rendering specified content.
      *
-     * @param element_interface $element
+     * @param element_base $element
      * @param string $content
      * @return mixed
      */
-    public function render_content(element_interface $element, string $content);
+    public function render_content(element_base $element, string $content);
 }
