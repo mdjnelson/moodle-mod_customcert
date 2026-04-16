@@ -363,8 +363,9 @@ function xmldb_customcert_upgrade($oldversion) {
 
     // Migrate width, font, fontsize, and colour into data JSON and drop those columns from customcert_elements.
     if ($oldversion < 2025122800) {
-        // 1) Migrate data in customcert_elements.
+        // 1) Fetch all records into memory first, then close the cursor.
         $rs = $DB->get_recordset('customcert_elements', null, 'id');
+        $toupdate = [];
         foreach ($rs as $rec) {
             $recwidth = $rec->width === null ? null : (int)$rec->width;
             $recfont = $rec->font === null ? null : (string)$rec->font;
@@ -376,15 +377,21 @@ function xmldb_customcert_upgrade($oldversion) {
                 : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour);
 
             if ($migrated !== $rec->data) {
-                $DB->update_record('customcert_elements', (object) [
-                    'id' => $rec->id,
-                    'data' => $migrated,
-                ]);
+                $toupdate[] = (object) ['id' => $rec->id, 'data' => $migrated];
             }
         }
         $rs->close();
 
-        // 2) Drop the migrated columns from customcert_elements.
+        // 2) Apply updates in batches, each in its own transaction.
+        foreach (array_chunk($toupdate, 1000) as $batch) {
+            $transaction = $DB->start_delegated_transaction();
+            foreach ($batch as $row) {
+                $DB->update_record('customcert_elements', $row);
+            }
+            $transaction->allow_commit();
+        }
+
+        // 3) Drop the migrated columns from customcert_elements.
         $table = new xmldb_table('customcert_elements');
         foreach (['width', 'font', 'fontsize', 'colour'] as $mfield) {
             $field = new xmldb_field($mfield);
