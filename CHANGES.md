@@ -88,15 +88,15 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 Migration impact for element plugins:
 - Do NOT read/write `$element->font`, `$element->fontsize`, `$element->colour`, `$element->width` from DB fields (they no longer exist).
 - Use element getters (`get_font()`, `get_fontsize()`, `get_colour()`, `get_width()`) which now read from the JSON payload.
-- Element plugins should return only element-specific keys from `persistable_element_interface::normalise_data()`; standard visual keys are merged centrally.
+- Element plugins should return all relevant keys from `persistable_element_interface::normalise_data()`, including the standard visual keys (`font`, `fontsize`, `colour`, `width`) where applicable; they are no longer merged centrally.
 
 Reserved JSON keys (visuals):
-- The following keys are used by core as standard visual fields and should be treated as reserved in `customcert_elements.data`:
+- The following keys are used by core as standard visual fields in `customcert_elements.data`:
   - `width`, `font`, `fontsize`, `colour`
-- Element plugins should avoid using these keys for element-specific payload data.
+- Element plugins that expose these visual attributes should return them from `normalise_data()` explicitly. Plugins should not use these keys for unrelated element-specific payload data.
 
 #### Editing + persistence flow
-- Element edit handlers now normalise element-specific data into a JSON payload and merge standard visual fields (`font`, `fontsize`, `colour`, `width`) into the same payload.
+- Element edit handlers normalise element-specific data into a JSON payload via `normalise_data()`; visual fields (`font`, `fontsize`, `colour`, `width`) must be returned explicitly by the element's own `normalise_data()` implementation so the stored payload is self-contained.
 - Saving elements is hardened to avoid corrupting stored JSON payloads when a caller provides a JSON list/array.
 
 #### Element construction + adapters
@@ -229,7 +229,11 @@ Update your element class to implement interfaces as needed:
         public function normalise_data(\stdClass $formdata): array {
             return [
                 'value' => (string)($formdata->myfield ?? ''),
-                // NOTE: width/font/colour/fontsize are merged into JSON centrally by the edit handler.
+                // Return visual fields explicitly — they are not merged centrally.
+                'font'     => (string)($formdata->font ?? ''),
+                'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+                'colour'   => (string)($formdata->colour ?? ''),
+                'width'    => isset($formdata->width) ? (int)$formdata->width : 0,
             ];
         }
 
