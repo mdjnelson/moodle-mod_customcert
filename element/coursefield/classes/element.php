@@ -101,9 +101,9 @@ class element extends base_element implements
         return [
             'coursefield' => (string)($formdata->coursefield ?? ''),
             'font' => (string)($formdata->font ?? ''),
-            'fontsize' => isset($formdata->fontsize) ? (int)$formdata->fontsize : 0,
+            'fontsize' => (int)($formdata->fontsize ?? 0),
             'colour' => (string)($formdata->colour ?? ''),
-            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+            'width' => (int)($formdata->width ?? 0),
         ];
     }
 

@@ -127,7 +127,7 @@ class element extends base_element implements
     public function normalise_data(stdClass $formdata): array {
         return [
             'colour' => isset($formdata->colour) ? (string)$formdata->colour : '',
-            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+            'width' => (int)($formdata->width ?? 0),
         ];
     }
 
