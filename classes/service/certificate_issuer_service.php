@@ -162,7 +162,7 @@ final class certificate_issuer_service {
 
         foreach ($customcerts as $customcert) {
             // Check if the certificate is hidden, quit early.
-            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
+            [$course, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
             if (!$cm->visible) {
                 continue;
             }
@@ -176,6 +176,14 @@ final class certificate_issuer_service {
 
             foreach ($candidates as $filtereduser) {
                 $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id);
+
+                // Trigger activity completion when a certificate is issued, if the feature is enabled.
+                if (!empty($issue) && !empty($customcert->completionissued)) {
+                    $completioninfo = new \completion_info($course);
+                    if ($completioninfo->is_enabled($cm)) {
+                        $completioninfo->update_state($cm, COMPLETION_COMPLETE, (int)$filtereduser->id);
+                    }
+                }
 
                 if (!empty($issue) && (int)$issue->emailed === 0) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
