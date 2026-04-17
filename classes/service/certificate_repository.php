@@ -48,7 +48,7 @@ final class certificate_repository {
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
 
         $sql = "SELECT DISTINCT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, c.emailothers,
-                       ct.contextid, co.id AS courseid, co.fullname AS coursefullname, co.shortname AS courseshortname
+                       c.completionissued, ct.contextid, co.id AS courseid, co.fullname AS coursefullname, co.shortname AS courseshortname
                   FROM {customcert} c
                   JOIN {customcert_templates} ct ON c.templateid = ct.id
                   JOIN {course} co ON c.course = co.id
