@@ -128,7 +128,7 @@ $issuerepo = new issue_repository();
 
 // Check if we are downloading all certificates.
 if ($downloadall && $canviewreport && confirm_sesskey()) {
-    $template = \mod_customcert\template::load((int)$template->id);
+    $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
     $issues = $issuerepo->get_issues($customcert->id, $cm, 0, 0);
 
     // The button is not visible if there are no issues, so in this case just redirect back to this page.
@@ -248,7 +248,7 @@ if (!$downloadown && !$downloadissue) {
     manager::write_close();
 
     // Now we want to generate the PDF.
-    $template = template::load((int)$template->id);
+    $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
     $pdfservice = pdf_generation_service::create();
     $pdfservice->generate_pdf($template, false, (int)$userid);
     exit();

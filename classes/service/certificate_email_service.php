@@ -40,6 +40,11 @@ use stdClass;
  */
 final class certificate_email_service {
     /**
+     * @var template_repository
+     */
+    private template_repository $templaterepo;
+
+    /**
      * @var pdf_generation_service
      */
     private pdf_generation_service $pdfservice;
@@ -61,6 +66,7 @@ final class certificate_email_service {
      */
     public static function create(): self {
         return new self(
+            new template_repository(),
             pdf_generation_service::create(),
             new issue_repository(),
             new issue_email_repository(),
@@ -70,15 +76,18 @@ final class certificate_email_service {
     /**
      * certificate_email_service constructor.
      *
+     * @param template_repository $templaterepo
      * @param pdf_generation_service $pdfservice
      * @param issue_repository $issues
      * @param issue_email_repository $emailrepository
      */
     public function __construct(
+        template_repository $templaterepo,
         pdf_generation_service $pdfservice,
         issue_repository $issues,
         issue_email_repository $emailrepository
     ) {
+        $this->templaterepo = $templaterepo;
         $this->pdfservice = $pdfservice;
         $this->issues = $issues;
         $this->emailrepository = $emailrepository;
@@ -131,7 +140,8 @@ final class certificate_email_service {
         $userfullname = fullname($user);
         $info->userfullname = $userfullname;
 
-        $template = template::load((int)$customcert->templateid);
+        $templaterecord = $this->templaterepo->get_by_id_or_fail((int)$customcert->templateid);
+        $template = new template($templaterecord);
         $filecontents = $this->pdfservice->generate_pdf($template, false, (int)$user->id, true);
 
         $filename = $courseshortname . '_' . $certificatename;

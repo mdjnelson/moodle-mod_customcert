@@ -30,6 +30,7 @@ use grade_grade;
 use context_module;
 use context_system;
 use advanced_testcase;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 
 /**
@@ -66,7 +67,7 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = template::load((int)$template->id);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
 
         $service = template_service::create();
 
@@ -131,7 +132,7 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = template::load((int)$template->id);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
 
         $service = template_service::create();
 

@@ -20,6 +20,7 @@ namespace mod_customcert;
 
 use advanced_testcase;
 use mod_customcert\service\pdf_generation_service;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 
 /**
@@ -50,7 +51,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
-        $template = template::load((int)$customcert->templateid);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
 
         $service = pdf_generation_service::create();
         $pdf = $service->create_preview_pdf($template, $USER);
@@ -72,7 +73,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
-        $template = template::load((int)$customcert->templateid);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $service = pdf_generation_service::create();
 
         // Ensure at least one element exists for rendering.
@@ -158,7 +159,7 @@ final class pdf_generation_service_test extends advanced_testcase {
             'customfilenamepattern' => '{FIRST_NAME}-{LAST_NAME}-{COURSE_SHORT_NAME}-{ISSUE_DATE}-{GROUP_NAME}',
         ]);
 
-        $template = template::load((int)$customcert->templateid);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $service = pdf_generation_service::create();
 
         $user = $this->getDataGenerator()->create_user([

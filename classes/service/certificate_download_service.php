@@ -42,6 +42,11 @@ final class certificate_download_service {
     private const string ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES = 'all_certificates.zip';
 
     /**
+     * @var template_repository
+     */
+    private template_repository $templaterepo;
+
+    /**
      * @var pdf_generation_service
      */
     private pdf_generation_service $pdfservice;
@@ -68,23 +73,26 @@ final class certificate_download_service {
      */
     public static function create(): self {
         global $DB;
-        return new self(pdf_generation_service::create(), $DB);
+        return new self(new template_repository(), pdf_generation_service::create(), $DB);
     }
 
     /**
      * certificate_download_service constructor.
      *
+     * @param template_repository $templaterepo
      * @param pdf_generation_service $pdfservice
      * @param moodle_database $db
      * @param callable|null $zipfactory
      * @param callable|null $sendfile
      */
     public function __construct(
+        template_repository $templaterepo,
         pdf_generation_service $pdfservice,
         moodle_database $db,
         ?callable $zipfactory = null,
         ?callable $sendfile = null
     ) {
+        $this->templaterepo = $templaterepo;
         $this->pdfservice = $pdfservice;
         $this->db = $db;
         $this->zipfactory = $zipfactory ?? static fn(): zip_archive => new zip_archive();
@@ -154,7 +162,8 @@ final class certificate_download_service {
             $ziparchive = ($this->zipfactory)();
             if ($ziparchive->open($zipfullpath)) {
                 foreach ($issues as $issue) {
-                    $template = template::load((int)$issue->templateid);
+                    $templaterecord = $this->templaterepo->get_by_id_or_fail((int)$issue->templateid);
+                    $template = new template($templaterecord);
 
                     $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
                     $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));

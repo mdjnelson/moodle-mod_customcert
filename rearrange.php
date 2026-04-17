@@ -29,6 +29,7 @@ use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
+use mod_customcert\service\template_repository;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -49,7 +50,7 @@ foreach ($elementrepo->load_by_page_id($pid) as $instance) {
 }
 
 // Set the template.
-$template = template::load((int)$page->templateid);
+$template = new template((new template_repository())->get_by_id_or_fail((int)$page->templateid));
 // Perform checks.
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);
