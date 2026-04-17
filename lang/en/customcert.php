@@ -43,6 +43,9 @@ $string['codegenerationmethod_desc'] = 'Choose between the two methods for gener
 $string['codegenerationmethod_digitshyphens'] = '0123-4567-8901 (Digits with hyphens)';
 $string['codegenerationmethod_upperlowerdigits'] = '6aOdbLEuoC (Upper/lower/digits random string)';
 $string['copy'] = 'Copy';
+$string['completionissued'] = 'Student receives certificate by email';
+$string['completionissued_help'] = 'If enabled, the activity is marked complete when a certificate has been emailed to the student.';
+$string['completionissuedemailerror'] = 'Certificate completion by email requires \'Email students\' to be enabled, either globally or for this activity.';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
 the certificate.';
@@ -230,6 +233,7 @@ $string['showposxy_desc'] = 'This will show the X and Y position when editing of
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
 $string['subplugintype_customcertelement'] = 'Element';
 $string['subplugintype_customcertelement_plural'] = 'Elements';
+$string['taskcompletionbackfill'] = 'Backfill activity completion for existing issued certificates.';
 $string['taskemailcertificate'] = 'Handles emailing certificates.';
 $string['taskissuecertificate'] = 'Issue certificates task';
 $string['templatename'] = 'Template name';
