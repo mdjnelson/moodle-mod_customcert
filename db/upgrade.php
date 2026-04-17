@@ -22,7 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\task\manager;
 use mod_customcert\local\upgrade\row_migrator;
+use mod_customcert\task\completion_backfill_task;
 
 /**
  * Customcert module upgrade code.
@@ -420,6 +422,21 @@ function xmldb_customcert_upgrade($oldversion) {
 
         // Savepoint reached.
         upgrade_mod_savepoint(true, 2025122800, 'customcert');
+    }
+
+    if ($oldversion < 2026060501) {
+        // Add 'completionissued' field to track completion when a certificate is emailed.
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('completionissued', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Queue an adhoc task to backfill completion state for existing issued certificates.
+        $task = new completion_backfill_task();
+        manager::queue_adhoc_task($task, true);
+
+        upgrade_mod_savepoint(true, 2026060501, 'customcert');
     }
 
     return true;
