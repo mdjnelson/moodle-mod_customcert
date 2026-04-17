@@ -48,7 +48,7 @@ $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
 // Set the template object.
-$template = template::load((int)$tid);
+$template = new template($templaterepo->get_by_id_or_fail((int)$tid));
 
 // Perform checks.
 if ($cm = $template->get_cm()) {

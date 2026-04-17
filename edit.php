@@ -31,12 +31,14 @@ use mod_customcert\service\item_move_service;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\pdf_generation_service;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
 
 require_once('../../config.php');
 
 $pagerepo = new page_repository();
+$templaterepo = new template_repository();
 $templateservice = template_service::create();
 $pdfservice = pdf_generation_service::create();
 
@@ -50,7 +52,7 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Edit an existing template.
 if ($tid) {
     // Create the template object.
-    $template = template::load((int)$tid);
+    $template = new template($templaterepo->get_by_id_or_fail((int)$tid));
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.

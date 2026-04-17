@@ -25,6 +25,7 @@
 use action_link;
 use mod_customcert\page_helper;
 use mod_customcert\service\template_load_service;
+use mod_customcert\service\template_repository;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -33,8 +34,9 @@ $tid = required_param('tid', PARAM_INT);
 $ltid = required_param('ltid', PARAM_INT); // The template to load.
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
-$template = template::load((int)$tid);
-$loadtemplate = template::load((int)$ltid);
+$templaterepo = new template_repository();
+$template = new template($templaterepo->get_by_id_or_fail((int)$tid));
+$loadtemplate = new template($templaterepo->get_by_id_or_fail((int)$ltid));
 
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);

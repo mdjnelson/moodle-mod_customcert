@@ -107,7 +107,8 @@ final class template_duplication_service {
         $transaction = $DB->start_delegated_transaction();
 
         $targetid = $this->templates->duplicate($sourceid, $newname);
-        $targettemplate = template::load($targetid);
+        $targetrecord = $this->templates->get_by_id_or_fail($targetid);
+        $targettemplate = new template($targetrecord);
 
         $pages = $this->pages->list_by_template($sourceid);
         foreach ($pages as $page) {

@@ -26,6 +26,7 @@ use mod_customcert\template;
 use mod_customcert\event\template_updated;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
+use mod_customcert\service\template_repository;
 
 require_once(__DIR__ . '/../../config.php');
 
@@ -38,7 +39,7 @@ $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
 // Load the template.
-$template = template::load($tid);
+$template = new template((new template_repository())->get_by_id_or_fail($tid));
 // Perform checks.
 if ($cm = $template->get_cm()) {
     $courseid = $cm->course;

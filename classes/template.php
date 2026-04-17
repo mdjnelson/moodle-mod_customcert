@@ -342,13 +342,16 @@ class template {
     /**
      * Load an existing template by id.
      *
+     * @deprecated since Moodle 5.2
      * @param int $templateid
      * @return template
      */
     public static function load(int $templateid): template {
+        debugging('template::load() is deprecated since Moodle 5.2. Use template::from_record() '
+            . 'with template_repository instead.', DEBUG_DEVELOPER);
         $repository = new template_repository();
         $record = $repository->get_by_id_or_fail($templateid);
-        return new template($record);
+        return self::from_record($record);
     }
 
     /**

@@ -40,6 +40,7 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\persistence_helper;
+use mod_customcert\service\template_repository;
 use stdClass;
 use Throwable;
 
@@ -92,7 +93,8 @@ class external extends external_api {
         $element = $elementrepo->get_by_id_or_fail((int)$elementid);
 
         // Set the template.
-        $template = template::load((int)$templateid);
+        $templaterepo = new template_repository();
+        $template = new template($templaterepo->get_by_id_or_fail((int)$templateid));
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -174,7 +176,8 @@ class external extends external_api {
         $element = $elementrepo->get_by_id_or_fail((int)$elementid);
 
         // Set the template.
-        $template = template::load((int)$templateid);
+        $templaterepo = new template_repository();
+        $template = new template($templaterepo->get_by_id_or_fail((int)$templateid));
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -408,6 +411,7 @@ class external extends external_api {
         $output = [];
 
         $pdfservice = $includepdf ? pdf_generation_service::create() : null;
+        $templaterepo = $includepdf ? new template_repository() : null;
 
         foreach ($records as $issue) {
             $pdfname = null;
@@ -415,7 +419,7 @@ class external extends external_api {
 
             if ($includepdf) {
                 try {
-                    $template = template::load((int)$issue->templateid);
+                    $template = new template($templaterepo->get_by_id_or_fail((int)$issue->templateid));
                     $safe = str_replace(' ', '_', mb_strtolower($template->get_name()));
 
                     $pdfname = $safe . '_certificate.pdf';

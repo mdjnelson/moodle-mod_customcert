@@ -32,6 +32,7 @@ use customcertelement_text\element as text_element;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
 use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
@@ -272,7 +273,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
-        $template = template::load((int)$templatedata->id);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
@@ -417,7 +418,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
-        $template = template::load((int)$templatedata->id);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
@@ -465,7 +466,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
-        $template = template::load((int)$templatedata->id);
+        $template = new template((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
