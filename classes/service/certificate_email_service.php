@@ -265,9 +265,9 @@ final class certificate_email_service {
 
         $this->issues->mark_emailed($issueid);
 
-        // Trigger completion reevaluation if the completionissued rule is enabled for this instance.
+        // Trigger completion reevaluation if the completionemailed rule is enabled for this instance.
         // This covers both the synchronous and adhoc email dispatch paths.
-        if (!empty($customcert->completionissued) && !empty($user)) {
+        if (!empty($customcert->completionemailed) && !empty($user)) {
             $cm = get_coursemodule_from_instance('customcert', $customcertid, 0, false, MUST_EXIST);
             $course = get_course($cm->course);
             $completioninfo = new \completion_info($course);
