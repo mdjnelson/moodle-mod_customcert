@@ -141,7 +141,7 @@ final class certificate_email_service {
         $info->userfullname = $userfullname;
 
         $templaterecord = $this->templaterepo->get_by_id_or_fail((int)$customcert->templateid);
-        $template = new template($templaterecord);
+        $template = template::from_record($templaterecord);
         $filecontents = $this->pdfservice->generate_pdf($template, false, (int)$user->id, true);
 
         $filename = $courseshortname . '_' . $certificatename;

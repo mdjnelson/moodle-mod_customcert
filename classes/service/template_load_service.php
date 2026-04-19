@@ -96,7 +96,7 @@ final class template_load_service {
         $source = $this->templates->get_by_id_or_fail($sourceid);
 
         $targetrecord = $this->templates->get_by_id_or_fail($targetid);
-        $targettemplate = new template($targetrecord);
+        $targettemplate = template::from_record($targetrecord);
         $context = context::instance_by_id($targettemplate->get_contextid());
         require_capability('mod/customcert:manage', $context);
 

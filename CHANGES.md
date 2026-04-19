@@ -69,7 +69,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   - `mod_customcert\service\element_renderer` — interface for the v2 element rendering pipeline (PDF and HTML surfaces)
   - `mod_customcert\service\pdf_renderer` — `element_renderer` implementation for PDF output
   - `mod_customcert\service\html_renderer` — `element_renderer` implementation for the designer preview
-- `mod_customcert\template::load(int $id)` is the supported entry point for instantiating templates; production code should no longer call `new template($record)`.
+- `mod_customcert\template::from_record(\stdClass $record)` is now the **preferred** entry point for instantiating a template from a database record; `mod_customcert\template::create(string $name, int $contextid)` is the preferred entry point for creating a new template. The constructor signature has changed to accept `int $id, string $name, int $contextid` individually (previously it accepted a raw `\stdClass $record`) — new code should use `from_record()` rather than calling `new template(...)` directly, though the constructor remains functional.
 - `mod_customcert\element\legacy_element_adapter` — wraps a legacy element (extending `mod_customcert\element`) to satisfy `element_interface`; returned by the factory for unupgraded element plugins.
 - Static utility methods on `certificate` have been moved to dedicated service/repository classes:
   - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`

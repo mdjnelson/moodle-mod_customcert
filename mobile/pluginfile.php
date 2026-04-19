@@ -99,7 +99,7 @@ if (!$issue) {
 }
 
 // Now we want to generate the PDF.
-$template = new template((new template_repository())->get_by_id_or_fail((int)$certificate->templateid));
+$template = template::from_record((new template_repository())->get_by_id_or_fail((int)$certificate->templateid));
 $pdfservice = pdf_generation_service::create();
 $pdfservice->generate_pdf($template, false, (int)$userid);
 exit();

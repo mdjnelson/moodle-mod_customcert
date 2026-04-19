@@ -94,7 +94,7 @@ class external extends external_api {
 
         // Set the template.
         $templaterepo = new template_repository();
-        $template = new template($templaterepo->get_by_id_or_fail((int)$templateid));
+        $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -177,7 +177,7 @@ class external extends external_api {
 
         // Set the template.
         $templaterepo = new template_repository();
-        $template = new template($templaterepo->get_by_id_or_fail((int)$templateid));
+        $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
 
         // Perform checks.
         if ($cm = $template->get_cm()) {
@@ -419,7 +419,7 @@ class external extends external_api {
 
             if ($includepdf) {
                 try {
-                    $template = new template($templaterepo->get_by_id_or_fail((int)$issue->templateid));
+                    $template = template::from_record($templaterepo->get_by_id_or_fail((int)$issue->templateid));
                     $safe = str_replace(' ', '_', mb_strtolower($template->get_name()));
 
                     $pdfname = $safe . '_certificate.pdf';

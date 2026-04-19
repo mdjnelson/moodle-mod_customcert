@@ -52,7 +52,7 @@ $confirm = optional_param('confirm', 0, PARAM_INT);
 // Edit an existing template.
 if ($tid) {
     // Create the template object.
-    $template = new template($templaterepo->get_by_id_or_fail((int)$tid));
+    $template = template::from_record($templaterepo->get_by_id_or_fail((int)$tid));
     // Set the context.
     $contextid = $template->get_contextid();
     // Set the page url.

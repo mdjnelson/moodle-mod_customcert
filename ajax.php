@@ -39,7 +39,7 @@ $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
 // Load the template.
-$template = new template((new template_repository())->get_by_id_or_fail($tid));
+$template = template::from_record((new template_repository())->get_by_id_or_fail($tid));
 // Perform checks.
 if ($cm = $template->get_cm()) {
     $courseid = $cm->course;

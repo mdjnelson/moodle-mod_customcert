@@ -67,7 +67,7 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
 
         $service = template_service::create();
 
@@ -132,7 +132,7 @@ final class element_helper_test extends advanced_testcase {
 
         // Get the template to add elements to.
         $template = $DB->get_record('customcert_templates', ['contextid' => context_module::instance($customcert->cmid)->id]);
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$template->id));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
 
         $service = template_service::create();
 

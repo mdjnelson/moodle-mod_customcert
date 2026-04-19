@@ -163,7 +163,7 @@ final class certificate_download_service {
             if ($ziparchive->open($zipfullpath)) {
                 foreach ($issues as $issue) {
                     $templaterecord = $this->templaterepo->get_by_id_or_fail((int)$issue->templateid);
-                    $template = new template($templaterecord);
+                    $template = template::from_record($templaterecord);
 
                     $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
                     $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));

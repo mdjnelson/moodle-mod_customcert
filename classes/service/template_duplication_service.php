@@ -108,7 +108,7 @@ final class template_duplication_service {
 
         $targetid = $this->templates->duplicate($sourceid, $newname);
         $targetrecord = $this->templates->get_by_id_or_fail($targetid);
-        $targettemplate = new template($targetrecord);
+        $targettemplate = template::from_record($targetrecord);
 
         $pages = $this->pages->list_by_template($sourceid);
         foreach ($pages as $page) {

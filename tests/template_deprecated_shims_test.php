@@ -159,7 +159,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
 
         $page = $DB->get_record('customcert_pages', ['templateid' => $template->get_id()], '*', MUST_EXIST);
         $DB->insert_record('customcert_elements', (object) [
@@ -192,7 +192,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
 
         $pdf = $template->create_preview_pdf($USER);
 
@@ -216,7 +216,7 @@ final class template_deprecated_shims_test extends advanced_testcase {
         $service = template_service::create();
 
         $sourcecustomcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $source = new template((new template_repository())->get_by_id_or_fail((int)$sourcecustomcert->templateid));
+        $source = template::from_record((new template_repository())->get_by_id_or_fail((int)$sourcecustomcert->templateid));
         $pageid = $service->add_page($source);
         $DB->insert_record('customcert_elements', (object) [
             'pageid' => $pageid,

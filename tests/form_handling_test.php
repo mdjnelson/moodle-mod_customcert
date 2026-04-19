@@ -51,7 +51,7 @@ final class form_handling_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
