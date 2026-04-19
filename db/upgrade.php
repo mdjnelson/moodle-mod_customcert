@@ -404,5 +404,16 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025122800, 'customcert');
     }
 
+    if ($oldversion < 2026042001) {
+        // Add 'completionemailed' field to enable per-instance completion when a certificate is emailed.
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('completionemailed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026042001, 'customcert');
+    }
+
     return true;
 }

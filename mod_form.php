@@ -140,6 +140,49 @@ class mod_customcert_mod_form extends moodleform_mod {
     }
 
     /**
+     * Add elements to form.
+     */
+    public function add_completion_rules() {
+        $mform =& $this->_form;
+
+        $mform->addElement('checkbox', 'completionemailed', '', get_string('completionemailed', 'customcert'));
+        $mform->setType('completionemailed', PARAM_BOOL);
+        $mform->addHelpButton('completionemailed', 'completionemailed', 'customcert');
+
+        // Disable the completion checkbox if email to students is not enabled.
+        // Check if the user has permission to manage email students setting.
+        if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
+            // If user can manage email students, disable completion when emailstudents is not checked.
+            $mform->disabledIf('completionemailed', 'emailstudents', 'eq', 0);
+        } else {
+            // If user can't manage email students, check global setting.
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (!$globalemailstudents) {
+                // If global setting is disabled, disable the completion checkbox entirely.
+                $mform->addElement(
+                    'static',
+                    'completionemailed_disabled_note',
+                    '',
+                    get_string('completionemailedemailerror', 'customcert')
+                );
+                $mform->setConstant('completionemailed', 0);
+            }
+        }
+
+        return ['completionemailed'];
+    }
+
+    /**
+     * Called during validation. Indicates whether a module-specific completion rule is selected.
+     *
+     * @param array $data Input data (not yet validated)
+     * @return bool True if one or more rules is enabled, false if none are.
+     */
+    public function completion_rule_enabled($data) {
+        return (!empty($data['completionemailed']));
+    }
+
+    /**
      * Any data processing needed before the form is displayed.
      *
      * @param array $defaultvalues
@@ -208,6 +251,13 @@ class mod_customcert_mod_form extends moodleform_mod {
         if (!empty($data['requiredtime'])) {
             if ((!is_number($data['requiredtime']) || $data['requiredtime'] < 0)) {
                 $errors['requiredtime'] = get_string('requiredtimenotvalid', 'customcert');
+            }
+        }
+
+        if (!empty($data['completionemailed'])) {
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (empty($data['emailstudents']) && !$globalemailstudents) {
+                $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
             }
         }
 
