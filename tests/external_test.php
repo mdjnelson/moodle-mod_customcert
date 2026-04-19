@@ -553,7 +553,7 @@ final class external_test extends advanced_testcase {
 
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $templaterecord = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
-        $template = new template($templaterecord);
+        $template = template::from_record($templaterecord);
 
         $pageid = template_service::create()->add_page($template);
 

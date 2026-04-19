@@ -83,7 +83,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Build a minimal template with one element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -131,7 +131,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Make the template valid.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -209,7 +209,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -252,7 +252,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -288,7 +288,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -321,7 +321,7 @@ final class email_certificate_task_test extends advanced_testcase {
         set_coursemodule_visible($customcert->cmid, 0);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -358,7 +358,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -392,7 +392,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -432,7 +432,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -472,7 +472,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -512,7 +512,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1,
         ]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -554,7 +554,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1,
         ]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -599,7 +599,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1,
         ]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -643,7 +643,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1,
         ]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -680,7 +680,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         set_coursemodule_visible($customcert->cmid, 0);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -721,7 +721,7 @@ final class email_certificate_task_test extends advanced_testcase {
         }
 
         foreach ($customcerts as $customcert) {
-            $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+            $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
             $templateservice = template_service::create();
             $pageid = $templateservice->add_page($template);
             $this->assertDebuggingNotCalled();
@@ -829,7 +829,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -883,7 +883,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -964,7 +964,7 @@ final class email_certificate_task_test extends advanced_testcase {
         role_change_permission($role->id, context_module::instance($customcert->cmid), 'mod/customcert:receiveissue', CAP_ALLOW);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1052,7 +1052,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailteachers' => 1]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1107,7 +1107,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailothers' => 'testcustomcert@example.com, doo@dah']);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1160,7 +1160,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1218,7 +1218,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'requiredtime' => '60']);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1299,7 +1299,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1384,7 +1384,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1444,7 +1444,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Create template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page to this template.
@@ -1544,7 +1544,7 @@ final class email_certificate_task_test extends advanced_testcase {
             'emailstudents' => 1]);
 
         // Set up a basic certificate template.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         // Add a page and an element to put the certificate in a valid state.
@@ -1645,7 +1645,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
         // Make the template valid.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
@@ -1699,7 +1699,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create valid template.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         $pageid = $templateservice->add_page($template);
@@ -1787,7 +1787,7 @@ final class email_certificate_task_test extends advanced_testcase {
         ]);
 
         // Create valid template (one element).
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
 
         $pageid = $templateservice->add_page($template);

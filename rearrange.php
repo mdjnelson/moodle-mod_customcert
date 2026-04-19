@@ -50,7 +50,7 @@ foreach ($elementrepo->load_by_page_id($pid) as $instance) {
 }
 
 // Set the template.
-$template = new template((new template_repository())->get_by_id_or_fail((int)$page->templateid));
+$template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
 // Perform checks.
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);

@@ -53,7 +53,7 @@ final class certificate_download_service_test extends advanced_testcase {
         ]);
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pdfservice = pdf_generation_service::create();
         $pageid = $templateservice->add_page($template);
@@ -119,7 +119,7 @@ final class certificate_download_service_test extends advanced_testcase {
         ]);
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
 
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
         $templateservice = template_service::create();
         $pdfservice = pdf_generation_service::create();
         $templateservice->update($template, (object) ['name' => 'Site Template']);

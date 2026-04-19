@@ -74,12 +74,24 @@ class template {
     /**
      * The constructor.
      *
-     * @param stdClass $template
+     * @param int $id The id of the template.
+     * @param string $name The name of the template.
+     * @param int $contextid The context id of the template.
      */
-    public function __construct(stdClass $template) {
-        $this->id = (int)$template->id;
-        $this->name = $template->name;
-        $this->contextid = (int)$template->contextid;
+    public function __construct(int $id, string $name, int $contextid) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->contextid = $contextid;
+    }
+
+    /**
+     * Creates a template instance from a database record.
+     *
+     * @param stdClass $record A record from the customcert_templates table.
+     * @return template
+     */
+    public static function from_record(stdClass $record): template {
+        return new template((int)$record->id, $record->name, (int)$record->contextid);
     }
 
     /**
@@ -332,7 +344,7 @@ class template {
         $id = $repository->create((object) ['name' => $templatename, 'contextid' => $contextid]);
         $record = $repository->get_by_id_or_fail($id);
 
-        $template = new template($record);
+        $template = self::from_record($record);
 
         template_created::create_from_template($template)->trigger();
 

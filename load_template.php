@@ -35,8 +35,8 @@ $ltid = required_param('ltid', PARAM_INT); // The template to load.
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 $templaterepo = new template_repository();
-$template = new template($templaterepo->get_by_id_or_fail((int)$tid));
-$loadtemplate = new template($templaterepo->get_by_id_or_fail((int)$ltid));
+$template = template::from_record($templaterepo->get_by_id_or_fail((int)$tid));
+$loadtemplate = template::from_record($templaterepo->get_by_id_or_fail((int)$ltid));
 
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);

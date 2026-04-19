@@ -119,7 +119,7 @@ function customcert_delete_instance($id) {
     // Now, delete the template associated with this certificate.
     if (($templaterecord = (new template_repository())->get_by_id((int)$customcert->templateid)) !== null) {
         $templateservice = template_service::create();
-        $templateservice->delete(new template($templaterecord));
+        $templateservice->delete(template::from_record($templaterecord));
     }
 
     // Delete the customcert instance.
@@ -454,7 +454,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
         // Set the template object.
-        $template = new template((new template_repository())->get_by_id_or_fail((int)$page->templateid));
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
         // Perform checks.
         if ($cm = $template->get_cm()) {
             require_login($cm->course, false, $cm);

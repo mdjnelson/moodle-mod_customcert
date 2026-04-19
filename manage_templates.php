@@ -44,7 +44,7 @@ if ($action) {
 }
 
 if ($tid) {
-    $template = new template((new template_repository())->get_by_id_or_fail((int)$tid));
+    $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$tid));
 }
 
 $context = context::instance_by_id($contextid);
