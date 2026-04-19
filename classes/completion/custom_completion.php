@@ -58,7 +58,12 @@ class custom_completion extends activity_custom_completion {
             $customcert = $DB->get_record('customcert', ['id' => $customcertid], 'id, completionissued, emailstudents',
                 MUST_EXIST);
 
-            // Rule is active only when email to students is enabled (globally or per-instance).
+            // Rule is only active when the teacher has explicitly enabled it for this instance.
+            if (empty($customcert->completionissued)) {
+                return COMPLETION_INCOMPLETE;
+            }
+
+            // Email to students must be enabled either per-instance or globally.
             if (empty($customcert->emailstudents) && !get_config('customcert', 'emailstudents')) {
                 return COMPLETION_INCOMPLETE;
             }
