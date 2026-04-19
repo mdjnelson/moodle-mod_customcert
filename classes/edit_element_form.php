@@ -30,8 +30,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_layout;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
-use mod_customcert\element\element_interface;
-use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element as element_base;
 use moodleform;
 use MoodleQuickForm;
 
@@ -57,9 +56,9 @@ MoodleQuickForm::registerElementType(
  */
 class edit_element_form extends moodleform {
     /**
-     * @var element_interface The element object.
+     * @var element_base The element object.
      */
-    protected element_interface $element;
+    protected element_base $element;
 
     /**
      * @var element_layout Layout DTO carrying position/alignment values.
