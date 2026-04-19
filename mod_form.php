@@ -250,6 +250,15 @@ class mod_customcert_mod_form extends moodleform_mod {
             }
         }
 
+        // Server-side guard: completionissued requires email-to-students to be available.
+        // The form disables the checkbox via JS, but a crafted POST could bypass that.
+        if (!empty($data['completionissued'])) {
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (empty($data['emailstudents']) && !$globalemailstudents) {
+                $errors['completionissued'] = get_string('completionissuedemailerror', 'customcert');
+            }
+        }
+
         return $errors;
     }
 

@@ -54,6 +54,8 @@ class custom_completion extends activity_custom_completion {
         $customcertid = $this->cm->instance;
         $userid = $this->userid;
 
+        // Note: the rule and DB field are named 'completionissued' for historical reasons.
+        // The actual runtime condition is customcert_issues.emailed = 1 (certificate email sent to student).
         if ($rule === 'completionissued') {
             $customcert = $DB->get_record('customcert', ['id' => $customcertid], 'id, completionissued', MUST_EXIST);
 
