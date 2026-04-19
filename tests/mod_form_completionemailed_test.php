@@ -34,33 +34,33 @@ final class mod_form_completionemailed_test extends advanced_testcase {
     /**
      * Data provider for {@see test_validation_completionemailed()}.
      *
+     * The emailstudents value is always present in submitted data (either from the
+     * visible select for users with manageemailstudents, or from the hidden field
+     * for users without). The global setting is irrelevant to validation.
+     *
      * @return array[]
      */
     public static function validation_provider(): array {
         return [
-            'completionemailed=1, emailstudents=1, global off — no error' => [
-                'completionemailed'   => 1,
-                'emailstudents'       => 1,
-                'globalemailstudents' => 0,
-                'expecterror'         => false,
+            'completionemailed=1, emailstudents=1 — no error' => [
+                'completionemailed' => 1,
+                'emailstudents'     => 1,
+                'expecterror'       => false,
             ],
-            'completionemailed=1, emailstudents=0, global on — no error' => [
-                'completionemailed'   => 1,
-                'emailstudents'       => 0,
-                'globalemailstudents' => 1,
-                'expecterror'         => false,
+            'completionemailed=1, emailstudents=0 — error' => [
+                'completionemailed' => 1,
+                'emailstudents'     => 0,
+                'expecterror'       => true,
             ],
-            'completionemailed=1, emailstudents=0, global off — error' => [
-                'completionemailed'   => 1,
-                'emailstudents'       => 0,
-                'globalemailstudents' => 0,
-                'expecterror'         => true,
+            'completionemailed=0, emailstudents=0 — no error' => [
+                'completionemailed' => 0,
+                'emailstudents'     => 0,
+                'expecterror'       => false,
             ],
-            'completionemailed=0, emailstudents=0, global off — no error' => [
-                'completionemailed'   => 0,
-                'emailstudents'       => 0,
-                'globalemailstudents' => 0,
-                'expecterror'         => false,
+            'completionemailed=0, emailstudents=1 — no error' => [
+                'completionemailed' => 0,
+                'emailstudents'     => 1,
+                'expecterror'       => false,
             ],
         ];
     }
@@ -73,32 +73,29 @@ final class mod_form_completionemailed_test extends advanced_testcase {
      * valid availability-conditions JSON), we replicate the guard here so the
      * logic is tested in isolation without any form infrastructure.
      *
+     * The emailstudents field is always present in submitted data because
+     * add_completion_rules() adds it as a hidden field for users who cannot
+     * manage it, ensuring disabledIf works via JS for all users.
+     *
      * @dataProvider validation_provider
-     * @param int  $completionemailed   Value of the completionemailed checkbox.
-     * @param int  $emailstudents       Value of the emailstudents checkbox in the submitted data.
-     * @param int  $globalemailstudents Value of the global emailstudents config.
-     * @param bool $expecterror         Whether a validation error is expected.
+     * @param int  $completionemailed Value of the completionemailed checkbox.
+     * @param int  $emailstudents     Value of the emailstudents field in submitted data.
+     * @param bool $expecterror       Whether a validation error is expected.
      * @covers \mod_customcert_mod_form::validation
      */
     public function test_validation_completionemailed(
         int $completionemailed,
         int $emailstudents,
-        int $globalemailstudents,
         bool $expecterror
     ): void {
         $this->resetAfterTest();
-
-        set_config('emailstudents', $globalemailstudents, 'customcert');
 
         // Replicate the guard from mod_customcert_mod_form::validation().
         $data   = ['completionemailed' => $completionemailed, 'emailstudents' => $emailstudents];
         $errors = [];
 
-        if (!empty($data['completionemailed'])) {
-            $globalconfig = get_config('customcert', 'emailstudents');
-            if (empty($data['emailstudents']) && !$globalconfig) {
-                $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
-            }
+        if (!empty($data['completionemailed']) && empty($data['emailstudents'])) {
+            $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
         }
 
         if ($expecterror) {
