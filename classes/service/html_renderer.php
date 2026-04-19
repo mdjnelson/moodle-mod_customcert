@@ -33,7 +33,6 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element as element_base;
-use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
@@ -47,23 +46,23 @@ final class html_renderer implements element_renderer {
     /**
      * Renders PDF.
      *
-     * @param element_interface $element
+     * @param element_base $element
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
      * @return void
      */
-    public function render_pdf(element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
+    public function render_pdf(element_base $element, pdf $pdf, bool $preview, stdClass $user): void {
         // No-op in HTML renderer.
     }
 
     /**
      * Render HTML.
      *
-     * @param element_interface $element
+     * @param element_base $element
      * @return string
      */
-    public function render_html(element_interface $element): string {
+    public function render_html(element_base $element): string {
         if ($element instanceof renderable_element_interface) {
             return $element->render_html($this);
         }
