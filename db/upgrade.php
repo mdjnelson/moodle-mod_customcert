@@ -405,16 +405,12 @@ function xmldb_customcert_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026042001) {
-        // Add 'completionissued' field to track completion when a certificate is emailed.
+        // Add 'completionissued' field to enable per-instance completion when a certificate is emailed.
         $table = new xmldb_table('customcert');
         $field = new xmldb_field('completionissued', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
-        // Queue an adhoc task to backfill completion state for existing issued certificates.
-        $task = new \mod_customcert\task\completion_backfill_task();
-        \core\task\manager::queue_adhoc_task($task, true);
 
         upgrade_mod_savepoint(true, 2026042001, 'customcert');
     }
