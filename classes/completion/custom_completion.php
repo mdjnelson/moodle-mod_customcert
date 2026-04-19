@@ -31,7 +31,7 @@ use core_completion\activity_custom_completion;
 /**
  * Activity custom completion class for mod_customcert.
  *
- * Evaluates the "completionissued" rule: marks the activity complete when a
+ * Evaluates the "completionemailed" rule: marks the activity complete when a
  * certificate has been emailed to the student.
  *
  * @package    mod_customcert
@@ -39,7 +39,6 @@ use core_completion\activity_custom_completion;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class custom_completion extends activity_custom_completion {
-
     /**
      * Fetches the completion state for a given completion rule.
      *
@@ -54,21 +53,21 @@ class custom_completion extends activity_custom_completion {
         $customcertid = $this->cm->instance;
         $userid = $this->userid;
 
-        // Note: the rule and DB field are named 'completionissued' for historical reasons.
-        // The actual runtime condition is customcert_issues.emailed = 1 (certificate email sent to student).
-        if ($rule === 'completionissued') {
-            $customcert = $DB->get_record('customcert', ['id' => $customcertid], 'id, completionissued', MUST_EXIST);
+        if ($rule === 'completionemailed') {
+            $customcert = $DB->get_record('customcert', ['id' => $customcertid], 'id, completionemailed', MUST_EXIST);
 
             // Rule is only active when the teacher has explicitly enabled it for this instance.
-            if (empty($customcert->completionissued)) {
+            if (empty($customcert->completionemailed)) {
                 return COMPLETION_INCOMPLETE;
             }
 
             // Completion is based solely on whether the certificate email was sent to the student.
             // It does not depend on the current email configuration, so completion cannot regress
             // if email settings change after the student has already satisfied the condition.
-            $emailed = $DB->record_exists('customcert_issues',
-                ['customcertid' => $customcertid, 'userid' => $userid, 'emailed' => 1]);
+            $emailed = $DB->record_exists(
+                'customcert_issues',
+                ['customcertid' => $customcertid, 'userid' => $userid, 'emailed' => 1]
+            );
 
             return $emailed ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
         }
@@ -82,7 +81,7 @@ class custom_completion extends activity_custom_completion {
      * @return array
      */
     public static function get_defined_custom_rules(): array {
-        return ['completionissued'];
+        return ['completionemailed'];
     }
 
     /**
@@ -92,7 +91,7 @@ class custom_completion extends activity_custom_completion {
      */
     public function get_custom_rule_descriptions(): array {
         return [
-            'completionissued' => get_string('completionissued', 'customcert'),
+            'completionemailed' => get_string('completionemailed', 'customcert'),
         ];
     }
 
@@ -104,7 +103,7 @@ class custom_completion extends activity_custom_completion {
     public function get_sort_order(): array {
         return [
             'completionview',
-            'completionissued',
+            'completionemailed',
         ];
     }
 }

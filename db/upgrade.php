@@ -405,9 +405,9 @@ function xmldb_customcert_upgrade($oldversion) {
     }
 
     if ($oldversion < 2026042001) {
-        // Add 'completionissued' field to enable per-instance completion when a certificate is emailed.
+        // Add 'completionemailed' field to enable per-instance completion when a certificate is emailed.
         $table = new xmldb_table('customcert');
-        $field = new xmldb_field('completionissued', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+        $field = new xmldb_field('completionemailed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
