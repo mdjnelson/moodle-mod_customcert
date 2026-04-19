@@ -289,6 +289,30 @@ function customcert_supports($feature) {
 }
 
 /**
+ * Obtains the automatic completion state for this customcert based on any conditions in customcert settings.
+ *
+ * @param stdClass $coursemodule The course module object (record).
+ * @return cached_cm_info|false
+ */
+function customcert_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $customcert = $DB->get_record('customcert', ['id' => $coursemodule->instance], 'id, name, completionemailed');
+    if (!$customcert) {
+        return false;
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $customcert->name;
+
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $result->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
+    }
+
+    return $result;
+}
+
+/**
  * Used for course participation report (in case customcert is added).
  *
  * @return array
