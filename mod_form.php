@@ -250,6 +250,13 @@ class mod_customcert_mod_form extends moodleform_mod {
             }
         }
 
+        if (!empty($data['completionissued'])) {
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (empty($data['emailstudents']) && !$globalemailstudents) {
+                $errors['completionissued'] = get_string('completionissuedemailerror', 'customcert');
+            }
+        }
+
         return $errors;
     }
 
