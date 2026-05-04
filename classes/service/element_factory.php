@@ -168,8 +168,8 @@ final class element_factory {
      * `mod_customcert\element_factory::get_element_instance($element)` so the BC shim
      * can delegate here without exposing this helper as public API.
      *
-     * @internal This method exists solely to support the deprecated BC shim. Do not call it directly
-     *           from new code; use create() or create_from_legacy_record() instead.
+     * This method exists solely to support the deprecated BC shim. Do not call it directly
+     * from new code; use create() or create_from_legacy_record() instead.
      *
      * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
      * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
