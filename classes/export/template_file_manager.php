@@ -175,14 +175,19 @@ class template_file_manager implements template_file_manager_interface {
      * @throws import_exception If any validation check fails.
      */
     private function validate_zip(string $zippath): void {
-        if (!$packer = get_file_packer()) {
-            throw new import_exception('ZIP packer is not available');
-        }
-
-        $files = $packer->list_files($zippath);
-        if ($files === false) {
+        // Use ZipArchive directly to read raw (unsanitised) entry names so that
+        // path-traversal entries such as ../foo or /foo are detected before the
+        // Moodle packer silently normalises them away.
+        $zip = new \ZipArchive();
+        if ($zip->open($zippath) !== true) {
             throw new import_exception('Failed to read the ZIP archive');
         }
+        $files = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            $files[] = (object)['pathname' => $stat['name'], 'size' => $stat['size']];
+        }
+        $zip->close();
 
         // Limit archive entry count to guard against zip bombs.
         $maxfiles = self::MAX_ARCHIVE_FILES;

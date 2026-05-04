@@ -150,9 +150,21 @@ class template_appendix_manager implements template_appendix_manager_interface {
             return;
         }
 
-        $manifest = json_decode((string)file_get_contents($manifestpath), true);
-        if (!is_array($manifest) || empty($manifest['files']) || !is_array($manifest['files'])) {
-            // Also allow empty.
+        $raw = (string)file_get_contents($manifestpath);
+        $manifest = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($manifest)) {
+            throw new \mod_customcert\export\import_exception(
+                'files.json is malformed or not a valid JSON object/array'
+            );
+        }
+        // The "files" key must be present and be an array (empty is allowed).
+        if (!array_key_exists('files', $manifest) || !is_array($manifest['files'])) {
+            throw new \mod_customcert\export\import_exception(
+                'files.json is missing a valid "files" array'
+            );
+        }
+        if (empty($manifest['files'])) {
+            // Valid empty manifest — no files to import.
             $this->index = [];
             $this->created = [];
             return;

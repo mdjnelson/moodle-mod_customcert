@@ -69,6 +69,93 @@ final class export_template_appendix_manager_test extends advanced_testcase {
     }
 
     /**
+     * Test that import with malformed (non-parseable) JSON in files.json throws import_exception.
+     */
+    public function test_import_malformed_json_throws(): void {
+        file_put_contents($this->tempdir . '/files.json', 'not valid json {{{{');
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
+     * Test that import with a JSON scalar (not object/array) in files.json throws import_exception.
+     */
+    public function test_import_json_scalar_throws(): void {
+        file_put_contents($this->tempdir . '/files.json', '"just a string"');
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
+     * Test that import with files.json missing the "files" key throws import_exception.
+     */
+    public function test_import_missing_files_key_throws(): void {
+        file_put_contents($this->tempdir . '/files.json', json_encode(['version' => 1]));
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
+     * Test that import with files.json where "files" is not an array throws import_exception.
+     */
+    public function test_import_files_not_array_throws(): void {
+        file_put_contents($this->tempdir . '/files.json', json_encode(['version' => 1, 'files' => 'bad']));
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
+     * Test that import with an invalid (non-hex-40) content hash key throws an exception.
+     */
+    public function test_import_invalid_contenthash_key_throws(): void {
+        $filesdir = $this->tempdir . '/files';
+        check_dir_exists($filesdir);
+        file_put_contents("$filesdir/badkey", 'content');
+        $manifest = json_encode([
+            'version' => 1,
+            'files' => [
+                'badkey' => [
+                    'filename' => 'test.png',
+                    'mimetype' => 'image/png',
+                    'filepath' => '/',
+                    'itemid' => 0,
+                    'filearea' => 'image',
+                    'component' => 'mod_customcert',
+                ],
+            ],
+        ]);
+        file_put_contents($this->tempdir . '/files.json', $manifest);
+        $this->expectException(\Exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
+     * Test that import with a traversal filename (e.g. ../evil) throws an exception.
+     */
+    public function test_import_traversal_filename_throws(): void {
+        $contenthash = sha1('traversal content');
+        $filesdir = $this->tempdir . '/files';
+        check_dir_exists($filesdir);
+        file_put_contents("$filesdir/$contenthash", 'traversal content');
+        $manifest = json_encode([
+            'version' => 1,
+            'files' => [
+                $contenthash => [
+                    'filename' => '../evil.php',
+                    'mimetype' => 'image/png',
+                    'filepath' => '/',
+                    'itemid' => 0,
+                    'filearea' => 'image',
+                    'component' => 'mod_customcert',
+                ],
+            ],
+        ]);
+        file_put_contents($this->tempdir . '/files.json', $manifest);
+        $this->expectException(\Exception::class);
+        $this->manager->import(1, $this->tempdir);
+    }
+
+    /**
      * Test that import with a missing file entry throws an exception.
      */
     public function test_import_missing_file_throws(): void {
