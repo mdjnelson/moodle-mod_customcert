@@ -208,6 +208,7 @@ final class validation_service_test extends advanced_testcase {
 
         $svc = new validation_service();
         $errors = $svc->validate($element, ['name' => 'OldSig']);
+        $this->assertDebuggingCalled();
 
         // The element loaded without a fatal and validation returned an array.
         $this->assertIsArray($errors);

@@ -398,9 +398,9 @@ final class legacy_element_adapter_test extends advanced_testcase {
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Should delegate to inner element's after_restore without emitting a deprecation warning.
+        // Delegates to the inner element's after_restore() and emits a deprecation notice.
         $adapter->after_restore_from_backup($restore);
-
+        $this->assertDebuggingCalled();
         // Verify the inner element's method was called.
         $this->assertTrue($legacy->called);
     }
