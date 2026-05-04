@@ -256,6 +256,42 @@ final class export_template_file_manager_test extends advanced_testcase {
     }
 
     /**
+     * ZIP with a Windows-style backslash traversal entry ..\template.json must be rejected.
+     */
+    public function test_import_rejects_backslash_dotdot_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            '..\template.json' => json_encode(['name' => 'evil', 'pages' => []]),
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a Windows-style backslash nested traversal files\..\..\evil must be rejected.
+     */
+    public function test_import_rejects_backslash_nested_traversal(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json'       => json_encode(['name' => 'ok', 'pages' => []]),
+            'files\..\..\evil'    => 'payload',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a Windows-style backslash hash-then-traversal files\<hash>\..\evil must be rejected.
+     */
+    public function test_import_rejects_backslash_hash_then_traversal(): void {
+        $hash = str_repeat('a', 40);
+        $tempdir = $this->make_hostile_zip([
+            'template.json'              => json_encode(['name' => 'ok', 'pages' => []]),
+            "files\\$hash\\..\\evil"     => 'payload',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
      * ZIP with invalid (non-JSON) files.json must be rejected.
      */
     public function test_import_rejects_invalid_files_json(): void {
