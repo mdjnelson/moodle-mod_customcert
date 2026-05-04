@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_qrcode;
 
+use context;
 use mod_customcert\element as base_element;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
