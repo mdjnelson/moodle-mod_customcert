@@ -194,13 +194,21 @@ final class legacy_element_adapter implements
     /**
      * Validate form elements (legacy fallback).
      *
+     * Only invokes the legacy hook when the wrapped element actually overrides it;
+     * calling the inherited no-op base implementation would emit a spurious deprecation.
+     * The deprecation notice is emitted here (the compatibility bridge) rather than
+     * in the base class no-op, so it is only emitted once.
+     *
      * @param array $data
      * @param array $files
      * @return array
      */
     public function validate_form_elements(array $data, array $files): array {
         if (method_exists($this->inner, 'validate_form_elements')) {
-            return $this->inner->validate_form_elements($data, $files);
+            $ref = new \ReflectionMethod($this->inner, 'validate_form_elements');
+            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
+                return $this->inner->validate_form_elements($data, $files);
+            }
         }
         return [];
     }
@@ -208,12 +216,18 @@ final class legacy_element_adapter implements
     /**
      * Save unique data for legacy elements (legacy fallback).
      *
+     * Only invokes the legacy hook when the wrapped element actually overrides it;
+     * calling the inherited no-op base implementation would emit a spurious deprecation.
+     *
      * @param \stdClass $data
      * @return mixed
      */
     public function save_unique_data(stdClass $data): mixed {
         if (method_exists($this->inner, 'save_unique_data')) {
-            return $this->inner->save_unique_data($data);
+            $ref = new \ReflectionMethod($this->inner, 'save_unique_data');
+            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
+                return $this->inner->save_unique_data($data);
+            }
         }
         return null;
     }
@@ -280,12 +294,25 @@ final class legacy_element_adapter implements
     /**
      * Sets the data on the form when editing an element (legacy fallback).
      *
+     * Only invokes the legacy hook when the wrapped element actually overrides it;
+     * calling the inherited no-op base implementation would emit a spurious deprecation.
+     * The deprecation notice is emitted here (the compatibility bridge) rather than
+     * in the base class no-op, so it is only emitted once.
+     *
      * @param \MoodleQuickForm $mform
      * @return void
      */
     public function definition_after_data(MoodleQuickForm $mform): void {
         if (method_exists($this->inner, 'definition_after_data')) {
-            $this->inner->definition_after_data($mform);
+            $ref = new \ReflectionMethod($this->inner, 'definition_after_data');
+            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
+                debugging(
+                    'definition_after_data() is deprecated since Moodle 5.2. '
+                    . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
+                    DEBUG_DEVELOPER
+                );
+                $this->inner->definition_after_data($mform);
+            }
         }
     }
 

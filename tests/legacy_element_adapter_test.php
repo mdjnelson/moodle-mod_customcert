@@ -38,6 +38,7 @@ use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
 use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
 use mod_customcert\tests\fixtures\legacy_after_restore_element;
 use mod_customcert\tests\fixtures\legacy_invokable_test_element;
+use mod_customcert\tests\fixtures\legacy_validate_form_elements_element;
 use mod_customcert\tests\fixtures\new_restorable_element;
 
 defined('MOODLE_INTERNAL') || die();
@@ -46,6 +47,7 @@ require_once(__DIR__ . '/fixtures/legacy_save_unique_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_definition_after_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_after_restore_element.php');
 require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
+require_once(__DIR__ . '/fixtures/legacy_validate_form_elements_element.php');
 require_once(__DIR__ . '/fixtures/new_restorable_element.php');
 
 /**
@@ -221,11 +223,12 @@ final class legacy_element_adapter_test extends advanced_testcase {
     }
 
     /**
-     * Ensure adapter delegates validate_form_elements to inner element when method exists.
+     * Adapter must NOT call validate_form_elements() or emit a deprecation when the inner
+     * element only inherits the base no-op (i.e. does not override the method).
      *
      * @covers \mod_customcert\element\legacy_element_adapter::validate_form_elements
      */
-    public function test_adapter_delegates_validate_form_elements(): void {
+    public function test_adapter_skips_validate_form_elements_when_not_overridden(): void {
         $this->resetAfterTest();
 
         $record = (object) [
@@ -235,28 +238,40 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'data' => '',
         ];
 
+        // text_element does not override validate_form_elements — only inherits the base no-op.
         $legacy = new text_element($record);
         $adapter = new legacy_element_adapter($legacy);
 
-        // Provide valid form data to avoid validation errors.
-        $data = [
+        $errors = $adapter->validate_form_elements(['name' => 'Test'], []);
+
+        // No deprecation notice should be emitted — the base no-op must not be called.
+        $this->assertDebuggingNotCalled();
+        $this->assertIsArray($errors);
+        $this->assertEmpty($errors);
+    }
+
+    /**
+     * Adapter must delegate to validate_form_elements() when the inner element actually overrides it.
+     *
+     * @covers \mod_customcert\element\legacy_element_adapter::validate_form_elements
+     */
+    public function test_adapter_delegates_validate_form_elements_when_overridden(): void {
+        $this->resetAfterTest();
+
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
             'name' => 'Test',
-            'colour' => '#000000',
-            'width' => 100,
-            'posx' => 10,
-            'posy' => 10,
+            'data' => '',
         ];
 
-        // Should delegate to inner element's deprecated validate_form_elements.
-        $errors = $adapter->validate_form_elements($data, []);
+        $legacy = new legacy_validate_form_elements_element($record);
+        $adapter = new legacy_element_adapter($legacy);
 
-        // Assert that the deprecation warning was triggered.
-        $this->assertDebuggingCalled(
-            'validate_form_elements() is deprecated since Moodle 5.2. ' .
-            'Implement mod_customcert\element\validatable_element_interface::validate() instead.'
-        );
+        $errors = $adapter->validate_form_elements(['name' => 'Test'], []);
 
-        // With valid data, should return empty array.
+        // The inner element's override was called.
+        $this->assertTrue($legacy->called);
         $this->assertIsArray($errors);
         $this->assertEmpty($errors);
     }
