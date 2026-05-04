@@ -515,6 +515,38 @@ abstract class element implements form_element_interface, stylable_element_inter
 
 
     /**
+     * Handles saving any element data introduced by this element.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2 — implement persistable_element_interface::normalise_data() instead.
+     * @param stdClass $data the form data
+     * @return string the unique data to store
+     */
+    public function save_unique_data($data) {
+        debugging(
+            'save_unique_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() instead.',
+            DEBUG_DEVELOPER
+        );
+        return '';
+    }
+
+    /**
+     * Handles any extra processing needed when an element is restored from a backup.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2 — implement restorable_element_interface::after_restore_from_backup() instead.
+     * @param mixed $restore the restore task
+     */
+    public function after_restore($restore) {
+        debugging(
+            'after_restore() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\restorable_element_interface::after_restore_from_backup() instead.',
+            DEBUG_DEVELOPER
+        );
+    }
+
+    /**
      * This handles copying data from another element of the same type.
      * Can be overridden if more functionality is needed.
      *
