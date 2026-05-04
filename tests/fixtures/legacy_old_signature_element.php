@@ -36,7 +36,6 @@ use mod_customcert\service\element_renderer;
  * Legacy element fixture with old untyped non-render hook signatures.
  */
 class legacy_old_signature_element extends \mod_customcert\element {
-
     /**
      * Render method uses the required 5.2 typed signature.
      *
@@ -90,6 +89,8 @@ class legacy_old_signature_element extends \mod_customcert\element {
     }
 
     /**
+     * Whether this element can be added.
+     *
      * @return bool
      */
     public static function can_add(): bool {
