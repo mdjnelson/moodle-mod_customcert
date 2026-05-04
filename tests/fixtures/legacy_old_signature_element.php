@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Fixture: legacy element with old untyped hook signatures.
+ * Fixture: legacy element with old untyped non-render hook signatures.
  *
  * Simulates a third-party element plugin that was written before 5.2 and has
- * not yet updated its method signatures. Used to verify that the relaxed base
- * class signatures do not cause a PHP fatal at class-load time.
+ * not yet updated its non-render method signatures. Render methods use the
+ * required 5.2 typed signatures; all other legacy hooks use old untyped
+ * signatures to verify they do not cause a PHP fatal at class-load time.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -32,26 +33,26 @@ use pdf;
 use mod_customcert\service\element_renderer;
 
 /**
- * Legacy element fixture with old untyped signatures.
+ * Legacy element fixture with old untyped non-render hook signatures.
  */
 class legacy_old_signature_element extends \mod_customcert\element {
 
     /**
-     * Old-style render — no parameter types, no return type.
+     * Render method uses the required 5.2 typed signature.
      *
-     * @param mixed $pdf
-     * @param mixed $preview
-     * @param mixed $user
-     * @param mixed $renderer
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param \stdClass $user
+     * @param element_renderer|null $renderer
      */
     public function render(pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {
         // No-op fixture.
     }
 
     /**
-     * Old-style render_html — no parameter types, no return type.
+     * Render HTML method uses the required 5.2 typed signature.
      *
-     * @param mixed $renderer
+     * @param element_renderer|null $renderer
      * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
@@ -59,7 +60,7 @@ class legacy_old_signature_element extends \mod_customcert\element {
     }
 
     /**
-     * Old-style render_form_elements — no type hint on $mform.
+     * Old-style non-render hook — no type hint on $mform (untyped legacy signature).
      *
      * @param mixed $mform
      */
