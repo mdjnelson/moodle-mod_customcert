@@ -25,7 +25,7 @@ The legacy `mod_customcert\element` base class remains available for compatibili
 
 New elements should use:
 - `element_interface` — for the core element contract (identity, payload, type)
-- `form_element_interface` — required for registered certificate elements; provides edit-form lifecycle hooks including `build_form()`
+- `form_element_interface` — required for registered certificate elements (along with `renderable_element_interface`); provides edit-form lifecycle hooks including `build_form()`
 - `stylable_element_interface` — only when the element supports standard visual styling (`font`, `fontsize`, `colour`, `width`)
 - `layout_element_interface` — exposes repository-managed layout values (`posx`, `posy`, `refpoint`, `alignment`) for common PDF/HTML rendering helpers
 - `persistable_element_interface` — normalises submitted form data into the JSON payload
