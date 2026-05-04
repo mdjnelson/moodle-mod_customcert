@@ -75,6 +75,8 @@ final class restore_v1_fixture_test extends advanced_testcase {
         );
         $rc->execute_precheck();
         $rc->execute_plan();
+        // The v1 backup contains elements that use the legacy after_restore() hook; expect the deprecation notice.
+        $this->assertDebuggingCalled();
         $rc->destroy();
 
         // Confirm the module and elements were restored.
