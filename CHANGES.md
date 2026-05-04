@@ -21,7 +21,7 @@ Third-party elements should migrate to the new element interfaces under `mod_cus
 
 The legacy `mod_customcert\element` base class remains available for compatibility during this major release, but legacy hooks with replacement interfaces are deprecated and will be removed in a future major version.
 
-> **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures will fail at class-load time. See the "Element rendering signatures" section below for the required signatures.
+> **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures for these two methods will fail at class-load time. All other legacy hooks (`render_form_elements`, `definition_after_data`, `validate_form_elements`, `save_form_elements`, `copy_element`, `can_add`) retain untyped signatures and remain compatible with old overrides. See the "Element rendering signatures" section below for the required `render`/`render_html` signatures.
 
 New elements should use:
 
