@@ -162,13 +162,20 @@ final class legacy_element_adapter implements form_element_interface, restorable
     }
 
     /**
-     * Render form elements (legacy fallback).
+     * Add element-specific fields to the edit form.
      *
-     * @param \MoodleQuickForm $mform
+     * Delegates to the wrapped element's build_form() if available (new API),
+     * otherwise falls back to render_form_elements() for old legacy elements.
+     *
+     * @param MoodleQuickForm $mform
      * @return void
      */
-    public function render_form_elements(MoodleQuickForm $mform): void {
-        $this->inner->render_form_elements($mform);
+    public function build_form(MoodleQuickForm $mform): void {
+        if (method_exists($this->inner, 'build_form')) {
+            $this->inner->build_form($mform);
+        } else {
+            $this->inner->render_form_elements($mform);
+        }
     }
 
     /**

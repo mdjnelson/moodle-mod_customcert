@@ -362,6 +362,16 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @deprecated since Moodle 5.2
      * @param MoodleQuickForm $mform the edit_form instance.
      */
+    public function build_form(\MoodleQuickForm $mform): void {
+        $this->render_form_elements($mform);
+    }
+
+    /**
+     * Renders common form elements (font, colour, position, width, refpoint, alignment).
+     *
+     * @deprecated since Moodle 5.2
+     * @param MoodleQuickForm $mform the edit_form instance.
+     */
     public function render_form_elements($mform) {
         debugging(
             'render_form_elements() is deprecated since Moodle 5.2. '
