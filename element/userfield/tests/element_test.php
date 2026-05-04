@@ -62,12 +62,8 @@ final class element_test extends advanced_testcase {
                 'colour' => '#000000',
                 'width' => 0,
             ]),
-            'font' => null,
-            'fontsize' => null,
-            'colour' => null,
             'posx' => 10,
             'posy' => 10,
-            'width' => 0,
             'refpoint' => 0,
             'alignment' => 'L',
             'sequence' => 1,
@@ -147,12 +143,15 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Helper to create a real DB-backed element record.
+     * Test that render_html() returns the user's email in preview mode.
      *
-     * @param array $override
-     * @return \stdClass
+     * @covers \customcertelement_userfield\element::render_html
      */
-    private function make_db_record(array $override = []): \stdClass {
+    public function test_render_html_returns_user_field_value(): void {
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user(['email' => 'test@example.com']);
+        $this->setUser($user);
+
         global $DB;
         $contextid = \context_system::instance()->id;
         $template = (object) [
@@ -166,22 +165,10 @@ final class element_test extends advanced_testcase {
             'sequence' => 1, 'timecreated' => time(), 'timemodified' => time(),
         ];
         $page->id = $DB->insert_record('customcert_pages', $page);
-        $record = $this->make_record(array_merge(['pageid' => $page->id], $override));
+        $record = $this->make_record(['pageid' => $page->id]);
         $record->id = $DB->insert_record('customcert_elements', $record);
-        return $record;
-    }
 
-    /**
-     * Test that render_html() returns the user's email in preview mode.
-     *
-     * @covers \customcertelement_userfield\element::render_html
-     */
-    public function test_render_html_returns_user_field_value(): void {
-        $this->resetAfterTest();
-        $user = $this->getDataGenerator()->create_user(['email' => 'test@example.com']);
-        $this->setUser($user);
-
-        $el = new element($this->make_db_record());
+        $el = new element($record);
         $html = $el->render_html();
         $this->assertIsString($html);
         $this->assertStringContainsString('test@example.com', $html);
@@ -197,7 +184,21 @@ final class element_test extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user(['city' => '']);
         $this->setUser($user);
 
-        $el = new element($this->make_db_record([
+        global $DB;
+        $contextid = \context_system::instance()->id;
+        $template = (object) [
+            'name' => 'Test', 'contextid' => $contextid,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $template->id = $DB->insert_record('customcert_templates', $template);
+        $page = (object) [
+            'templateid' => $template->id, 'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1, 'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $page->id = $DB->insert_record('customcert_pages', $page);
+        $record = $this->make_record([
+            'pageid' => $page->id,
             'data' => json_encode([
                 'userfield' => 'city',
                 'font' => 'times',
@@ -205,7 +206,10 @@ final class element_test extends advanced_testcase {
                 'colour' => '#000000',
                 'width' => 0,
             ]),
-        ]));
+        ]);
+        $record->id = $DB->insert_record('customcert_elements', $record);
+
+        $el = new element($record);
         $html = $el->render_html();
         $this->assertIsString($html);
         // In preview mode with empty field, the field name 'city' is shown.
