@@ -21,6 +21,8 @@ Third-party elements should migrate to the new element interfaces under `mod_cus
 
 The legacy `mod_customcert\element` base class remains available for compatibility during this major release, but legacy hooks with replacement interfaces are deprecated and will be removed in a future major version.
 
+> **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures will fail at class-load time. See the "Element rendering signatures" section below for the required signatures.
+
 New elements should use:
 
 - `element_interface` — for the core element contract (identity, payload, type)
@@ -110,6 +112,9 @@ Reserved JSON keys (visuals):
   - Avoid `instanceof` checks against legacy concrete classes; prefer `$element->get_type()` and/or `$element->get_inner()`.
 
 #### Element rendering signatures
+
+> **Breaking change for third-party element plugins**: The `render()` and `render_html()` abstract methods on `mod_customcert\element` now have strict typed signatures and return types. Third-party element plugins that override these methods with the old untyped signatures will fail at class-load time with a PHP fatal error, even before the adapter layer can help. Plugins must update their method signatures before upgrading to 5.2. See the before/after signatures below.
+
 - Element render methods are now typed and accept an optional renderer.
 
 Before (legacy):
