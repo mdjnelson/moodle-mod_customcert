@@ -28,6 +28,7 @@ namespace mod_customcert\service;
 
 use mod_customcert\element;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
 use mod_customcert\element\validatable_element_interface;
 use ReflectionMethod;
@@ -105,10 +106,13 @@ final class validation_service {
      * @return bool
      */
     private static function has_legacy_validate_override(object $element): bool {
-        if (!method_exists($element, 'validate_form_elements')) {
+        // Unwrap the adapter so we inspect the inner legacy element's declaring class,
+        // not the adapter's own delegate method.
+        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
+        if (!method_exists($target, 'validate_form_elements')) {
             return false;
         }
-        $ref = new ReflectionMethod($element, 'validate_form_elements');
+        $ref = new ReflectionMethod($target, 'validate_form_elements');
         return $ref->getDeclaringClass()->getName() !== element::class;
     }
 }
