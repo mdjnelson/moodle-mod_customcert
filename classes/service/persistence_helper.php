@@ -26,67 +26,90 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\persistable_element_interface;
+use ReflectionMethod;
 use stdClass;
 
 /**
  * Helper to convert form data to the JSON payload stored in customcert_elements.data.
+ *
+ * Invariant: the returned string is always a JSON object (i.e. decodes to an associative
+ * array, never a list, scalar, or null). This guarantees that customcert_elements.data
+ * is always a JSON object.
  */
 final class persistence_helper {
     /**
      * Convert form submission to a JSON string according to element capabilities.
      *
-     * - Persistable elements: use normalise_data() and json_encode arrays.
-     * - Legacy elements: use save_unique_data() and ensure JSON string output.
+     * - Persistable elements: use normalise_data() and enforce object JSON.
+     * - Legacy elements: use save_unique_data() (only when overridden) and enforce object JSON.
+     * - Fallback: empty JSON object {}.
      *
      * @param object $element Element instance (persistable or legacy)
      * @param stdClass $formdata Raw form data
-     * @return string JSON string suitable for DB storage
+     * @return string JSON object string suitable for DB storage
      */
     public static function to_json_data(object $element, stdClass $formdata): string {
         // Persistable path.
         if ($element instanceof persistable_element_interface) {
             $normalised = $element->normalise_data($formdata);
-            if (is_array($normalised)) {
-                return json_encode($normalised);
-            }
-            // Scalar or non-array return: wrap in a JSON object to guarantee
-            // the "always object JSON" convention for stored payloads.
-            if (is_string($normalised) && $normalised !== '' && json_validate($normalised)) {
-                // If already valid JSON object, return as-is.
-                $decoded = json_decode($normalised, true);
-                if (is_array($decoded) && !array_is_list($decoded)) {
-                    return $normalised;
-                }
-            }
-            return json_encode(['value' => $normalised]);
+            return self::to_object_json($normalised);
         }
 
-        // Legacy path.
-        if (method_exists($element, 'save_unique_data')) {
+        // Legacy path: only invoke save_unique_data() when the concrete class actually overrides it,
+        // not when it is merely inherited from the mod_customcert\element base class.
+        // Unwrap the adapter so we inspect the inner legacy element's declaring class.
+        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
+        if (
+            method_exists($target, 'save_unique_data') &&
+            (new ReflectionMethod($target, 'save_unique_data'))->getDeclaringClass()->getName() !== \mod_customcert\element::class
+        ) {
             debugging(
                 'save_unique_data() is deprecated since Moodle 5.2. Implement ' .
                 'mod_customcert\element\persistable_element_interface::normalise_data() instead.',
                 DEBUG_DEVELOPER
             );
             $legacy = $element->save_unique_data($formdata);
-            if (is_array($legacy)) {
-                return json_encode($legacy);
-            }
-            if (is_string($legacy)) {
-                // Accept only valid JSON; otherwise wrap as a scalar string value.
-                if ($legacy !== '' && json_validate($legacy)) {
-                    return $legacy;
-                }
-                return json_encode(['value' => $legacy]);
-            }
-            if ($legacy === null) {
-                return json_encode(new stdClass());
-            }
-            return json_encode($legacy);
+            return self::to_object_json($legacy);
         }
 
         // Absolute fallback: empty object.
         return json_encode(new stdClass());
+    }
+
+    /**
+     * Coerce any value to a JSON object string.
+     *
+     * Rules:
+     * - Associative (non-list) array → json_encode directly (already object-shaped).
+     * - JSON string that decodes to an associative array → pass through as-is.
+     * - Everything else (scalar, null, list array, JSON list/scalar string) → wrap as {"value": ...}.
+     *
+     * @param mixed $value
+     * @return string JSON object string
+     */
+    public static function to_object_json(mixed $value): string {
+        // Associative array: encode directly as a JSON object.
+        if (is_array($value) && !array_is_list($value)) {
+            return json_encode($value);
+        }
+
+        // JSON string: only pass through if it decodes to an associative array.
+        if (is_string($value) && $value !== '' && json_validate($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded) && !array_is_list($decoded)) {
+                return $value;
+            }
+            // JSON list, scalar JSON, etc. — fall through to wrap.
+        }
+
+        // null → empty object.
+        if ($value === null) {
+            return json_encode(new stdClass());
+        }
+
+        // List array, scalar (string/int/float/bool), or non-object JSON string → wrap.
+        return json_encode(['value' => $value]);
     }
 }
