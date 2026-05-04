@@ -191,7 +191,8 @@ class template_appendix_manager implements template_appendix_manager_interface {
             }
             // Allowlist component, filearea, filepath, and itemid to prevent hostile imports
             // from creating arbitrary files in unrelated fileareas or components.
-            if (($meta['component'] ?? '') !== 'mod_customcert') {
+            $component = $meta['component'] ?? 'mod_customcert';
+            if ($component !== 'mod_customcert') {
                 throw new import_exception("Invalid file component in files.json: files/$contenthash");
             }
             $allowedareas = ['image'];

@@ -29,6 +29,7 @@ namespace mod_customcert\service;
 use coding_exception;
 use moodle_exception;
 use mod_customcert\element\form_element_interface;
+use mod_customcert\element\renderable_element_interface;
 
 /**
  * Simple in-memory registry of element types to class names.
@@ -41,16 +42,21 @@ final class element_registry {
      * Register a class for a given element type key.
      *
      * @param string $type
-     * @param string $class Must implement form_element_interface (or extend mod_customcert\element, which does)
+     * @param string $class Must implement form_element_interface and renderable_element_interface
+     *                       (or extend mod_customcert\element, which does both)
      * @return void
      */
     public function register(string $type, string $class): void {
         if (!class_exists($class)) {
             throw new coding_exception("Cannot register element type '{$type}': class '{$class}' does not exist.");
         }
-        if (!is_a($class, form_element_interface::class, true)) {
+        if (
+            !is_a($class, form_element_interface::class, true) ||
+            !is_a($class, renderable_element_interface::class, true)
+        ) {
             throw new coding_exception(
-                "Cannot register element type '{$type}': '{$class}' must implement form_element_interface."
+                "Cannot register element type '{$type}': '{$class}' must implement"
+                . ' form_element_interface and renderable_element_interface.'
             );
         }
         $this->map[$type] = $class;

@@ -105,7 +105,7 @@ class file_field implements field_interface, file_field_interface {
         ) {
             return false;
         }
-        $component = !empty($data["component"]) ? $data["component"] : $this->component;
+        $component = $this->component;
         $fs = get_file_storage();
         return $fs->get_file(
             (int) $data["contextid"],
