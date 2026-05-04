@@ -200,6 +200,11 @@ class template_file_manager implements template_file_manager_interface {
                 $zip->close();
                 throw new import_exception('Failed to inspect the ZIP archive');
             }
+            // Skip explicit directory entries (name ends with '/'); they carry no file content
+            // and are included by some ZIP creators as structural markers.
+            if (str_ends_with($stat['name'], '/')) {
+                continue;
+            }
             $files[] = (object)['pathname' => $stat['name'], 'size' => $stat['size']];
         }
         $zip->close();
