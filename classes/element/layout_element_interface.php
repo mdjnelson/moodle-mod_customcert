@@ -59,7 +59,11 @@ interface layout_element_interface {
     /**
      * Returns the text alignment for this element.
      *
-     * @return string
+     * Returns null when no alignment is stored (e.g. old/partial records or
+     * unknown/fallback elements). Callers such as element_helper default to
+     * left alignment ('L') when null is returned.
+     *
+     * @return string|null
      */
-    public function get_alignment(): string;
+    public function get_alignment(): ?string;
 }

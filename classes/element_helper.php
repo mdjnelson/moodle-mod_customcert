@@ -74,7 +74,7 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param element $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      */
     public static function render_content(pdf $pdf, stylable_element_interface&layout_element_interface $element, string $content): void {
@@ -90,7 +90,7 @@ class element_helper {
         $refpoint = $element->get_refpoint();
         $cleanedcontent = clean_param($content, PARAM_NOTAGS);
         $actualwidth = $pdf->GetStringWidth($cleanedcontent);
-        $alignment = $element->get_alignment();
+        $alignment = $element->get_alignment() ?? 'L';
 
         if ($w && $w < $actualwidth) {
             $actualwidth = $w;
@@ -127,7 +127,7 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
