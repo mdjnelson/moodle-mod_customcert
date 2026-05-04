@@ -158,7 +158,10 @@ class template_appendix_manager implements template_appendix_manager_interface {
             );
         }
         // The "files" key must be present and be an array (empty is allowed).
-        if (!array_key_exists('files', $manifest) || !is_array($manifest['files'])) {
+        if (!array_key_exists('files', $manifest)) {
+            throw new import_exception('files.json is missing the required "files" key');
+        }
+        if (!is_array($manifest['files'])) {
             throw new \mod_customcert\export\import_exception(
                 'files.json is missing a valid "files" array'
             );
@@ -179,8 +182,8 @@ class template_appendix_manager implements template_appendix_manager_interface {
             if (!isset($meta['filename']) || !is_string($meta['filename']) || $meta['filename'] === '') {
                 throw new import_exception("file has no name: files/$contenthash");
             }
-            if (isset($meta['component']) && !is_string($meta['component'])) {
-                throw new import_exception("invalid file component type: files/$contenthash");
+            if (!isset($meta['component']) || !is_string($meta['component'])) {
+                throw new import_exception("invalid or missing file component: files/$contenthash");
             }
             if (isset($meta['filearea']) && !is_string($meta['filearea'])) {
                 throw new import_exception("invalid file area type: files/$contenthash");
@@ -203,7 +206,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
             }
             // Allowlist component, filearea, filepath, and itemid to prevent hostile imports
             // from creating arbitrary files in unrelated fileareas or components.
-            $component = $meta['component'] ?? 'mod_customcert';
+            $component = $meta['component'];
             if ($component !== 'mod_customcert') {
                 throw new import_exception("Invalid file component in files.json: files/$contenthash");
             }
