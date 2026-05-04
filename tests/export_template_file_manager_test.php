@@ -470,7 +470,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         ]);
         file_put_contents("$tempdir/files.json", $filesjson);
 
-        // template.json is missing 'name' — will cause import_exception after file import.
+        // Template.json is missing 'name' — will cause import_exception after file import.
         file_put_contents("$tempdir/template.json", json_encode(['pages' => []]));
 
         // Build the ZIP using ZipArchive directly to avoid packer path sanitisation.

@@ -547,6 +547,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
     /**
      * form_buildable_interface must not exist — it was never released and has been fully deleted.
+     *
+     * @covers \mod_customcert\element
      */
     public function test_form_buildable_interface_does_not_exist(): void {
         $this->assertFalse(
