@@ -29,7 +29,6 @@ namespace customcertelement_gradeitemname;
 use grade_item;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
-use mod_customcert\element\element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;

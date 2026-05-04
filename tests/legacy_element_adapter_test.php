@@ -190,7 +190,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
             ->disableOriginalConstructor()
             ->getMock();
 
-        // build_form() should bridge to the inner element's render_form_elements().
+        // Build_form() should bridge to the inner element's render_form_elements().
         $adapter->build_form($mform);
         // The legacy fixture sets a flag when render_form_elements is called.
         $this->assertTrue($legacy->called);

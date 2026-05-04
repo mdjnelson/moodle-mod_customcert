@@ -74,10 +74,15 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element the customcert element (must also implement layout_element_interface)
      * @param string $content the content to render
+     * @return void
      */
-    public static function render_content(pdf $pdf, stylable_element_interface&layout_element_interface $element, string $content): void {
+    public static function render_content(
+        pdf $pdf,
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): void {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
         $colour = $element->get_colour() ?? '#000000';
@@ -127,11 +132,14 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element the customcert element (must also implement layout_element_interface)
      * @param string $content the content to render
      * @return string the html
      */
-    public static function render_html_content(stylable_element_interface&layout_element_interface $element, string $content): string {
+    public static function render_html_content(
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): string {
         [$font, $attr] = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
