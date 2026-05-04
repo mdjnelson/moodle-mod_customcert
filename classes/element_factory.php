@@ -40,14 +40,16 @@ final class element_factory {
     /**
      * Returns an element instance for the given record.
      *
-     * @deprecated since Moodle 5.2 — use mod_customcert\service\element_factory::get_element_instance() instead.
+     * @deprecated since Moodle 5.2 — use mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record()
+     *   or inject mod_customcert\service\element_factory and call create() / create_from_legacy_record() instead.
      * @param \stdClass $element A record from customcert_elements.
      * @return mixed Element instance (legacy or v2).
      */
     public static function get_element_instance(\stdClass $element) {
         debugging(
             '\mod_customcert\element_factory::get_element_instance() is deprecated since Moodle 5.2. '
-            . 'Use \mod_customcert\service\element_factory::get_element_instance() instead.',
+            . 'Use \mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record() '
+            . 'or inject \mod_customcert\service\element_factory and call create() / create_from_legacy_record().',
             DEBUG_DEVELOPER
         );
         return service_element_factory::get_element_instance($element);
