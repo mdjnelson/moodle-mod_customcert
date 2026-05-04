@@ -20,7 +20,7 @@ namespace mod_customcert;
 
 use advanced_testcase;
 use mod_customcert\service\form_service;
-use mod_customcert\tests\fixtures\form_buildable_test_element;
+use mod_customcert\tests\fixtures\form_element_test_element;
 use mod_customcert\tests\fixtures\legacy_invokable_test_element;
 use MoodleQuickForm;
 
@@ -30,7 +30,7 @@ global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
 require_once(__DIR__ . '/fixtures/legacy_only_test_element.php');
-require_once(__DIR__ . '/fixtures/form_buildable_test_element.php');
+require_once(__DIR__ . '/fixtures/form_element_test_element.php');
 require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
 
 /**
@@ -61,7 +61,7 @@ final class form_service_test extends advanced_testcase {
             'data' => json_encode([]),
         ];
 
-        $element = new form_buildable_test_element($record);
+        $element = new form_element_test_element($record);
 
         $service->build_form($mform, $element);
 
