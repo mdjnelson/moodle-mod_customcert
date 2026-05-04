@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use mod_customcert\element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element\legacy_element_adapter;
@@ -40,6 +41,7 @@ use mod_customcert\event\element_created;
 use mod_customcert\service\element_factory;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
+use ReflectionMethod;
 use stdClass;
 
 /**
@@ -266,6 +268,17 @@ final class element_repository {
                     $this->delete($instance);
                     continue;
                 }
+            } else if (self::has_legacy_copy_override($inner)) {
+                // Back-compat: only call the legacy hook when the concrete class actually overrides it.
+                debugging(
+                    'copy_element() is deprecated since Moodle 5.2. '
+                    . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+                    DEBUG_DEVELOPER
+                );
+                if (!$inner->copy_element($e)) {
+                    $this->delete($instance);
+                    continue;
+                }
             }
             $count++;
         }
@@ -382,5 +395,20 @@ final class element_repository {
         element_created::create_from_element($created)->trigger();
 
         return $record->id;
+    }
+
+    /**
+     * Returns true only when the given element instance has a concrete override of copy_element()
+     * that is not merely the no-op base implementation on mod_customcert\element.
+     *
+     * @param object $element Element instance to inspect.
+     * @return bool
+     */
+    private static function has_legacy_copy_override(object $element): bool {
+        if (!method_exists($element, 'copy_element')) {
+            return false;
+        }
+        $ref = new ReflectionMethod($element, 'copy_element');
+        return $ref->getDeclaringClass()->getName() !== element::class;
     }
 }
