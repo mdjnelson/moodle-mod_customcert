@@ -261,10 +261,10 @@ final class element_repository {
             }
 
             // The legacy elements have a copy_element method.
-            if (method_exists($inner, 'copy_element')) {
-                $inner->copy_element($e);
+            if (method_exists($inner, 'copy_element') && !$inner->copy_element($e)) {
+                $this->delete($instance);
+                continue;
             }
-
             $count++;
         }
 
