@@ -227,5 +227,4 @@ final class template_deprecated_shims_test extends advanced_testcase {
 
         $this->assertTrue($elementcopied);
     }
-
 }
