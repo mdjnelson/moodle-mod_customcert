@@ -140,6 +140,11 @@ class restore_customcert_activity_task extends restore_activity_task {
                     if ($instance instanceof restorable_element_interface) {
                         $instance->after_restore_from_backup($this);
                     } else if (self::has_legacy_after_restore_override($instance)) {
+                        debugging(
+                            'after_restore() is deprecated since Moodle 5.2. Implement ' .
+                            'mod_customcert\\element\\restorable_element_interface::after_restore_from_backup() instead.',
+                            DEBUG_DEVELOPER
+                        );
                         $instance->after_restore($this);
                     }
                 }
