@@ -26,9 +26,8 @@ The legacy `mod_customcert\element` base class remains available for compatibili
 New elements should use:
 
 - `element_interface` — for the core element contract (identity, payload, type)
-- `form_element_interface` — only when the element participates in edit forms
+- `form_element_interface` — required for registered certificate elements; provides edit-form lifecycle hooks including `build_form()`
 - `stylable_element_interface` — only when the element supports standard visual styling (`font`, `fontsize`, `colour`, `width`)
-- `form_buildable_interface` — adds element-specific fields to the edit form
 - `persistable_element_interface` — normalises submitted form data into the JSON payload
 - `validatable_element_interface` — validates submitted form data
 - `preparable_form_interface` — populates edit-form fields from stored payload
@@ -36,6 +35,8 @@ New elements should use:
 - Repository/service APIs for persistence and layout changes
 
 An `unknown_element` fallback is used when a requested element type is not registered; it renders gracefully rather than throwing.
+
+No deprecated bundled element implementations are shipped in this release. Deprecated element hooks remain only on the legacy `mod_customcert\element` base class to support third-party plugin migration.
 
 #### Template export and import
 - Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
@@ -181,7 +182,7 @@ The following `certificate` methods are now shims that emit developer debugging 
 
 #### Element APIs
 Legacy element APIs are still supported but deprecated as of 5.2:
-- `element::render_form_elements()` → use `form_buildable_interface::build_form()` and `element_helper::render_common_form_elements()` for standard fields
+- `element::render_form_elements()` → use `form_element_interface::build_form()` and `element_helper::render_common_form_elements()` for standard fields
 - `element::definition_after_data()` → use `preparable_form_interface::prepare_form()`
 - `element::validate_form_elements()` → use `validatable_element_interface::validate()`
 - `element::save_form_elements()` / `element::save_unique_data()` → use `persistable_element_interface::normalise_data()`
@@ -221,7 +222,7 @@ While deprecated APIs include shims for backward compatibility, the following ch
 Update your element class to implement interfaces as needed:
 
     class element extends \mod_customcert\element implements
-        \mod_customcert\element\form_buildable_interface,
+        \mod_customcert\element\form_element_interface,
         \mod_customcert\element\persistable_element_interface,
         \mod_customcert\element\validatable_element_interface,
         \mod_customcert\element\preparable_form_interface {
