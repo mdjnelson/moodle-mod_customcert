@@ -32,6 +32,7 @@ New elements should use:
 - `validatable_element_interface` — validates submitted form data
 - `preparable_form_interface` — populates edit-form fields from stored payload
 - `restorable_element_interface` — remaps internal references after backup restore
+- `copyable_element_interface` — implement `copy_from(\stdClass $source): bool` when an element needs custom logic during copy operations (e.g. copying associated files to a new context); the repository/service layer calls this instead of the deprecated `copy_element()` hook
 - Repository/service APIs for persistence and layout changes
 
 Elements using the common renderer helpers (`element_helper::render_content()` / `render_html_content()`) must also implement both `stylable_element_interface` and `layout_element_interface`. Elements with fully custom rendering may implement `renderable_element_interface` directly without these.
@@ -191,7 +192,7 @@ Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::validate_form_elements()` → use `validatable_element_interface::validate()`
 - `element::save_form_elements()` / `element::save_unique_data()` → use `persistable_element_interface::normalise_data()`
 - `element::after_restore()` → use `restorable_element_interface::after_restore_from_backup()`
-- `element::copy_element()` → use `mod_customcert\service\element_repository::copy_element()`
+- `element::copy_element()` → implement `mod_customcert\element\copyable_element_interface::copy_from()` instead; the service layer now calls `copy_from()` directly and no longer invokes `copy_element()`
 - `element::delete()` → use `mod_customcert\service\element_repository::delete()` (elements should not delete themselves; deletion is handled by the repository/service layer)
 - `\mod_customcert\element_factory::get_element_instance()` remains available as a deprecated backward-compatibility shim that emits a developer debugging notice. New code should use `mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record()` or inject `mod_customcert\service\element_factory` directly.
 

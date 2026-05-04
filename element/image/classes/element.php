@@ -38,6 +38,7 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
@@ -61,6 +62,7 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
+    copyable_element_interface,
     restorable_element_interface,
     validatable_element_interface
 {
@@ -498,12 +500,38 @@ class element extends base_element implements
     }
 
     /**
+     * Copies associated files to the current course context when this element is copied.
+     *
+     * @param stdClass $source The original element DB record being copied from.
+     * @return bool True on success, false if the copy should be aborted.
+     */
+    public function copy_from(stdClass $source): bool {
+        return $this->do_copy($source);
+    }
+
+    /**
      * This handles copying data from another element of the same type.
      *
+     * @deprecated since Moodle 5.2 — implement copyable_element_interface::copy_from() instead.
      * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
     public function copy_element($data) {
+        debugging(
+            'element::copy_element() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+            DEBUG_DEVELOPER
+        );
+        return $this->do_copy($data);
+    }
+
+    /**
+     * Internal helper: copy associated files to the current course context.
+     *
+     * @param stdClass $data element DB record to copy from
+     * @return bool
+     */
+    private function do_copy(stdClass $data): bool {
         global $COURSE, $DB, $SITE;
 
         $imagedata = json_decode($data->data);
