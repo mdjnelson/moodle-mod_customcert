@@ -292,7 +292,7 @@ abstract class element implements form_element_interface, renderable_element_int
      *
      * @return string The current alignment value.
      */
-    public function get_alignment(): string {
+    public function get_alignment(): ?string {
         return $this->alignment ?? self::ALIGN_LEFT;
     }
 

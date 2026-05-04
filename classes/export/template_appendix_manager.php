@@ -164,11 +164,12 @@ class template_appendix_manager implements template_appendix_manager_interface {
             if (empty($meta['filename'] ?? null)) {
                 throw new Exception("file has no name: files/$contenthash");
             }
-            // Sanitise the filename from the manifest using Moodle-safe rules before
-            // using it as a file-storage filename. This prevents path traversal and
-            // rejects filenames that would be rejected by the file API anyway.
-            $filename = clean_param($meta['filename'], PARAM_FILE);
-            if ($filename === '') {
+            // Validate the filename from the manifest strictly: reject any name that
+            // clean_param would mutate (e.g. path traversal sequences) rather than
+            // silently accepting a normalised version. This ensures import integrity.
+            $rawfilename = $meta['filename'];
+            $filename = clean_param($rawfilename, PARAM_FILE);
+            if ($filename === '' || $filename !== $rawfilename) {
                 throw new Exception("file has unsafe or empty name: files/$contenthash");
             }
 

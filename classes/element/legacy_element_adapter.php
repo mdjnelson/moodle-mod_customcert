@@ -167,18 +167,15 @@ final class legacy_element_adapter implements form_element_interface, renderable
     /**
      * Add element-specific fields to the edit form.
      *
-     * Delegates to the wrapped element's build_form() if available (new API),
-     * otherwise falls back to render_form_elements() for old legacy elements.
+     * Delegates to the wrapped legacy element's build_form(), which is always
+     * available because the legacy base class provides a bridge implementation
+     * that calls render_form_elements() internally.
      *
      * @param MoodleQuickForm $mform
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
-        if (method_exists($this->inner, 'build_form')) {
-            $this->inner->build_form($mform);
-        } else {
-            $this->inner->render_form_elements($mform);
-        }
+        $this->inner->build_form($mform);
     }
 
     /**
@@ -273,9 +270,9 @@ final class legacy_element_adapter implements form_element_interface, renderable
     /**
      * Returns the text alignment for this element.
      *
-     * @return string
+     * @return string|null
      */
-    public function get_alignment(): string {
+    public function get_alignment(): ?string {
         return $this->inner->get_alignment();
     }
 
