@@ -362,7 +362,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @deprecated since Moodle 5.2
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public function render_form_elements(MoodleQuickForm $mform): void {
+    public function render_form_elements($mform) {
         debugging(
             'render_form_elements() is deprecated since Moodle 5.2. '
             . 'Use element_helper::render_common_form_elements() instead.',
@@ -386,7 +386,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @param MoodleQuickForm $mform the edit_form instance
      * @deprecated since Moodle 5.2
      */
-    public function definition_after_data(MoodleQuickForm $mform): void {
+    public function definition_after_data($mform) {
         debugging(
             'definition_after_data() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
@@ -422,7 +422,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @return array the validation errors
      * @deprecated since Moodle 5.2
      */
-    public function validate_form_elements(array $data, array $files): array {
+    public function validate_form_elements($data, $files) {
         debugging(
             'validate_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\validatable_element_interface::validate() instead.',
@@ -449,7 +449,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @return int|bool true if updated was a success, id of the new element otherwise.
      * @deprecated since Moodle 5.2
      */
-    public function save_form_elements(stdClass $data): int|bool {
+    public function save_form_elements($data) {
         debugging(
             'save_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() and '
@@ -553,7 +553,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function copy_element(stdClass $data): bool {
+    public function copy_element($data) {
         return true;
     }
 
@@ -563,7 +563,7 @@ abstract class element implements form_element_interface, stylable_element_inter
      *
      * @return bool returns true if the element can be added, false otherwise
      */
-    public static function can_add(): bool {
+    public static function can_add() {
         return true;
     }
 
