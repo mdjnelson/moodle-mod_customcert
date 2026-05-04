@@ -252,7 +252,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
             // are silently used as the wrong file.
             if ($stored->get_contenthash() !== $contenthash) {
                 $stored->delete();
-                throw new Exception(
+                throw new import_exception(
                     "content hash mismatch for files/$contenthash: " .
                     "expected $contenthash, got " . $stored->get_contenthash()
                 );
