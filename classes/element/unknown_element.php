@@ -74,7 +74,7 @@ final class unknown_element extends element implements element_interface, render
             html_writer::tag('strong', $message),
             'customcert-unknown-element'
         );
-        // unknown_element extends mod_customcert\element which implements both
+        // Unknown_element extends mod_customcert\element which implements both
         // stylable_element_interface and layout_element_interface, so we can delegate
         // to render_content() to preserve the element's stored position in the designer preview.
         if ($renderer) {
