@@ -90,11 +90,9 @@ class legacy_old_signature_element extends \mod_customcert\element {
     }
 
     /**
-     * Old-style can_add — no return type.
-     *
      * @return bool
      */
-    public static function can_add() {
+    public static function can_add(): bool {
         return true;
     }
 }
