@@ -84,8 +84,7 @@ final class restore_hooks_json_test extends advanced_testcase {
             'timecreated' => time(),
             'timemodified' => time(),
         ];
-        $DB->insert_record('customcert', $customcert);
-
+        $customcert->id = (int)$DB->insert_record('customcert', $customcert, true);
         return $page->id;
     }
 
@@ -124,13 +123,15 @@ final class restore_hooks_json_test extends advanced_testcase {
      * @param int $courseid Course id
      * @return restore_customcert_activity_task A lightweight restore task double
      */
-    private function make_restore_task(string $restoreid, int $courseid): restore_customcert_activity_task {
+    private function make_restore_task(string $restoreid, int $courseid, int $activityid = 0): restore_customcert_activity_task {
         // Anonymous subclass exposing constructorless instance with overridden getters.
-        return new class ($restoreid, $courseid) extends restore_customcert_activity_task {
+        return new class ($restoreid, $courseid, $activityid) extends restore_customcert_activity_task {
             /** @var string */
             private string $rid;
             /** @var int */
             private int $cid;
+            /** @var int */
+            private int $aid;
             /** @var array<string,array<int,int>> In-memory mapping store */
             private array $map = [];
 
@@ -138,9 +139,10 @@ final class restore_hooks_json_test extends advanced_testcase {
              *
              * @param string $rid restore id
              * @param int $cid course id */
-            public function __construct(string $rid, int $cid) {
+            public function __construct(string $rid, int $cid, int $aid = 0) {
                 $this->rid = $rid;
                 $this->cid = $cid;
+                $this->aid = $aid;
             }
 
             /**
@@ -186,11 +188,11 @@ final class restore_hooks_json_test extends advanced_testcase {
             /**
              * {inheritdoc}
              *
-             * @return void
+             * @return int
              */
-            public function after_restore() {
+            public function get_activityid() {
+                return $this->aid;
             }
-
             /**
              * {inheritdoc}
              *
@@ -248,28 +250,21 @@ final class restore_hooks_json_test extends advanced_testcase {
 
         // The 'text' element does not implement restorable_element_interface and does not
         // override after_restore(), so no deprecation should be emitted.
-        $elementid = $this->insert_element($pageid, 'text', 'Plain text', [
+        $this->insert_element($pageid, 'text', 'Plain text', [
             'text' => 'Hello world',
         ]);
 
-        $factory = element_factory::build_with_defaults();
-        $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = $factory->create_from_legacy_record($legacy);
-        $this->assertNotInstanceOf(restorable_element_interface::class, $obj);
+        // Resolve the customcert activity id so the task can query elements via the production path.
+        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
+        $customcertid = (int)$DB->get_field('customcert', 'id', ['templateid' => $page->templateid], MUST_EXIST);
 
         $restoreid = 'rid-' . uniqid();
-        $task = $this->make_restore_task($restoreid, 0);
+        $task = $this->make_restore_task($restoreid, 0, $customcertid);
 
-        // Capture any debugging messages emitted during the call.
+        // Exercise the real production path: task loops elements and uses has_legacy_after_restore_override().
         $this->resetDebugging();
-        // Directly exercise the reflection-guarded path by calling the task helper.
-        // We use the reflection helper indirectly: instantiate a minimal task and call
-        // after_restore_from_backup path via the factory-created instance.
-        // Since text element has no override, nothing should happen.
-        if ($obj instanceof restorable_element_interface) {
-            $obj->after_restore_from_backup($task);
-        }
-        // No debugging should have been emitted.
+        $task->after_restore();
+        // No debugging should have been emitted because text element has no after_restore() override.
         $this->assertDebuggingNotCalled();
     }
 
