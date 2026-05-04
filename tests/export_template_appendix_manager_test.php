@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\export\import_exception;
 use mod_customcert\export\template_appendix_manager;
 
 /**
@@ -125,7 +126,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $this->expectException(\Exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -151,7 +152,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $this->expectException(\Exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -174,7 +175,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
         // No actual file in files/ subdirectory.
-        $this->expectException(\Exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -199,7 +200,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $this->expectException(\Exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 

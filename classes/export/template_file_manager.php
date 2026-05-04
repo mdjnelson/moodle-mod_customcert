@@ -204,19 +204,20 @@ class template_file_manager implements template_file_manager_interface {
             // Normalise backslashes so Windows-style paths are caught by the same checks.
             $name = str_replace('\\', '/', $stat['name']);
 
-            // Reject absolute paths, drive-letter paths, traversal segments, and empty names
-            // BEFORE skipping directory entries so that hostile directory entries like
-            // '../' or 'files/../../evil/' are also rejected.
-            if (
-                $name === '' ||
-                str_starts_with($name, '/') ||
-                preg_match('/^[A-Za-z]:\//', $name) ||
-                str_contains($name, '../') ||
-                str_ends_with($name, '/..') ||
-                $name === '..'
-            ) {
+            // Reject absolute paths and drive-letter paths before segment checks.
+            if ($name === '' || str_starts_with($name, '/') || preg_match('/^[A-Za-z]:\//', $name)) {
                 $zip->close();
                 throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
+            }
+
+            // Validate every path segment individually: reject empty, dot, and dot-dot segments.
+            // This catches traversal in any position (e.g. files/../../evil, ./, ../) and is
+            // more robust than substring pattern matching.
+            foreach (explode('/', trim($name, '/')) as $segment) {
+                if ($segment === '' || $segment === '.' || $segment === '..') {
+                    $zip->close();
+                    throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
+                }
             }
 
             // Only allow safe characters: alphanumeric, dash, underscore, dot, slash.

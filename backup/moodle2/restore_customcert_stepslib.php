@@ -162,10 +162,14 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         // Non-JSON legacy data (plain strings, scalars, null) must always be migrated
         // even when no legacy visual fields are present in the backup row.
         $rawdata = $data->data ?? null;
-        $dataislegacy = ($rawdata === null)
-            || ($rawdata === '')
-            || (json_decode((string)$rawdata, true) === null)
-            || (ltrim((string)$rawdata)[0] ?? '') !== '{';
+        $decoded = null;
+        $isjson = false;
+        if ($rawdata !== null && $rawdata !== '') {
+            $decoded = json_decode((string) $rawdata, true);
+            $isjson = json_last_error() === JSON_ERROR_NONE;
+        }
+        // Legacy data is anything that is not a valid JSON object (arrays and scalars are also legacy).
+        $dataislegacy = !$isjson || !is_array($decoded) || array_is_list($decoded);
 
         if (
             $legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null

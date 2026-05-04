@@ -301,6 +301,12 @@ final class legacy_element_adapter implements
      * @return void
      */
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
+        // If the wrapped element already implements the new interface, delegate directly
+        // without emitting any deprecation notice.
+        if ($this->inner instanceof restorable_element_interface) {
+            $this->inner->after_restore_from_backup($restore);
+            return;
+        }
         // Only invoke the legacy hook when the wrapped element actually overrides it;
         // calling the inherited no-op base implementation would emit a spurious deprecation.
         if (method_exists($this->inner, 'after_restore')) {
