@@ -29,6 +29,9 @@ namespace mod_customcert\element;
 
 use mod_customcert\edit_element_form;
 use mod_customcert\element\form_element_interface;
+use mod_customcert\element\layout_element_interface;
+use mod_customcert\element\renderable_element_interface;
+use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element as legacy_base;
 use MoodleQuickForm;
 use stdClass;
@@ -47,7 +50,7 @@ use restore_customcert_activity_task;
  * Plugin authors should migrate their elements to implement element_interface directly.
  * This class is not part of the public API and should not be used directly by plugin authors.
  */
-final class legacy_element_adapter implements form_element_interface, restorable_element_interface {
+final class legacy_element_adapter implements form_element_interface, renderable_element_interface, stylable_element_interface, layout_element_interface, restorable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 
@@ -218,6 +221,19 @@ final class legacy_element_adapter implements form_element_interface, restorable
     }
 
     /**
+     * Render the element into a PDF context.
+     *
+     * @param \pdf $pdf
+     * @param bool $preview
+     * @param \stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(\pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {
+        $this->inner->render($pdf, $preview, $user, $renderer);
+    }
+
+    /**
      * Render the element in HTML for the drag and drop interface.
      *
      * @param element_renderer|null $renderer
@@ -225,6 +241,42 @@ final class legacy_element_adapter implements form_element_interface, restorable
      */
     public function render_html(?element_renderer $renderer = null): string {
         return $this->inner->render_html($renderer);
+    }
+
+    /**
+     * Returns the X position of the element on the page (in mm).
+     *
+     * @return int|null
+     */
+    public function get_posx(): ?int {
+        return $this->inner->get_posx();
+    }
+
+    /**
+     * Returns the Y position of the element on the page (in mm).
+     *
+     * @return int|null
+     */
+    public function get_posy(): ?int {
+        return $this->inner->get_posy();
+    }
+
+    /**
+     * Returns the reference point constant for this element.
+     *
+     * @return int|null
+     */
+    public function get_refpoint(): ?int {
+        return $this->inner->get_refpoint();
+    }
+
+    /**
+     * Returns the text alignment for this element.
+     *
+     * @return string
+     */
+    public function get_alignment(): string {
+        return $this->inner->get_alignment();
     }
 
     /**
