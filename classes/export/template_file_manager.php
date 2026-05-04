@@ -97,8 +97,16 @@ class template_file_manager implements template_file_manager_interface {
         $zipfile = "$tempdir/certificate-template-$templateid.zip";
 
         $files = [];
-        foreach (glob("$tempdir/*") as $path) {
-            $files[basename($path)] = $path;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($tempdir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $path) {
+            $relativepath = substr((string) $path, strlen($tempdir) + 1);
+            $relativepath = str_replace(DIRECTORY_SEPARATOR, '/', $relativepath);
+            if (!is_dir((string) $path)) {
+                $files[$relativepath] = (string) $path;
+            }
         }
 
         $packer->archive_to_pathname(

@@ -72,7 +72,7 @@ abstract class subplugin_exportable {
         $this->logger = $logger;
         $this->filemng = $filemng;
         $this->userfield = new user_field();
-        $this->filefield = new file_field($pluginname, $filemng);
+        $this->filefield = new file_field('mod_customcert', $filemng);
     }
 
     /**
@@ -182,7 +182,7 @@ abstract class subplugin_exportable {
      */
     public function get_relevant_data(string $key, array $data): mixed {
         if (str_contains($key, '$')) {
-            $subkeys = ['contextid', 'filearea', 'itemid', 'filepath', 'filename'];
+            $subkeys = ['contextid', 'component', 'filearea', 'itemid', 'filepath', 'filename'];
             $fielddata = array_map(function ($subkey) use ($data, $key) {
                 return $data[str_replace('$', $subkey, $key)] ?? null;
             }, $subkeys);
