@@ -88,10 +88,16 @@ class edit_element_form extends moodleform {
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
         $factory = $this->_customdata['factory'] ?? element_factory::build_with_defaults();
-        $this->element = $factory->create_from_legacy_record($element);
-        if (!$this->element) {
+        $created = $factory->create_from_legacy_record($element);
+        if (!$created) {
             throw new moodle_exception('invalidrecord', 'error');
         }
+        if (!$created instanceof form_element_interface) {
+            throw new \coding_exception(
+                'Element of type "' . $element->element . '" does not support edit forms (must implement form_element_interface).'
+            );
+        }
+        $this->element = $created;
         $this->element->set_edit_element_form($this);
 
         $formservice = new form_service();
