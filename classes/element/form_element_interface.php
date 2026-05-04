@@ -35,7 +35,7 @@ use mod_customcert\edit_element_form;
  * against this interface rather than the legacy base class, so that
  * legacy_element_adapter instances are accepted without a TypeError.
  */
-interface form_element_interface extends element_interface, stylable_element_interface {
+interface form_element_interface extends element_interface {
     /**
      * Attach the edit element form to this element.
      *
