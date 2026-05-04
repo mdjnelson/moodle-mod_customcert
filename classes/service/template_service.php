@@ -23,7 +23,7 @@ use invalid_parameter_exception;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
-use mod_customcert\element\element as base_element;
+use mod_customcert\element as base_element;
 use ReflectionMethod;
 use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
