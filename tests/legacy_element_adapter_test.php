@@ -38,6 +38,7 @@ use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
 use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
 use mod_customcert\tests\fixtures\legacy_after_restore_element;
 use mod_customcert\tests\fixtures\legacy_invokable_test_element;
+use mod_customcert\tests\fixtures\new_restorable_element;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -45,6 +46,7 @@ require_once(__DIR__ . '/fixtures/legacy_save_unique_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_definition_after_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_after_restore_element.php');
 require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
+require_once(__DIR__ . '/fixtures/new_restorable_element.php');
 
 /**
  * Tests for the legacy adapter mapping of getters.
@@ -403,6 +405,31 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertDebuggingCalled();
         // Verify the inner element's method was called.
         $this->assertTrue($legacy->called);
+    }
+
+    /**
+     * When the inner element already implements restorable_element_interface, the adapter
+     * must delegate to after_restore_from_backup() directly without emitting any deprecation.
+     *
+     * @covers \mod_customcert\element\legacy_element_adapter::after_restore_from_backup
+     */
+    public function test_adapter_delegates_to_new_restorable_interface_without_deprecation(): void {
+        $this->resetAfterTest();
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'Test',
+            'data' => json_encode([]),
+        ];
+        $inner = new new_restorable_element($record);
+        $adapter = new legacy_element_adapter($inner);
+        $restore = $this->getMockBuilder(\restore_customcert_activity_task::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        // No deprecation notice should be emitted — inner uses the new interface.
+        $adapter->after_restore_from_backup($restore);
+        $this->assertDebuggingNotCalled();
+        $this->assertTrue($inner->called);
     }
 
     /**
