@@ -341,7 +341,9 @@ final class element_repository {
 
         $result = $DB->delete_records('customcert_elements', ['id' => $element->get_id()]);
 
-        element_deleted::create_from_element($element)->trigger();
+        if ($result) {
+            element_deleted::create_from_element($element)->trigger();
+        }
 
         return $result;
     }
@@ -374,7 +376,7 @@ final class element_repository {
         $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
         // Fire created event for this element in the template context.
-        $created = element_factory::build_with_defaults()->create($element->get_type(), $record);
+        $created = $this->factory->create($element->get_type(), $record);
         element_created::create_from_element($created)->trigger();
 
         return $record->id;
