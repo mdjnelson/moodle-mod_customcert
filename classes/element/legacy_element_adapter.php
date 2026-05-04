@@ -50,7 +50,12 @@ use restore_customcert_activity_task;
  * Plugin authors should migrate their elements to implement element_interface directly.
  * This class is not part of the public API and should not be used directly by plugin authors.
  */
-final class legacy_element_adapter implements form_element_interface, renderable_element_interface, stylable_element_interface, layout_element_interface, restorable_element_interface {
+final class legacy_element_adapter implements
+    form_element_interface,
+    layout_element_interface,
+    renderable_element_interface,
+    restorable_element_interface,
+    stylable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 

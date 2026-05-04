@@ -136,11 +136,45 @@ final class validation_service_test extends advanced_testcase {
      */
     public function test_pure_v2_element_with_no_validation_hook_produces_no_errors(): void {
         $element = new class implements \mod_customcert\element\element_interface {
-            public function get_id(): int { return 1; }
-            public function get_pageid(): int { return 1; }
-            public function get_name(): string { return 'Test'; }
-            public function get_data(): mixed { return null; }
-            public function get_type(): string { return 'test'; }
+            /**
+             * Get element ID.
+             * @return int
+             */
+            public function get_id(): int {
+                return 1;
+            }
+
+            /**
+             * Get page ID.
+             * @return int
+             */
+            public function get_pageid(): int {
+                return 1;
+            }
+
+            /**
+             * Get element name.
+             * @return string
+             */
+            public function get_name(): string {
+                return 'Test';
+            }
+
+            /**
+             * Get element data.
+             * @return mixed
+             */
+            public function get_data(): mixed {
+                return null;
+            }
+
+            /**
+             * Get element type.
+             * @return string
+             */
+            public function get_type(): string {
+                return 'test';
+            }
         };
 
         $svc = new validation_service();

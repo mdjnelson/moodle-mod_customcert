@@ -34,7 +34,6 @@ use mod_customcert\service\form_service;
 use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
-use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\element\form_element_interface;
