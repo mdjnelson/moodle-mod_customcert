@@ -118,11 +118,11 @@ class template_appendix_manager implements template_appendix_manager_interface {
         }
         // Flatten page-level arrays; guard against templates with no pages or no elements.
         $elementids = $elementids ? array_merge(...$elementids) : [];
-        if ($this->element === null) {
-            throw new coding_exception('Element handler not set. Call set_element() before exporting.');
-        }
         if (empty($elementids)) {
             return [];
+        }
+        if ($this->element === null) {
+            throw new coding_exception('Element handler not set. Call set_element() before exporting.');
         }
         $element = $this->element;
         $files = array_map(fn ($elementid) => $element->get_files($elementid), $elementids);
@@ -174,7 +174,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
 
         foreach ($manifest['files'] as $contenthash => $meta) {
             if (empty($meta['filename'] ?? null)) {
-                throw new Exception("file has no name: files/$contenthash");
+                throw new import_exception("file has no name: files/$contenthash");
             }
             // Validate the filename from the manifest strictly: reject any name that
             // clean_param would mutate (e.g. path traversal sequences) rather than
@@ -182,16 +182,32 @@ class template_appendix_manager implements template_appendix_manager_interface {
             $rawfilename = $meta['filename'];
             $filename = clean_param($rawfilename, PARAM_FILE);
             if ($filename === '' || $filename !== $rawfilename) {
-                throw new Exception("file has unsafe or empty name: files/$contenthash");
+                throw new import_exception("file has unsafe or empty name: files/$contenthash");
             }
 
             // Validate the content hash key before using it in a file path.
             if (!preg_match('/^[a-f0-9]{40}$/', $contenthash)) {
-                throw new Exception("invalid content hash key in manifest: $contenthash");
+                throw new import_exception("invalid content hash key in manifest: $contenthash");
+            }
+            // Allowlist component, filearea, filepath, and itemid to prevent hostile imports
+            // from creating arbitrary files in unrelated fileareas or components.
+            if (($meta['component'] ?? '') !== 'mod_customcert') {
+                throw new import_exception("Invalid file component in files.json: files/$contenthash");
+            }
+            $allowedareas = ['image'];
+            if (!in_array($meta['filearea'] ?? '', $allowedareas, true)) {
+                throw new import_exception("Invalid file area in files.json: files/$contenthash");
+            }
+            if (($meta['filepath'] ?? '/') !== '/') {
+                throw new import_exception("Invalid file path in files.json: files/$contenthash");
+            }
+            $itemid = $meta['itemid'] ?? 0;
+            if (!is_numeric($itemid) || (int) $itemid < 0) {
+                throw new import_exception("Invalid file itemid in files.json: files/$contenthash");
             }
             $srcpath = $this->get_imagepath($importpath, $contenthash);
             if (!file_exists($srcpath)) {
-                throw new Exception("file not found: files/$contenthash");
+                throw new import_exception("file not found: files/$contenthash");
             }
 
             // Using mod_customcert/image/itemid=0 is compatible with your element runtime code.
