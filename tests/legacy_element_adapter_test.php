@@ -552,7 +552,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
      */
     public function test_form_buildable_interface_does_not_exist(): void {
         $this->assertFalse(
-            interface_exists('mod_customcert\\element\\form_buildable_interface', false),
+            interface_exists('mod_customcert\\element\\form_buildable_interface', true),
             'form_buildable_interface was never released and must not exist'
         );
     }

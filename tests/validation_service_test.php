@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\dummy_validatable_element;
 
@@ -211,6 +212,37 @@ final class validation_service_test extends advanced_testcase {
         $this->assertDebuggingCalled();
 
         // The element loaded without a fatal and validation returned an array.
+        $this->assertIsArray($errors);
+    }
+
+    /**
+     * When a legacy element with a validate_form_elements() override is wrapped in a
+     * legacy_element_adapter, validation_service must still invoke the legacy hook.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_adapter_wrapped_legacy_element_validate_form_elements_is_called(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'OldSig',
+            'element' => 'text',
+            'data' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+        ];
+        $inner = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+        $adapter = new legacy_element_adapter($inner);
+
+        $svc = new validation_service();
+        $errors = $svc->validate($adapter, ['name' => 'OldSig']);
+        $this->assertDebuggingCalled();
+
+        // The legacy hook was invoked and returned an array.
         $this->assertIsArray($errors);
     }
 }
