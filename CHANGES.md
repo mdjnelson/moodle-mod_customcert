@@ -124,7 +124,7 @@ The following `template` methods are now shims that emit developer debugging and
 - `template::delete()` / `template::delete_page()` / `template::delete_element()` → `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
 - `template::copy_to_template()` → `template_service::copy_to_template()`
 - `template::move_item()` → `template_service::move_item()` (service constants are available; raw strings remain supported)
-- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → corresponding `pdf_generation_service` methods
+- `template::generate_pdf()` → `pdf_generation_service::generate_pdf()`
 
 #### Certificate methods
 The following `certificate` methods are now shims that emit developer debugging and should be replaced with service calls:
