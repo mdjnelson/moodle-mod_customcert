@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\element;
 
+use stdClass;
+
 /**
  * Interface for elements that require custom logic when copied between pages or templates.
  *
@@ -33,8 +35,8 @@ interface copyable_element_interface {
     /**
      * Perform any additional work required when this element is copied from a source record.
      *
-     * @param \stdClass $source The original element DB record being copied from.
+     * @param stdClass $source The original element DB record being copied from.
      * @return bool True on success, false if the copy should be aborted and the new record deleted.
      */
-    public function copy_from(\stdClass $source): bool;
+    public function copy_from(stdClass $source): bool;
 }
