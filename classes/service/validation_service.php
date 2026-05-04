@@ -26,9 +26,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use mod_customcert\element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\element\validatable_element_interface;
+use ReflectionMethod;
 use Throwable;
 
 /**
@@ -73,9 +75,14 @@ final class validation_service {
                     debugging('Element validation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
-        } else if (method_exists($element, 'validate_form_elements')) {
-            // Back-compat: If the element does not implement the new interface but has the
-            // legacy hook, call it. Pure v2 elements with no validation hook contribute no errors.
+        } else if (self::has_legacy_validate_override($element)) {
+            // Back-compat: only call the legacy hook when the concrete class actually overrides it,
+            // not when it is merely inherited from the mod_customcert\element base class.
+            debugging(
+                'validate_form_elements() is deprecated since Moodle 5.2. Implement ' .
+                'mod_customcert\\element\\validatable_element_interface::validate() instead.',
+                DEBUG_DEVELOPER
+            );
             try {
                 // The variable $files is not used by core validations; provide empty array.
                 $errors += (array) $element->validate_form_elements($data, []);
@@ -88,5 +95,20 @@ final class validation_service {
         }
 
         return $errors;
+    }
+
+    /**
+     * Returns true only when the given element instance has a concrete override of validate_form_elements()
+     * that is not merely the no-op base implementation on mod_customcert\element.
+     *
+     * @param object $element Element instance to inspect.
+     * @return bool
+     */
+    private static function has_legacy_validate_override(object $element): bool {
+        if (!method_exists($element, 'validate_form_elements')) {
+            return false;
+        }
+        $ref = new ReflectionMethod($element, 'validate_form_elements');
+        return $ref->getDeclaringClass()->getName() !== element::class;
     }
 }
