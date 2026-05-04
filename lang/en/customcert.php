@@ -139,6 +139,7 @@ $string['getcustomcert'] = 'View certificate';
 $string['gradeoutcome'] = 'Outcome';
 $string['height'] = 'Height';
 $string['height_help'] = 'This is the height of the certificate PDF in mm. For reference an A4 piece of paper is 297mm high and a letter is 279mm high.';
+$string['importfailed'] = 'The template could not be imported. Please check the file and try again.';
 $string['importsuccessful'] = 'Successfully imported template';
 $string['importtemplate'] = 'Import template';
 $string['includeinnotvisiblecourses'] = 'Include certificates in hidden courses';
