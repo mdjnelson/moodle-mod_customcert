@@ -63,10 +63,11 @@ final class form_service {
     public function build_form(MoodleQuickForm $mform, element_interface $element): void {
         if ($element instanceof form_buildable_interface) {
             $element->build_form($mform);
-        } else {
-            // Fallback for elements not yet migrated or third-party elements.
+        } else if (method_exists($element, 'render_form_elements')) {
+            // Fallback for legacy elements not yet migrated to form_buildable_interface.
             $element->render_form_elements($mform);
         }
+        // Pure v2 elements that implement neither interface have no element-specific fields.
     }
 
     /**
