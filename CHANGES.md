@@ -77,6 +77,13 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   - `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
   - `certificate::set_protection()` → `form_service`
   - `certificate::upload_files()` → `form_service`
+#### Activity completion
+- New **"Certificate emailed"** custom completion rule (`completionemailed`): marks the activity complete for a student as soon as their certificate has been emailed to them.
+  - Implemented in `mod_customcert\completion\custom_completion` (`classes/completion/custom_completion.php`).
+  - Enabled per-instance via a new checkbox in the activity settings form; the checkbox is only available when *Email students* is enabled (either on the instance or globally), enforced by server-side form validation.
+  - The `completionemailed` flag is stored in the `customcert` table and is included in backup/restore.
+  - Completion state is evaluated by `certificate_email_service` immediately after each certificate email is dispatched, so the activity is marked complete without waiting for the next cron run.
+  - `customcert_get_coursemodule_info()` added to `lib.php` to expose the rule via `cm_info->customdata`, which is required by Moodle's completion API.
 
 ### Changed
 

@@ -265,6 +265,7 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  * @uses FEATURE_GROUPMEMBERSONLY
  * @uses FEATURE_MOD_INTRO
  * @uses FEATURE_COMPLETION_TRACKS_VIEWS
+ * @uses FEATURE_COMPLETION_HAS_RULES
  * @uses FEATURE_GRADE_HAS_GRADE
  * @uses FEATURE_GRADE_OUTCOMES
  * @param string $feature FEATURE_xx constant for requested feature
@@ -276,6 +277,7 @@ function customcert_supports($feature) {
         case FEATURE_MOD_INTRO:
         case FEATURE_SHOW_DESCRIPTION:
         case FEATURE_COMPLETION_TRACKS_VIEWS:
+        case FEATURE_COMPLETION_HAS_RULES:
         case FEATURE_BACKUP_MOODLE2:
         case FEATURE_GROUPS:
             return true;
@@ -284,6 +286,30 @@ function customcert_supports($feature) {
         default:
             return null;
     }
+}
+
+/**
+ * Obtains the automatic completion state for this customcert based on any conditions in customcert settings.
+ *
+ * @param stdClass $coursemodule The course module object (record).
+ * @return cached_cm_info|false
+ */
+function customcert_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $customcert = $DB->get_record('customcert', ['id' => $coursemodule->instance], 'id, name, completionemailed');
+    if (!$customcert) {
+        return false;
+    }
+
+    $result = new cached_cm_info();
+    $result->name = $customcert->name;
+
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $result->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
+    }
+
+    return $result;
 }
 
 /**
