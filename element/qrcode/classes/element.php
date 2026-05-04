@@ -192,24 +192,20 @@ class element extends base_element implements
             $qrcodeurl = $qrcodeurl->out(false);
         }
 
-        if ($renderer) {
-            $this->render_html($renderer);
-        } else {
-            try {
-                $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
-                $image = $barcode->getBarcodePngData((int)$payload['width'], (int)$payload['height']);
+        try {
+            $barcode = new TCPDF2DBarcode($qrcodeurl, self::BARCODETYPE);
+            $image = $barcode->getBarcodePngData((int)$payload['width'], (int)$payload['height']);
 
-                $location = make_request_directory() . '/target';
-                file_put_contents($location, $image);
+            $location = make_request_directory() . '/target';
+            file_put_contents($location, $image);
 
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
-            } catch (Throwable $e) {
-                if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
-                    debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
-                }
-
-                return;
+            $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
+        } catch (Throwable $e) {
+            if (!defined('PHPUNIT_TEST') && !defined('BEHAT_SITE_RUNNING')) {
+                debugging('QR code render failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
+
+            return;
         }
     }
 

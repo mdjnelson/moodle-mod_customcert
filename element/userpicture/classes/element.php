@@ -110,40 +110,36 @@ class element extends base_element implements
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $CFG;
 
-        if ($renderer) {
-            $this->render_html($renderer);
-        } else {
-            // If there is no element data, we have nothing to display.
-            if (empty($this->get_data())) {
-                return;
+        // If there is no element data, we have nothing to display.
+        if (empty($this->get_data())) {
+            return;
+        }
+
+        $payload = $this->get_payload();
+
+        $context = context_user::instance($user->id);
+
+        // Get files in the user icon area.
+        $fs = get_file_storage();
+        $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
+
+        // Get the file we want to display.
+        $file = null;
+        foreach ($files as $filefound) {
+            if (!$filefound->is_directory()) {
+                $file = $filefound;
+                break;
             }
+        }
 
-            $payload = $this->get_payload();
-
-            $context = context_user::instance($user->id);
-
-            // Get files in the user icon area.
-            $fs = get_file_storage();
-            $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
-
-            // Get the file we want to display.
-            $file = null;
-            foreach ($files as $filefound) {
-                if (!$filefound->is_directory()) {
-                    $file = $filefound;
-                    break;
-                }
-            }
-
-            // Show image if we found one.
-            if ($file) {
-                $location = make_request_directory() . '/target';
-                $file->copy_content_to($location);
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
-            } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
-                $location = $CFG->dirroot . '/pix/u/f1.png';
-                $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
-            }
+        // Show image if we found one.
+        if ($file) {
+            $location = make_request_directory() . '/target';
+            $file->copy_content_to($location);
+            $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
+        } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
+            $location = $CFG->dirroot . '/pix/u/f1.png';
+            $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
         }
     }
 

@@ -303,39 +303,35 @@ class element extends base_element implements
         }
 
         if ($file = $this->get_file()) {
-            if ($renderer) {
-                $this->render_html($renderer);
-            } else {
-                $location = make_request_directory() . '/target';
-                $file->copy_content_to($location);
+            $location = make_request_directory() . '/target';
+            $file->copy_content_to($location);
 
-                // Check if the alpha channel is set, if it is, use it.
-                if (isset($payload['alphachannel'])) {
-                    $pdf->SetAlpha((float)$payload['alphachannel']);
-                }
-
-                $mimetype = $file->get_mimetype();
-                if ($mimetype == 'image/svg+xml') {
-                    $pdf->ImageSVG(
-                        $location,
-                        $this->get_posx(),
-                        $this->get_posy(),
-                        (int)($payload['width'] ?? 0),
-                        (int)($payload['height'] ?? 0)
-                    );
-                } else {
-                    $pdf->Image(
-                        $location,
-                        $this->get_posx(),
-                        $this->get_posy(),
-                        (int)($payload['width'] ?? 0),
-                        (int)($payload['height'] ?? 0)
-                    );
-                }
-
-                // Restore to full opacity.
-                $pdf->SetAlpha(1);
+            // Check if the alpha channel is set, if it is, use it.
+            if (isset($payload['alphachannel'])) {
+                $pdf->SetAlpha((float)$payload['alphachannel']);
             }
+
+            $mimetype = $file->get_mimetype();
+            if ($mimetype == 'image/svg+xml') {
+                $pdf->ImageSVG(
+                    $location,
+                    $this->get_posx(),
+                    $this->get_posy(),
+                    (int)($payload['width'] ?? 0),
+                    (int)($payload['height'] ?? 0)
+                );
+            } else {
+                $pdf->Image(
+                    $location,
+                    $this->get_posx(),
+                    $this->get_posy(),
+                    (int)($payload['width'] ?? 0),
+                    (int)($payload['height'] ?? 0)
+                );
+            }
+
+            // Restore to full opacity.
+            $pdf->SetAlpha(1);
         }
     }
 
