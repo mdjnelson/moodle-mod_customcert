@@ -173,6 +173,10 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 throw new Exception("file has unsafe or empty name: files/$contenthash");
             }
 
+            // Validate the content hash key before using it in a file path.
+            if (!preg_match('/^[a-f0-9]{40}$/', $contenthash)) {
+                throw new Exception("invalid content hash key in manifest: $contenthash");
+            }
             $srcpath = $this->get_imagepath($importpath, $contenthash);
             if (!file_exists($srcpath)) {
                 throw new Exception("file not found: files/$contenthash");
