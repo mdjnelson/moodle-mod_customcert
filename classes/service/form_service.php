@@ -58,13 +58,10 @@ final class form_service {
      * Build the form for an element.
      *
      * @param MoodleQuickForm $mform
-     * @param element_interface $element
+     * @param form_element_interface $element
      */
-    public function build_form(MoodleQuickForm $mform, element_interface $element): void {
-        if ($element instanceof form_element_interface) {
-            $element->build_form($mform);
-        }
-        // Pure v2 elements that do not implement form_element_interface have no element-specific fields.
+    public function build_form(MoodleQuickForm $mform, form_element_interface $element): void {
+        $element->build_form($mform);
     }
 
     /**
