@@ -530,7 +530,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
         $this->assertDebuggingCalled(
             'element::copy_element() is deprecated since Moodle 5.2. '
-            . 'Use mod_customcert\\service\\element_repository::copy_element() instead.',
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
             DEBUG_DEVELOPER
         );
         $this->assertTrue($result);
