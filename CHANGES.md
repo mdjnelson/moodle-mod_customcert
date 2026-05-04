@@ -159,7 +159,6 @@ The following `template` methods are now shims that emit developer debugging and
 - `template::copy_to_template()` → `template_service::copy_to_template()`
 - `template::move_item()` → `template_service::move_item()` (service constants are available; raw strings remain supported)
 - `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → corresponding `pdf_generation_service` methods
-- `template::load(int $id)` → `template::from_record()` with `template_repository` (the method now emits a deprecation notice and delegates to `from_record()` internally)
 
 #### Certificate methods
 The following `certificate` methods are now shims that emit developer debugging and should be replaced with service calls:
