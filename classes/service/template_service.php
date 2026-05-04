@@ -388,11 +388,14 @@ final class template_service {
 
                 if ($instance = $this->create_element_from_record($element)) {
                     $inner = $this->unwrap_element($instance);
-                    if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
-                        $this->elements->delete($instance);
-                    } else {
-                        element_created::create_from_element($instance)->trigger();
+                    if (method_exists($inner, 'copy_element')) {
+                        $copyresult = $inner->copy_element($templateelement);
+                        if ($copyresult === false) {
+                            $this->elements->delete($instance);
+                            continue;
+                        }
                     }
+                    element_created::create_from_element($instance)->trigger();
                 }
             }
         }
