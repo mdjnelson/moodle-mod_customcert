@@ -38,16 +38,15 @@ use mod_customcert\service\element_factory;
 use restore_customcert_activity_task;
 
 /**
- * Adapts a legacy element (extending mod_customcert\element) to element_interface.
+ * Adapter that exposes legacy elements through the new element interfaces.
  *
- * @deprecated since Moodle 5.2 — one-release compatibility bridge only.
- *   This class exists to allow third-party element plugins that extend the legacy
- *   mod_customcert\element base class to continue working after the v2 refactor without
- *   modification. It is NOT part of the long-term architecture.
+ * This class is part of the compatibility layer for legacy element plugins that extend
+ * the mod_customcert\element base class. It allows those plugins to work with the v2
+ * element system without modification.
  *
- *   Plugin authors should migrate their elements to implement element_interface directly.
- *   This adapter and the legacy mod_customcert\element base class are candidates for
- *   removal in a future major release once the transition period has ended.
+ * Plugin authors should migrate their elements to implement element_interface directly.
+ *
+ * @internal
  */
 final class legacy_element_adapter implements form_element_interface, restorable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
@@ -254,11 +253,8 @@ final class legacy_element_adapter implements form_element_interface, restorable
     /**
      * Handle element deletion.
      *
-     * @deprecated since Moodle 5.2 — compatibility bridge only.
-     *   This method exists so that legacy code calling $adapter->delete() continues to work
-     *   during the transition period. New code should use element_repository::delete() directly.
-     *   This method and the element_repository/element_factory imports in this class are
-     *   candidates for removal once all callers have been migrated.
+     * Delegates to element_repository::delete(). New code should use the repository directly
+     * rather than calling delete() on the element.
      *
      * @return bool success return true if deletion success, false otherwise
      */
