@@ -388,9 +388,9 @@ final class template_service {
 
                 if ($instance = $this->create_element_from_record($element)) {
                     $inner = $this->unwrap_element($instance);
-                    if (method_exists($inner, 'copy_element')) {
-                        $copyresult = $inner->copy_element($templateelement);
-                        if ($copyresult === false) {
+                    // If the element implements copyable_element_interface, delegate to copy_from().
+                    if ($inner instanceof \mod_customcert\element\copyable_element_interface) {
+                        if (!$inner->copy_from($templateelement)) {
                             $this->elements->delete($instance);
                             continue;
                         }

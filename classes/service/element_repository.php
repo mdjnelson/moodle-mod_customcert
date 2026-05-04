@@ -260,10 +260,12 @@ final class element_repository {
                 $inner = $instance->get_inner();
             }
 
-            // The legacy elements have a copy_element method.
-            if (method_exists($inner, 'copy_element') && !$inner->copy_element($e)) {
-                $this->delete($instance);
-                continue;
+            // If the element implements copyable_element_interface, delegate to copy_from().
+            if ($inner instanceof \mod_customcert\element\copyable_element_interface) {
+                if (!$inner->copy_from($e)) {
+                    $this->delete($instance);
+                    continue;
+                }
             }
             $count++;
         }
