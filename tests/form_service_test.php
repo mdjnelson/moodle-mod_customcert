@@ -47,7 +47,7 @@ final class form_service_test extends advanced_testcase {
     /**
      * Ensure elements implementing form_element_interface receive the raw mform.
      */
-    public function test_build_form_uses_buildable_interface(): void {
+    public function test_build_form_uses_form_element_interface(): void {
         $this->resetAfterTest();
 
         $calls = [];

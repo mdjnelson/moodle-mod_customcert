@@ -47,7 +47,6 @@ use stdClass;
  */
 class element extends base_element implements
     constructable_element_interface,
-    element_interface,
     form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
