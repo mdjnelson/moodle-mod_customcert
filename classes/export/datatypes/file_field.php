@@ -111,11 +111,10 @@ class file_field implements field_interface, file_field_interface {
         ) {
             return false;
         }
-        $component = $this->component;
         $fs = get_file_storage();
         return $fs->get_file(
             (int) $data["contextid"],
-            $component,
+            $this->component,
             $data["filearea"],
             (int) $data["itemid"],
             $data["filepath"],

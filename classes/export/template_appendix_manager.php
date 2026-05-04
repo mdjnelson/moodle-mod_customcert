@@ -218,7 +218,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 throw new import_exception("Invalid file path in files.json: files/$contenthash");
             }
             $itemid = $meta['itemid'] ?? 0;
-            if (!is_numeric($itemid) || (int) $itemid < 0) {
+            if (!is_numeric($itemid) || (int) $itemid !== 0) {
                 throw new import_exception("Invalid file itemid in files.json: files/$contenthash");
             }
             $srcpath = $this->get_imagepath($importpath, $contenthash);

@@ -200,12 +200,38 @@ class template_file_manager implements template_file_manager_interface {
                 $zip->close();
                 throw new import_exception('Failed to inspect the ZIP archive');
             }
-            // Skip explicit directory entries (name ends with '/'); they carry no file content
-            // and are included by some ZIP creators as structural markers.
-            if (str_ends_with($stat['name'], '/')) {
+
+            // Normalise backslashes so Windows-style paths are caught by the same checks.
+            $name = str_replace('\\', '/', $stat['name']);
+
+            // Reject absolute paths, drive-letter paths, traversal segments, and empty names
+            // BEFORE skipping directory entries so that hostile directory entries like
+            // '../' or 'files/../../evil/' are also rejected.
+            if (
+                $name === '' ||
+                str_starts_with($name, '/') ||
+                preg_match('/^[A-Za-z]:\//', $name) ||
+                str_contains($name, '../') ||
+                str_ends_with($name, '/..') ||
+                $name === '..'
+            ) {
+                $zip->close();
+                throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
+            }
+
+            // Only allow safe characters: alphanumeric, dash, underscore, dot, slash.
+            if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $name)) {
+                $zip->close();
+                throw new import_exception('Archive contains an unsafe filename: ' . $stat['name']);
+            }
+
+            // Skip safe structural directory entries (name ends with '/') after all
+            // security checks have passed; they carry no file content.
+            if (str_ends_with($name, '/')) {
                 continue;
             }
-            $files[] = (object)['pathname' => $stat['name'], 'size' => $stat['size']];
+
+            $files[] = (object)['pathname' => $name, 'size' => $stat['size']];
         }
         $zip->close();
 
@@ -220,19 +246,6 @@ class template_file_manager implements template_file_manager_interface {
         $maxtotalbytes = self::MAX_TOTAL_BYTES;
         $totalbytes = 0;
         foreach ($files as $file) {
-            // Reject absolute paths and any path segment that is or contains '..'.
-            if (str_starts_with($file->pathname, '/')) {
-                throw new import_exception('Archive contains an absolute path: ' . $file->pathname);
-            }
-            foreach (explode('/', $file->pathname) as $segment) {
-                if ($segment === '..' || $segment === '.') {
-                    throw new import_exception('Archive contains a path traversal entry: ' . $file->pathname);
-                }
-            }
-            // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
-            if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
-                throw new import_exception('Archive contains an unsafe filename: ' . $file->pathname);
-            }
             if ($file->size > $maxbytes) {
                 throw new import_exception('A file in the archive exceeds the size limit: ' . $file->pathname);
             }

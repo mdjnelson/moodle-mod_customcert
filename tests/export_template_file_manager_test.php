@@ -304,25 +304,58 @@ final class export_template_file_manager_test extends advanced_testcase {
     }
 
     /**
-     * A well-formed ZIP that contains explicit directory entries (e.g. files/) must be
-     * accepted. Some ZIP creators include these structural markers; they should be skipped
-     * rather than rejected as unsafe filenames.
+     * ZIP with a hostile directory entry '../' must be rejected even though it ends with '/'.
+     */
+    public function test_import_rejects_dotdot_directory_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
+            '../'           => '',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a hostile nested directory entry 'files/../../evil/' must be rejected.
+     */
+    public function test_import_rejects_nested_traversal_directory_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json'    => json_encode(['name' => 'ok', 'pages' => []]),
+            'files/../../evil/' => '',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a Windows-style hostile directory entry '..\ evil\' must be rejected.
+     */
+    public function test_import_rejects_backslash_dotdot_directory_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
+            '..\\evil\\'   => '',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * A well-formed ZIP that contains a safe explicit directory entry (e.g. 'files/') must
+     * be accepted. Some ZIP creators include these structural markers; they are skipped after
+     * all safety checks pass.
      *
      * @covers \mod_customcert\export\template_file_manager
      */
     public function test_import_accepts_zip_with_directory_entries(): void {
         $tempdir = $this->make_hostile_zip([
             'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
-            'files/'        => '', // Explicit directory entry added by some ZIP tools.
+            'files/'        => '', // Safe structural directory entry added by some ZIP tools.
         ]);
-        // Should not throw — directory entries are silently skipped during validation.
-        // The import will fail later (no 'name' key in template.json pages), but that is
-        // a content error, not a ZIP-validation error, so we assert no import_exception.
+        // The safe directory entry must not cause a ZIP-validation exception.
+        // The import succeeds (template has no pages, so no further errors are expected).
         try {
             $this->filemanager->import(1, $tempdir);
         } catch (\mod_customcert\export\import_exception $e) {
-            // A content-level import_exception is acceptable (e.g. missing template name).
-            // What must NOT happen is an exception caused by the directory entry itself.
             $this->assertStringNotContainsString('unsafe filename', $e->getMessage());
             $this->assertStringNotContainsString('path traversal', $e->getMessage());
         }
