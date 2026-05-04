@@ -19,18 +19,18 @@ Element data that was previously stored in dedicated columns (`font`, `fontsize`
 
 Third-party elements should migrate to the new element interfaces under `mod_customcert\element`.
 
-The legacy `mod_customcert\element` base class remains available for compatibility during this major release, but its form/render/save hooks are deprecated and will be removed in a future major version.
+The legacy `mod_customcert\element` base class remains available for compatibility during this major release, but legacy hooks with replacement interfaces are deprecated and will be removed in a future major version.
 
 New elements should use:
 
 - `element_interface` — for the core element contract (identity, payload, type)
 - `form_element_interface` — only when the element participates in edit forms
 - `stylable_element_interface` — only when the element supports standard visual styling (`font`, `fontsize`, `colour`, `width`)
-- `form_buildable_interface` — to add element-specific fields to the edit form (replaces `render_form_elements()`)
-- `persistable_element_interface` — to normalise form data into a JSON payload (replaces `save_unique_data()`)
-- `validatable_element_interface` — to validate form submissions (replaces `validate_form_elements()`)
-- `preparable_form_interface` — to populate form fields from stored payload (replaces `definition_after_data()`)
-- `restorable_element_interface` — to remap IDs after backup restore (replaces `after_restore()`)
+- `form_buildable_interface` — adds element-specific fields to the edit form
+- `persistable_element_interface` — normalises submitted form data into the JSON payload
+- `validatable_element_interface` — validates submitted form data
+- `preparable_form_interface` — populates edit-form fields from stored payload
+- `restorable_element_interface` — remaps internal references after backup restore
 - Repository/service APIs for persistence and layout changes
 
 An `unknown_element` fallback is used when a requested element type is not registered; it renders gracefully rather than throwing.
@@ -39,9 +39,46 @@ An `unknown_element` fallback is used when a requested element type is not regis
 - Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
 - **Export**: from the *Manage templates* page, click the download icon next to any template to download a `.zip` file containing the template structure (pages and elements) and any associated files (e.g. images used by elements).
 - **Import**: from the *Manage templates* page, click *Import template* to upload a previously exported `.zip` and recreate the template in the current context.
+- New export/import service layer under `mod_customcert\export`:
+  - `template_file_manager` — orchestrates ZIP creation and extraction, delegates to `template` for DB writes, and rolls back copied files on failure.
+  - `template` / `page` / `element` — transactional DB import of template structure; each level delegates to the next.
+  - `template_appendix_manager` — handles copying element-associated files in and out of the ZIP (manifest-driven, with path-traversal and size-limit guards).
+  - `template_import_logger_interface` / `template_logger` — collects warnings produced during import (e.g. unknown element types) and surfaces them as Moodle notifications.
+
+#### Service layer
+- New service-layer APIs for template/page/element CRUD:
+  - `mod_customcert\service\template_service` — orchestrates template/page/element create, update, delete, and move operations (plus DTOs such as `page_update`)
+  - `mod_customcert\service\template_repository` — low-level DB access for `customcert_templates`
+  - `mod_customcert\service\page_repository` — low-level DB access for `customcert_pages`
+  - `mod_customcert\service\element_repository` — low-level DB access for `customcert_elements`
+  - `mod_customcert\service\template_duplication_service` — transactional copy of a template with all its pages and elements
+  - `mod_customcert\service\template_load_service` — replaces an existing template's pages/elements with content from another template
+  - `mod_customcert\service\item_move_service` — handles moving pages and elements by swapping sequences
+  - `mod_customcert\service\pdf_generation_service` — PDF generation, preview, and filename computation
+- New certificate issuance and delivery services:
+  - `mod_customcert\service\certificate_issue_service` — issues certificates and generates unique codes
+  - `mod_customcert\service\certificate_download_service` — handles bulk certificate download for instances and site-wide
+  - `mod_customcert\service\certificate_time_service` — computes course time for certificate conditions
+  - `mod_customcert\service\certificate_email_service` — sends certificate emails to students and teachers
+  - `mod_customcert\service\certificate_issuer_service` — orchestrates the scheduled issuance and email pipeline
+- New repository classes:
+  - `mod_customcert\service\issue_repository` — queries `customcert_issues`
+  - `mod_customcert\service\certificate_repository` — queries certificates per user
+  - `mod_customcert\service\issue_email_repository` — tracks email send state per issue
+- New rendering infrastructure:
+  - `mod_customcert\service\element_renderer` — interface for the v2 element rendering pipeline (PDF and HTML surfaces)
+  - `mod_customcert\service\pdf_renderer` — `element_renderer` implementation for PDF output
+  - `mod_customcert\service\html_renderer` — `element_renderer` implementation for the designer preview
 
 #### Other additions
-- `mod_customcert\template::from_record(\stdClass $record)` is now the **preferred** entry point for instantiating a template from a database record; `mod_customcert\template::create(string $name, int $contextid)` is the preferred entry point for creating a new template.
+- `mod_customcert\template::from_record(\stdClass $record)` is now the **preferred** entry point for instantiating a template from a database record; `mod_customcert\template::create(string $name, int $contextid)` is the preferred entry point for creating a new template. The constructor signature has changed to accept `int $id, string $name, int $contextid` individually (previously it accepted a raw `\stdClass $record`) — new code should use `from_record()` rather than calling `new template(...)` directly, though the constructor remains functional.
+- `mod_customcert\element\legacy_element_adapter` — wraps a legacy element (extending `mod_customcert\element`) to satisfy `element_interface`; returned by the factory for unupgraded element plugins.
+- Static utility methods on `certificate` have been moved to dedicated service/repository classes:
+  - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
+  - `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
+  - `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
+  - `certificate::set_protection()` → `form_service`
+  - `certificate::upload_files()` → `form_service`
 - **Expanded automated tests** covering element API behaviour and upgrade/restore data migration paths.
 
 ### Changed
@@ -144,6 +181,7 @@ Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::validate_form_elements()` → use `validatable_element_interface::validate()`
 - `element::save_form_elements()` / `element::save_unique_data()` → use `persistable_element_interface::normalise_data()`
 - `element::after_restore()` → use `restorable_element_interface::after_restore_from_backup()`
+- `element::copy_element()` → use `mod_customcert\service\element_repository::copy_element()`
 - `element::delete()` → use `mod_customcert\service\element_repository::delete()` (elements should not delete themselves; deletion is handled by the repository/service layer)
 
 #### Deprecation notes
