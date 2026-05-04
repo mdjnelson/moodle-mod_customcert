@@ -61,6 +61,7 @@ if ($fromform = $mform->get_data()) {
     $zippath = "$tempdir/import.zip";
     file_put_contents($zippath, $zipstring);
 
+    $importsuccess = false;
     try {
         $backupmng = di::get(template_file_manager_interface::class);
         $backupmng->import($fromform->context_id, $tempdir);
@@ -68,24 +69,28 @@ if ($fromform = $mform->get_data()) {
         // Queue any import warnings into the session so they display on the redirected page.
         di::get(template_import_logger_interface::class)->print_notification();
 
+        $importsuccess = true;
+    } catch (import_exception $e) {
+        // Known import failure: show a friendly error notification and redisplay the form.
+        notification::add($e->getMessage(), notification::ERROR);
+    } catch (\Throwable $e) {
+        // Unexpected failure: surface a generic message and log the detail for admins.
+        notification::add(get_string('importfailed', 'mod_customcert'), notification::ERROR);
+        debugging('customcert import failed: ' . $e->getMessage() . "\n" . $e->getTraceAsString(), DEBUG_DEVELOPER);
+    } finally {
+        // Always clean up the temporary directory before any redirect.
+        if (is_dir($tempdir)) {
+            remove_dir($tempdir);
+        }
+    }
+
+    if ($importsuccess) {
         redirect(
             new moodle_url('/mod/customcert/manage_templates.php', ['contextid' => $contextid]),
             get_string('importsuccessful', 'mod_customcert'),
             null,
             notification::SUCCESS
         );
-    } catch (import_exception $e) {
-        // Known import failure: show a friendly error notification and redisplay the form.
-        notification::add($e->getMessage(), notification::ERROR);
-    } catch (Throwable $e) {
-        // Unexpected failure: surface a generic message and log the detail for admins.
-        notification::add(get_string('importfailed', 'mod_customcert'), notification::ERROR);
-        debugging('customcert import failed: ' . $e->getMessage() . "\n" . $e->getTraceAsString(), DEBUG_DEVELOPER);
-    } finally {
-        // Always clean up the temporary directory.
-        if (is_dir($tempdir)) {
-            remove_dir($tempdir);
-        }
     }
 }
 
