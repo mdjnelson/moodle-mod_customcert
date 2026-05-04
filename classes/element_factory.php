@@ -52,6 +52,6 @@ final class element_factory {
             . 'or inject \mod_customcert\service\element_factory and call create() / create_from_legacy_record().',
             DEBUG_DEVELOPER
         );
-        return service_element_factory::get_element_instance($element);
+        return service_element_factory::get_legacy_element_instance($element);
     }
 }

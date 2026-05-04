@@ -139,7 +139,7 @@ final class element_factory {
         }
 
         try {
-            $legacy = self::get_element_instance($record);
+            $legacy = self::get_legacy_element_instance($record);
         } catch (\Throwable $unused) {
             return null;
         }
@@ -164,7 +164,7 @@ final class element_factory {
     /**
      * Backwards-compatible helper: return legacy element instance for given record.
      *
-     * This mirrors the old static API `mod_customcert\element_factory::get_element_instance($element)`
+     * This mirrors the old static API `mod_customcert\element_factory::get_legacy_element_instance($element)`
      * so the BC shim in mod_customcert\element_factory can delegate here without changing behaviour.
      *
      * @internal This method exists solely to support the deprecated BC shim. Do not call it directly
@@ -173,7 +173,7 @@ final class element_factory {
      * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
      * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
      */
-    public static function get_element_instance(stdClass $element) {
+    public static function get_legacy_element_instance(stdClass $element) {
 
         // Compose legacy class name like: \customcertelement_{type}\element.
         $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';
