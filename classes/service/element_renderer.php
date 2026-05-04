@@ -34,7 +34,9 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element as element_base;
+use mod_customcert\element\renderable_element_interface;
+use mod_customcert\element\stylable_element_interface;
+use mod_customcert\element\layout_element_interface;
 use pdf;
 use stdClass;
 
@@ -45,28 +47,28 @@ interface element_renderer {
     /**
      * Render the element into a PDF context.
      *
-     * @param element_base $element
+     * @param renderable_element_interface $element
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
      * @return void
      */
-    public function render_pdf(element_base $element, pdf $pdf, bool $preview, stdClass $user): void;
+    public function render_pdf(renderable_element_interface $element, pdf $pdf, bool $preview, stdClass $user): void;
 
     /**
      * Render the element into HTML for the designer UI.
      *
-     * @param element_base $element
+     * @param renderable_element_interface $element
      * @return string
      */
-    public function render_html(element_base $element): string;
+    public function render_html(renderable_element_interface $element): string;
 
     /**
      * Common behaviour for rendering specified content.
      *
-     * @param element_base $element
+     * @param stylable_element_interface&layout_element_interface $element
      * @param string $content
      * @return mixed
      */
-    public function render_content(element_base $element, string $content);
+    public function render_content(stylable_element_interface&layout_element_interface $element, string $content);
 }

@@ -32,9 +32,9 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element as element_base;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\stylable_element_interface;
+use mod_customcert\element\layout_element_interface;
 use mod_customcert\element_helper;
 use pdf;
 use stdClass;
@@ -46,44 +46,36 @@ final class html_renderer implements element_renderer {
     /**
      * Renders PDF.
      *
-     * @param element_base $element
+     * No-op in the HTML renderer — PDF output is handled by pdf_renderer.
+     *
+     * @param renderable_element_interface $element
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
      * @return void
      */
-    public function render_pdf(element_base $element, pdf $pdf, bool $preview, stdClass $user): void {
+    public function render_pdf(renderable_element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
         // No-op in HTML renderer.
     }
 
     /**
      * Render HTML.
      *
-     * @param element_base $element
+     * @param renderable_element_interface $element
      * @return string
      */
-    public function render_html(element_base $element): string {
-        if ($element instanceof renderable_element_interface) {
-            return $element->render_html($this);
-        }
-
-        // If adapter, delegate to wrapped legacy element.
-        if ($element instanceof legacy_element_adapter) {
-            $legacy = $element->get_inner();
-            return $legacy->render_html($this);
-        }
-
-        return '';
+    public function render_html(renderable_element_interface $element): string {
+        return $element->render_html($this);
     }
 
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element_base $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
-    public function render_content(element_base $element, string $content): string {
+    public function render_content(stylable_element_interface&layout_element_interface $element, string $content): string {
         return element_helper::render_html_content($element, $content);
     }
 }
