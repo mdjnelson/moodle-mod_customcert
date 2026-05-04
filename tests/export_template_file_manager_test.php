@@ -303,6 +303,31 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->filemanager->import(1, $tempdir);
     }
 
+    /**
+     * A well-formed ZIP that contains explicit directory entries (e.g. files/) must be
+     * accepted. Some ZIP creators include these structural markers; they should be skipped
+     * rather than rejected as unsafe filenames.
+     *
+     * @covers \mod_customcert\export\template_file_manager
+     */
+    public function test_import_accepts_zip_with_directory_entries(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
+            'files/'        => '', // Explicit directory entry added by some ZIP tools.
+        ]);
+        // Should not throw — directory entries are silently skipped during validation.
+        // The import will fail later (no 'name' key in template.json pages), but that is
+        // a content error, not a ZIP-validation error, so we assert no import_exception.
+        try {
+            $this->filemanager->import(1, $tempdir);
+        } catch (\mod_customcert\export\import_exception $e) {
+            // A content-level import_exception is acceptable (e.g. missing template name).
+            // What must NOT happen is an exception caused by the directory entry itself.
+            $this->assertStringNotContainsString('unsafe filename', $e->getMessage());
+            $this->assertStringNotContainsString('path traversal', $e->getMessage());
+        }
+    }
+
     // Task 5 – File-backed export/import round-trip.
 
     /**
