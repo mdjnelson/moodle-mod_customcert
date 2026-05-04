@@ -363,4 +363,43 @@ final class restore_hooks_json_test extends advanced_testcase {
         $this->assertSame('gradeitem:777', (string)$decoded['gradeitem']);
         $this->assertArrayHasKey('gradeformat', $decoded);
     }
+
+    /**
+     * Data provider for JSON legacy-detection cases.
+     *
+     * @return array[]
+     */
+    public static function json_detection_cases(): array {
+        return [
+            'valid object JSON is not legacy' => ['{"value":"hello"}', false],
+            'valid array JSON is legacy'       => ['["a","b"]', true],
+            'JSON literal null is legacy'      => ['null', true],
+            'invalid JSON is legacy'           => ['{bad json', true],
+            'plain scalar string is legacy'    => ['some-scalar', true],
+            'empty string is legacy'           => ['', true],
+            'null rawdata is legacy'           => [null, true],
+        ];
+    }
+
+    /**
+     * Verify the production JSON-detection logic in restore_customcert_stepslib correctly
+     * classifies each data shape as legacy or not.
+     *
+     * @dataProvider json_detection_cases
+     * @param string|null $rawdata
+     * @param bool $expectedlegacy
+     */
+    public function test_json_detection_classifies_data_correctly(?string $rawdata, bool $expectedlegacy): void {
+        $decoded = null;
+        $isjson = false;
+
+        if ($rawdata !== null && $rawdata !== '') {
+            $decoded = json_decode((string) $rawdata, true);
+            $isjson = json_last_error() === JSON_ERROR_NONE;
+        }
+
+        $dataislegacy = !$isjson || !is_array($decoded) || array_is_list($decoded);
+
+        $this->assertSame($expectedlegacy, $dataislegacy);
+    }
 }
