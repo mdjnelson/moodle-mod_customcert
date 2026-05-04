@@ -127,4 +127,55 @@ final class validation_service_test extends advanced_testcase {
         $this->assertArrayHasKey('name', $errors);
         $this->assertNotEmpty($errors['name']);
     }
+
+    /**
+     * A pure v2 element that implements only element_interface (no validation hook) must not
+     * produce a generic 'invaliddata' error — it should simply contribute no extra errors.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_pure_v2_element_with_no_validation_hook_produces_no_errors(): void {
+        $element = new class implements \mod_customcert\element\element_interface {
+            public function get_id(): int { return 1; }
+            public function get_pageid(): int { return 1; }
+            public function get_name(): string { return 'Test'; }
+            public function get_data(): mixed { return null; }
+            public function get_type(): string { return 'test'; }
+        };
+
+        $svc = new validation_service();
+        $errors = $svc->validate($element, ['name' => 'Test']);
+
+        $this->assertArrayNotHasKey('name', $errors);
+        $this->assertEmpty($errors);
+    }
+
+    /**
+     * A legacy element with old untyped hook signatures must load and pass validation without
+     * fatalling at class-load time, now that the base class hooks are untyped.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_legacy_element_with_old_signatures_loads_and_validates(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'OldSig',
+            'element' => 'text',
+            'data' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+        ];
+        $element = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+
+        $svc = new validation_service();
+        $errors = $svc->validate($element, ['name' => 'OldSig']);
+
+        // The element loaded without a fatal and validation returned an array.
+        $this->assertIsArray($errors);
+    }
 }

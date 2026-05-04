@@ -73,9 +73,9 @@ final class validation_service {
                     debugging('Element validation failed: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
-        } else {
-            // Back-compat: If the element does not implement the new interface,
-            // call the deprecated element::validate_form_elements().
+        } else if (method_exists($element, 'validate_form_elements')) {
+            // Back-compat: If the element does not implement the new interface but has the
+            // legacy hook, call it. Pure v2 elements with no validation hook contribute no errors.
             try {
                 // The variable $files is not used by core validations; provide empty array.
                 $errors += (array) $element->validate_form_elements($data, []);
