@@ -28,7 +28,6 @@ use context;
 use context_module;
 use DirectoryIterator;
 use grade_grade;
-use mod_customcert\element\element_interface;
 use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use MoodleQuickForm;
@@ -391,10 +390,10 @@ class element_helper {
     /**
      * Returns the font used for this element.
      *
-     * @param element_interface|element $element the customcert element
+     * @param stylable_element_interface $element the customcert element
      * @return array the font and font attributes
      */
-    public static function get_font(element_interface|element $element): array {
+    public static function get_font(stylable_element_interface $element): array {
         // Variable for the font.
         $font = $element->get_font();
         // If there is no font, then we have nothing to do.
