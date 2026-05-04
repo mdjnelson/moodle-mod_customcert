@@ -51,11 +51,15 @@ class element_factory {
             DEBUG_DEVELOPER
         );
 
-        $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';
+        $elementtype = $element->element ?? '';
+        $classname = '\\customcertelement_' . $elementtype . '\\element';
+        if (!class_exists($classname)) {
+            return false;
+        }
         $data = new \stdClass();
         $data->id = $element->id ?? null;
         $data->pageid = $element->pageid ?? null;
-        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . ($element->element ?? ''));
+        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . $elementtype);
         $data->element = $element->element ?? null;
         $data->data = $element->data ?? null;
         $data->font = $element->font ?? null;
@@ -66,9 +70,6 @@ class element_factory {
         $data->width = $element->width ?? null;
         $data->refpoint = $element->refpoint ?? null;
         $data->alignment = $element->alignment ?? null;
-        if (class_exists($classname)) {
-            return new $classname($data);
-        }
-        return false;
+        return new $classname($data);
     }
 }
