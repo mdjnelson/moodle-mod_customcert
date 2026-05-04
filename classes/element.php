@@ -30,6 +30,7 @@ use coding_exception;
 use InvalidArgumentException;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\form_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
@@ -50,7 +51,7 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element implements stylable_element_interface {
+abstract class element implements form_element_interface {
     /**
      * @var string The left alignment constant.
      */

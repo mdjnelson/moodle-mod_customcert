@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 use mod_customcert\edit_element_form;
+use mod_customcert\element\form_element_interface;
 use mod_customcert\element as legacy_base;
 use MoodleQuickForm;
 use stdClass;
@@ -48,7 +49,7 @@ use restore_customcert_activity_task;
  *   This adapter and the legacy mod_customcert\element base class are candidates for
  *   removal in a future major release once the transition period has ended.
  */
-final class legacy_element_adapter implements element_interface, restorable_element_interface {
+final class legacy_element_adapter implements element_interface, form_element_interface, restorable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 
