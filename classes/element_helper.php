@@ -74,7 +74,7 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param stylable_element_interface $element the customcert element (must also implement layout_element_interface)
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      * @return void
      */
@@ -132,7 +132,7 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param stylable_element_interface $element the customcert element (must also implement layout_element_interface)
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
