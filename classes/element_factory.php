@@ -26,8 +26,6 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
-use mod_customcert\service\element_factory as service_element_factory;
-
 /**
  * Deprecated element factory shim.
  *
@@ -36,22 +34,41 @@ use mod_customcert\service\element_factory as service_element_factory;
  *   \mod_customcert\element_factory::get_element_instance(). It will be removed in a
  *   future major release.
  */
-final class element_factory {
+class element_factory {
     /**
      * Returns an element instance for the given record.
      *
      * @deprecated since Moodle 5.2 — use mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record()
      *   or inject mod_customcert\service\element_factory and call create() / create_from_legacy_record() instead.
-     * @param \stdClass $element A record from customcert_elements.
-     * @return mixed Element instance (legacy or v2).
+     * @param mixed $element A record from customcert_elements.
+     * @return mixed Element instance or false if the element class does not exist.
      */
-    public static function get_element_instance(\stdClass $element) {
+    public static function get_element_instance($element) {
         debugging(
             '\mod_customcert\element_factory::get_element_instance() is deprecated since Moodle 5.2. '
             . 'Use \mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record() '
             . 'or inject \mod_customcert\service\element_factory and call create() / create_from_legacy_record().',
             DEBUG_DEVELOPER
         );
-        return service_element_factory::get_legacy_element_instance($element);
+
+        $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';
+        $data = new \stdClass();
+        $data->id = $element->id ?? null;
+        $data->pageid = $element->pageid ?? null;
+        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . ($element->element ?? ''));
+        $data->element = $element->element ?? null;
+        $data->data = $element->data ?? null;
+        $data->font = $element->font ?? null;
+        $data->fontsize = $element->fontsize ?? null;
+        $data->colour = $element->colour ?? null;
+        $data->posx = $element->posx ?? null;
+        $data->posy = $element->posy ?? null;
+        $data->width = $element->width ?? null;
+        $data->refpoint = $element->refpoint ?? null;
+        $data->alignment = $element->alignment ?? null;
+        if (class_exists($classname)) {
+            return new $classname($data);
+        }
+        return false;
     }
 }
