@@ -299,7 +299,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
             'files.json'    => 'not json at all }{',
         ]);
-        $this->expectException(\Exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
