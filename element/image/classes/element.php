@@ -37,7 +37,7 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
-use mod_customcert\element\form_buildable_interface;
+use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\element\validatable_element_interface;
@@ -59,7 +59,7 @@ use stored_file;
 class element extends base_element implements
     constructable_element_interface,
     element_interface,
-    form_buildable_interface,
+    form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
