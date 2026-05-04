@@ -168,8 +168,12 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
             $decoded = json_decode((string) $rawdata, true);
             $isjson = json_last_error() === JSON_ERROR_NONE;
         }
-        // Legacy data is anything that is not a valid JSON object (arrays and scalars are also legacy).
-        $dataislegacy = !$isjson || !is_array($decoded) || array_is_list($decoded);
+        // Legacy data is anything that is not a valid JSON object.
+        // Arrays, scalars, invalid JSON, null, and empty strings are all legacy.
+        // {} and {"x":1} are valid JSON objects and are not legacy.
+        $trimmed = ($rawdata !== null) ? trim((string) $rawdata) : '';
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
 
         if (
             $legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null

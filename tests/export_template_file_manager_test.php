@@ -351,13 +351,16 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
             'files/'        => '', // Safe structural directory entry added by some ZIP tools.
         ]);
-        // The safe directory entry must not cause a ZIP-validation exception.
-        // The import succeeds (template has no pages, so no further errors are expected).
+        // Call validate_zip() directly via reflection to confirm the safe directory entry
+        // does not trigger a path-traversal or unsafe-filename exception.
+        $ref = new \ReflectionMethod($this->filemanager, 'validate_zip');
+        $ref->setAccessible(true);
         try {
-            $this->filemanager->import(1, $tempdir);
+            $ref->invoke($this->filemanager, "$tempdir/import.zip");
+            // No exception means the directory entry was correctly tolerated.
+            $this->assertTrue(true);
         } catch (\mod_customcert\export\import_exception $e) {
-            $this->assertStringNotContainsString('unsafe filename', $e->getMessage());
-            $this->assertStringNotContainsString('path traversal', $e->getMessage());
+            $this->fail('validate_zip() rejected a safe directory entry: ' . $e->getMessage());
         }
     }
 
