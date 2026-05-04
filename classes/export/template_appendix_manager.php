@@ -116,14 +116,17 @@ class template_appendix_manager implements template_appendix_manager_interface {
         foreach ($pageids as $pageid) {
             $elementids[] = element::get_elementids_from_page($pageid);
         }
-        $elementids = array_merge(...$elementids);
+        // Flatten page-level arrays; guard against templates with no pages or no elements.
+        $elementids = $elementids ? array_merge(...$elementids) : [];
         if ($this->element === null) {
             throw new coding_exception('Element handler not set. Call set_element() before exporting.');
         }
+        if (empty($elementids)) {
+            return [];
+        }
         $element = $this->element;
-
         $files = array_map(fn ($elementid) => $element->get_files($elementid), $elementids);
-        return array_merge(...$files);
+        return $files ? array_merge(...$files) : [];
     }
 
     /**
@@ -161,7 +164,13 @@ class template_appendix_manager implements template_appendix_manager_interface {
             if (empty($meta['filename'] ?? null)) {
                 throw new Exception("file has no name: files/$contenthash");
             }
-            $filename = $meta['filename'];
+            // Sanitise the filename from the manifest using Moodle-safe rules before
+            // using it as a file-storage filename. This prevents path traversal and
+            // rejects filenames that would be rejected by the file API anyway.
+            $filename = clean_param($meta['filename'], PARAM_FILE);
+            if ($filename === '') {
+                throw new Exception("file has unsafe or empty name: files/$contenthash");
+            }
 
             $srcpath = $this->get_imagepath($importpath, $contenthash);
             if (!file_exists($srcpath)) {
@@ -205,6 +214,16 @@ class template_appendix_manager implements template_appendix_manager_interface {
             }
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
+            // Verify the stored file's content hash matches the manifest key.
+            // This catches truncated or corrupted archive members before they
+            // are silently used as the wrong file.
+            if ($stored->get_contenthash() !== $contenthash) {
+                $stored->delete();
+                throw new Exception(
+                    "content hash mismatch for files/$contenthash: " .
+                    "expected $contenthash, got " . $stored->get_contenthash()
+                );
+            }
             $this->index[$contenthash] = $stored;
             $this->created[$contenthash] = $stored;
         }
