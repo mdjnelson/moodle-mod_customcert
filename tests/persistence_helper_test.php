@@ -30,8 +30,53 @@ use stdClass;
  * @package    mod_customcert
  * @category   test
  * @covers \mod_customcert\service\persistence_helper::to_json_data
+ * @covers \mod_customcert\service\persistence_helper::to_object_json
  */
 final class persistence_helper_test extends advanced_testcase {
+    /**
+     * Data provider for to_object_json() invariant tests.
+     *
+     * Every case must produce a JSON object (associative array when decoded).
+     *
+     * @return array<string, array{mixed, mixed}>
+     */
+    public static function to_object_json_provider(): array {
+        return [
+            'plain string'        => ['hello', ['value' => 'hello']],
+            'empty string'        => ['', ['value' => '']],
+            'int'                 => [42, ['value' => 42]],
+            'bool true'           => [true, ['value' => true]],
+            'bool false'          => [false, ['value' => false]],
+            'null'                => [null, null],  // null → {} (empty object, decoded as [])
+            'JSON scalar string'  => ['"scalar"', ['value' => '"scalar"']],
+            'JSON list string'    => ['["a","b"]', ['value' => '["a","b"]']],
+            'JSON object string'  => ['{"k":"v"}', ['k' => 'v']],
+            'PHP list array'      => [['a', 'b'], ['value' => ['a', 'b']]],
+            'associative array'   => [['k' => 'v', 'n' => 1], ['k' => 'v', 'n' => 1]],
+        ];
+    }
+
+    /**
+     * to_object_json() must always return a JSON object string.
+     *
+     * @dataProvider to_object_json_provider
+     * @param mixed $input
+     * @param mixed $expected decoded result (null means "just verify it is an empty object")
+     */
+    public function test_to_object_json_always_returns_object(mixed $input, mixed $expected): void {
+        $json = persistence_helper::to_object_json($input);
+        $this->assertIsString($json);
+        $decoded = json_decode($json, true);
+        $this->assertIsArray($decoded, "Expected JSON object, got: $json");
+        // An empty object {} decodes to [] which array_is_list considers a list; allow that special case.
+        if ($decoded !== []) {
+            $this->assertFalse(array_is_list($decoded), "Expected associative array (object JSON), got list: $json");
+        }
+        if ($expected !== null) {
+            $this->assertEquals($expected, $decoded);
+        }
+    }
+
     /**
      * Persistable elements should return JSON from normalise_data().
      */
