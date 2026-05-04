@@ -501,4 +501,20 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertTrue($result);
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
     }
+
+    /**
+     * Deprecated legacy hooks listed in CHANGES must still exist on the base element class.
+     *
+     * @covers \mod_customcert\element
+     */
+    public function test_deprecated_legacy_hooks_still_exist_on_base_class(): void {
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_unique_data'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'after_restore'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'copy_element'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'delete'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'render_form_elements'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'validate_form_elements'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'definition_after_data'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_form_elements'));
+    }
 }
