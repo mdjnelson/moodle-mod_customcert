@@ -280,11 +280,12 @@ final class restore_hooks_json_test extends advanced_testcase {
         // data is a plain string and no visual fields are present.
         $rawdata = 'some-legacy-scalar-value';
 
-        // Replicate the migration logic from restore_customcert_stepslib.php.
-        $dataislegacy = ($rawdata === null)
-            || ($rawdata === '')
-            || (json_decode((string)$rawdata, true) === null)
-            || (ltrim((string)$rawdata)[0] ?? '') !== '{';
+        // Use the same detection logic as restore_customcert_stepslib.php.
+        $decoded = json_decode((string) $rawdata, true);
+        $isjson = json_last_error() === JSON_ERROR_NONE;
+        $trimmed = trim((string) $rawdata);
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
         $this->assertTrue($dataislegacy, 'Scalar data should be detected as legacy');
 
         $migrated = \mod_customcert\local\upgrade\row_migrator::migrate_row(
@@ -371,13 +372,14 @@ final class restore_hooks_json_test extends advanced_testcase {
      */
     public static function json_detection_cases(): array {
         return [
-            'valid object JSON is not legacy' => ['{"value":"hello"}', false],
-            'valid array JSON is legacy'       => ['["a","b"]', true],
-            'JSON literal null is legacy'      => ['null', true],
-            'invalid JSON is legacy'           => ['{bad json', true],
-            'plain scalar string is legacy'    => ['some-scalar', true],
-            'empty string is legacy'           => ['', true],
-            'null rawdata is legacy'           => [null, true],
+            'valid object JSON is not legacy'  => ['{"value":"hello"}', false],
+            'empty JSON object is not legacy'   => ['{}', false],
+            'valid array JSON is legacy'        => ['["a","b"]', true],
+            'JSON literal null is legacy'       => ['null', true],
+            'invalid JSON is legacy'            => ['{bad json', true],
+            'plain scalar string is legacy'     => ['some-scalar', true],
+            'empty string is legacy'            => ['', true],
+            'null rawdata is legacy'            => [null, true],
         ];
     }
 
@@ -398,7 +400,9 @@ final class restore_hooks_json_test extends advanced_testcase {
             $isjson = json_last_error() === JSON_ERROR_NONE;
         }
 
-        $dataislegacy = !$isjson || !is_array($decoded) || array_is_list($decoded);
+        $trimmed = ($rawdata !== null) ? trim((string) $rawdata) : '';
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
 
         $this->assertSame($expectedlegacy, $dataislegacy);
     }
