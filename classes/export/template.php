@@ -78,7 +78,6 @@ class template {
         if (($templatedata['name'] ?? null) === null) {
             throw new import_exception('Template is missing the required name attribute');
         }
-        $DB->transactions_forbidden();
         $transaction = $DB->start_delegated_transaction();
         $tid = $DB->insert_record(static::$dbtable, [
             'name' => $templatedata['name'],
