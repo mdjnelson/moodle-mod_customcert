@@ -270,9 +270,9 @@ final class export_template_file_manager_test extends advanced_testcase {
     // Task 5 – File-backed export/import round-trip.
 
     /**
-     * Export a template that has a stored file (image element), then import it into
-     * a fresh context and assert the file is present in Moodle file storage with the
-     * correct contenthash.
+     * Export a template that has a bgimage element backed by a real stored file, then
+     * import it into a fresh context and assert the file exists in Moodle file storage
+     * with the correct contenthash.
      */
     public function test_export_import_round_trip_with_stored_file(): void {
         $this->preventResetByRollback();
@@ -295,14 +295,14 @@ final class export_template_file_manager_test extends advanced_testcase {
         $storedfile = $fs->create_file_from_string($filerecord, $filecontent);
         $this->assertSame($expectedhash, $storedfile->get_contenthash());
 
-        // Add a page and a text element to the template.
+        // Add a page with a text element and a bgimage element that references the stored file.
         $pageid = $DB->insert_record('customcert_pages', [
-            'templateid' => $this->templateid,
-            'width'      => 210,
-            'height'     => 297,
-            'leftmargin' => 10,
+            'templateid'  => $this->templateid,
+            'width'       => 210,
+            'height'      => 297,
+            'leftmargin'  => 10,
             'rightmargin' => 10,
-            'sequence'   => 1,
+            'sequence'    => 1,
             'timecreated' => 1000000,
             'timemodified' => 1000000,
         ]);
@@ -319,18 +319,48 @@ final class export_template_file_manager_test extends advanced_testcase {
             'timecreated' => 1000000,
             'timemodified' => 1000000,
         ]);
+        // The bgimage exporter reads contextid/filearea/itemid/filepath/filename from the
+        // element's JSON payload (via the '$' file-field placeholder in subplugin_exportable).
+        $DB->insert_record('customcert_elements', [
+            'pageid'      => $pageid,
+            'element'     => 'bgimage',
+            'name'        => 'Background image',
+            'data'        => json_encode([
+                'contextid' => $contextid,
+                'filearea'  => 'image',
+                'itemid'    => 0,
+                'filepath'  => '/',
+                'filename'  => 'test_image.png',
+                'width'     => 0,
+                'height'    => 0,
+                'alphachannel' => 1,
+            ]),
+            'posx'        => 0,
+            'posy'        => 0,
+            'refpoint'    => 1,
+            'alignment'   => 'L',
+            'sequence'    => 2,
+            'timecreated' => 1000000,
+            'timemodified' => 1000000,
+        ]);
 
         // Export.
         $zippath = $this->filemanager->export($this->templateid);
         $this->assertFileExists($zippath);
 
-        // Verify ZIP contains template.json.
-        $packer = get_file_packer();
-        $filelist = $packer->list_files($zippath);
-        $names = array_map(fn($f) => $f->pathname, $filelist);
-        $this->assertContains('template.json', $names);
+        // Verify ZIP contains template.json, files.json, and the file by contenthash.
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($zippath) === true);
+        $zipnames = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $zipnames[] = $zip->statIndex($i)['name'];
+        }
+        $zip->close();
+        $this->assertContains('template.json', $zipnames);
+        $this->assertContains('files.json', $zipnames);
+        $this->assertContains('files/' . $expectedhash, $zipnames, 'ZIP must contain the file by its SHA-1 contenthash.');
 
-        // Import into a fresh context (use system context id + 1 to avoid collision).
+        // Import into the same context (a second copy of the template).
         $importdir = make_temp_directory('customcert_test_import/' . uniqid(more_entropy: true));
         copy($zippath, "$importdir/import.zip");
 
@@ -342,7 +372,7 @@ final class export_template_file_manager_test extends advanced_testcase {
 
         $this->assertSame($templatesbefore + 1, $DB->count_records('customcert_templates'));
         $this->assertSame($pagesbefore + 1, $DB->count_records('customcert_pages'));
-        $this->assertSame($elementsbefore + 1, $DB->count_records('customcert_elements'));
+        $this->assertSame($elementsbefore + 2, $DB->count_records('customcert_elements'));
 
         // Verify the imported template record exists.
         $imported = $DB->get_record(
@@ -352,6 +382,17 @@ final class export_template_file_manager_test extends advanced_testcase {
             IGNORE_MULTIPLE
         );
         $this->assertNotFalse($imported);
+
+        // Verify the imported file exists in Moodle file storage with the correct contenthash.
+        $importedfiles = $fs->get_area_files($contextid, 'mod_customcert', 'image', 0, 'filename', false);
+        $found = false;
+        foreach ($importedfiles as $f) {
+            if ($f->get_filename() === 'test_image.png' && $f->get_contenthash() === $expectedhash) {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'Imported file must exist in Moodle file storage with the expected contenthash.');
     }
 
     // Task 6 – Rollback test for partial import failure.
