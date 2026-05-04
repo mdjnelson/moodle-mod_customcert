@@ -50,8 +50,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
-    element_interface,
-    form_element_interface,
+        form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
