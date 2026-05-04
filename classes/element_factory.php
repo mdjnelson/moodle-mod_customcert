@@ -18,7 +18,7 @@
  * Backward-compatibility shim for mod_customcert\element_factory.
  *
  * @package    mod_customcert
- * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
