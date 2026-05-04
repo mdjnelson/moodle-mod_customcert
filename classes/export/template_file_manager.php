@@ -154,9 +154,9 @@ class template_file_manager implements template_file_manager_interface {
         }
 
         // Import files first, then template data inside a DB transaction.
-        // If the DB import fails, roll back stored files to keep the system clean.
-        $this->filemng->import($contextid, $unpackdir);
+        // Wrap both steps so that any failure (including partial file import) triggers cleanup.
         try {
+            $this->filemng->import($contextid, $unpackdir);
             $this->template->import($contextid, $data);
         } catch (Throwable $e) {
             $this->filemng->delete_imported_files();
