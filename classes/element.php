@@ -585,7 +585,7 @@ abstract class element implements
      *
      * @return bool returns true if the element can be added, false otherwise
      */
-    public static function can_add() {
+    public static function can_add(): bool {
         return true;
     }
 
