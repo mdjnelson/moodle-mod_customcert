@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 use mod_customcert\edit_element_form;
+use MoodleQuickForm;
 
 /**
  * Interface form_element_interface
@@ -34,8 +35,23 @@ use mod_customcert\edit_element_form;
  * the edit-element form lifecycle. edit_element_form types its element property
  * against this interface rather than the legacy base class, so that
  * legacy_element_adapter instances are accepted without a TypeError.
+ *
+ * All registered certificate elements must implement this interface (or extend
+ * mod_customcert\element, which implements it). The build_form() method replaces
+ * the legacy render_form_elements() hook for new elements.
  */
 interface form_element_interface extends element_interface {
+    /**
+     * Add element-specific fields to the edit form.
+     *
+     * New elements should implement this method directly. Legacy elements that
+     * override render_form_elements() are bridged automatically by the base class.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function build_form(MoodleQuickForm $mform): void;
+
     /**
      * Attach the edit element form to this element.
      *
