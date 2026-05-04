@@ -164,8 +164,9 @@ final class element_factory {
     /**
      * Backwards-compatible helper: return legacy element instance for given record.
      *
-     * This mirrors the old static API `mod_customcert\element_factory::get_legacy_element_instance($element)`
-     * so the BC shim in mod_customcert\element_factory can delegate here without changing behaviour.
+     * This preserves the old static API behaviour of
+     * `mod_customcert\element_factory::get_element_instance($element)` so the BC shim
+     * can delegate here without exposing this helper as public API.
      *
      * @internal This method exists solely to support the deprecated BC shim. Do not call it directly
      *           from new code; use create() or create_from_legacy_record() instead.

@@ -72,7 +72,7 @@ An `unknown_element` fallback is used when a requested element type is not regis
 
 #### Other additions
 - `mod_customcert\template::from_record(\stdClass $record)` is now the **preferred** entry point for instantiating a template from a database record; `mod_customcert\template::create(string $name, int $contextid)` is the preferred entry point for creating a new template. The constructor signature has changed to accept `int $id, string $name, int $contextid` individually (previously it accepted a raw `\stdClass $record`) — new code should use `from_record()` rather than calling `new template(...)` directly, though the constructor remains functional.
-- `mod_customcert\element\legacy_element_adapter` — wraps a legacy element (extending `mod_customcert\element`) to satisfy `element_interface`; returned by the factory for unupgraded element plugins.
+- `mod_customcert\element\legacy_element_adapter` — internal compatibility adapter used by the factory to expose legacy elements extending `mod_customcert\element` through the new element interfaces. Plugin authors should migrate elements to the new interfaces directly rather than depending on the adapter.
 - Static utility methods on `certificate` have been moved to dedicated service/repository classes:
   - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
   - `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
