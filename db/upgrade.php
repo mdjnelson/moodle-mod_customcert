@@ -384,10 +384,10 @@ function xmldb_customcert_upgrade($oldversion) {
                 $rowsread++;
                 $lastid = (int)$rec->id;
                 // Guard against a partially-failed upgrade where columns may already be gone.
-                $recwidth  = isset($rec->width)    ? ($rec->width   === null ? null : (int)$rec->width)    : null;
-                $recfont   = isset($rec->font)     ? ($rec->font    === null ? null : (string)$rec->font)   : null;
+                $recwidth  = isset($rec->width) ? ($rec->width === null ? null : (int)$rec->width) : null;
+                $recfont   = isset($rec->font) ? ($rec->font === null ? null : (string)$rec->font) : null;
                 $recfsize  = isset($rec->fontsize) ? ($rec->fontsize === null ? null : (int)$rec->fontsize) : null;
-                $reccolour = isset($rec->colour)   ? ($rec->colour  === null ? null : (string)$rec->colour) : null;
+                $reccolour = isset($rec->colour) ? ($rec->colour === null ? null : (string)$rec->colour) : null;
 
                 $migrated = $rec->element === 'border'
                     ? row_migrator::migrate_border_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour)

@@ -71,10 +71,14 @@ final class pdf_renderer implements element_renderer {
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element the customcert element (must also implement layout_element_interface)
      * @param string $content the content to render
+     * @return void
      */
-    public function render_content(stylable_element_interface&layout_element_interface $element, string $content): void {
+    public function render_content(
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): void {
         if ($this->pdf === null) {
             throw new coding_exception('PDF object not set in pdf_renderer');
         }
