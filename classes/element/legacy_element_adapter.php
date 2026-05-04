@@ -28,10 +28,6 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 use mod_customcert\edit_element_form;
-use mod_customcert\element\form_element_interface;
-use mod_customcert\element\layout_element_interface;
-use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element as legacy_base;
 use MoodleQuickForm;
 use stdClass;
@@ -305,8 +301,18 @@ final class legacy_element_adapter implements
      * @return void
      */
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
+        // Only invoke the legacy hook when the wrapped element actually overrides it;
+        // calling the inherited no-op base implementation would emit a spurious deprecation.
         if (method_exists($this->inner, 'after_restore')) {
-            $this->inner->after_restore($restore);
+            $ref = new \ReflectionMethod($this->inner, 'after_restore');
+            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
+                debugging(
+                    'The after_restore() method in ' . get_class($this->inner) . ' is deprecated. ' .
+                    'Implement restorable_element_interface and use after_restore_from_backup() instead.',
+                    DEBUG_DEVELOPER
+                );
+                $this->inner->after_restore($restore);
+            }
         }
     }
 
