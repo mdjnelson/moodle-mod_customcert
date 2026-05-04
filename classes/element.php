@@ -51,7 +51,7 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element implements form_element_interface {
+abstract class element implements form_element_interface, stylable_element_interface {
     /**
      * @var string The left alignment constant.
      */
