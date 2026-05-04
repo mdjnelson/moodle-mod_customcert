@@ -186,6 +186,9 @@ class template_file_manager implements template_file_manager_interface {
         // Use ZipArchive directly to read raw (unsanitised) entry names so that
         // path-traversal entries such as ../foo or /foo are detected before the
         // Moodle packer silently normalises them away.
+        if (!class_exists(\ZipArchive::class)) {
+            throw new import_exception('ZIP extension is not available');
+        }
         $zip = new \ZipArchive();
         if ($zip->open($zippath) !== true) {
             throw new import_exception('Failed to read the ZIP archive');
