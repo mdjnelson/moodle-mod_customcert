@@ -516,4 +516,61 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertTrue(method_exists(\mod_customcert\element::class, 'definition_after_data'));
         $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_form_elements'));
     }
+
+    /**
+     * copy_element() on the base class emits a deprecation notice.
+     *
+     * @covers \mod_customcert\element::copy_element
+     */
+    public function test_copy_element_emits_deprecation_notice(): void {
+        $record = (object) ['id' => 1, 'pageid' => 1, 'name' => 'Test', 'data' => null];
+        $element = new text_element($record);
+
+        $result = $element->copy_element(new \stdClass());
+
+        $this->assertDebuggingCalled(
+            'element::copy_element() is deprecated since Moodle 5.2. '
+            . 'Use mod_customcert\\service\\element_repository::copy_element() instead.',
+            DEBUG_DEVELOPER
+        );
+        $this->assertTrue($result);
+    }
+
+    /**
+     * can_add() returns true by default.
+     *
+     * @covers \mod_customcert\element::can_add
+     */
+    public function test_can_add_returns_true(): void {
+        $this->assertTrue(text_element::can_add());
+    }
+
+    /**
+     * form_buildable_interface must not exist — it was never released and has been fully deleted.
+     */
+    public function test_form_buildable_interface_does_not_exist(): void {
+        $this->assertFalse(
+            interface_exists('mod_customcert\\element\\form_buildable_interface', false),
+            'form_buildable_interface was never released and must not exist'
+        );
+    }
+
+    /**
+     * A legacy element with old untyped non-render hook signatures can still class-load without a PHP fatal.
+     *
+     * @covers \mod_customcert\element
+     */
+    public function test_legacy_untyped_non_render_hooks_class_loads(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+        $this->assertTrue(class_exists(\mod_customcert\tests\fixtures\legacy_old_signature_element::class));
+    }
+
+    /**
+     * The QR code element class loads successfully, confirming the context import is present.
+     *
+     * @covers \customcertelement_qrcode\element
+     */
+    public function test_qrcode_element_class_loads_with_context_import(): void {
+        $this->assertTrue(class_exists(\customcertelement_qrcode\element::class));
+    }
 }
