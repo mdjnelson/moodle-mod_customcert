@@ -24,19 +24,23 @@ The legacy `mod_customcert\element` base class remains available for compatibili
 > **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures for these two methods will fail at class-load time. All other legacy hooks (`render_form_elements`, `definition_after_data`, `validate_form_elements`, `save_form_elements`, `save_unique_data`, `after_restore`, `copy_element`, `can_add`) retain untyped signatures and remain compatible with old overrides. See the "Element rendering signatures" section below for the required `render`/`render_html` signatures.
 
 New elements should use:
-
 - `element_interface` — for the core element contract (identity, payload, type)
 - `form_element_interface` — required for registered certificate elements; provides edit-form lifecycle hooks including `build_form()`
 - `stylable_element_interface` — only when the element supports standard visual styling (`font`, `fontsize`, `colour`, `width`)
+- `layout_element_interface` — exposes repository-managed layout values (`posx`, `posy`, `refpoint`, `alignment`) for common PDF/HTML rendering helpers
 - `persistable_element_interface` — normalises submitted form data into the JSON payload
 - `validatable_element_interface` — validates submitted form data
 - `preparable_form_interface` — populates edit-form fields from stored payload
 - `restorable_element_interface` — remaps internal references after backup restore
 - Repository/service APIs for persistence and layout changes
 
+Elements using the common renderer helpers (`element_helper::render_content()` / `render_html_content()`) must also implement both `stylable_element_interface` and `layout_element_interface`. Elements with fully custom rendering may implement `renderable_element_interface` directly without these.
+
 An `unknown_element` fallback is used when a requested element type is not registered; it renders gracefully rather than throwing.
 
 No deprecated bundled element implementations are shipped in this release. Deprecated element hooks remain only on the legacy `mod_customcert\element` base class to support third-party plugin migration.
+
+> **Legacy internal state removed**: Third-party elements that accessed protected internal state directly will need to update. In particular, direct access to `$this->element`, `$this->font`, `$this->fontsize`, `$this->colour`, `$this->width`, or magic property fallback (`__get()`) must be replaced with the new getters, payload helpers, and repository-managed layout APIs. Visual values now live in `customcert_elements.data`; layout values are managed separately by the repository/layout services.
 
 #### Template export and import
 - Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
