@@ -70,13 +70,12 @@ final class unknown_element extends element implements element_interface, render
     public function render_html(?element_renderer $renderer = null): string {
         $label = get_string('unknownelementtype', 'mod_customcert');
         $message = $label . ': ' . s($this->unknowntype);
-        $content = html_writer::div(
+        // Do not delegate to render_content() — unknown_element has no style or layout
+        // data, so it cannot satisfy the stylable_element_interface & layout_element_interface
+        // intersection type that render_content() requires.
+        return html_writer::div(
             html_writer::tag('strong', $message),
             'customcert-unknown-element'
         );
-        if ($renderer) {
-            return (string)$renderer->render_content($this, $content);
-        }
-        return $content;
     }
 }
