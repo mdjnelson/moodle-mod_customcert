@@ -30,8 +30,8 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_layout;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
-use mod_customcert\element as element_base;
 use mod_customcert\element\form_element_interface;
+use mod_customcert\element\stylable_element_interface;
 use moodleform;
 use MoodleQuickForm;
 
@@ -57,7 +57,7 @@ MoodleQuickForm::registerElementType(
  */
 class edit_element_form extends moodleform {
     /**
-     * @var element_base The element object.
+     * @var form_element_interface The element object used by the edit form.
      */
     protected form_element_interface $element;
 
@@ -124,17 +124,23 @@ class edit_element_form extends moodleform {
     public function definition_after_data() {
         $mform = $this->_form;
 
-        $properties = [
+        $styleproperties = [];
+        if ($this->element instanceof stylable_element_interface) {
+            $styleproperties = [
+                'font' => $this->element->get_font(),
+                'fontsize' => $this->element->get_fontsize(),
+                'colour' => $this->element->get_colour(),
+                'width' => $this->element->get_width(),
+            ];
+        }
+        $properties = array_merge([
             'name' => $this->element->get_name(),
-            'font' => $this->element->get_font(),
-            'fontsize' => $this->element->get_fontsize(),
-            'colour' => $this->element->get_colour(),
-            'width' => $this->element->get_width(),
+        ], $styleproperties, [
             'posx' => $this->layout->posx,
             'posy' => $this->layout->posy,
             'refpoint' => $this->layout->refpoint,
             'alignment' => $this->layout->alignment,
-        ];
+        ]);
 
         foreach ($properties as $property => $value) {
             if ($value !== null && $mform->elementExists($property)) {
