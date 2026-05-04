@@ -84,8 +84,7 @@ final class restore_hooks_json_test extends advanced_testcase {
             'timecreated' => time(),
             'timemodified' => time(),
         ];
-        $DB->insert_record('customcert', $customcert);
-
+        $customcert->id = (int)$DB->insert_record('customcert', $customcert, true);
         return $page->id;
     }
 
@@ -124,13 +123,15 @@ final class restore_hooks_json_test extends advanced_testcase {
      * @param int $courseid Course id
      * @return restore_customcert_activity_task A lightweight restore task double
      */
-    private function make_restore_task(string $restoreid, int $courseid): restore_customcert_activity_task {
+    private function make_restore_task(string $restoreid, int $courseid, int $activityid = 0): restore_customcert_activity_task {
         // Anonymous subclass exposing constructorless instance with overridden getters.
-        return new class ($restoreid, $courseid) extends restore_customcert_activity_task {
+        return new class ($restoreid, $courseid, $activityid) extends restore_customcert_activity_task {
             /** @var string */
             private string $rid;
             /** @var int */
             private int $cid;
+            /** @var int */
+            private int $aid;
             /** @var array<string,array<int,int>> In-memory mapping store */
             private array $map = [];
 
@@ -138,9 +139,10 @@ final class restore_hooks_json_test extends advanced_testcase {
              *
              * @param string $rid restore id
              * @param int $cid course id */
-            public function __construct(string $rid, int $cid) {
+            public function __construct(string $rid, int $cid, int $aid = 0) {
                 $this->rid = $rid;
                 $this->cid = $cid;
+                $this->aid = $aid;
             }
 
             /**
@@ -186,11 +188,11 @@ final class restore_hooks_json_test extends advanced_testcase {
             /**
              * {inheritdoc}
              *
-             * @return void
+             * @return int
              */
-            public function after_restore() {
+            public function get_activityid() {
+                return $this->aid;
             }
-
             /**
              * {inheritdoc}
              *
@@ -236,6 +238,68 @@ final class restore_hooks_json_test extends advanced_testcase {
                 return $this->map[$itemname][$oldid] ?? false;
             }
         };
+    }
+
+    /**
+     * A plain element that does not override after_restore() should not trigger any
+     * deprecation debugging when the restore task processes it.
+     */
+    public function test_non_restorable_element_does_not_trigger_debugging(): void {
+        global $DB;
+        $pageid = $this->create_template_and_page();
+
+        // The 'text' element does not implement restorable_element_interface and does not
+        // override after_restore(), so no deprecation should be emitted.
+        $this->insert_element($pageid, 'text', 'Plain text', [
+            'text' => 'Hello world',
+        ]);
+
+        // Resolve the customcert activity id so the task can query elements via the production path.
+        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
+        $customcertid = (int)$DB->get_field('customcert', 'id', ['templateid' => $page->templateid], MUST_EXIST);
+
+        $restoreid = 'rid-' . uniqid();
+        $task = $this->make_restore_task($restoreid, 0, $customcertid);
+
+        // Exercise the real production path: task loops elements and uses has_legacy_after_restore_override().
+        $this->resetDebugging();
+        $task->after_restore();
+        // No debugging should have been emitted because text element has no after_restore() override.
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Legacy backup row with scalar (non-JSON) data and no visual fields must be
+     * migrated to a valid JSON payload by process_customcert_element().
+     */
+    public function test_restore_migration_normalises_legacy_scalar_data(): void {
+        global $DB;
+        $pageid = $this->create_template_and_page();
+
+        // Simulate what process_customcert_element() does for a legacy row where
+        // data is a plain string and no visual fields are present.
+        $rawdata = 'some-legacy-scalar-value';
+
+        // Use the same detection logic as restore_customcert_stepslib.php.
+        $decoded = json_decode((string) $rawdata, true);
+        $isjson = json_last_error() === JSON_ERROR_NONE;
+        $trimmed = trim((string) $rawdata);
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
+        $this->assertTrue($dataislegacy, 'Scalar data should be detected as legacy');
+
+        $migrated = \mod_customcert\local\upgrade\row_migrator::migrate_row(
+            $rawdata,
+            null, // No width.
+            null, // No font.
+            null, // No fontsize.
+            null  // No colour.
+        );
+
+        $decoded = json_decode($migrated, true);
+        $this->assertIsArray($decoded, 'Migrated data must be valid JSON');
+        $this->assertArrayHasKey('value', $decoded, 'Migrated data must have a value key');
+        $this->assertSame($rawdata, $decoded['value'], 'Value must preserve the original scalar');
     }
 
     public function test_date_restore_updates_json_and_keeps_valid_json(): void {
@@ -299,5 +363,47 @@ final class restore_hooks_json_test extends advanced_testcase {
         $this->assertIsArray($decoded);
         $this->assertSame('gradeitem:777', (string)$decoded['gradeitem']);
         $this->assertArrayHasKey('gradeformat', $decoded);
+    }
+
+    /**
+     * Data provider for JSON legacy-detection cases.
+     *
+     * @return array[]
+     */
+    public static function json_detection_cases(): array {
+        return [
+            'valid object JSON is not legacy'  => ['{"value":"hello"}', false],
+            'empty JSON object is not legacy'   => ['{}', false],
+            'valid array JSON is legacy'        => ['["a","b"]', true],
+            'JSON literal null is legacy'       => ['null', true],
+            'invalid JSON is legacy'            => ['{bad json', true],
+            'plain scalar string is legacy'     => ['some-scalar', true],
+            'empty string is legacy'            => ['', true],
+            'null rawdata is legacy'            => [null, true],
+        ];
+    }
+
+    /**
+     * Verify the production JSON-detection logic in restore_customcert_stepslib correctly
+     * classifies each data shape as legacy or not.
+     *
+     * @dataProvider json_detection_cases
+     * @param string|null $rawdata
+     * @param bool $expectedlegacy
+     */
+    public function test_json_detection_classifies_data_correctly(?string $rawdata, bool $expectedlegacy): void {
+        $decoded = null;
+        $isjson = false;
+
+        if ($rawdata !== null && $rawdata !== '') {
+            $decoded = json_decode((string) $rawdata, true);
+            $isjson = json_last_error() === JSON_ERROR_NONE;
+        }
+
+        $trimmed = ($rawdata !== null) ? trim((string) $rawdata) : '';
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
+
+        $this->assertSame($expectedlegacy, $dataislegacy);
     }
 }

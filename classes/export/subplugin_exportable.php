@@ -22,6 +22,7 @@ use mod_customcert\export\datatypes\field_interface;
 use mod_customcert\export\datatypes\file_field_interface;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\datatypes\format_exception;
+use mod_customcert\export\datatypes\file_field;
 use mod_customcert\export\datatypes\user_field;
 use stored_file;
 
@@ -50,6 +51,10 @@ abstract class subplugin_exportable {
      * @var user_field User field instance for exporting and importing user references.
      */
     protected readonly user_field $userfield;
+    /**
+     * @var file_field File field instance for exporting and importing file references.
+     */
+    protected readonly file_field $filefield;
 
     /**
      * Constructor.
@@ -67,6 +72,7 @@ abstract class subplugin_exportable {
         $this->logger = $logger;
         $this->filemng = $filemng;
         $this->userfield = new user_field();
+        $this->filefield = new file_field('mod_customcert', $filemng);
     }
 
     /**
@@ -176,7 +182,7 @@ abstract class subplugin_exportable {
      */
     public function get_relevant_data(string $key, array $data): mixed {
         if (str_contains($key, '$')) {
-            $subkeys = ['contextid', 'filearea', 'itemid', 'filepath', 'filename'];
+            $subkeys = ['contextid', 'component', 'filearea', 'itemid', 'filepath', 'filename'];
             $fielddata = array_map(function ($subkey) use ($data, $key) {
                 return $data[str_replace('$', $subkey, $key)] ?? null;
             }, $subkeys);

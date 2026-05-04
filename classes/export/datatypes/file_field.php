@@ -34,7 +34,13 @@ use stored_file;
  */
 class file_field implements field_interface, file_field_interface {
     /**
-     * @var string $component Component of the file storage
+     * @var string $component Component of the file storage.
+     *
+     * Template export/import currently supports only mod_customcert/image files.
+     * This field is always set to 'mod_customcert' by the subplugin_exportable constructor
+     * and is not extensible via payload data. If support for additional components or
+     * file areas is needed in future, it should be added via an explicit allowlist here
+     * rather than trusting element payload data.
      */
     private string $component;
 
@@ -105,7 +111,6 @@ class file_field implements field_interface, file_field_interface {
         ) {
             return false;
         }
-
         $fs = get_file_storage();
         return $fs->get_file(
             (int) $data["contextid"],

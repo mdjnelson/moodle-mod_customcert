@@ -37,12 +37,16 @@ use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
 use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
 use mod_customcert\tests\fixtures\legacy_after_restore_element;
+use mod_customcert\tests\fixtures\legacy_invokable_test_element;
+use mod_customcert\tests\fixtures\new_restorable_element;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/legacy_save_unique_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_definition_after_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_after_restore_element.php');
+require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
+require_once(__DIR__ . '/fixtures/new_restorable_element.php');
 
 /**
  * Tests for the legacy adapter mapping of getters.
@@ -165,11 +169,11 @@ final class legacy_element_adapter_test extends advanced_testcase {
     }
 
     /**
-     * Ensure adapter delegates render_form_elements to inner element.
+     * Ensure adapter build_form() bridges to inner element's render_form_elements().
      *
-     * @covers \mod_customcert\element\legacy_element_adapter::render_form_elements
+     * @covers \mod_customcert\element\legacy_element_adapter::build_form
      */
-    public function test_adapter_delegates_render_form_elements(): void {
+    public function test_adapter_build_form_delegates_to_render_form_elements(): void {
         $this->resetAfterTest();
 
         $record = (object) [
@@ -179,7 +183,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'data' => '',
         ];
 
-        $legacy = new text_element($record);
+        // Use a legacy fixture that only has render_form_elements(), not build_form().
+        $legacy = new legacy_invokable_test_element($record);
         $adapter = new legacy_element_adapter($legacy);
 
         // Create a mock MoodleQuickForm.
@@ -187,14 +192,10 @@ final class legacy_element_adapter_test extends advanced_testcase {
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Should not throw; delegates to inner element's deprecated render_form_elements.
-        $adapter->render_form_elements($mform);
-
-        // Assert that the deprecation warning was triggered.
-        $this->assertDebuggingCalled(
-            'render_form_elements() is deprecated since Moodle 5.2. ' .
-            'Use element_helper::render_common_form_elements() instead.'
-        );
+        // Build_form() should bridge to the inner element's render_form_elements().
+        $adapter->build_form($mform);
+        // The legacy fixture sets a flag when render_form_elements is called.
+        $this->assertTrue($legacy->called);
     }
 
     /**
@@ -399,11 +400,36 @@ final class legacy_element_adapter_test extends advanced_testcase {
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Should delegate to inner element's after_restore without emitting a deprecation warning.
+        // Delegates to the inner element's after_restore() and emits a deprecation notice.
         $adapter->after_restore_from_backup($restore);
-
+        $this->assertDebuggingCalled();
         // Verify the inner element's method was called.
         $this->assertTrue($legacy->called);
+    }
+
+    /**
+     * When the inner element already implements restorable_element_interface, the adapter
+     * must delegate to after_restore_from_backup() directly without emitting any deprecation.
+     *
+     * @covers \mod_customcert\element\legacy_element_adapter::after_restore_from_backup
+     */
+    public function test_adapter_delegates_to_new_restorable_interface_without_deprecation(): void {
+        $this->resetAfterTest();
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'Test',
+            'data' => json_encode([]),
+        ];
+        $inner = new new_restorable_element($record);
+        $adapter = new legacy_element_adapter($inner);
+        $restore = $this->getMockBuilder(\restore_customcert_activity_task::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        // No deprecation notice should be emitted — inner uses the new interface.
+        $adapter->after_restore_from_backup($restore);
+        $this->assertDebuggingNotCalled();
+        $this->assertTrue($inner->called);
     }
 
     /**
@@ -500,5 +526,80 @@ final class legacy_element_adapter_test extends advanced_testcase {
         // Should return true and delete the record.
         $this->assertTrue($result);
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
+    }
+
+    /**
+     * Deprecated legacy hooks listed in CHANGES must still exist on the base element class.
+     *
+     * @covers \mod_customcert\element
+     */
+    public function test_deprecated_legacy_hooks_still_exist_on_base_class(): void {
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_unique_data'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'after_restore'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'copy_element'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'delete'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'render_form_elements'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'validate_form_elements'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'definition_after_data'));
+        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_form_elements'));
+    }
+
+    /**
+     * copy_element() on the base class emits a deprecation notice.
+     *
+     * @covers \mod_customcert\element::copy_element
+     */
+    public function test_copy_element_emits_deprecation_notice(): void {
+        $record = (object) ['id' => 1, 'pageid' => 1, 'name' => 'Test', 'data' => null];
+        $element = new text_element($record);
+
+        $result = $element->copy_element(new \stdClass());
+
+        $this->assertDebuggingCalled(
+            'element::copy_element() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+            DEBUG_DEVELOPER
+        );
+        $this->assertTrue($result);
+    }
+
+    /**
+     * can_add() returns true by default.
+     *
+     * @covers \mod_customcert\element::can_add
+     */
+    public function test_can_add_returns_true(): void {
+        $this->assertTrue(text_element::can_add());
+    }
+
+    /**
+     * form_buildable_interface must not exist — it was never released and has been fully deleted.
+     *
+     * @covers \mod_customcert\element
+     */
+    public function test_form_buildable_interface_does_not_exist(): void {
+        $this->assertFalse(
+            interface_exists('mod_customcert\\element\\form_buildable_interface', true),
+            'form_buildable_interface was never released and must not exist'
+        );
+    }
+
+    /**
+     * A legacy element with old untyped non-render hook signatures can still class-load without a PHP fatal.
+     *
+     * @covers \mod_customcert\element
+     */
+    public function test_legacy_untyped_non_render_hooks_class_loads(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+        $this->assertTrue(class_exists(\mod_customcert\tests\fixtures\legacy_old_signature_element::class));
+    }
+
+    /**
+     * The QR code element class loads successfully, confirming the context import is present.
+     *
+     * @covers \customcertelement_qrcode\element
+     */
+    public function test_qrcode_element_class_loads_with_context_import(): void {
+        $this->assertTrue(class_exists(\customcertelement_qrcode\element::class));
     }
 }

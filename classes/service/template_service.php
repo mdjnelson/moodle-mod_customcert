@@ -20,8 +20,11 @@ namespace mod_customcert\service;
 
 use dml_exception;
 use invalid_parameter_exception;
+use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element as base_element;
+use ReflectionMethod;
 use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
 use mod_customcert\event\page_deleted;
@@ -96,6 +99,21 @@ final class template_service {
      */
     private function create_element_from_record(stdClass $record): ?element_interface {
         return $this->factory->create_from_legacy_record($record);
+    }
+
+    /**
+     * Returns true only when the given element instance has a concrete override of copy_element()
+     * that is not merely the no-op base implementation on mod_customcert\element.
+     *
+     * @param object $element Element instance to inspect.
+     * @return bool
+     */
+    private function has_legacy_copy_override(object $element): bool {
+        if (!method_exists($element, 'copy_element')) {
+            return false;
+        }
+        $ref = new ReflectionMethod($element, 'copy_element');
+        return $ref->getDeclaringClass()->getName() !== base_element::class;
     }
 
     /**
@@ -388,11 +406,25 @@ final class template_service {
 
                 if ($instance = $this->create_element_from_record($element)) {
                     $inner = $this->unwrap_element($instance);
-                    if (method_exists($inner, 'copy_element') && !$inner->copy_element($templateelement)) {
-                        $this->elements->delete($instance);
-                    } else {
-                        element_created::create_from_element($instance)->trigger();
+                    // If the element implements copyable_element_interface, delegate to copy_from().
+                    if ($inner instanceof copyable_element_interface) {
+                        if (!$inner->copy_from($templateelement)) {
+                            $this->elements->delete($instance);
+                            continue;
+                        }
+                    } else if ($this->has_legacy_copy_override($inner)) {
+                        // Legacy compatibility: invoke deprecated copy_element() for old third-party elements.
+                        debugging(
+                            'copy_element() is deprecated since Moodle 5.2. '
+                            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+                            DEBUG_DEVELOPER
+                        );
+                        if (!$inner->copy_element($templateelement)) {
+                            $this->elements->delete($instance);
+                            continue;
+                        }
                     }
+                    element_created::create_from_element($instance)->trigger();
                 }
             }
         }

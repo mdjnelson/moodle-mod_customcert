@@ -28,7 +28,8 @@ use context;
 use context_module;
 use DirectoryIterator;
 use grade_grade;
-use mod_customcert\element\element_interface;
+use mod_customcert\element\layout_element_interface;
+use mod_customcert\element\stylable_element_interface;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -72,10 +73,15 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param element $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
+     * @return void
      */
-    public static function render_content(pdf $pdf, element $element, string $content): void {
+    public static function render_content(
+        pdf $pdf,
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): void {
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
         $colour = $element->get_colour() ?? '#000000';
@@ -88,7 +94,7 @@ class element_helper {
         $refpoint = $element->get_refpoint();
         $cleanedcontent = clean_param($content, PARAM_NOTAGS);
         $actualwidth = $pdf->GetStringWidth($cleanedcontent);
-        $alignment = $element->get_alignment();
+        $alignment = $element->get_alignment() ?? 'L';
 
         if ($w && $w < $actualwidth) {
             $actualwidth = $w;
@@ -125,11 +131,14 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param element $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
      * @return string the html
      */
-    public static function render_html_content(element $element, string $content): string {
+    public static function render_html_content(
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): string {
         [$font, $attr] = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
@@ -381,10 +390,10 @@ class element_helper {
     /**
      * Returns the font used for this element.
      *
-     * @param element_interface|element $element the customcert element
+     * @param stylable_element_interface $element the customcert element
      * @return array the font and font attributes
      */
-    public static function get_font(element_interface|element $element): array {
+    public static function get_font(stylable_element_interface $element): array {
         // Variable for the font.
         $font = $element->get_font();
         // If there is no font, then we have nothing to do.

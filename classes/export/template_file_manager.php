@@ -97,8 +97,16 @@ class template_file_manager implements template_file_manager_interface {
         $zipfile = "$tempdir/certificate-template-$templateid.zip";
 
         $files = [];
-        foreach (glob("$tempdir/*") as $path) {
-            $files[basename($path)] = $path;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($tempdir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($iterator as $path) {
+            $relativepath = substr((string) $path, strlen($tempdir) + 1);
+            $relativepath = str_replace(DIRECTORY_SEPARATOR, '/', $relativepath);
+            if (!is_dir((string) $path)) {
+                $files[$relativepath] = (string) $path;
+            }
         }
 
         $packer->archive_to_pathname(
@@ -154,9 +162,9 @@ class template_file_manager implements template_file_manager_interface {
         }
 
         // Import files first, then template data inside a DB transaction.
-        // If the DB import fails, roll back stored files to keep the system clean.
-        $this->filemng->import($contextid, $unpackdir);
+        // Wrap both steps so that any failure (including partial file import) triggers cleanup.
         try {
+            $this->filemng->import($contextid, $unpackdir);
             $this->template->import($contextid, $data);
         } catch (Throwable $e) {
             $this->filemng->delete_imported_files();
@@ -175,14 +183,58 @@ class template_file_manager implements template_file_manager_interface {
      * @throws import_exception If any validation check fails.
      */
     private function validate_zip(string $zippath): void {
-        if (!$packer = get_file_packer()) {
-            throw new import_exception('ZIP packer is not available');
+        // Use ZipArchive directly to read raw (unsanitised) entry names so that
+        // path-traversal entries such as ../foo or /foo are detected before the
+        // Moodle packer silently normalises them away.
+        if (!class_exists(\ZipArchive::class)) {
+            throw new import_exception('ZIP extension is not available');
         }
-
-        $files = $packer->list_files($zippath);
-        if ($files === false) {
+        $zip = new \ZipArchive();
+        if ($zip->open($zippath) !== true) {
             throw new import_exception('Failed to read the ZIP archive');
         }
+        $files = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if ($stat === false || !isset($stat['name'], $stat['size'])) {
+                $zip->close();
+                throw new import_exception('Failed to inspect the ZIP archive');
+            }
+
+            // Normalise backslashes so Windows-style paths are caught by the same checks.
+            $name = str_replace('\\', '/', $stat['name']);
+
+            // Reject absolute paths and drive-letter paths before segment checks.
+            if ($name === '' || str_starts_with($name, '/') || preg_match('/^[A-Za-z]:\//', $name)) {
+                $zip->close();
+                throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
+            }
+
+            // Validate every path segment individually: reject empty, dot, and dot-dot segments.
+            // This catches traversal in any position (e.g. files/../../evil, ./, ../) and is
+            // more robust than substring pattern matching.
+            foreach (explode('/', trim($name, '/')) as $segment) {
+                if ($segment === '' || $segment === '.' || $segment === '..') {
+                    $zip->close();
+                    throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
+                }
+            }
+
+            // Only allow safe characters: alphanumeric, dash, underscore, dot, slash.
+            if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $name)) {
+                $zip->close();
+                throw new import_exception('Archive contains an unsafe filename: ' . $stat['name']);
+            }
+
+            // Skip safe structural directory entries (name ends with '/') after all
+            // security checks have passed; they carry no file content.
+            if (str_ends_with($name, '/')) {
+                continue;
+            }
+
+            $files[] = (object)['pathname' => $name, 'size' => $stat['size']];
+        }
+        $zip->close();
 
         // Limit archive entry count to guard against zip bombs.
         $maxfiles = self::MAX_ARCHIVE_FILES;
@@ -195,19 +247,6 @@ class template_file_manager implements template_file_manager_interface {
         $maxtotalbytes = self::MAX_TOTAL_BYTES;
         $totalbytes = 0;
         foreach ($files as $file) {
-            // Reject absolute paths and any path segment that is or contains '..'.
-            if (str_starts_with($file->pathname, '/')) {
-                throw new import_exception('Archive contains an absolute path: ' . $file->pathname);
-            }
-            foreach (explode('/', $file->pathname) as $segment) {
-                if ($segment === '..' || $segment === '.') {
-                    throw new import_exception('Archive contains a path traversal entry: ' . $file->pathname);
-                }
-            }
-            // Only allow safe filenames: alphanumeric, dash, underscore, dot, slash.
-            if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $file->pathname)) {
-                throw new import_exception('Archive contains an unsafe filename: ' . $file->pathname);
-            }
             if ($file->size > $maxbytes) {
                 throw new import_exception('A file in the archive exceeds the size limit: ' . $file->pathname);
             }

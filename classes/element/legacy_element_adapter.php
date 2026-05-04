@@ -37,18 +37,21 @@ use mod_customcert\service\element_factory;
 use restore_customcert_activity_task;
 
 /**
- * Adapts a legacy element (extending mod_customcert\element) to element_interface.
+ * Adapter that exposes legacy elements through the new element interfaces.
  *
- * @deprecated since Moodle 5.2 — one-release compatibility bridge only.
- *   This class exists to allow third-party element plugins that extend the legacy
- *   mod_customcert\element base class to continue working after the v2 refactor without
- *   modification. It is NOT part of the long-term architecture.
+ * This class is part of the compatibility layer for legacy element plugins that extend
+ * the mod_customcert\element base class. It allows those plugins to work with the v2
+ * element system without modification.
  *
- *   Plugin authors should migrate their elements to implement element_interface directly.
- *   This adapter and the legacy mod_customcert\element base class are candidates for
- *   removal in a future major release once the transition period has ended.
+ * Plugin authors should migrate their elements to implement element_interface directly.
+ * This class is not part of the public API and should not be used directly by plugin authors.
  */
-final class legacy_element_adapter implements element_interface, restorable_element_interface {
+final class legacy_element_adapter implements
+    form_element_interface,
+    layout_element_interface,
+    renderable_element_interface,
+    restorable_element_interface,
+    stylable_element_interface {
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 
@@ -163,13 +166,17 @@ final class legacy_element_adapter implements element_interface, restorable_elem
     }
 
     /**
-     * Render form elements (legacy fallback).
+     * Add element-specific fields to the edit form.
      *
-     * @param \MoodleQuickForm $mform
+     * Delegates to the wrapped legacy element's build_form(), which is always
+     * available because the legacy base class provides a bridge implementation
+     * that calls render_form_elements() internally.
+     *
+     * @param MoodleQuickForm $mform
      * @return void
      */
-    public function render_form_elements(MoodleQuickForm $mform): void {
-        $this->inner->render_form_elements($mform);
+    public function build_form(MoodleQuickForm $mform): void {
+        $this->inner->build_form($mform);
     }
 
     /**
@@ -212,6 +219,19 @@ final class legacy_element_adapter implements element_interface, restorable_elem
     }
 
     /**
+     * Render the element into a PDF context.
+     *
+     * @param \pdf $pdf
+     * @param bool $preview
+     * @param \stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(\pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {
+        $this->inner->render($pdf, $preview, $user, $renderer);
+    }
+
+    /**
      * Render the element in HTML for the drag and drop interface.
      *
      * @param element_renderer|null $renderer
@@ -219,6 +239,42 @@ final class legacy_element_adapter implements element_interface, restorable_elem
      */
     public function render_html(?element_renderer $renderer = null): string {
         return $this->inner->render_html($renderer);
+    }
+
+    /**
+     * Returns the X position of the element on the page (in mm).
+     *
+     * @return int|null
+     */
+    public function get_posx(): ?int {
+        return $this->inner->get_posx();
+    }
+
+    /**
+     * Returns the Y position of the element on the page (in mm).
+     *
+     * @return int|null
+     */
+    public function get_posy(): ?int {
+        return $this->inner->get_posy();
+    }
+
+    /**
+     * Returns the reference point constant for this element.
+     *
+     * @return int|null
+     */
+    public function get_refpoint(): ?int {
+        return $this->inner->get_refpoint();
+    }
+
+    /**
+     * Returns the text alignment for this element.
+     *
+     * @return string|null
+     */
+    public function get_alignment(): ?string {
+        return $this->inner->get_alignment();
     }
 
     /**
@@ -245,19 +301,32 @@ final class legacy_element_adapter implements element_interface, restorable_elem
      * @return void
      */
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
+        // If the wrapped element already implements the new interface, delegate directly
+        // without emitting any deprecation notice.
+        if ($this->inner instanceof restorable_element_interface) {
+            $this->inner->after_restore_from_backup($restore);
+            return;
+        }
+        // Only invoke the legacy hook when the wrapped element actually overrides it;
+        // calling the inherited no-op base implementation would emit a spurious deprecation.
         if (method_exists($this->inner, 'after_restore')) {
-            $this->inner->after_restore($restore);
+            $ref = new \ReflectionMethod($this->inner, 'after_restore');
+            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
+                debugging(
+                    'The after_restore() method in ' . get_class($this->inner) . ' is deprecated. ' .
+                    'Implement restorable_element_interface and use after_restore_from_backup() instead.',
+                    DEBUG_DEVELOPER
+                );
+                $this->inner->after_restore($restore);
+            }
         }
     }
 
     /**
      * Handle element deletion.
      *
-     * @deprecated since Moodle 5.2 — compatibility bridge only.
-     *   This method exists so that legacy code calling $adapter->delete() continues to work
-     *   during the transition period. New code should use element_repository::delete() directly.
-     *   This method and the element_repository/element_factory imports in this class are
-     *   candidates for removal once all callers have been migrated.
+     * Delegates to element_repository::delete(). New code should use the repository directly
+     * rather than calling delete() on the element.
      *
      * @return bool success return true if deletion success, false otherwise
      */

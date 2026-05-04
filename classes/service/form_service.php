@@ -30,7 +30,7 @@ use context_course;
 use context_system;
 use stdClass;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\form_buildable_interface;
+use mod_customcert\element\form_element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\preparable_form_interface;
 use MoodleQuickForm;
@@ -58,15 +58,10 @@ final class form_service {
      * Build the form for an element.
      *
      * @param MoodleQuickForm $mform
-     * @param element_interface $element
+     * @param form_element_interface $element
      */
-    public function build_form(MoodleQuickForm $mform, element_interface $element): void {
-        if ($element instanceof form_buildable_interface) {
-            $element->build_form($mform);
-        } else {
-            // Fallback for elements not yet migrated or third-party elements.
-            $element->render_form_elements($mform);
-        }
+    public function build_form(MoodleQuickForm $mform, form_element_interface $element): void {
+        $element->build_form($mform);
     }
 
     /**

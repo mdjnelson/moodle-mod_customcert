@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\dummy_validatable_element;
 
@@ -126,5 +127,122 @@ final class validation_service_test extends advanced_testcase {
 
         $this->assertArrayHasKey('name', $errors);
         $this->assertNotEmpty($errors['name']);
+    }
+
+    /**
+     * A pure v2 element that implements only element_interface (no validation hook) must not
+     * produce a generic 'invaliddata' error — it should simply contribute no extra errors.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_pure_v2_element_with_no_validation_hook_produces_no_errors(): void {
+        $element = new class implements \mod_customcert\element\element_interface {
+            /**
+             * Get element ID.
+             * @return int
+             */
+            public function get_id(): int {
+                return 1;
+            }
+
+            /**
+             * Get page ID.
+             * @return int
+             */
+            public function get_pageid(): int {
+                return 1;
+            }
+
+            /**
+             * Get element name.
+             * @return string
+             */
+            public function get_name(): string {
+                return 'Test';
+            }
+
+            /**
+             * Get element data.
+             * @return mixed
+             */
+            public function get_data(): mixed {
+                return null;
+            }
+
+            /**
+             * Get element type.
+             * @return string
+             */
+            public function get_type(): string {
+                return 'test';
+            }
+        };
+
+        $svc = new validation_service();
+        $errors = $svc->validate($element, ['name' => 'Test']);
+
+        $this->assertArrayNotHasKey('name', $errors);
+        $this->assertEmpty($errors);
+    }
+
+    /**
+     * A legacy element with old untyped hook signatures must load and pass validation without
+     * fatalling at class-load time, now that the base class hooks are untyped.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_legacy_element_with_old_signatures_loads_and_validates(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'OldSig',
+            'element' => 'text',
+            'data' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+        ];
+        $element = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+
+        $svc = new validation_service();
+        $errors = $svc->validate($element, ['name' => 'OldSig']);
+        $this->assertDebuggingCalled();
+
+        // The element loaded without a fatal and validation returned an array.
+        $this->assertIsArray($errors);
+    }
+
+    /**
+     * When a legacy element with a validate_form_elements() override is wrapped in a
+     * legacy_element_adapter, validation_service must still invoke the legacy hook.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_adapter_wrapped_legacy_element_validate_form_elements_is_called(): void {
+        require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
+
+        $record = (object) [
+            'id' => 1,
+            'pageid' => 1,
+            'name' => 'OldSig',
+            'element' => 'text',
+            'data' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'refpoint' => 0,
+            'alignment' => 'L',
+        ];
+        $inner = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+        $adapter = new legacy_element_adapter($inner);
+
+        $svc = new validation_service();
+        $errors = $svc->validate($adapter, ['name' => 'OldSig']);
+        $this->assertDebuggingCalled();
+
+        // The legacy hook was invoked and returned an array.
+        $this->assertIsArray($errors);
     }
 }

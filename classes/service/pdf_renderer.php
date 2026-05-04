@@ -32,9 +32,9 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use coding_exception;
-use mod_customcert\element as element_base;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\stylable_element_interface;
+use mod_customcert\element\layout_element_interface;
 use mod_customcert\element_helper;
 use pdf;
 use stdClass;
@@ -58,33 +58,27 @@ final class pdf_renderer implements element_renderer {
     /**
      * Renders PDF.
      *
-     * @param element_base $element
+     * @param renderable_element_interface $element
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
      * @return void
      */
-    public function render_pdf(element_base $element, pdf $pdf, bool $preview, stdClass $user): void {
-        if ($element instanceof renderable_element_interface) {
-            $element->render($pdf, $preview, $user, $this);
-            return;
-        }
-
-        // If adapter, delegate to wrapped legacy element's render().
-        if ($element instanceof legacy_element_adapter) {
-            $legacy = $element->get_inner();
-            $legacy->render($pdf, $preview, $user, $this);
-            return;
-        }
+    public function render_pdf(renderable_element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
+        $element->render($pdf, $preview, $user, $this);
     }
 
     /**
      * Common behaviour for rendering specified content on the pdf.
      *
-     * @param element_base $element the customcert element
+     * @param stylable_element_interface&layout_element_interface $element the customcert element
      * @param string $content the content to render
+     * @return void
      */
-    public function render_content(element_base $element, string $content): void {
+    public function render_content(
+        stylable_element_interface&layout_element_interface $element,
+        string $content
+    ): void {
         if ($this->pdf === null) {
             throw new coding_exception('PDF object not set in pdf_renderer');
         }
@@ -94,10 +88,10 @@ final class pdf_renderer implements element_renderer {
     /**
      * Render HTML.
      *
-     * @param element_base $element
+     * @param renderable_element_interface $element
      * @return string
      */
-    public function render_html(element_base $element): string {
+    public function render_html(renderable_element_interface $element): string {
         return '';
     }
 }

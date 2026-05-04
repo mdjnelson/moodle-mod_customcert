@@ -137,15 +137,17 @@ final class export_subplugin_exportable_test extends advanced_testcase {
     public function test_get_relevant_data_dollar_placeholder(): void {
         $exportable = $this->make_exportable([]);
         $data = [
-            'img_contextid' => 1,
-            'img_filearea'  => 'image',
-            'img_itemid'    => 0,
-            'img_filepath'  => '/',
-            'img_filename'  => 'test.png',
+            'img_contextid'  => 1,
+            'img_component'  => 'mod_customcert',
+            'img_filearea'   => 'image',
+            'img_itemid'     => 0,
+            'img_filepath'   => '/',
+            'img_filename'   => 'test.png',
         ];
         $result = $exportable->get_relevant_data('img_$', $data);
         $this->assertSame([
             'contextid' => 1,
+            'component' => 'mod_customcert',
             'filearea'  => 'image',
             'itemid'    => 0,
             'filepath'  => '/',

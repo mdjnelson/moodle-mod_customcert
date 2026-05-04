@@ -158,19 +158,39 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $legacyfontsize = property_exists($data, 'fontsize') ? $data->fontsize : null;
         $legacycolour = property_exists($data, 'colour') ? $data->colour : null;
 
-        if ($legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null) {
+        // Determine whether the stored data is already a valid JSON object payload.
+        // Non-JSON legacy data (plain strings, scalars, null) must always be migrated
+        // even when no legacy visual fields are present in the backup row.
+        $rawdata = $data->data ?? null;
+        $decoded = null;
+        $isjson = false;
+        if ($rawdata !== null && $rawdata !== '') {
+            $decoded = json_decode((string) $rawdata, true);
+            $isjson = json_last_error() === JSON_ERROR_NONE;
+        }
+        // Legacy data is anything that is not a valid JSON object.
+        // Arrays, scalars, invalid JSON, null, and empty strings are all legacy.
+        // {} and {"x":1} are valid JSON objects and are not legacy.
+        $trimmed = ($rawdata !== null) ? trim((string) $rawdata) : '';
+        $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
+        $dataislegacy = !$isjsonobject;
+
+        if (
+            $legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null
+            || $dataislegacy
+        ) {
             // Use the border-specific migration path for border elements, mirroring
             // the logic in db/upgrade.php so that legacy border thickness is preserved.
             $data->data = (($data->element ?? null) === 'border')
                 ? row_migrator::migrate_border_row(
-                    $data->data ?? null,
+                    $rawdata,
                     $legacywidth,
                     $legacyfont,
                     $legacyfontsize,
                     $legacycolour
                 )
                 : row_migrator::migrate_row(
-                    $data->data ?? null,
+                    $rawdata,
                     $legacywidth,
                     $legacyfont,
                     $legacyfontsize,

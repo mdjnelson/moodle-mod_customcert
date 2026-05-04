@@ -139,7 +139,7 @@ final class element_factory {
         }
 
         try {
-            $legacy = self::get_element_instance($record);
+            $legacy = self::get_legacy_element_instance($record);
         } catch (\Throwable $unused) {
             return null;
         }
@@ -162,22 +162,15 @@ final class element_factory {
     }
 
     /**
-     * Backwards-compatible helper: return legacy element instance for given record.
+     * Internal helper: return legacy element instance for given record.
      *
-     * This mirrors the old static API `mod_customcert\\element_factory::get_element_instance($element)`
-     * so existing call sites can be updated to reference this class without changing behavior.
-     *
-     * @deprecated since Moodle 5.2
+     * Used by create_from_legacy_record() to instantiate old-style element classes.
+     * Do not call this from new code; use create() or create_from_legacy_record() instead.
      *
      * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
-     * @return object|false Legacy element instance (customcertelement_*\\element) or false if not found.
+     * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
      */
-    public static function get_element_instance(stdClass $element) {
-        debugging(
-            'element_factory::get_element_instance() is deprecated since Moodle 5.2. Use element_factory::create() or ' .
-            'create_from_legacy_record() instead.',
-            DEBUG_DEVELOPER
-        );
+    private static function get_legacy_element_instance(stdClass $element) {
 
         // Compose legacy class name like: \customcertelement_{type}\element.
         $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';

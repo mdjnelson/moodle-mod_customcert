@@ -363,35 +363,53 @@ function xmldb_customcert_upgrade($oldversion) {
 
     // Migrate width, font, fontsize, and colour into data JSON and drop those columns from customcert_elements.
     if ($oldversion < 2025122800) {
-        // 1) Fetch all records into memory first, then close the cursor.
-        $rs = $DB->get_recordset('customcert_elements', null, 'id');
-        $toupdate = [];
-        foreach ($rs as $rec) {
-            $recwidth = $rec->width === null ? null : (int)$rec->width;
-            $recfont = $rec->font === null ? null : (string)$rec->font;
-            $recfsize = $rec->fontsize === null ? null : (int)$rec->fontsize;
-            $reccolour = $rec->colour === null ? null : (string)$rec->colour;
+        // Stream rows in bounded batches to avoid loading the entire table into memory.
+        // Each batch is committed independently so a partial failure can be retried safely.
+        // Only rows whose serialised data actually changes are written back.
+        $batchsize = 1000;
+        $lastid = 0;
+        do {
+            $rowsread = 0;
+            $batch = [];
+            $rs = $DB->get_recordset_select(
+                'customcert_elements',
+                'id > :lastid',
+                ['lastid' => $lastid],
+                'id',
+                '*',
+                0,
+                $batchsize
+            );
+            foreach ($rs as $rec) {
+                $rowsread++;
+                $lastid = (int)$rec->id;
+                // Guard against a partially-failed upgrade where columns may already be gone.
+                $recwidth  = isset($rec->width) ? ($rec->width === null ? null : (int)$rec->width) : null;
+                $recfont   = isset($rec->font) ? ($rec->font === null ? null : (string)$rec->font) : null;
+                $recfsize  = isset($rec->fontsize) ? ($rec->fontsize === null ? null : (int)$rec->fontsize) : null;
+                $reccolour = isset($rec->colour) ? ($rec->colour === null ? null : (string)$rec->colour) : null;
 
-            $migrated = $rec->element === 'border'
-                ? row_migrator::migrate_border_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour)
-                : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour);
+                $migrated = $rec->element === 'border'
+                    ? row_migrator::migrate_border_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour)
+                    : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour);
 
-            if ($migrated !== $rec->data) {
-                $toupdate[] = (object) ['id' => $rec->id, 'data' => $migrated];
+                if ($migrated !== $rec->data) {
+                    $batch[] = (object) ['id' => $rec->id, 'data' => $migrated];
+                }
             }
-        }
-        $rs->close();
+            $rs->close();
 
-        // 2) Apply updates in batches, each in its own transaction.
-        foreach (array_chunk($toupdate, 1000) as $batch) {
-            $transaction = $DB->start_delegated_transaction();
-            foreach ($batch as $row) {
-                $DB->update_record('customcert_elements', $row);
+            if ($batch) {
+                $transaction = $DB->start_delegated_transaction();
+                foreach ($batch as $row) {
+                    $DB->update_record('customcert_elements', $row);
+                }
+                $transaction->allow_commit();
             }
-            $transaction->allow_commit();
-        }
+        } while ($rowsread === $batchsize);
 
-        // 3) Drop the migrated columns from customcert_elements.
+        // Drop the migrated columns from customcert_elements.
+        // Wrapped in field_exists() guards so a retry after partial failure is safe.
         $table = new xmldb_table('customcert_elements');
         foreach (['width', 'font', 'fontsize', 'colour'] as $mfield) {
             $field = new xmldb_field($mfield);

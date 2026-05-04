@@ -15,56 +15,46 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 declare(strict_types=1);
-
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
-use mod_customcert\element\element_interface;
-use mod_customcert\element\form_buildable_interface;
+use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_renderer;
-use MoodleQuickForm;
 use pdf;
+use restore_customcert_activity_task;
 use stdClass;
 
 /**
- * Form buildable element fixture for form_service tests.
+ * Test fixture: element that implements restorable_element_interface directly.
+ *
+ * Used to verify the adapter delegates to after_restore_from_backup() without
+ * emitting a deprecation notice when the inner element uses the new interface.
  *
  * @package    mod_customcert
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class form_buildable_test_element extends element implements element_interface, form_buildable_interface {
+class new_restorable_element extends element implements restorable_element_interface {
     /**
-     * Flag to track whether build_form was called.
+     * Flag to track if after_restore_from_backup was called.
      *
      * @var bool
      */
     public bool $called = false;
 
     /**
-     * Build the form for this element.
+     * New-style restore hook.
      *
-     * @param MoodleQuickForm $mform
+     * @param restore_customcert_activity_task $restore
      * @return void
      */
-    public function build_form(MoodleQuickForm $mform): void {
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         $this->called = true;
-        $mform->addElement('text', 'customfield', 'Custom field', []);
     }
 
     /**
-     * Normalise form data (no-op for fixture).
-     *
-     * @param stdClass $formdata
-     * @return array
-     */
-    public function normalise_data(stdClass $formdata): array {
-        return [];
-    }
-
-    /**
-     * Render to PDF (not required for this fixture).
+     * Render to PDF (not used in this test).
      *
      * @param pdf $pdf
      * @param bool $preview
@@ -72,12 +62,16 @@ class form_buildable_test_element extends element implements element_interface, 
      * @param element_renderer|null $renderer
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // No-op for fixture.
+    public function render(
+        pdf $pdf,
+        bool $preview,
+        stdClass $user,
+        ?element_renderer $renderer = null
+    ): void {
     }
 
     /**
-     * Render HTML (not required for this fixture).
+     * Render HTML (not used in this test).
      *
      * @param element_renderer|null $renderer
      * @return string

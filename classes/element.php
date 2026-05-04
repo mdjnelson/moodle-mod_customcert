@@ -29,7 +29,10 @@ namespace mod_customcert;
 use coding_exception;
 use InvalidArgumentException;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\form_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
@@ -50,7 +53,11 @@ use stdClass;
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class element implements stylable_element_interface {
+abstract class element implements
+    form_element_interface,
+    layout_element_interface,
+    renderable_element_interface,
+    stylable_element_interface {
     /**
      * @var string The left alignment constant.
      */
@@ -289,7 +296,7 @@ abstract class element implements stylable_element_interface {
      *
      * @return string The current alignment value.
      */
-    public function get_alignment(): string {
+    public function get_alignment(): ?string {
         return $this->alignment ?? self::ALIGN_LEFT;
     }
 
@@ -361,7 +368,17 @@ abstract class element implements stylable_element_interface {
      * @deprecated since Moodle 5.2
      * @param MoodleQuickForm $mform the edit_form instance.
      */
-    public function render_form_elements(MoodleQuickForm $mform): void {
+    public function build_form(\MoodleQuickForm $mform): void {
+        $this->render_form_elements($mform);
+    }
+
+    /**
+     * Renders common form elements (font, colour, position, width, refpoint, alignment).
+     *
+     * @deprecated since Moodle 5.2
+     * @param MoodleQuickForm $mform the edit_form instance.
+     */
+    public function render_form_elements($mform) {
         debugging(
             'render_form_elements() is deprecated since Moodle 5.2. '
             . 'Use element_helper::render_common_form_elements() instead.',
@@ -385,7 +402,7 @@ abstract class element implements stylable_element_interface {
      * @param MoodleQuickForm $mform the edit_form instance
      * @deprecated since Moodle 5.2
      */
-    public function definition_after_data(MoodleQuickForm $mform): void {
+    public function definition_after_data($mform) {
         debugging(
             'definition_after_data() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
@@ -421,7 +438,7 @@ abstract class element implements stylable_element_interface {
      * @return array the validation errors
      * @deprecated since Moodle 5.2
      */
-    public function validate_form_elements(array $data, array $files): array {
+    public function validate_form_elements($data, $files) {
         debugging(
             'validate_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\validatable_element_interface::validate() instead.',
@@ -448,7 +465,7 @@ abstract class element implements stylable_element_interface {
      * @return int|bool true if updated was a success, id of the new element otherwise.
      * @deprecated since Moodle 5.2
      */
-    public function save_form_elements(stdClass $data): int|bool {
+    public function save_form_elements($data) {
         debugging(
             'save_form_elements() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() and '
@@ -514,13 +531,51 @@ abstract class element implements stylable_element_interface {
 
 
     /**
+     * Handles saving any element data introduced by this element.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2 — implement persistable_element_interface::normalise_data() instead.
+     * @param stdClass $data the form data
+     * @return string the unique data to store
+     */
+    public function save_unique_data($data) {
+        debugging(
+            'save_unique_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() instead.',
+            DEBUG_DEVELOPER
+        );
+        return '';
+    }
+
+    /**
+     * Handles any extra processing needed when an element is restored from a backup.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2 — implement restorable_element_interface::after_restore_from_backup() instead.
+     * @param mixed $restore the restore task
+     */
+    public function after_restore($restore) {
+        debugging(
+            'after_restore() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\restorable_element_interface::after_restore_from_backup() instead.',
+            DEBUG_DEVELOPER
+        );
+    }
+
+    /**
      * This handles copying data from another element of the same type.
      * Can be overridden if more functionality is needed.
      *
-     * @param stdClass $data the form data
+     * @deprecated since Moodle 5.2 — implement mod_customcert\element\copyable_element_interface::copy_from() instead.
+     * @param mixed $data legacy form/element data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function copy_element(stdClass $data): bool {
+    public function copy_element($data) {
+        debugging(
+            'element::copy_element() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+            DEBUG_DEVELOPER
+        );
         return true;
     }
 

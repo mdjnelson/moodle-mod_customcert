@@ -116,14 +116,17 @@ class template_appendix_manager implements template_appendix_manager_interface {
         foreach ($pageids as $pageid) {
             $elementids[] = element::get_elementids_from_page($pageid);
         }
-        $elementids = array_merge(...$elementids);
+        // Flatten page-level arrays; guard against templates with no pages or no elements.
+        $elementids = $elementids ? array_merge(...$elementids) : [];
+        if (empty($elementids)) {
+            return [];
+        }
         if ($this->element === null) {
             throw new coding_exception('Element handler not set. Call set_element() before exporting.');
         }
         $element = $this->element;
-
         $files = array_map(fn ($elementid) => $element->get_files($elementid), $elementids);
-        return array_merge(...$files);
+        return $files ? array_merge(...$files) : [];
     }
 
     /**
@@ -147,9 +150,24 @@ class template_appendix_manager implements template_appendix_manager_interface {
             return;
         }
 
-        $manifest = json_decode((string)file_get_contents($manifestpath), true);
-        if (!is_array($manifest) || empty($manifest['files']) || !is_array($manifest['files'])) {
-            // Also allow empty.
+        $raw = (string)file_get_contents($manifestpath);
+        $manifest = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($manifest)) {
+            throw new \mod_customcert\export\import_exception(
+                'files.json is malformed or not a valid JSON object/array'
+            );
+        }
+        // The "files" key must be present and be an array (empty is allowed).
+        if (!array_key_exists('files', $manifest)) {
+            throw new import_exception('files.json is missing the required "files" key');
+        }
+        if (!is_array($manifest['files'])) {
+            throw new \mod_customcert\export\import_exception(
+                'files.json is missing a valid "files" array'
+            );
+        }
+        if (empty($manifest['files'])) {
+            // Valid empty manifest — no files to import.
             $this->index = [];
             $this->created = [];
             return;
@@ -158,14 +176,54 @@ class template_appendix_manager implements template_appendix_manager_interface {
         $fs = get_file_storage();
 
         foreach ($manifest['files'] as $contenthash => $meta) {
-            if (empty($meta['filename'] ?? null)) {
-                throw new Exception("file has no name: files/$contenthash");
+            if (!is_array($meta)) {
+                throw new import_exception("invalid file metadata: files/$contenthash");
             }
-            $filename = $meta['filename'];
+            if (!isset($meta['filename']) || !is_string($meta['filename']) || $meta['filename'] === '') {
+                throw new import_exception("file has no name: files/$contenthash");
+            }
+            if (!isset($meta['component']) || !is_string($meta['component'])) {
+                throw new import_exception("invalid or missing file component: files/$contenthash");
+            }
+            if (isset($meta['filearea']) && !is_string($meta['filearea'])) {
+                throw new import_exception("invalid file area type: files/$contenthash");
+            }
+            if (isset($meta['filepath']) && !is_string($meta['filepath'])) {
+                throw new import_exception("invalid file path type: files/$contenthash");
+            }
+            // Validate the filename from the manifest strictly: reject any name that
+            // clean_param would mutate (e.g. path traversal sequences) rather than
+            // silently accepting a normalised version. This ensures import integrity.
+            $rawfilename = $meta['filename'];
+            $filename = clean_param($rawfilename, PARAM_FILE);
+            if ($filename === '' || $filename !== $rawfilename) {
+                throw new import_exception("file has unsafe or empty name: files/$contenthash");
+            }
 
+            // Validate the content hash key before using it in a file path.
+            if (!preg_match('/^[a-f0-9]{40}$/', $contenthash)) {
+                throw new import_exception("invalid content hash key in manifest: $contenthash");
+            }
+            // Allowlist component, filearea, filepath, and itemid to prevent hostile imports
+            // from creating arbitrary files in unrelated fileareas or components.
+            $component = $meta['component'];
+            if ($component !== 'mod_customcert') {
+                throw new import_exception("Invalid file component in files.json: files/$contenthash");
+            }
+            $allowedareas = ['image'];
+            if (!in_array($meta['filearea'] ?? '', $allowedareas, true)) {
+                throw new import_exception("Invalid file area in files.json: files/$contenthash");
+            }
+            if (($meta['filepath'] ?? '/') !== '/') {
+                throw new import_exception("Invalid file path in files.json: files/$contenthash");
+            }
+            $itemid = $meta['itemid'] ?? 0;
+            if (!is_numeric($itemid) || (int) $itemid !== 0) {
+                throw new import_exception("Invalid file itemid in files.json: files/$contenthash");
+            }
             $srcpath = $this->get_imagepath($importpath, $contenthash);
             if (!file_exists($srcpath)) {
-                throw new Exception("file not found: files/$contenthash");
+                throw new import_exception("file not found: files/$contenthash");
             }
 
             // Using mod_customcert/image/itemid=0 is compatible with your element runtime code.
@@ -205,6 +263,16 @@ class template_appendix_manager implements template_appendix_manager_interface {
             }
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
+            // Verify the stored file's content hash matches the manifest key.
+            // This catches truncated or corrupted archive members before they
+            // are silently used as the wrong file.
+            if ($stored->get_contenthash() !== $contenthash) {
+                $stored->delete();
+                throw new import_exception(
+                    "content hash mismatch for files/$contenthash: " .
+                    "expected $contenthash, got " . $stored->get_contenthash()
+                );
+            }
             $this->index[$contenthash] = $stored;
             $this->created[$contenthash] = $stored;
         }

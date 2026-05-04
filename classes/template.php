@@ -195,44 +195,6 @@ class template {
     }
 
     /**
-     * Create and configure a PDF instance suitable for preview rendering.
-     *
-     * This helper mirrors the setup used in {@see template::generate_pdf} for preview
-     * and can be used by alternate preview flows (e.g., the V2 orchestrator).
-     *
-     * @deprecated since Moodle 5.2
-     * @param stdClass $user The user that the preview is for.
-     * @return pdf A configured PDF instance ready for element rendering.
-     */
-    public function create_preview_pdf(stdClass $user): pdf {
-        debugging(
-            'template::create_preview_pdf() is deprecated since Moodle 5.2. '
-            . 'Use pdf_generation_service::create_preview_pdf() instead.',
-            DEBUG_DEVELOPER
-        );
-        return $this->get_pdf_service()->create_preview_pdf($this, $user);
-    }
-
-
-    /**
-     * Compute filename for the current user/certificate using template and pattern settings.
-     * Mirrors the logic in generate_pdf(). Returns a clean filename with .pdf suffix.
-     *
-     * @deprecated since Moodle 5.2
-     * @param stdClass $user
-     * @param stdClass|null $customcert
-     * @return string
-     */
-    public function compute_filename_for_user(stdClass $user, ?stdClass $customcert): string {
-        debugging(
-            'template::compute_filename_for_user() is deprecated since Moodle 5.2. '
-            . 'Use pdf_generation_service::compute_filename_for_user() instead.',
-            DEBUG_DEVELOPER
-        );
-        return $this->get_pdf_service()->compute_filename_for_user($this, $user, $customcert);
-    }
-
-    /**
      * Handles copying this template into another.
      *
      * @deprecated since Moodle 5.2

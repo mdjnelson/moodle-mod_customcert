@@ -11,29 +11,37 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Added
 
-#### Element System v2
-- **Element System v2** (interfaces + services) to improve stability and long-term extensibility of Custom Certificate elements.
-- **Base element contract**: `mod_customcert\element\element_interface` — all v2 elements implement this; the factory returns this type.
-  - Layout columns (`posx`, `posy`, `refpoint`, `alignment`) are **framework-owned DB columns** (#786) managed exclusively by `element_repository`; they are intentionally excluded from `element_interface` by design. The repository requires an explicit `element_layout` DTO on `save()` and `create()` rather than reading layout from the element. The concrete `mod_customcert\element` base class retains the getters for use by rendering helpers.
-- **New element capability interfaces** (implement as needed):
-  - `mod_customcert\element\form_buildable_interface` — provides `build_form(MoodleQuickForm $mform)` to add element-specific fields to the edit form; replaces the legacy `render_form_elements()` hook.
-  - `mod_customcert\element\persistable_element_interface` — provides `normalise_data(stdClass $formdata): array` to return a typed, element-specific associative array ready for JSON encoding into the `data` column. Standard visual fields (font, fontsize, colour, width) must be included here if the element uses them; they are **not** merged automatically. Layout columns (posx, posy, refpoint, alignment) are handled separately via `element_layout` and must not be returned from `normalise_data()`.
-  - `mod_customcert\element\validatable_element_interface` — provides `validate(array $data): array` to return field-keyed error messages; `validation_service` detects and invokes this automatically.
-  - `mod_customcert\element\preparable_form_interface` — provides `prepare_form(MoodleQuickForm $mform)` to populate form fields from the stored JSON payload after the form is built (replaces `definition_after_data()`).
-  - `mod_customcert\element\stylable_element_interface` — typed contract for elements that expose standard visual attributes (`get_font()`, `get_fontsize()`, `get_colour()`, `get_width()`); values are read from the JSON payload rather than removed DB columns.
-  - `mod_customcert\element\renderable_element_interface` — (Scaffolding) typed render contract: `render(pdf, bool, stdClass, ?element_renderer)` for PDF output and `render_html(?element_renderer): string` for the designer preview.
-  - `mod_customcert\element\restorable_element_interface` — (Scaffolding) provides `after_restore_from_backup(restore_customcert_activity_task $restore)` to remap internal IDs/references after a backup is restored; replaces the legacy `after_restore()` hook.
-- **`constructable_element_interface`** — provides `from_record(\stdClass $record)` to opt in to the preferred factory construction path (see Changed section).
-- **`unknown_element`** — safe fallback used by the factory when a requested element type is not registered; renders gracefully rather than throwing.
-- **New persistence + migration helpers**:
-  - JSON payload helpers (`get_payload()`, `get_value()`, safe decode/encode helpers with validation).
-  - `mod_customcert\service\persistence_helper` — converts a form submission to the JSON string stored in `customcert_elements.data`, delegating to `normalise_data()` for persistable elements or `save_unique_data()` for legacy ones.
-  - Restore migration helper to merge legacy backup fields into the JSON payload during restore.
-- **Element registry + factory**:
-  - `mod_customcert\service\element_registry` — maps element type keys to class names; replaces hard-coded class resolution.
-  - `mod_customcert\service\element_factory` — instantiates elements via the registry, preferring `constructable_element_interface::from_record()` and falling back to legacy constructors.
-- **`mod_customcert\service\validation_service`** — centralises element form-data validation, delegating to `validatable_element_interface` when available.
-- **Expanded automated tests** covering Element System v2 behaviour and upgrade/restore data migration paths.
+#### Major element API changes
+
+Custom Certificate elements now separate element payload, layout, and rendering concerns.
+
+Element data that was previously stored in dedicated columns (`font`, `fontsize`, `colour`, `width`) is now stored inside the element JSON payload in `customcert_elements.data`. Layout values (`posx`, `posy`, `refpoint`, `alignment`) are managed by the element repository/layout service rather than by individual element implementations.
+
+Third-party elements should migrate to the new element interfaces under `mod_customcert\element`.
+
+The legacy `mod_customcert\element` base class remains available for compatibility during this major release, but legacy hooks with replacement interfaces are deprecated and will be removed in a future major version.
+
+> **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures for these two methods will fail at class-load time. The deprecated legacy hooks (`render_form_elements`, `definition_after_data`, `validate_form_elements`, `save_form_elements`, `save_unique_data`, `after_restore`, `copy_element`) retain untyped base signatures and are intended to remain compatible with old-style untyped overrides. `can_add()` retains its typed `bool` return and is not deprecated; third-party overrides must declare `public static function can_add(): bool`. See the "Element rendering signatures" section below for the required `render`/`render_html` signatures.
+
+New elements should use:
+- `element_interface` — for the core element contract (identity, payload, type)
+- `form_element_interface` — required for registered certificate elements (along with `renderable_element_interface`); provides edit-form lifecycle hooks including `build_form()`. Note: `form_buildable_interface` was never released and has been fully replaced by `form_element_interface`.
+- `stylable_element_interface` — only when the element supports standard visual styling (`font`, `fontsize`, `colour`, `width`)
+- `layout_element_interface` — exposes repository-managed layout values (`posx`, `posy`, `refpoint`, `alignment`) for common PDF/HTML rendering helpers
+- `persistable_element_interface` — normalises submitted form data into the JSON payload
+- `validatable_element_interface` — validates submitted form data
+- `preparable_form_interface` — populates edit-form fields from stored payload
+- `restorable_element_interface` — remaps internal references after backup restore
+- `copyable_element_interface` — implement `copy_from(\stdClass $source): bool` when an element needs custom logic during copy operations (e.g. copying associated files to a new context); the repository/service layer calls this instead of the deprecated `copy_element()` hook
+- Repository/service APIs for persistence and layout changes
+
+Elements using the common renderer helpers (`element_helper::render_content()` / `render_html_content()`) must also implement both `stylable_element_interface` and `layout_element_interface`. Elements with fully custom rendering may implement `renderable_element_interface` directly without these.
+
+An `unknown_element` fallback is used when a requested element type is not registered; it renders gracefully rather than throwing.
+
+No deprecated bundled element implementations are shipped in this release. Deprecated element hooks remain only on the legacy `mod_customcert\element` base class to support third-party plugin migration.
+
+> **Legacy internal state removed**: Third-party elements that accessed protected internal state directly will need to update. In particular, direct access to `$this->element`, `$this->font`, `$this->fontsize`, `$this->colour`, `$this->width`, or magic property fallback (`__get()`) must be replaced with the new getters, payload helpers, and repository-managed layout APIs. Visual values now live in `customcert_elements.data`; layout values are managed separately by the repository/layout services.
 
 #### Template export and import
 - Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
@@ -69,14 +77,17 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   - `mod_customcert\service\element_renderer` — interface for the v2 element rendering pipeline (PDF and HTML surfaces)
   - `mod_customcert\service\pdf_renderer` — `element_renderer` implementation for PDF output
   - `mod_customcert\service\html_renderer` — `element_renderer` implementation for the designer preview
+
+#### Other additions
 - `mod_customcert\template::from_record(\stdClass $record)` is now the **preferred** entry point for instantiating a template from a database record; `mod_customcert\template::create(string $name, int $contextid)` is the preferred entry point for creating a new template. The constructor signature has changed to accept `int $id, string $name, int $contextid` individually (previously it accepted a raw `\stdClass $record`) — new code should use `from_record()` rather than calling `new template(...)` directly, though the constructor remains functional.
-- `mod_customcert\element\legacy_element_adapter` — wraps a legacy element (extending `mod_customcert\element`) to satisfy `element_interface`; returned by the factory for unupgraded element plugins.
+- `mod_customcert\element\legacy_element_adapter` — internal compatibility adapter used by the factory to expose legacy elements extending `mod_customcert\element` through the new element interfaces. Plugin authors should migrate elements to the new interfaces directly rather than depending on the adapter.
 - Static utility methods on `certificate` have been moved to dedicated service/repository classes:
   - `certificate::get_issues()` / `certificate::get_number_of_issues()` / `certificate::get_conditional_issues_sql()` → `issue_repository`
   - `certificate::get_number_of_certificates_for_user()` / `certificate::get_certificates_for_user()` → `certificate_repository`
   - `certificate::get_fonts()` / `certificate::get_font_sizes()` → `element_helper`
   - `certificate::set_protection()` → `form_service`
   - `certificate::upload_files()` → `form_service`
+- **Expanded automated tests** covering element API behaviour and upgrade/restore data migration paths.
 
 ### Changed
 
@@ -107,6 +118,9 @@ Reserved JSON keys (visuals):
   - Avoid `instanceof` checks against legacy concrete classes; prefer `$element->get_type()` and/or `$element->get_inner()`.
 
 #### Element rendering signatures
+
+> **Breaking change for third-party element plugins**: The `render()` and `render_html()` abstract methods on `mod_customcert\element` now have strict typed signatures and return types. Third-party element plugins that override these methods with the old untyped signatures will fail at class-load time with a PHP fatal error, even before the adapter layer can help. Plugins must update their method signatures before upgrading to 5.2. See the before/after signatures below.
+
 - Element render methods are now typed and accept an optional renderer.
 
 Before (legacy):
@@ -158,7 +172,7 @@ The following `template` methods are now shims that emit developer debugging and
 - `template::delete()` / `template::delete_page()` / `template::delete_element()` → `template_service::delete()` / `template_service::delete_page()` / `template_service::delete_element()`
 - `template::copy_to_template()` → `template_service::copy_to_template()`
 - `template::move_item()` → `template_service::move_item()` (service constants are available; raw strings remain supported)
-- `template::generate_pdf()` / `template::create_preview_pdf()` / `template::compute_filename_for_user()` → corresponding `pdf_generation_service` methods
+- `template::generate_pdf()` → `pdf_generation_service::generate_pdf()`
 
 #### Certificate methods
 The following `certificate` methods are now shims that emit developer debugging and should be replaced with service calls:
@@ -173,12 +187,14 @@ The following `certificate` methods are now shims that emit developer debugging 
 
 #### Element APIs
 Legacy element APIs are still supported but deprecated as of 5.2:
-- `element::render_form_elements()` → use `form_buildable_interface::build_form()` and `element_helper::render_common_form_elements()` for standard fields
+- `element::render_form_elements()` → use `form_element_interface::build_form()` and `element_helper::render_common_form_elements()` for standard fields
 - `element::definition_after_data()` → use `preparable_form_interface::prepare_form()`
 - `element::validate_form_elements()` → use `validatable_element_interface::validate()`
 - `element::save_form_elements()` / `element::save_unique_data()` → use `persistable_element_interface::normalise_data()`
 - `element::after_restore()` → use `restorable_element_interface::after_restore_from_backup()`
+- `element::copy_element()` → implement `mod_customcert\element\copyable_element_interface::copy_from()` instead; the service layer now calls `copy_from()` directly and no longer invokes `copy_element()`
 - `element::delete()` → use `mod_customcert\service\element_repository::delete()` (elements should not delete themselves; deletion is handled by the repository/service layer)
+- `\mod_customcert\element_factory::get_element_instance()` remains available as a deprecated backward-compatibility shim that emits a developer debugging notice. New code should use `mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record()` or inject `mod_customcert\service\element_factory` directly.
 
 #### Deprecation notes
 - Deprecated APIs are expected to continue working during the 5.2 line for most common usage patterns, but **some edge cases may break** — see "Plugin developer migration risks" below. New development should use Element System v2 interfaces.
@@ -212,7 +228,7 @@ While deprecated APIs include shims for backward compatibility, the following ch
 Update your element class to implement interfaces as needed:
 
     class element extends \mod_customcert\element implements
-        \mod_customcert\element\form_buildable_interface,
+        \mod_customcert\element\form_element_interface,
         \mod_customcert\element\persistable_element_interface,
         \mod_customcert\element\validatable_element_interface,
         \mod_customcert\element\preparable_form_interface {

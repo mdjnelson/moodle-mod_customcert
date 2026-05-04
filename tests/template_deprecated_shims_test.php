@@ -181,27 +181,6 @@ final class template_deprecated_shims_test extends advanced_testcase {
     }
 
     /**
-     * Deprecated create_preview_pdf shim should emit debugging and return a PDF instance.
-     *
-     * @covers \mod_customcert\template::create_preview_pdf
-     */
-    public function test_create_preview_pdf_shim_emits_debugging(): void {
-        global $USER;
-
-        $this->setAdminUser();
-
-        $course = $this->getDataGenerator()->create_course();
-        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
-
-        $pdf = $template->create_preview_pdf($USER);
-
-        $this->assertInstanceOf(\pdf::class, $pdf);
-        $this->assertDebuggingCalled();
-        $this->resetDebugging();
-    }
-
-    /**
      * Deprecated copy_to_template shim should emit debugging and copy pages/elements.
      *
      * @covers \mod_customcert\template::copy_to_template
@@ -247,27 +226,5 @@ final class template_deprecated_shims_test extends advanced_testcase {
         }
 
         $this->assertTrue($elementcopied);
-    }
-
-    /**
-     * Deprecated compute_filename_for_user shim should emit debugging.
-     *
-     * @covers \mod_customcert\template::compute_filename_for_user
-     */
-    public function test_compute_filename_for_user_shim_emits_debugging(): void {
-        $template = template::create('Shim', context_system::instance()->id);
-
-        $user = (object) ['id' => 5, 'firstname' => 'Shim', 'lastname' => 'User'];
-        $customcert = (object) [
-            'id' => 1,
-            'course' => 0,
-            'usecustomfilename' => 0,
-            'customfilenamepattern' => '',
-        ];
-
-        $template->compute_filename_for_user($user, $customcert);
-
-        $this->assertDebuggingCalled();
-        $this->resetDebugging();
     }
 }
