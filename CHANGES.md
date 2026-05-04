@@ -193,7 +193,7 @@ Legacy element APIs are still supported but deprecated as of 5.2:
 - `element::after_restore()` → use `restorable_element_interface::after_restore_from_backup()`
 - `element::copy_element()` → use `mod_customcert\service\element_repository::copy_element()`
 - `element::delete()` → use `mod_customcert\service\element_repository::delete()` (elements should not delete themselves; deletion is handled by the repository/service layer)
-- `\mod_customcert\element_factory::get_element_instance()` remains available as a deprecated backward-compatibility shim; new code should use `mod_customcert\service\element_factory`.
+- `\mod_customcert\element_factory::get_element_instance()` remains available as a deprecated backward-compatibility shim that emits a developer debugging notice. New code should use `mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record()` or inject `mod_customcert\service\element_factory` directly.
 
 #### Deprecation notes
 - Deprecated APIs are expected to continue working during the 5.2 line for most common usage patterns, but **some edge cases may break** — see "Plugin developer migration risks" below. New development should use Element System v2 interfaces.
