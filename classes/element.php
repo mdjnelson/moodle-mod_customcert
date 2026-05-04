@@ -566,14 +566,14 @@ abstract class element implements
      * This handles copying data from another element of the same type.
      * Can be overridden if more functionality is needed.
      *
-     * @deprecated since Moodle 5.2 — use mod_customcert\service\element_repository::copy_element() instead.
+     * @deprecated since Moodle 5.2 — implement mod_customcert\element\copyable_element_interface::copy_from() instead.
      * @param mixed $data legacy form/element data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
     public function copy_element($data) {
         debugging(
             'element::copy_element() is deprecated since Moodle 5.2. '
-            . 'Use mod_customcert\\service\\element_repository::copy_element() instead.',
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
             DEBUG_DEVELOPER
         );
         return true;
