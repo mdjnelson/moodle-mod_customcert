@@ -360,7 +360,10 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->assertContains('files.json', $zipnames);
         $this->assertContains('files/' . $expectedhash, $zipnames, 'ZIP must contain the file by its SHA-1 contenthash.');
 
-        // Import into the same context (a second copy of the template).
+        // Import into a genuinely fresh context (a new course) so the assertion cannot
+        // pass merely because the original file already exists in the source context.
+        $course = $this->getDataGenerator()->create_course();
+        $freshcontextid = \context_course::instance($course->id)->id;
         $importdir = make_temp_directory('customcert_test_import/' . uniqid(more_entropy: true));
         copy($zippath, "$importdir/import.zip");
 
@@ -368,23 +371,24 @@ final class export_template_file_manager_test extends advanced_testcase {
         $pagesbefore     = $DB->count_records('customcert_pages');
         $elementsbefore  = $DB->count_records('customcert_elements');
 
-        $this->filemanager->import($contextid, $importdir);
+        $this->filemanager->import($freshcontextid, $importdir);
 
         $this->assertSame($templatesbefore + 1, $DB->count_records('customcert_templates'));
         $this->assertSame($pagesbefore + 1, $DB->count_records('customcert_pages'));
         $this->assertSame($elementsbefore + 2, $DB->count_records('customcert_elements'));
 
-        // Verify the imported template record exists.
+        // Verify the imported template record exists in the fresh context.
         $imported = $DB->get_record(
             'customcert_templates',
-            ['name' => 'Test template', 'contextid' => $contextid],
+            ['contextid' => $freshcontextid],
             '*',
             IGNORE_MULTIPLE
         );
         $this->assertNotFalse($imported);
 
-        // Verify the imported file exists in Moodle file storage with the correct contenthash.
-        $importedfiles = $fs->get_area_files($contextid, 'mod_customcert', 'image', 0, 'filename', false);
+        // Verify the imported file exists in the fresh context with the correct contenthash.
+        // This proves the import actually created the file, not that the original still exists.
+        $importedfiles = $fs->get_area_files($freshcontextid, 'mod_customcert', 'image', 0, 'filename', false);
         $found = false;
         foreach ($importedfiles as $f) {
             if ($f->get_filename() === 'test_image.png' && $f->get_contenthash() === $expectedhash) {
@@ -392,7 +396,7 @@ final class export_template_file_manager_test extends advanced_testcase {
                 break;
             }
         }
-        $this->assertTrue($found, 'Imported file must exist in Moodle file storage with the expected contenthash.');
+        $this->assertTrue($found, 'Imported file must exist in the fresh context with the expected contenthash.');
     }
 
     // Task 6 – Rollback test for partial import failure.
@@ -405,15 +409,46 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->preventResetByRollback();
         global $DB;
 
-        // Build a ZIP with valid files.json + image file but invalid template data (missing name).
-        $packer = get_file_packer();
+        // Build a ZIP that contains a real image file AND a files.json referencing it,
+        // but an invalid template.json (missing 'name') so template import fails after
+        // the file has already been stored. This exercises the delete_imported_files() path.
+        $filecontent = 'rollback-test-image-' . uniqid();
+        $filehash = sha1($filecontent);
         $tempdir = make_temp_directory('customcert_test_zip/' . uniqid(more_entropy: true));
-        // Valid template.json but missing 'name' — will cause import_exception after file import.
-        $json = json_encode(['pages' => []]);
-        file_put_contents("$tempdir/template.json", $json);
-        $packer->archive_to_pathname(['template.json' => "$tempdir/template.json"], "$tempdir/import.zip");
+
+        // Write the image file under files/<contenthash>.
+        mkdir("$tempdir/files", 0777, true);
+        file_put_contents("$tempdir/files/$filehash", $filecontent);
+
+        // Write files.json referencing the image.
+        $filesjson = json_encode([
+            'files' => [
+                $filehash => [
+                    'component' => 'mod_customcert',
+                    'filearea'  => 'image',
+                    'itemid'    => 0,
+                    'filepath'  => '/',
+                    'filename'  => 'rollback_test.png',
+                ],
+            ],
+        ]);
+        file_put_contents("$tempdir/files.json", $filesjson);
+
+        // template.json is missing 'name' — will cause import_exception after file import.
+        file_put_contents("$tempdir/template.json", json_encode(['pages' => []]));
+
+        // Build the ZIP using ZipArchive directly to avoid packer path sanitisation.
+        $zippath = "$tempdir/import.zip";
+        $zip = new \ZipArchive();
+        $zip->open($zippath, \ZipArchive::CREATE);
+        $zip->addFile("$tempdir/template.json", 'template.json');
+        $zip->addFile("$tempdir/files.json", 'files.json');
+        $zip->addFile("$tempdir/files/$filehash", "files/$filehash");
+        $zip->close();
 
         $contextid = \context_system::instance()->id;
+        $fs = get_file_storage();
+
         $templatesbefore = $DB->count_records('customcert_templates');
         $pagesbefore     = $DB->count_records('customcert_pages');
         $elementsbefore  = $DB->count_records('customcert_elements');
@@ -432,6 +467,14 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->assertSame($templatesbefore, $DB->count_records('customcert_templates'));
         $this->assertSame($pagesbefore, $DB->count_records('customcert_pages'));
         $this->assertSame($elementsbefore, $DB->count_records('customcert_elements'));
+
+        // The file that was stored during import must have been deleted by delete_imported_files().
+        $storedfiles = $fs->get_area_files($contextid, 'mod_customcert', 'image', 0, 'filename', false);
+        foreach ($storedfiles as $f) {
+            if ($f->get_contenthash() === $filehash) {
+                $this->fail('Rolled-back import file must not remain in Moodle file storage.');
+            }
+        }
     }
 
     // Original round-trip test (no file-backed elements).
