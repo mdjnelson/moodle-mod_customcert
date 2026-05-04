@@ -505,7 +505,7 @@ class element extends base_element implements
      * @param stdClass $data the form data
      * @return bool returns true if the data was copied successfully, false otherwise
      */
-    public function copy_element(stdClass $data): bool {
+    public function copy_element($data) {
         global $COURSE, $DB, $SITE;
 
         $imagedata = json_decode($data->data);
