@@ -31,6 +31,7 @@ use mod_customcert\service\element_layout;
 use mod_customcert\service\form_service;
 use mod_customcert\service\validation_service;
 use mod_customcert\element as element_base;
+use mod_customcert\element\form_element_interface;
 use moodleform;
 use MoodleQuickForm;
 
@@ -58,7 +59,7 @@ class edit_element_form extends moodleform {
     /**
      * @var element_base The element object.
      */
-    protected element_base $element;
+    protected form_element_interface $element;
 
     /**
      * @var element_layout Layout DTO carrying position/alignment values.
