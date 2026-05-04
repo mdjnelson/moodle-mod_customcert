@@ -37,12 +37,14 @@ use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
 use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
 use mod_customcert\tests\fixtures\legacy_after_restore_element;
+use mod_customcert\tests\fixtures\legacy_invokable_test_element;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/legacy_save_unique_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_definition_after_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_after_restore_element.php');
+require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
 
 /**
  * Tests for the legacy adapter mapping of getters.
@@ -165,11 +167,11 @@ final class legacy_element_adapter_test extends advanced_testcase {
     }
 
     /**
-     * Ensure adapter delegates render_form_elements to inner element.
+     * Ensure adapter build_form() bridges to inner element's render_form_elements().
      *
-     * @covers \mod_customcert\element\legacy_element_adapter::render_form_elements
+     * @covers \mod_customcert\element\legacy_element_adapter::build_form
      */
-    public function test_adapter_delegates_render_form_elements(): void {
+    public function test_adapter_build_form_delegates_to_render_form_elements(): void {
         $this->resetAfterTest();
 
         $record = (object) [
@@ -179,7 +181,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'data' => '',
         ];
 
-        $legacy = new text_element($record);
+        // Use a legacy fixture that only has render_form_elements(), not build_form().
+        $legacy = new legacy_invokable_test_element($record);
         $adapter = new legacy_element_adapter($legacy);
 
         // Create a mock MoodleQuickForm.
@@ -187,14 +190,10 @@ final class legacy_element_adapter_test extends advanced_testcase {
             ->disableOriginalConstructor()
             ->getMock();
 
-        // Should not throw; delegates to inner element's deprecated render_form_elements.
-        $adapter->render_form_elements($mform);
-
-        // Assert that the deprecation warning was triggered.
-        $this->assertDebuggingCalled(
-            'render_form_elements() is deprecated since Moodle 5.2. ' .
-            'Use element_helper::render_common_form_elements() instead.'
-        );
+        // build_form() should bridge to the inner element's render_form_elements().
+        $adapter->build_form($mform);
+        // The legacy fixture sets a flag when render_form_elements is called.
+        $this->assertTrue($legacy->called);
     }
 
     /**
