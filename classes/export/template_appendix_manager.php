@@ -173,8 +173,20 @@ class template_appendix_manager implements template_appendix_manager_interface {
         $fs = get_file_storage();
 
         foreach ($manifest['files'] as $contenthash => $meta) {
-            if (empty($meta['filename'] ?? null)) {
+            if (!is_array($meta)) {
+                throw new import_exception("invalid file metadata: files/$contenthash");
+            }
+            if (!isset($meta['filename']) || !is_string($meta['filename']) || $meta['filename'] === '') {
                 throw new import_exception("file has no name: files/$contenthash");
+            }
+            if (isset($meta['component']) && !is_string($meta['component'])) {
+                throw new import_exception("invalid file component type: files/$contenthash");
+            }
+            if (isset($meta['filearea']) && !is_string($meta['filearea'])) {
+                throw new import_exception("invalid file area type: files/$contenthash");
+            }
+            if (isset($meta['filepath']) && !is_string($meta['filepath'])) {
+                throw new import_exception("invalid file path type: files/$contenthash");
             }
             // Validate the filename from the manifest strictly: reject any name that
             // clean_param would mutate (e.g. path traversal sequences) rather than

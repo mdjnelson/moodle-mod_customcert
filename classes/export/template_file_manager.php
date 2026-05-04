@@ -193,6 +193,10 @@ class template_file_manager implements template_file_manager_interface {
         $files = [];
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $stat = $zip->statIndex($i);
+            if ($stat === false || !isset($stat['name'], $stat['size'])) {
+                $zip->close();
+                throw new import_exception('Failed to inspect the ZIP archive');
+            }
             $files[] = (object)['pathname' => $stat['name'], 'size' => $stat['size']];
         }
         $zip->close();
