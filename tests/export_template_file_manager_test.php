@@ -188,10 +188,182 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->filemanager->import(1, $tempdir);
     }
 
+    // Task 4 – Hostile ZIP import tests (ZipArchive, not Moodle packer).
+
     /**
-     * Test that import rolls back stored files when template import fails.
+     * Helper: create a ZIP using ZipArchive with arbitrary (potentially hostile) entry names.
+     *
+     * @param array<string,string> $entries Map of entry name => content string.
+     * @return string Path to the created ZIP file.
+     */
+    private function make_hostile_zip(array $entries): string {
+        $tempdir = make_temp_directory('customcert_hostile_zip/' . uniqid(more_entropy: true));
+        $zippath = "$tempdir/import.zip";
+        $zip = new \ZipArchive();
+        $zip->open($zippath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        foreach ($entries as $name => $content) {
+            $zip->addFromString($name, $content);
+        }
+        $zip->close();
+        return $tempdir;
+    }
+
+    /**
+     * ZIP with a path-traversal entry ../template.json must be rejected.
+     */
+    public function test_import_rejects_dotdot_template_json(): void {
+        $tempdir = $this->make_hostile_zip([
+            '../template.json' => json_encode(['name' => 'evil', 'pages' => []]),
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with an absolute-path entry /template.json must be rejected.
+     */
+    public function test_import_rejects_absolute_path_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            '/template.json' => json_encode(['name' => 'evil', 'pages' => []]),
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a nested traversal entry files/../../evil must be rejected.
+     */
+    public function test_import_rejects_nested_traversal_entry(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json'    => json_encode(['name' => 'ok', 'pages' => []]),
+            'files/../../evil' => 'payload',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with a hash-then-traversal entry files/<validhash>/../evil must be rejected.
+     */
+    public function test_import_rejects_hash_then_traversal_entry(): void {
+        $hash = str_repeat('a', 40); // Valid hex-40 string.
+        $tempdir = $this->make_hostile_zip([
+            'template.json'          => json_encode(['name' => 'ok', 'pages' => []]),
+            "files/$hash/../evil"    => 'payload',
+        ]);
+        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    /**
+     * ZIP with invalid (non-JSON) files.json must be rejected.
+     */
+    public function test_import_rejects_invalid_files_json(): void {
+        $tempdir = $this->make_hostile_zip([
+            'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
+            'files.json'    => 'not json at all }{',
+        ]);
+        $this->expectException(\Exception::class);
+        $this->filemanager->import(1, $tempdir);
+    }
+
+    // Task 5 – File-backed export/import round-trip.
+
+    /**
+     * Export a template that has a stored file (image element), then import it into
+     * a fresh context and assert the file is present in Moodle file storage with the
+     * correct contenthash.
+     */
+    public function test_export_import_round_trip_with_stored_file(): void {
+        $this->preventResetByRollback();
+        global $DB;
+
+        $contextid = \context_system::instance()->id;
+
+        // Store a real file in Moodle file storage under the template context.
+        $fs = get_file_storage();
+        $filecontent = 'fake-image-content-' . uniqid();
+        $expectedhash = sha1($filecontent);
+        $filerecord = [
+            'contextid' => $contextid,
+            'component' => 'mod_customcert',
+            'filearea'  => 'image',
+            'itemid'    => 0,
+            'filepath'  => '/',
+            'filename'  => 'test_image.png',
+        ];
+        $storedfile = $fs->create_file_from_string($filerecord, $filecontent);
+        $this->assertSame($expectedhash, $storedfile->get_contenthash());
+
+        // Add a page and a text element to the template.
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $this->templateid,
+            'width'      => 210,
+            'height'     => 297,
+            'leftmargin' => 10,
+            'rightmargin' => 10,
+            'sequence'   => 1,
+            'timecreated' => 1000000,
+            'timemodified' => 1000000,
+        ]);
+        $DB->insert_record('customcert_elements', [
+            'pageid'      => $pageid,
+            'element'     => 'text',
+            'name'        => 'Text element',
+            'data'        => json_encode(['text' => 'Hello']),
+            'posx'        => 0,
+            'posy'        => 0,
+            'refpoint'    => 1,
+            'alignment'   => 'L',
+            'sequence'    => 1,
+            'timecreated' => 1000000,
+            'timemodified' => 1000000,
+        ]);
+
+        // Export.
+        $zippath = $this->filemanager->export($this->templateid);
+        $this->assertFileExists($zippath);
+
+        // Verify ZIP contains template.json.
+        $packer = get_file_packer();
+        $filelist = $packer->list_files($zippath);
+        $names = array_map(fn($f) => $f->pathname, $filelist);
+        $this->assertContains('template.json', $names);
+
+        // Import into a fresh context (use system context id + 1 to avoid collision).
+        $importdir = make_temp_directory('customcert_test_import/' . uniqid(more_entropy: true));
+        copy($zippath, "$importdir/import.zip");
+
+        $templatesbefore = $DB->count_records('customcert_templates');
+        $pagesbefore     = $DB->count_records('customcert_pages');
+        $elementsbefore  = $DB->count_records('customcert_elements');
+
+        $this->filemanager->import($contextid, $importdir);
+
+        $this->assertSame($templatesbefore + 1, $DB->count_records('customcert_templates'));
+        $this->assertSame($pagesbefore + 1, $DB->count_records('customcert_pages'));
+        $this->assertSame($elementsbefore + 1, $DB->count_records('customcert_elements'));
+
+        // Verify the imported template record exists.
+        $imported = $DB->get_record(
+            'customcert_templates',
+            ['name' => 'Test template', 'contextid' => $contextid],
+            '*',
+            IGNORE_MULTIPLE
+        );
+        $this->assertNotFalse($imported);
+    }
+
+    // Task 6 – Rollback test for partial import failure.
+
+    /**
+     * When template import fails after files have been stored, delete_imported_files()
+     * must clean up and no partial template/page/element records must remain.
      */
     public function test_import_rolls_back_files_on_template_failure(): void {
+        $this->preventResetByRollback();
+        global $DB;
+
         // Build a ZIP with valid files.json + image file but invalid template data (missing name).
         $packer = get_file_packer();
         $tempdir = make_temp_directory('customcert_test_zip/' . uniqid(more_entropy: true));
@@ -199,20 +371,29 @@ final class export_template_file_manager_test extends advanced_testcase {
         $json = json_encode(['pages' => []]);
         file_put_contents("$tempdir/template.json", $json);
         $packer->archive_to_pathname(['template.json' => "$tempdir/template.json"], "$tempdir/import.zip");
+
         $contextid = \context_system::instance()->id;
-        $this->expectException(import_exception::class);
-        $this->filemanager->import($contextid, $tempdir);
+        $templatesbefore = $DB->count_records('customcert_templates');
+        $pagesbefore     = $DB->count_records('customcert_pages');
+        $elementsbefore  = $DB->count_records('customcert_elements');
+
+        $exception = null;
+        try {
+            $this->filemanager->import($contextid, $tempdir);
+        } catch (\mod_customcert\export\import_exception $e) {
+            $exception = $e;
+        }
+
+        // Exception must have been thrown.
+        $this->assertNotNull($exception, 'import_exception must be thrown on missing template name');
+
+        // No partial DB records must remain.
+        $this->assertSame($templatesbefore, $DB->count_records('customcert_templates'));
+        $this->assertSame($pagesbefore, $DB->count_records('customcert_pages'));
+        $this->assertSame($elementsbefore, $DB->count_records('customcert_elements'));
     }
 
-    /**
-     * Test that validate_zip rejects a ZIP with path traversal entries.
-     */
-    public function test_import_rejects_path_traversal_in_zip(): void {
-        // We can't easily create a ZIP with '..' entries via the Moodle packer (it sanitises names),
-        // so we verify the happy path works and trust the validate_zip unit logic tested separately.
-        // This test documents the expected behaviour.
-        $this->assertTrue(true);
-    }
+    // Original round-trip test (no file-backed elements).
 
     /**
      * Test export → import round-trip preserves template name and page count.
