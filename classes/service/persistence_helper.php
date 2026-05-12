@@ -95,10 +95,12 @@ final class persistence_helper {
             return json_encode($value);
         }
 
-        // JSON string: only pass through if it decodes to an associative array.
+        // JSON string: only pass through if it decodes to a JSON object (including '{}').
+        // Use json_decode(..., false) so that '{}' becomes stdClass rather than [],
+        // which lets us distinguish an empty object from an empty list.
         if (is_string($value) && $value !== '' && json_validate($value)) {
-            $decoded = json_decode($value, true);
-            if (is_array($decoded) && !array_is_list($decoded)) {
+            $decoded = json_decode($value, false);
+            if ($decoded instanceof \stdClass) {
                 return $value;
             }
             // JSON list, scalar JSON, etc. — fall through to wrap.
