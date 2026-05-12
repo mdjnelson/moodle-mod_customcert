@@ -51,6 +51,10 @@ final class persistence_helper_test extends advanced_testcase {
             'JSON scalar string'  => ['"scalar"', ['value' => '"scalar"']],
             'JSON list string'    => ['["a","b"]', ['value' => '["a","b"]']],
             'JSON object string'  => ['{"k":"v"}', ['k' => 'v']],
+            // Empty object string must remain object-shaped, not become {"value":"{}"}.
+            'JSON empty object string' => ['{}', null], // Decodes to [] (empty object); verifies it stays object JSON.
+            // Empty PHP array is a list; it is wrapped to preserve the object invariant.
+            'PHP empty list array'     => [[], ['value' => []]],
             'PHP list array'      => [['a', 'b'], ['value' => ['a', 'b']]],
             'associative array'   => [['k' => 'v', 'n' => 1], ['k' => 'v', 'n' => 1]],
         ];
