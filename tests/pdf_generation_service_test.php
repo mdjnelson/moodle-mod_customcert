@@ -195,6 +195,42 @@ final class pdf_generation_service_test extends advanced_testcase {
     }
 
     /**
+     * image, qrcode and userpicture elements must render on a real PDF without error or debugging.
+     *
+     * This is a regression test for the PDF rendering bug where a $renderer branch in render()
+     * caused these elements to fall back to HTML rendering instead of using the pdf object directly.
+     *
+     * @covers \customcertelement_image\element::render
+     * @covers \customcertelement_qrcode\element::render
+     * @covers \customcertelement_userpicture\element::render
+     */
+    public function test_image_qrcode_userpicture_render_on_pdf_without_error(): void {
+        global $DB, $USER;
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $page = $DB->get_record('customcert_pages', ['templateid' => $template->get_id()], '*', MUST_EXIST);
+        // Insert image, qrcode and userpicture elements with no data — render() must return early cleanly.
+        foreach (['image', 'qrcode', 'userpicture'] as $seq => $type) {
+            $DB->insert_record('customcert_elements', (object) [
+                'pageid' => $page->id,
+                'element' => $type,
+                'name' => $type,
+                'sequence' => $seq + 1,
+                'timecreated' => time(),
+                'timemodified' => time(),
+                'data' => null,
+            ]);
+        }
+        $service = pdf_generation_service::create();
+        $pdfstring = $service->generate_pdf($template, true, (int)$USER->id, true);
+        $this->assertIsString($pdfstring);
+        $this->assertNotEmpty($pdfstring);
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
      * compute_filename_for_user should drop GROUP_NAME when no course/group data is available.
      *
      * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
