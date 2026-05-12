@@ -196,8 +196,9 @@ final class legacy_element_adapter implements
      *
      * Only invokes the legacy hook when the wrapped element actually overrides it;
      * calling the inherited no-op base implementation would emit a spurious deprecation.
-     * The deprecation notice is emitted here (the compatibility bridge) rather than
-     * in the base class no-op, so it is only emitted once.
+     * No deprecation notice is emitted here; validation is a read-only check and the
+     * deprecation for legacy save/persist hooks is emitted by the service layer
+     * (persistence_helper) when it actually invokes save_unique_data().
      *
      * @param array $data
      * @param array $files
