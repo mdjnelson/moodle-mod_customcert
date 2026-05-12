@@ -51,11 +51,17 @@ class hook_callbacks {
      * @param di_configuration $config The DI configuration instance to register definitions in.
      */
     public static function di_configuration(di_configuration $config): void {
-        $logger = new template_logger();
+        // Register template_logger as a singleton service so it can be injected.
+        $config->add_definition(
+            id: template_logger::class,
+            definition: function (): template_logger {
+                return new template_logger();
+            }
+        );
 
         $config->add_definition(
             id: template_import_logger_interface::class,
-            definition: function () use ($logger): template_import_logger_interface {
+            definition: function (template_logger $logger): template_import_logger_interface {
                 return $logger;
             }
         );
@@ -64,7 +70,8 @@ class hook_callbacks {
             id: template_appendix_manager_interface::class,
             definition: function (
                 clock $clock,
-            ) use ($logger): template_appendix_manager_interface {
+                template_logger $logger,
+            ): template_appendix_manager_interface {
                 $filemng = new template_appendix_manager();
                 $element = new element($clock, $logger, $filemng);
                 $filemng->set_element($element);
@@ -77,7 +84,8 @@ class hook_callbacks {
             definition: function (
                 template_appendix_manager_interface $filemng,
                 clock $clock,
-            ) use ($logger): template_file_manager_interface {
+                template_logger $logger,
+            ): template_file_manager_interface {
                 $element = new element($clock, $logger, $filemng);
                 $page = new page($clock, $element);
                 $tmpl = new template($clock, $page);
