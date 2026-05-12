@@ -33,6 +33,7 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
+use mod_customcert\service\element_renderer;
 use stdClass;
 
 /**
@@ -168,5 +169,65 @@ final class element_test extends advanced_testcase {
     public function test_get_type(): void {
         $el = element::from_record($this->make_record());
         $this->assertSame('qrcode', $el->get_type());
+    }
+
+    /**
+     * PDF regression: render() must never fall back to the HTML render path when
+     * a pdf_renderer passes itself in as the renderer argument.
+     *
+     * @covers \customcertelement_qrcode\element::render
+     */
+    public function test_render_with_pdf_renderer_does_not_call_render_html(): void {
+        $el = element::from_record($this->make_record());
+
+        // Build a spy renderer that fails the test if render_html() is ever called.
+        $renderer = new class implements element_renderer {
+            /** @var bool */
+            public bool $called = false;
+            /**
+             * Render the element into a PDF context.
+             *
+             * @param \mod_customcert\element\renderable_element_interface $element
+             * @param \pdf $pdf
+             * @param bool $preview
+             * @param \stdClass $user
+             * @return void
+             */
+            public function render_pdf(
+                \mod_customcert\element\renderable_element_interface $element,
+                \pdf $pdf,
+                bool $preview,
+                \stdClass $user
+            ): void {
+                $element->render($pdf, $preview, $user, $this);
+            }
+            /**
+             * Render the element into HTML; records that it was called.
+             *
+             * @param \mod_customcert\element\renderable_element_interface $element
+             * @return string
+             */
+            public function render_html(\mod_customcert\element\renderable_element_interface $element): string {
+                $this->called = true;
+                return '';
+            }
+            /**
+             * Render common content (no-op spy).
+             *
+             * @param \mod_customcert\element\stylable_element_interface&\mod_customcert\element\layout_element_interface $element
+             * @param string $content
+             * @return void
+             */
+            public function render_content(
+                \mod_customcert\element\stylable_element_interface&\mod_customcert\element\layout_element_interface $element,
+                string $content
+            ): void {
+            }
+        };
+
+        $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
+        $el->render($pdf, false, new stdClass(), $renderer);
+
+        $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
     }
 }
