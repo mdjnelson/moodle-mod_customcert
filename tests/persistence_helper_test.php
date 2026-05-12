@@ -47,7 +47,7 @@ final class persistence_helper_test extends advanced_testcase {
             'int'                 => [42, ['value' => 42]],
             'bool true'           => [true, ['value' => true]],
             'bool false'          => [false, ['value' => false]],
-            'null'                => [null, null],  // null → {} (empty object, decoded as [])
+            'null'                => [null, null], // Null input decodes to empty object (decoded as []).
             'JSON scalar string'  => ['"scalar"', ['value' => '"scalar"']],
             'JSON list string'    => ['["a","b"]', ['value' => '["a","b"]']],
             'JSON object string'  => ['{"k":"v"}', ['k' => 'v']],

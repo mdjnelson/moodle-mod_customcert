@@ -121,6 +121,7 @@ final class restore_hooks_json_test extends advanced_testcase {
      *
      * @param string $restoreid Restore id
      * @param int $courseid Course id
+     * @param int $activityid Activity id
      * @return restore_customcert_activity_task A lightweight restore task double
      */
     private function make_restore_task(string $restoreid, int $courseid, int $activityid = 0): restore_customcert_activity_task {
@@ -138,7 +139,9 @@ final class restore_hooks_json_test extends advanced_testcase {
             /** Constructor for the anonymous restore task.
              *
              * @param string $rid restore id
-             * @param int $cid course id */
+             * @param int $cid course id
+             * @param int $aid activity id
+             */
             public function __construct(string $rid, int $cid, int $aid = 0) {
                 $this->rid = $rid;
                 $this->cid = $cid;

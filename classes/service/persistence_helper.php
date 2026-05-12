@@ -104,7 +104,7 @@ final class persistence_helper {
             // JSON list, scalar JSON, etc. — fall through to wrap.
         }
 
-        // null → empty object.
+        // Null input: return empty object.
         if ($value === null) {
             return json_encode(new stdClass());
         }

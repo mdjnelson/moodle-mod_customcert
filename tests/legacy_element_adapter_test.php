@@ -238,7 +238,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'data' => '',
         ];
 
-        // text_element does not override validate_form_elements — only inherits the base no-op.
+        // Text_element does not override validate_form_elements — only inherits the base no-op.
         $legacy = new text_element($record);
         $adapter = new legacy_element_adapter($legacy);
 
