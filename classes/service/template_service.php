@@ -419,7 +419,8 @@ final class template_service {
                             . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
                             DEBUG_DEVELOPER
                         );
-                        if (!$inner->copy_element($templateelement)) {
+                        $copyresult = $inner->copy_element($templateelement);
+                        if ($copyresult === false) {
                             $this->elements->delete($instance);
                             continue;
                         }
