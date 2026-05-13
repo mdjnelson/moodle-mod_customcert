@@ -66,12 +66,12 @@ interface element_renderer {
     /**
      * Common behaviour for rendering specified content.
      *
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element The element. Must also implement layout_element_interface.
      * @param string $content the content to render
      * @return mixed
      */
     public function render_content(
-        stylable_element_interface&layout_element_interface $element,
+        stylable_element_interface $element,
         string $content
     );
 }
