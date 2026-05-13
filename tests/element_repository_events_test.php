@@ -37,7 +37,12 @@ use mod_customcert\service\element_layout;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
+use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use customcertelement_text\element as text_element;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/dummy_element_interface_element.php');
 
 /**
  * Tests for events emitted by the new repository code path.
@@ -61,64 +66,7 @@ final class element_repository_events_test extends advanced_testcase {
      * @return element_interface
      */
     private function make_dummy_element(int $pageid, string $type = 'text'): element_interface {
-        return new class ($pageid, $type) implements element_interface {
-            /** @var int Page ID */
-            private int $pageid;
-
-            /** @var string Element type */
-            private string $type;
-
-            /**
-             * Constructor.
-             *
-             * @param int $pageid The page id.
-             * @param string $type The element type.
-             */
-            public function __construct(int $pageid, string $type) {
-                $this->pageid = $pageid;
-                $this->type = $type;
-            }
-
-            /**
-             * Get id.
-             * @return int
-             */
-            public function get_id(): int {
-                return 0;
-            }
-
-            /**
-             * Get page id.
-             * @return int
-             */
-            public function get_pageid(): int {
-                return $this->pageid;
-            }
-
-            /**
-             * Get name.
-             * @return string
-             */
-            public function get_name(): string {
-                return 'Dummy name';
-            }
-
-            /**
-             * Get data.
-             * @return mixed
-             */
-            public function get_data(): mixed {
-                return 'Dummy data';
-            }
-
-            /**
-             * Get type.
-             * @return string
-             */
-            public function get_type(): string {
-                return $this->type;
-            }
-        };
+        return new dummy_element_interface_element($pageid, $type);
     }
 
     /**

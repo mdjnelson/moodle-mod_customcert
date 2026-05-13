@@ -22,6 +22,7 @@ use advanced_testcase;
 use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\provider\plugin_provider;
 use mod_customcert\service\element_registry;
+use mod_customcert\tests\fixtures\counting_plugin_provider;
 use mod_customcert\tests\fixtures\fake_element_fixture;
 
 /**
@@ -48,6 +49,7 @@ final class element_bootstrap_memoization_test extends advanced_testcase {
         // Create a unique fake type for this run and alias the fixture class to it before discovery.
         $uniq = 'fakecache_' . bin2hex(random_bytes(4));
         $fqcn = '\\customcertelement_' . $uniq . '\\element';
+        require_once(__DIR__ . '/fixtures/counting_plugin_provider.php');
         if (!class_exists($fqcn, false)) {
             require_once(__DIR__ . '/fixtures/fake_element_fixture.php');
             class_alias(fake_element_fixture::class, $fqcn);
@@ -56,42 +58,7 @@ final class element_bootstrap_memoization_test extends advanced_testcase {
         // A fake provider that counts calls to get_plugins() and returns only our unique type.
         $calls = 0;
         $type = $uniq;
-        $provider = new class ($calls, $type) implements plugin_provider {
-            /**
-             * Constructor.
-             *
-             * @param int $calls
-             * @param string $type
-             */
-            public function __construct(&$calls, string $type) {
-                $this->calls =& $calls;
-                $this->type = $type;
-            }
-
-            /**
-             * Returns a list of plugins that are available for this provider.
-             *
-             * @return string[]
-             */
-            public function get_plugins(): array {
-                $this->calls++;
-                return [$this->type => '/virtual/path'];
-            }
-
-            /**
-             * Reference to external $calls variable.
-             *
-             * @var mixed
-             */
-            private $calls;
-
-            /**
-             * Represents the type of a given element.
-             *
-             * @var mixed
-             */
-            private string $type;
-        };
+        $provider = new counting_plugin_provider($calls, $type);
 
         // First registry: discovery should call provider once and register the fake element.
         $r1 = new element_registry();

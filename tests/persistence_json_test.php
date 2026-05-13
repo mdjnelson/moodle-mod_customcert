@@ -21,15 +21,20 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use customcertelement_text\element as text_element;
-use mod_customcert\element as legacy_base_element;
-use mod_customcert\service\element_renderer;
+use mod_customcert\tests\fixtures\legacy_plain_string_element;
 use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/legacy_plain_string_element.php');
 
 /**
  * Tests that element data is always stored as JSON, both for new (persistable) and legacy elements.
  *
  * @package    mod_customcert
  * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversNothing
  */
 final class persistence_json_test extends advanced_testcase {
@@ -135,39 +140,7 @@ final class persistence_json_test extends advanced_testcase {
             'alignment' => null,
         ];
 
-        $legacy = new class ($legacyrecord) extends legacy_base_element {
-            /**
-             * Legacy save implementation returning a plain string.
-             *
-             * @param stdClass $data
-             * @return string
-             */
-            public function save_unique_data($data) {
-                return 'plainstring';
-            }
-
-            /**
-             * Legacy render (unused in this test).
-             *
-             * @param \pdf $pdf The PDF instance
-             * @param bool $preview Preview flag
-             * @param stdClass $user User record
-             * @param element_renderer|null $renderer Optional renderer
-             * @return void
-             */
-            public function render(\pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-            }
-
-            /**
-             * Legacy HTML render (unused in this test).
-             *
-             * @param element_renderer|null $renderer Optional renderer
-             * @return string
-             */
-            public function render_html(?element_renderer $renderer = null): string {
-                return '';
-            }
-        };
+        $legacy = new legacy_plain_string_element($legacyrecord);
 
         $form = (object) [
             'name' => 'LegacyPlain',

@@ -22,6 +22,7 @@ use advanced_testcase;
 use context_system;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_factory;
+use mod_customcert\tests\fixtures\minimal_restore_task;
 use restore_customcert_activity_task;
 
 defined('MOODLE_INTERNAL') || die;
@@ -30,6 +31,7 @@ defined('MOODLE_INTERNAL') || die;
 global $CFG;
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_activity_task.class.php');
+require_once(__DIR__ . '/fixtures/minimal_restore_task.php');
 
 /**
  * Tests that after_restore_from_backup() preserves JSON and updates IDs.
@@ -39,6 +41,8 @@ require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_
  *
  * @package    mod_customcert
  * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversNothing
  */
 final class restore_hooks_json_test extends advanced_testcase {
@@ -125,122 +129,7 @@ final class restore_hooks_json_test extends advanced_testcase {
      * @return restore_customcert_activity_task A lightweight restore task double
      */
     private function make_restore_task(string $restoreid, int $courseid, int $activityid = 0): restore_customcert_activity_task {
-        // Anonymous subclass exposing constructorless instance with overridden getters.
-        return new class ($restoreid, $courseid, $activityid) extends restore_customcert_activity_task {
-            /** @var string */
-            private string $rid;
-            /** @var int */
-            private int $cid;
-            /** @var int */
-            private int $aid;
-            /** @var array<string,array<int,int>> In-memory mapping store */
-            private array $map = [];
-
-            /** Constructor for the anonymous restore task.
-             *
-             * @param string $rid restore id
-             * @param int $cid course id
-             * @param int $aid activity id
-             */
-            public function __construct(string $rid, int $cid, int $aid = 0) {
-                $this->rid = $rid;
-                $this->cid = $cid;
-                $this->aid = $aid;
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return void
-             */
-            protected function define_my_settings() {
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return void
-             */
-            protected function define_my_steps() {
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return void
-             */
-            public static function define_decode_contents() {
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return void
-             */
-            public static function define_decode_rules() {
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return void
-             */
-            public static function define_restore_log_rules() {
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return int
-             */
-            public function get_activityid() {
-                return $this->aid;
-            }
-            /**
-             * {inheritdoc}
-             *
-             * @return int
-             */
-            public function get_restoreid() {
-                return $this->rid;
-            }
-
-            /**
-             * {inheritdoc}
-             *
-             * @return int
-             */
-            public function get_courseid() {
-                return $this->cid;
-            }
-
-            /**
-             * Set a mapping without touching restore_dbops/temp tables.
-             *
-             * @param string $itemname Mapping item name (e.g., 'course_module', 'grade_item')
-             * @param int $oldid Source id in backup
-             * @param int $newid Target id in site
-             * @return void
-             */
-            public function set_mapping(string $itemname, int $oldid, int $newid): void {
-                if (!isset($this->map[$itemname])) {
-                    $this->map[$itemname] = [];
-                }
-                $this->map[$itemname][$oldid] = $newid;
-            }
-
-            /**
-             * Override to avoid restore_dbops. Return mapped id or false if not found.
-             *
-             * @param string $itemname
-             * @param int $oldid
-             * @param bool $ifnotfound
-             * @return int|false
-             */
-            public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
-                return $this->map[$itemname][$oldid] ?? false;
-            }
-        };
+        return new minimal_restore_task($restoreid, $courseid, $activityid);
     }
 
     /**
