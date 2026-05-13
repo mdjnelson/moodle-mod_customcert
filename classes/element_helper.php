@@ -73,28 +73,29 @@ class element_helper {
      * Common behaviour for rendering specified content on the pdf.
      *
      * @param pdf $pdf the pdf object
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element The element. Must also implement layout_element_interface.
      * @param string $content the content to render
      * @return void
      */
     public static function render_content(
         pdf $pdf,
-        stylable_element_interface&layout_element_interface $element,
+        stylable_element_interface $element,
         string $content
     ): void {
+        $layoutelement = self::require_layout_element($element);
         [$font, $attr] = self::get_font($element);
         $pdf->setFont($font, $attr, $element->get_fontsize());
         $colour = $element->get_colour() ?? '#000000';
         $fontcolour = TCPDF_COLORS::convertHTMLColorToDec($colour, $fontcolour);
         $pdf->SetTextColor($fontcolour['R'], $fontcolour['G'], $fontcolour['B']);
 
-        $x = $element->get_posx();
-        $y = $element->get_posy();
-        $w = $element->get_width();
-        $refpoint = $element->get_refpoint();
+        $x = $layoutelement->get_posx();
+        $y = $layoutelement->get_posy();
+        $w = $layoutelement->get_width();
+        $refpoint = $layoutelement->get_refpoint();
         $cleanedcontent = clean_param($content, PARAM_NOTAGS);
         $actualwidth = $pdf->GetStringWidth($cleanedcontent);
-        $alignment = $element->get_alignment() ?? 'L';
+        $alignment = $layoutelement->get_alignment() ?? 'L';
 
         if ($w && $w < $actualwidth) {
             $actualwidth = $w;
@@ -102,19 +103,19 @@ class element_helper {
 
         switch ($refpoint) {
             case self::CUSTOMCERT_REF_POINT_TOPRIGHT:
-                $x = $element->get_posx() - $actualwidth;
+                $x = $layoutelement->get_posx() - $actualwidth;
                 if ($x < 0) {
                     $x = 0;
-                    $w = $element->get_posx();
+                    $w = $layoutelement->get_posx();
                 } else {
                     $w = $actualwidth;
                 }
                 break;
             case self::CUSTOMCERT_REF_POINT_TOPCENTER:
-                $x = $element->get_posx() - $actualwidth / 2;
+                $x = $layoutelement->get_posx() - $actualwidth / 2;
                 if ($x < 0) {
                     $x = 0;
-                    $w = $element->get_posx() * 2;
+                    $w = $layoutelement->get_posx() * 2;
                 } else {
                     $w = $actualwidth;
                 }
@@ -131,14 +132,15 @@ class element_helper {
     /**
      * Common behaviour for rendering specified content on the drag and drop page.
      *
-     * @param stylable_element_interface&layout_element_interface $element the customcert element
+     * @param stylable_element_interface $element The element. Must also implement layout_element_interface.
      * @param string $content the content to render
      * @return string the html
      */
     public static function render_html_content(
-        stylable_element_interface&layout_element_interface $element,
+        stylable_element_interface $element,
         string $content
     ): string {
+        $layoutelement = self::require_layout_element($element);
         [$font, $attr] = self::get_font($element);
         $fontstyle = 'font-family: ' . $font;
         if (strpos($attr, 'B') !== false) {
@@ -151,8 +153,8 @@ class element_helper {
         $colour = $element->get_colour() ?? '#000000';
         $fontsize = $element->get_fontsize() ?? 12;
         $style = $fontstyle . '; color: ' . $colour . '; font-size: ' . $fontsize . 'pt;';
-        if ($element->get_width()) {
-            $style .= ' width: ' . $element->get_width() . 'mm';
+        if ($layoutelement->get_width()) {
+            $style .= ' width: ' . $layoutelement->get_width() . 'mm';
         }
         return \html_writer::div($content, '', ['style' => $style]);
     }
@@ -385,6 +387,21 @@ class element_helper {
         }
 
         return $errors;
+    }
+
+    /**
+     * Require an element to provide layout behaviour.
+     *
+     * @param stylable_element_interface $element The element.
+     * @return layout_element_interface The same element as a layout-aware element.
+     * @throws \coding_exception If the element cannot provide layout data.
+     */
+    private static function require_layout_element(stylable_element_interface $element): layout_element_interface {
+        if (!$element instanceof layout_element_interface) {
+            throw new \coding_exception('Element must implement layout_element_interface to render common content.');
+        }
+
+        return $element;
     }
 
     /**

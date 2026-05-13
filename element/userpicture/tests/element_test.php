@@ -32,6 +32,7 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
+use mod_customcert\element\stylable_element_interface;
 use mod_customcert\service\element_renderer;
 use stdClass;
 
@@ -210,12 +211,12 @@ final class element_test extends advanced_testcase {
             /**
              * Render common content (no-op spy).
              *
-             * @param \mod_customcert\element\stylable_element_interface&\mod_customcert\element\layout_element_interface $element
+             * @param stylable_element_interface $element The element. Must also implement layout_element_interface.
              * @param string $content
              * @return void
              */
             public function render_content(
-                \mod_customcert\element\stylable_element_interface&\mod_customcert\element\layout_element_interface $element,
+                stylable_element_interface $element,
                 string $content
             ): void {
             }
