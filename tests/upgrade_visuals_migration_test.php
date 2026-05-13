@@ -31,6 +31,8 @@ namespace mod_customcert;
 use mod_customcert\local\upgrade\row_migrator;
 use mod_customcert\service\element_renderer;
 use mod_customcert\tests\fixtures\minimal_test_element;
+use advanced_testcase;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -43,7 +45,7 @@ require_once(__DIR__ . '/fixtures/minimal_test_element.php');
  * @category  test
  * @covers    \mod_customcert\local\upgrade\row_migrator::migrate_row
  */
-final class upgrade_visuals_migration_test extends \advanced_testcase {
+final class upgrade_visuals_migration_test extends advanced_testcase {
     /**
      * Data provider for migrate_row cases.
      *
@@ -351,7 +353,7 @@ final class upgrade_visuals_migration_test extends \advanced_testcase {
      * @param \stdClass $record
      * @return element
      */
-    private function make_test_element(\stdClass $record): element {
+    private function make_test_element(stdClass $record): element {
         return new minimal_test_element($record);
     }
 }

@@ -24,6 +24,7 @@ use mod_customcert\element\unknown_element;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
+use context_system;
 
 /**
  * Ensure unknown element types do not break loading and are skipped with a developer warning.
@@ -46,7 +47,7 @@ final class unknown_element_handling_test extends advanced_testcase {
         // Minimal template + page.
         $template = (object) [
             'name' => 'Unknown type template',
-            'contextid' => \context_system::instance()->id,
+            'contextid' => context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
         ];

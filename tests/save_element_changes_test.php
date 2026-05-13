@@ -23,6 +23,7 @@ use core_external\external_api;
 use customcertelement_border\element as border_element;
 use mod_customcert\local\upgrade\row_migrator;
 use stdClass;
+use context_system;
 
 /**
  * Unit tests covering the save-element refactor changes:
@@ -252,7 +253,7 @@ final class save_element_changes_test extends advanced_testcase {
         $this->setAdminUser();
         $template = (object)[
             'name' => 'Persistable Merge Template',
-            'contextid' => \context_system::instance()->id,
+            'contextid' => context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
         ];
@@ -310,7 +311,7 @@ final class save_element_changes_test extends advanced_testcase {
         $this->setAdminUser();
         $template = (object)[
             'name' => 'Legacy Border Template',
-            'contextid' => \context_system::instance()->id,
+            'contextid' => context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
         ];

@@ -24,6 +24,7 @@ use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_factory;
 use mod_customcert\tests\fixtures\minimal_restore_task;
 use restore_customcert_activity_task;
+use mod_customcert\local\upgrade\row_migrator;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -180,7 +181,7 @@ final class restore_hooks_json_test extends advanced_testcase {
         $dataislegacy = !$isjsonobject;
         $this->assertTrue($dataislegacy, 'Scalar data should be detected as legacy');
 
-        $migrated = \mod_customcert\local\upgrade\row_migrator::migrate_row(
+        $migrated = row_migrator::migrate_row(
             $rawdata,
             null, // No width.
             null, // No font.

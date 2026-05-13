@@ -31,6 +31,8 @@ use stdClass;
 use advanced_testcase;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\template_service;
+use context_system;
+use moodle_exception;
 
 /**
  * Unit tests for the webservices.
@@ -63,7 +65,7 @@ final class external_test extends advanced_testcase {
         // Create a minimal template + page in system context.
         $template = (object) [
             'name' => 'WS Save Template',
-            'contextid' => \context_system::instance()->id,
+            'contextid' => context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
         ];
@@ -164,7 +166,7 @@ final class external_test extends advanced_testcase {
         // Authenticate as the Course A teacher and attempt to overwrite Course B's element.
         $this->setUser($teacher);
 
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         external::save_element($templateida, $elementb->id, [
             ['name' => 'name', 'value' => 'Modified by attacker'],
         ]);
@@ -214,7 +216,7 @@ final class external_test extends advanced_testcase {
 
         $this->setUser($teacher);
 
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         external::get_element_html($templateida, $elementb->id);
     }
 
@@ -235,7 +237,7 @@ final class external_test extends advanced_testcase {
 
         $customcerta = $this->getDataGenerator()->create_module('customcert', ['course' => $coursea->id]);
         $cma = get_coursemodule_from_instance('customcert', $customcerta->id, $coursea->id, false, MUST_EXIST);
-        $contexta = \context_module::instance($cma->id);
+        $contexta = context_module::instance($cma->id);
 
         $customcertb = $this->getDataGenerator()->create_module('customcert', ['course' => $courseb->id]);
         $templateidb = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcertb->id], MUST_EXIST);
@@ -265,7 +267,7 @@ final class external_test extends advanced_testcase {
 
         // The fragment callback receives the already-validated context (Course A's module context).
         // Supplying Course B's elementid must be rejected.
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         mod_customcert_output_fragment_editelement([
             'elementid' => $elementb->id,
             'context'   => $contexta,
@@ -594,7 +596,7 @@ final class external_test extends advanced_testcase {
         [, , , $elementidb] = $this->create_cert_with_element($courseb);
 
         // Try to save element from Course B using Course A's templateid.
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         external::save_element($certa->templateid, $elementidb, []);
     }
 
@@ -638,7 +640,7 @@ final class external_test extends advanced_testcase {
         [, , , $elementidb] = $this->create_cert_with_element($courseb);
 
         // Try to get HTML for element from Course B using Course A's templateid.
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         external::get_element_html($certa->templateid, $elementidb);
     }
 

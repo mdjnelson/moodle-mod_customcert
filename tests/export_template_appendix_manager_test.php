@@ -30,6 +30,7 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\template_appendix_manager;
+use context_system;
 
 /**
  * Tests for export\template_appendix_manager.
@@ -74,7 +75,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
      */
     public function test_import_malformed_json_throws(): void {
         file_put_contents($this->tempdir . '/files.json', 'not valid json {{{{');
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -83,7 +84,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
      */
     public function test_import_json_scalar_throws(): void {
         file_put_contents($this->tempdir . '/files.json', '"just a string"');
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -92,7 +93,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
      */
     public function test_import_missing_files_key_throws(): void {
         file_put_contents($this->tempdir . '/files.json', json_encode(['version' => 1]));
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -101,7 +102,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
      */
     public function test_import_files_not_array_throws(): void {
         file_put_contents($this->tempdir . '/files.json', json_encode(['version' => 1, 'files' => 'bad']));
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->manager->import(1, $this->tempdir);
     }
 
@@ -226,7 +227,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $this->manager->import($contextid, $this->tempdir);
         $found = $this->manager->find($contenthash);
         $this->assertNotFalse($found);
@@ -239,7 +240,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
      */
     public function test_import_collision_uses_hash_suffix_and_preserves_existing(): void {
         $fs = get_file_storage();
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
 
         // Create a pre-existing file called photo.png with different content.
         $existing = $fs->create_file_from_string([
@@ -307,7 +308,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $this->manager->import($contextid, $this->tempdir);
         $this->assertNotFalse($this->manager->find($contenthash));
         $this->manager->delete_imported_files();
@@ -344,7 +345,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
             ],
         ]);
         file_put_contents($this->tempdir . '/files.json', $manifest);
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $this->manager->import($contextid, $this->tempdir);
         $ref = $this->manager->get_file_reference($contenthash);
         $this->assertArrayHasKey('filename', $ref);

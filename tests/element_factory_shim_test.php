@@ -28,6 +28,9 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
+use customcertelement_text\element;
+use mod_customcert\element_factory;
+use stdClass;
 
 /**
  * Tests for the deprecated \mod_customcert\element_factory BC shim.
@@ -39,38 +42,38 @@ final class element_factory_shim_test extends advanced_testcase {
      * The shim method must exist with the original name.
      */
     public function test_method_exists(): void {
-        $this->assertTrue(method_exists(\mod_customcert\element_factory::class, 'get_element_instance'));
+        $this->assertTrue(method_exists(element_factory::class, 'get_element_instance'));
     }
 
     /**
      * The shim returns a concrete element instance for a known element type.
      */
     public function test_returns_instance_for_known_element(): void {
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->element = 'text';
         $record->id = 1;
         $record->pageid = 1;
         $record->name = 'Test';
         $record->data = null;
 
-        $instance = \mod_customcert\element_factory::get_element_instance($record);
+        $instance = element_factory::get_element_instance($record);
 
         $this->assertDebuggingCalled();
-        $this->assertInstanceOf(\customcertelement_text\element::class, $instance);
+        $this->assertInstanceOf(element::class, $instance);
     }
 
     /**
      * The shim returns false when the element class does not exist.
      */
     public function test_returns_false_for_missing_element(): void {
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->element = 'nonexistentelementtype_xyz';
         $record->id = 1;
         $record->pageid = 1;
         $record->name = 'Test';
         $record->data = null;
 
-        $result = \mod_customcert\element_factory::get_element_instance($record);
+        $result = element_factory::get_element_instance($record);
 
         $this->assertDebuggingCalled();
         $this->assertFalse($result);
@@ -80,14 +83,14 @@ final class element_factory_shim_test extends advanced_testcase {
      * The shim emits a developer debugging message on every call.
      */
     public function test_emits_developer_debugging(): void {
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->element = 'text';
         $record->id = 1;
         $record->pageid = 1;
         $record->name = 'Test';
         $record->data = null;
 
-        \mod_customcert\element_factory::get_element_instance($record);
+        element_factory::get_element_instance($record);
 
         $this->assertDebuggingCalled(
             '\mod_customcert\element_factory::get_element_instance() is deprecated since Moodle 5.2. '

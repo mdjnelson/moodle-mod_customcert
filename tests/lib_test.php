@@ -31,6 +31,7 @@ use mod_customcert\service\template_service;
 use moodle_exception;
 use stdClass;
 use tool_langimport\controller;
+use core_php_time_limit;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -276,7 +277,7 @@ final class lib_test extends advanced_testcase {
      * @return bool
      */
     private function install_languages(array $codes): bool {
-        \core_php_time_limit::raise();
+        core_php_time_limit::raise();
         get_string_manager()->reset_caches();
 
         $controller = new controller();
@@ -351,7 +352,7 @@ final class lib_test extends advanced_testcase {
             'context'    => $contexta,
         ];
 
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         mod_customcert_output_fragment_editelement($args);
     }
 

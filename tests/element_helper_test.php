@@ -32,6 +32,7 @@ use context_system;
 use advanced_testcase;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use stdClass;
 
 /**
  * Unit tests for the element helper class.
@@ -75,7 +76,7 @@ final class element_helper_test extends advanced_testcase {
         $pageid = $service->add_page($template);
 
         // Add an element to this page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->name = 'Test element';
         $element->element = 'testelement';
         $element->pageid = $pageid;
@@ -104,7 +105,7 @@ final class element_helper_test extends advanced_testcase {
         $pageid = $service->add_page($template);
 
         // Add an element to this page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->name = 'Test element';
         $element->element = 'testelement';
         $element->pageid = $pageid;
@@ -140,7 +141,7 @@ final class element_helper_test extends advanced_testcase {
         $pageid = $service->add_page($template);
 
         // Add an element to this page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->name = 'Test element';
         $element->element = 'testelement';
         $element->pageid = $pageid;
@@ -172,7 +173,7 @@ final class element_helper_test extends advanced_testcase {
         $pageid = $service->add_page($template);
 
         // Add an element to this page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->name = 'Test element';
         $element->element = 'testelement';
         $element->pageid = $pageid;

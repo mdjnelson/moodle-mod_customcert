@@ -22,6 +22,8 @@ use advanced_testcase;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use context_system;
+use pdf;
 
 /**
  * Tests for the PDF generation service.
@@ -56,7 +58,7 @@ final class pdf_generation_service_test extends advanced_testcase {
         $service = pdf_generation_service::create();
         $pdf = $service->create_preview_pdf($template, $USER);
 
-        $this->assertInstanceOf(\pdf::class, $pdf);
+        $this->assertInstanceOf(pdf::class, $pdf);
         $this->assertDebuggingNotCalled();
     }
 
@@ -108,7 +110,7 @@ final class pdf_generation_service_test extends advanced_testcase {
 
         $this->setAdminUser();
 
-        $template = template::create('System/Template Name', \context_system::instance()->id);
+        $template = template::create('System/Template Name', context_system::instance()->id);
         $templateservice = template_service::create();
         $pageid = $templateservice->add_page($template);
 
@@ -238,7 +240,7 @@ final class pdf_generation_service_test extends advanced_testcase {
     public function test_compute_filename_for_user_without_group_data(): void {
         $this->setAdminUser();
 
-        $template = template::create('No Group', \context_system::instance()->id);
+        $template = template::create('No Group', context_system::instance()->id);
         $service = pdf_generation_service::create();
 
         $user = $this->getDataGenerator()->create_user([

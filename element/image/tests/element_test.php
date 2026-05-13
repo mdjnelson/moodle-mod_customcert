@@ -34,6 +34,8 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
+use context_system;
+use pdf;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -194,7 +196,7 @@ final class element_test extends advanced_testcase {
 
         $renderer = $this->make_spy_renderer();
 
-        $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
         $el->render($pdf, false, new stdClass(), $renderer);
 
         $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
@@ -213,7 +215,7 @@ final class element_test extends advanced_testcase {
         $this->resetAfterTest();
 
         // Create a minimal 1x1 PNG in the system context under the image filearea.
-        $syscontextid = \context_system::instance()->id;
+        $syscontextid = context_system::instance()->id;
         $fs = get_file_storage();
         $filerecord = [
             'contextid' => $syscontextid,
@@ -244,7 +246,7 @@ final class element_test extends advanced_testcase {
         $renderer = $this->make_spy_renderer();
 
         // The pdf mock must silently accept Image() since the file exists and will be copied.
-        $pdf = $this->getMockBuilder(\pdf::class)
+        $pdf = $this->getMockBuilder(pdf::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['Image', 'ImageSVG', 'SetAlpha'])
             ->getMock();

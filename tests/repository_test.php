@@ -22,6 +22,8 @@ use mod_customcert\service\issue_email_repository;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use dml_missing_record_exception;
+use moodle_exception;
 
 /**
  * Unit tests for customcert repositories.
@@ -120,7 +122,7 @@ final class repository_test extends advanced_testcase {
      */
     public function test_get_by_template_id_or_fail_throws_when_missing(): void {
         $repository = new certificate_repository();
-        $this->expectException(\dml_missing_record_exception::class);
+        $this->expectException(dml_missing_record_exception::class);
         $repository->get_by_template_id_or_fail(999999);
     }
 
@@ -167,7 +169,7 @@ final class repository_test extends advanced_testcase {
      * @covers \mod_customcert\service\issue_repository::get_by_id_or_fail
      */
     public function test_issue_repository_get_by_id_or_fail_throws_when_missing(): void {
-        $this->expectException(\dml_missing_record_exception::class);
+        $this->expectException(dml_missing_record_exception::class);
         (new issue_repository())->get_by_id_or_fail(999999);
     }
 
@@ -351,7 +353,7 @@ final class repository_test extends advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         $repo = new issue_repository();
         $issueid = $repo->create((int)$customcert->id, (int)$user->id);
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         $repo->delete_for_certificate($issueid, (int)$other->id);
     }
 

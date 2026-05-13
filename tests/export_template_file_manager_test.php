@@ -36,6 +36,10 @@ use mod_customcert\export\template as export_template;
 use mod_customcert\export\template_appendix_manager;
 use mod_customcert\export\template_file_manager;
 use mod_customcert\export\template_import_logger_interface;
+use ReflectionMethod;
+use ZipArchive;
+use context_course;
+use context_system;
 
 /**
  * Tests for export\template_file_manager.
@@ -199,8 +203,8 @@ final class export_template_file_manager_test extends advanced_testcase {
     private function make_hostile_zip(array $entries): string {
         $tempdir = make_temp_directory('customcert_hostile_zip/' . uniqid(more_entropy: true));
         $zippath = "$tempdir/import.zip";
-        $zip = new \ZipArchive();
-        $zip->open($zippath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $zip = new ZipArchive();
+        $zip->open($zippath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
         foreach ($entries as $name => $content) {
             $zip->addFromString($name, $content);
         }
@@ -215,7 +219,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $tempdir = $this->make_hostile_zip([
             '../template.json' => json_encode(['name' => 'evil', 'pages' => []]),
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -226,7 +230,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $tempdir = $this->make_hostile_zip([
             '/template.json' => json_encode(['name' => 'evil', 'pages' => []]),
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -238,7 +242,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json'    => json_encode(['name' => 'ok', 'pages' => []]),
             'files/../../evil' => 'payload',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -251,7 +255,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json'          => json_encode(['name' => 'ok', 'pages' => []]),
             "files/$hash/../evil"    => 'payload',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -262,7 +266,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $tempdir = $this->make_hostile_zip([
             '..\template.json' => json_encode(['name' => 'evil', 'pages' => []]),
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -274,7 +278,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json'       => json_encode(['name' => 'ok', 'pages' => []]),
             'files\..\..\evil'    => 'payload',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -287,7 +291,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json'              => json_encode(['name' => 'ok', 'pages' => []]),
             "files\\$hash\\..\\evil"     => 'payload',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -311,7 +315,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
             '../'           => '',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -323,7 +327,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json'    => json_encode(['name' => 'ok', 'pages' => []]),
             'files/../../evil/' => '',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -335,7 +339,7 @@ final class export_template_file_manager_test extends advanced_testcase {
             'template.json' => json_encode(['name' => 'ok', 'pages' => []]),
             '..\\evil\\'   => '',
         ]);
-        $this->expectException(\mod_customcert\export\import_exception::class);
+        $this->expectException(import_exception::class);
         $this->filemanager->import(1, $tempdir);
     }
 
@@ -353,13 +357,13 @@ final class export_template_file_manager_test extends advanced_testcase {
         ]);
         // Call validate_zip() directly via reflection to confirm the safe directory entry
         // does not trigger a path-traversal or unsafe-filename exception.
-        $ref = new \ReflectionMethod($this->filemanager, 'validate_zip');
+        $ref = new ReflectionMethod($this->filemanager, 'validate_zip');
         $ref->setAccessible(true);
         try {
             $ref->invoke($this->filemanager, "$tempdir/import.zip");
             // No exception means the directory entry was correctly tolerated.
             $this->assertTrue(true);
-        } catch (\mod_customcert\export\import_exception $e) {
+        } catch (import_exception $e) {
             $this->fail('validate_zip() rejected a safe directory entry: ' . $e->getMessage());
         }
     }
@@ -375,7 +379,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->preventResetByRollback();
         global $DB;
 
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
 
         // Store a real file in Moodle file storage under the template context.
         $fs = get_file_storage();
@@ -446,7 +450,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $this->assertFileExists($zippath);
 
         // Verify ZIP contains template.json, files.json, and the file by contenthash.
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         $this->assertTrue($zip->open($zippath) === true);
         $zipnames = [];
         for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -460,7 +464,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         // Import into a genuinely fresh context (a new course) so the assertion cannot
         // pass merely because the original file already exists in the source context.
         $course = $this->getDataGenerator()->create_course();
-        $freshcontextid = \context_course::instance($course->id)->id;
+        $freshcontextid = context_course::instance($course->id)->id;
         $importdir = make_temp_directory('customcert_test_import/' . uniqid(more_entropy: true));
         copy($zippath, "$importdir/import.zip");
 
@@ -536,14 +540,14 @@ final class export_template_file_manager_test extends advanced_testcase {
 
         // Build the ZIP using ZipArchive directly to avoid packer path sanitisation.
         $zippath = "$tempdir/import.zip";
-        $zip = new \ZipArchive();
-        $zip->open($zippath, \ZipArchive::CREATE);
+        $zip = new ZipArchive();
+        $zip->open($zippath, ZipArchive::CREATE);
         $zip->addFile("$tempdir/template.json", 'template.json');
         $zip->addFile("$tempdir/files.json", 'files.json');
         $zip->addFile("$tempdir/files/$filehash", "files/$filehash");
         $zip->close();
 
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $fs = get_file_storage();
 
         $templatesbefore = $DB->count_records('customcert_templates');
@@ -553,7 +557,7 @@ final class export_template_file_manager_test extends advanced_testcase {
         $exception = null;
         try {
             $this->filemanager->import($contextid, $tempdir);
-        } catch (\mod_customcert\export\import_exception $e) {
+        } catch (import_exception $e) {
             $exception = $e;
         }
 

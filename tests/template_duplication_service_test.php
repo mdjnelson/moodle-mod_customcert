@@ -35,11 +35,12 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_duplication_service;
 use mod_customcert\service\template_repository;
+use advanced_testcase;
 
 /**
  * Tests for template_duplication_service behaviour.
  */
-final class template_duplication_service_test extends \advanced_testcase {
+final class template_duplication_service_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $templates;
 

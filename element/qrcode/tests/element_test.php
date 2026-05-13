@@ -35,6 +35,7 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
+use pdf;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -187,7 +188,7 @@ final class element_test extends advanced_testcase {
         // Build a spy renderer that fails the test if render_html() is ever called.
         $renderer = new spy_element_renderer();
 
-        $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
         $el->render($pdf, false, new stdClass(), $renderer);
 
         $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');

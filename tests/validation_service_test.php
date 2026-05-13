@@ -32,6 +32,7 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use mod_customcert\tests\fixtures\dummy_validatable_element;
+use mod_customcert\tests\fixtures\legacy_old_signature_element;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -167,7 +168,7 @@ final class validation_service_test extends advanced_testcase {
             'refpoint' => 0,
             'alignment' => 'L',
         ];
-        $element = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+        $element = new legacy_old_signature_element($record);
 
         $svc = new validation_service();
         $errors = $svc->validate($element, ['name' => 'OldSig']);
@@ -197,7 +198,7 @@ final class validation_service_test extends advanced_testcase {
             'refpoint' => 0,
             'alignment' => 'L',
         ];
-        $inner = new \mod_customcert\tests\fixtures\legacy_old_signature_element($record);
+        $inner = new legacy_old_signature_element($record);
         $adapter = new legacy_element_adapter($inner);
 
         $svc = new validation_service();

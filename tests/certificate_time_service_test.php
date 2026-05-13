@@ -21,6 +21,7 @@ use xmldb_table;
 use mod_customcert\service\certificate_time_service;
 use mod_customcert\tests\fixtures\stub_log_manager;
 use mod_customcert\tests\fixtures\stub_sql_internal_reader;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -148,7 +149,7 @@ final class certificate_time_service_test extends advanced_testcase {
     private function insert_log(string $tablename, int $courseid, int $userid, int $timecreated): void {
         global $DB;
 
-        $record = new \stdClass();
+        $record = new stdClass();
         $record->courseid = $courseid;
         $record->userid = $userid;
         $record->timecreated = $timecreated;

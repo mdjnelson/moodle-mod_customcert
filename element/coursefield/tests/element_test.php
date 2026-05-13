@@ -34,6 +34,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
+use context_module;
 
 /**
  * Unit tests for the coursefield element.
@@ -158,7 +159,7 @@ final class element_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $template = $DB->get_record(
             'customcert_templates',
-            ['contextid' => \context_module::instance($customcert->cmid)->id]
+            ['contextid' => context_module::instance($customcert->cmid)->id]
         );
         $page = (object) [
             'templateid' => $template->id,
@@ -190,7 +191,7 @@ final class element_test extends advanced_testcase {
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
         $template = $DB->get_record(
             'customcert_templates',
-            ['contextid' => \context_module::instance($customcert->cmid)->id]
+            ['contextid' => context_module::instance($customcert->cmid)->id]
         );
         $page = (object) [
             'templateid' => $template->id,

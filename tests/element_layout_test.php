@@ -19,6 +19,7 @@ namespace mod_customcert;
 use mod_customcert\element as element_base;
 use mod_customcert\service\element_layout;
 use stdClass;
+use advanced_testcase;
 
 /**
  * Unit tests for element_layout DTO.
@@ -28,7 +29,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_customcert\service\element_layout
  */
-final class element_layout_test extends \advanced_testcase {
+final class element_layout_test extends advanced_testcase {
     /**
      * Constructor stores values as-is.
      */

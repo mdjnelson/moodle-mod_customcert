@@ -33,6 +33,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\tests\fixtures\constructable_test_element;
 use mod_customcert\tests\fixtures\legacy_only_test_element;
+use advanced_testcase;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -45,7 +46,7 @@ require_once(__DIR__ . '/fixtures/legacy_only_test_element.php');
  *
  * @covers \mod_customcert\service\element_factory
  */
-final class element_factory_constructable_test extends \advanced_testcase {
+final class element_factory_constructable_test extends advanced_testcase {
     public function test_factory_prefers_constructable_interface(): void {
         $this->resetAfterTest();
 

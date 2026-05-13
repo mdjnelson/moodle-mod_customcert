@@ -23,6 +23,8 @@ use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_service;
+use file_archive;
+use stdClass;
 
 /**
  * Tests for the certificate_download_service.
@@ -58,7 +60,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $pdfservice = pdf_generation_service::create();
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $pageid;
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
@@ -91,7 +93,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $this->assertFileExists($sent['path']);
 
         $zip = new zip_archive();
-        $zip->open($sent['path'], \file_archive::OPEN);
+        $zip->open($sent['path'], file_archive::OPEN);
         $files = $zip->list_files();
         $zip->close();
 
@@ -125,7 +127,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $templateservice->update($template, (object) ['name' => 'Site Template']);
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $pageid;
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
@@ -150,7 +152,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $this->assertFileExists($sent['path']);
 
         $zip = new zip_archive();
-        $zip->open($sent['path'], \file_archive::OPEN);
+        $zip->open($sent['path'], file_archive::OPEN);
         $files = $zip->list_files();
         $zip->close();
 
