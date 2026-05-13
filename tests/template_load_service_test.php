@@ -26,6 +26,7 @@ use mod_customcert\service\page_repository;
 use mod_customcert\service\template_load_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use advanced_testcase;
 
 /**
  * Tests for template_load_service behaviour.
@@ -36,7 +37,7 @@ use mod_customcert\service\template_service;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \mod_customcert\service\template_load_service
  */
-final class template_load_service_test extends \advanced_testcase {
+final class template_load_service_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $templates;
 

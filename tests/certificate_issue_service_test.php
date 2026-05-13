@@ -20,6 +20,8 @@ use advanced_testcase;
 use context_module;
 use mod_customcert\event\issue_created;
 use mod_customcert\service\certificate_issue_service;
+use moodle_database;
+use moodle_exception;
 
 /**
  * Tests for the certificate_issue_service.
@@ -104,12 +106,12 @@ final class certificate_issue_service_test extends advanced_testcase {
         $this->resetAfterTest();
 
         // Mock DB that always reports the code as already existing.
-        $mockdb = $this->createMock(\moodle_database::class);
+        $mockdb = $this->createMock(moodle_database::class);
         $mockdb->method('record_exists')->willReturn(true);
 
         $service = new certificate_issue_service($mockdb);
 
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(moodle_exception::class);
         $service->generate_code();
     }
 }

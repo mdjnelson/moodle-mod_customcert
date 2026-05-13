@@ -32,6 +32,7 @@ use customcertelement_text\element as text_element;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
+use mod_customcert\service\element_repository;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\legacy_save_unique_data_element;
@@ -41,6 +42,14 @@ use mod_customcert\tests\fixtures\legacy_invokable_test_element;
 use mod_customcert\tests\fixtures\legacy_validate_form_elements_element;
 use mod_customcert\tests\fixtures\legacy_void_copy_element;
 use mod_customcert\tests\fixtures\new_restorable_element;
+use MoodleQuickForm;
+use customcertelement_qrcode\element as customcertelement_qrcode_element;
+use mod_customcert\edit_element_form;
+use mod_customcert\element;
+use mod_customcert\element\element_bootstrap;
+use mod_customcert\tests\fixtures\legacy_old_signature_element;
+use restore_customcert_activity_task;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -163,7 +172,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $adapter = new legacy_element_adapter($legacy);
 
         // Create a mock form.
-        $form = $this->createMock(\mod_customcert\edit_element_form::class);
+        $form = $this->createMock(edit_element_form::class);
 
         // Should not throw; delegates to inner element.
         $adapter->set_edit_element_form($form);
@@ -192,7 +201,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $adapter = new legacy_element_adapter($legacy);
 
         // Create a mock MoodleQuickForm.
-        $mform = $this->getMockBuilder(\MoodleQuickForm::class)
+        $mform = $this->getMockBuilder(MoodleQuickForm::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -377,7 +386,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $adapter = new legacy_element_adapter($legacy);
 
         // Create a mock MoodleQuickForm.
-        $mform = $this->getMockBuilder(\MoodleQuickForm::class)
+        $mform = $this->getMockBuilder(MoodleQuickForm::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -414,7 +423,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $adapter = new legacy_element_adapter($legacy);
 
         // Mock the restore task — only the type hint matters for delegation.
-        $restore = $this->getMockBuilder(\restore_customcert_activity_task::class)
+        $restore = $this->getMockBuilder(restore_customcert_activity_task::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -441,7 +450,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         ];
         $inner = new new_restorable_element($record);
         $adapter = new legacy_element_adapter($inner);
-        $restore = $this->getMockBuilder(\restore_customcert_activity_task::class)
+        $restore = $this->getMockBuilder(restore_customcert_activity_task::class)
             ->disableOriginalConstructor()
             ->getMock();
         // No deprecation notice should be emitted — inner uses the new interface.
@@ -552,14 +561,14 @@ final class legacy_element_adapter_test extends advanced_testcase {
      * @covers \mod_customcert\element
      */
     public function test_deprecated_legacy_hooks_still_exist_on_base_class(): void {
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_unique_data'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'after_restore'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'copy_element'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'delete'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'render_form_elements'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'validate_form_elements'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'definition_after_data'));
-        $this->assertTrue(method_exists(\mod_customcert\element::class, 'save_form_elements'));
+        $this->assertTrue(method_exists(element::class, 'save_unique_data'));
+        $this->assertTrue(method_exists(element::class, 'after_restore'));
+        $this->assertTrue(method_exists(element::class, 'copy_element'));
+        $this->assertTrue(method_exists(element::class, 'delete'));
+        $this->assertTrue(method_exists(element::class, 'render_form_elements'));
+        $this->assertTrue(method_exists(element::class, 'validate_form_elements'));
+        $this->assertTrue(method_exists(element::class, 'definition_after_data'));
+        $this->assertTrue(method_exists(element::class, 'save_form_elements'));
     }
 
     /**
@@ -571,7 +580,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $record = (object) ['id' => 1, 'pageid' => 1, 'name' => 'Test', 'data' => null];
         $element = new text_element($record);
 
-        $result = $element->copy_element(new \stdClass());
+        $result = $element->copy_element(new stdClass());
 
         $this->assertDebuggingCalled(
             'element::copy_element() is deprecated since Moodle 5.2. '
@@ -640,10 +649,10 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
         // Build a repository whose factory knows about the fixture type.
         $registry = new element_registry();
-        \mod_customcert\element\element_bootstrap::register_defaults($registry);
+        element_bootstrap::register_defaults($registry);
         $registry->register('legacy_void_copy', legacy_void_copy_element::class);
         $factory = new element_factory($registry);
-        $repo = new \mod_customcert\service\element_repository($factory);
+        $repo = new element_repository($factory);
 
         // Copy the page — the void-returning copy_element() must not cause the element to be deleted.
         $count = $repo->copy_page($sourcepageid, $destpageid);
@@ -670,7 +679,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
      */
     public function test_legacy_untyped_non_render_hooks_class_loads(): void {
         require_once(__DIR__ . '/fixtures/legacy_old_signature_element.php');
-        $this->assertTrue(class_exists(\mod_customcert\tests\fixtures\legacy_old_signature_element::class));
+        $this->assertTrue(class_exists(legacy_old_signature_element::class));
     }
 
     /**
@@ -679,6 +688,6 @@ final class legacy_element_adapter_test extends advanced_testcase {
      * @covers \customcertelement_qrcode\element
      */
     public function test_qrcode_element_class_loads_with_context_import(): void {
-        $this->assertTrue(class_exists(\customcertelement_qrcode\element::class));
+        $this->assertTrue(class_exists(customcertelement_qrcode_element::class));
     }
 }

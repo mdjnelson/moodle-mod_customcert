@@ -33,6 +33,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
+use context_system;
 
 /**
  * Unit tests for the userfield element.
@@ -153,7 +154,7 @@ final class element_test extends advanced_testcase {
         $this->setUser($user);
 
         global $DB;
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $template = (object) [
             'name' => 'Test', 'contextid' => $contextid,
             'timecreated' => time(), 'timemodified' => time(),
@@ -185,7 +186,7 @@ final class element_test extends advanced_testcase {
         $this->setUser($user);
 
         global $DB;
-        $contextid = \context_system::instance()->id;
+        $contextid = context_system::instance()->id;
         $template = (object) [
             'name' => 'Test', 'contextid' => $contextid,
             'timecreated' => time(), 'timemodified' => time(),

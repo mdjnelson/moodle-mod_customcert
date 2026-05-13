@@ -25,6 +25,7 @@ use restore_dbops;
 use stdClass;
 use context_course;
 use context_module;
+use grade_item;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -171,14 +172,14 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $resolvedgradeitemid = null;
         if (str_starts_with($gradeitemref, 'gradeitem:')) {
             $resolvedgradeitemid = (int)substr($gradeitemref, 10);
-            $this->assertNotFalse(\grade_item::fetch(['id' => $resolvedgradeitemid]));
+            $this->assertNotFalse(grade_item::fetch(['id' => $resolvedgradeitemid]));
         } else {
             $cmid = (int)$gradeitemref;
             $this->assertGreaterThan(0, $cmid);
             $restoredcm = $DB->get_record('course_modules', ['id' => $cmid, 'course' => $newcourseid]);
             if ($restoredcm) {
                 $restoredmod = $DB->get_record('modules', ['id' => $restoredcm->module], '*', MUST_EXIST);
-                $gradeitem = \grade_item::fetch([
+                $gradeitem = grade_item::fetch([
                     'itemtype' => 'mod',
                     'itemmodule' => $restoredmod->name,
                     'iteminstance' => $restoredcm->instance,
@@ -189,7 +190,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
                 $resolvedgradeitemid = (int)$gradeitem->id;
             } else {
                 // Fallback: treat the value as a grade_item id when no module mapping exists.
-                $gradeitem = \grade_item::fetch(['id' => $cmid]);
+                $gradeitem = grade_item::fetch(['id' => $cmid]);
                 $this->assertNotFalse($gradeitem);
                 $resolvedgradeitemid = (int)$gradeitem->id;
             }

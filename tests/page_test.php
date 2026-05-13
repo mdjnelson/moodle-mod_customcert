@@ -26,6 +26,9 @@ namespace mod_customcert;
 
 use mod_customcert\service\page_update;
 use mod_customcert\service\template_service;
+use advanced_testcase;
+use context_system;
+use stdClass;
 
 /**
  * Contains tests for template's page operations.
@@ -34,7 +37,7 @@ use mod_customcert\service\template_service;
  * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class page_test extends \advanced_testcase {
+final class page_test extends advanced_testcase {
     /**
      * Set the test up.
      *
@@ -59,12 +62,12 @@ final class page_test extends \advanced_testcase {
     public function test_delete_non_empty_page(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
 
         // Add a second page and add an element to it.
         $page2id = $service->add_page($template);
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $page2id;
         $element->name = 'Image';
         $element->element = 'image';

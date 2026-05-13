@@ -35,11 +35,13 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use advanced_testcase;
+use mod_customcert\event\element_deleted;
 
 /**
  * Tests for element_repository list behaviour and ordering.
  */
-final class element_repository_test extends \advanced_testcase {
+final class element_repository_test extends advanced_testcase {
     /**
      * Repository under test.
      *
@@ -358,7 +360,7 @@ final class element_repository_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
 
         $eventclasses = array_map(fn($e) => get_class($e), $events);
-        $this->assertContains(\mod_customcert\event\element_deleted::class, $eventclasses);
+        $this->assertContains(element_deleted::class, $eventclasses);
     }
 
     /**
@@ -451,6 +453,6 @@ final class element_repository_test extends \advanced_testcase {
         $sink->close();
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $elementid]));
         $eventclasses = array_map(fn($e) => get_class($e), $events);
-        $this->assertNotContains(\mod_customcert\event\element_deleted::class, $eventclasses);
+        $this->assertNotContains(element_deleted::class, $eventclasses);
     }
 }

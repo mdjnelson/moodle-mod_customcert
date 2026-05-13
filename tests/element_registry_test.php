@@ -32,6 +32,9 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_factory;
 use mod_customcert\element\element_bootstrap;
+use customcertelement_date\element as customcertelement_date_element;
+use customcertelement_image\element as customcertelement_image_element;
+use customcertelement_text\element;
 
 /**
  * Tests for the element registry + bootstrap default registrations.
@@ -101,9 +104,9 @@ final class element_registry_test extends advanced_testcase {
 
         // Test a small representative subset to avoid heavy dependencies.
         $map = [
-            'text' => \customcertelement_text\element::class,
-            'image' => \customcertelement_image\element::class,
-            'date' => \customcertelement_date\element::class,
+            'text' => element::class,
+            'image' => customcertelement_image_element::class,
+            'date' => customcertelement_date_element::class,
         ];
 
         foreach ($map as $type => $expectedclass) {

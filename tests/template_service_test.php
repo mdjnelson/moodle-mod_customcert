@@ -25,6 +25,10 @@ use mod_customcert\event\template_deleted;
 use mod_customcert\event\template_updated;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
+use context_course;
+use context_system;
+use invalid_parameter_exception;
+use stdClass;
 
 /**
  * Service-layer tests for template operations (non-deprecated API).
@@ -50,7 +54,7 @@ final class template_service_test extends advanced_testcase {
     public function test_add_and_delete_page_service(): void {
         global $DB;
 
-        $template = template::create('Service test', \context_system::instance()->id);
+        $template = template::create('Service test', context_system::instance()->id);
         $service = template_service::create();
 
         $pageid = $service->add_page($template);
@@ -70,7 +74,7 @@ final class template_service_test extends advanced_testcase {
     public function test_add_page_sets_sequence(): void {
         global $DB;
 
-        $template = template::create('Service sequence', \context_system::instance()->id);
+        $template = template::create('Service sequence', context_system::instance()->id);
         $service = template_service::create();
 
         $first = $service->add_page($template);
@@ -97,7 +101,7 @@ final class template_service_test extends advanced_testcase {
     public function test_move_page_service(): void {
         global $DB;
 
-        $template = template::create('Service move', \context_system::instance()->id);
+        $template = template::create('Service move', context_system::instance()->id);
         $service = template_service::create();
 
         $first = $service->add_page($template);
@@ -125,7 +129,7 @@ final class template_service_test extends advanced_testcase {
      */
     public function test_update_template_service(): void {
         $course = $this->getDataGenerator()->create_course();
-        $coursecontext = \context_course::instance($course->id);
+        $coursecontext = context_course::instance($course->id);
         $template = template::create('Original', $coursecontext->id);
         $service = template_service::create();
 
@@ -149,7 +153,7 @@ final class template_service_test extends advanced_testcase {
      * @covers \mod_customcert\service\template_service::update
      */
     public function test_update_template_service_system_context_does_not_emit_event(): void {
-        $template = template::create('System Original', \context_system::instance()->id);
+        $template = template::create('System Original', context_system::instance()->id);
         $service = template_service::create();
 
         $sink = $this->redirectEvents();
@@ -170,7 +174,7 @@ final class template_service_test extends advanced_testcase {
     public function test_delete_template_service(): void {
         global $DB;
 
-        $template = template::create('Delete', \context_system::instance()->id);
+        $template = template::create('Delete', context_system::instance()->id);
         $service = template_service::create();
 
         $pageid = $service->add_page($template);
@@ -206,7 +210,7 @@ final class template_service_test extends advanced_testcase {
     public function test_delete_element_service(): void {
         global $DB;
 
-        $template = template::create('Element delete', \context_system::instance()->id);
+        $template = template::create('Element delete', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -251,8 +255,8 @@ final class template_service_test extends advanced_testcase {
     public function test_copy_to_template_service(): void {
         global $DB;
 
-        $source = template::create('Source', \context_system::instance()->id);
-        $target = template::create('Target', \context_system::instance()->id);
+        $source = template::create('Source', context_system::instance()->id);
+        $target = template::create('Target', context_system::instance()->id);
         $service = template_service::create();
 
         $pageid = $service->add_page($source);
@@ -290,15 +294,15 @@ final class template_service_test extends advanced_testcase {
      * @covers \mod_customcert\service\template_service::save_pages
      */
     public function test_save_pages_throws_on_missing_fields(): void {
-        $template = template::create('Missing fields', \context_system::instance()->id);
+        $template = template::create('Missing fields', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
-        $data = new \stdClass();
+        $data = new stdClass();
         // Intentionally omit height/margins to trigger validation.
         $data->{'pagewidth_' . $pageid} = 210;
 
-        $this->expectException(\invalid_parameter_exception::class);
+        $this->expectException(invalid_parameter_exception::class);
         $service->save_pages($template, $data, true);
     }
 
@@ -310,7 +314,7 @@ final class template_service_test extends advanced_testcase {
     public function test_delete_page_with_unknown_element_type_logs_debugging(): void {
         global $DB;
 
-        $template = template::create('Unknown element page delete', \context_system::instance()->id);
+        $template = template::create('Unknown element page delete', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -346,7 +350,7 @@ final class template_service_test extends advanced_testcase {
     public function test_delete_element_with_unknown_type_logs_debugging(): void {
         global $DB;
 
-        $template = template::create('Unknown element delete', \context_system::instance()->id);
+        $template = template::create('Unknown element delete', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 

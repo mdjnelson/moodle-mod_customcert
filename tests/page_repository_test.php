@@ -28,11 +28,13 @@ namespace mod_customcert;
 
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
+use advanced_testcase;
+use context_course;
 
 /**
  * Tests for page_repository behaviour (ordering, resequencing, bulk create).
  */
-final class page_repository_test extends \advanced_testcase {
+final class page_repository_test extends advanced_testcase {
     /**
      * Repository under test.
      *
@@ -55,7 +57,7 @@ final class page_repository_test extends \advanced_testcase {
     public function test_list_default_ordering_and_append_sequence(): void {
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
-        $context = \context_course::instance($course->id);
+        $context = context_course::instance($course->id);
 
         // Create a template to attach pages to, using the template repository directly.
         $trepo = new template_repository();
@@ -104,7 +106,7 @@ final class page_repository_test extends \advanced_testcase {
     public function test_resequence_compacts_gaps(): void {
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
-        $context = \context_course::instance($course->id);
+        $context = context_course::instance($course->id);
 
         $trepo = new template_repository();
         $templateid = $trepo->create((object)[
@@ -152,7 +154,7 @@ final class page_repository_test extends \advanced_testcase {
     public function test_bulk_create_respects_template_and_sequences(): void {
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
-        $context = \context_course::instance($course->id);
+        $context = context_course::instance($course->id);
 
         $trepo = new template_repository();
         $templateid = $trepo->create((object)[
@@ -197,7 +199,7 @@ final class page_repository_test extends \advanced_testcase {
         global $DB;
         $generator = $this->getDataGenerator();
         $course = $generator->create_course();
-        $context = \context_course::instance($course->id);
+        $context = context_course::instance($course->id);
         $trepo = new template_repository();
         $templateid = $trepo->create((object)[
             'name' => 'T',

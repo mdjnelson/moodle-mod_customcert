@@ -25,6 +25,7 @@
 
 namespace mod_customcert\event;
 
+use customcertelement_text\element as text_element;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
@@ -39,6 +40,13 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
+use advanced_testcase;
+use context_course;
+use context_module;
+use context_system;
+use mod_customcert\event\issue_created;
+use mod_customcert\event\issue_deleted;
+use stdClass;
 
 /**
  * Event behavior test coverage for customcert.
@@ -46,7 +54,7 @@ use mod_customcert\template;
  * @package   mod_customcert
  * @category  test
  */
-final class events_test extends \advanced_testcase {
+final class events_test extends advanced_testcase {
     public function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();
@@ -59,7 +67,7 @@ final class events_test extends \advanced_testcase {
      */
     public function test_creating_a_template(): void {
         $sink = $this->redirectEvents();
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $events = $sink->get_events();
         $this->assertCount(1, $events);
 
@@ -67,7 +75,7 @@ final class events_test extends \advanced_testcase {
 
         $this->assertInstanceOf(template_created::class, $event);
         $this->assertEquals($template->get_id(), $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
     }
 
     /**
@@ -77,10 +85,10 @@ final class events_test extends \advanced_testcase {
      */
     public function test_updating_a_template(): void {
         $course = $this->getDataGenerator()->create_course();
-        $context = \context_course::instance($course->id);
+        $context = context_course::instance($course->id);
         $template = template::create('Test name', $context->id);
         $service = template_service::create();
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->id = $template->get_id();
         $data->name = 'Test name 2';
 
@@ -104,9 +112,9 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\service\template_service::update
      */
     public function test_updating_a_template_no_change(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->id = $template->get_id();
         $data->name = $template->get_name();
 
@@ -126,7 +134,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\service\template_service::add_page
      */
     public function test_creating_a_page_via_service(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
 
         $sink = $this->redirectEvents();
@@ -140,11 +148,11 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(page_created::class, $pagecreatedevent);
         $this->assertEquals($pageid, $pagecreatedevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $pagecreatedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $pagecreatedevent->contextid);
 
         $this->assertInstanceOf(template_updated::class, $templateupdateevent);
         $this->assertEquals($template->get_id(), $templateupdateevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $templateupdateevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $templateupdateevent->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -154,7 +162,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\service\template_service::move_item
      */
     public function test_moving_item_via_service(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
         $service->add_page($template);
@@ -167,7 +175,7 @@ final class events_test extends \advanced_testcase {
         $event = reset($events);
         $this->assertInstanceOf(template_updated::class, $event);
         $this->assertEquals($template->get_id(), $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -179,7 +187,7 @@ final class events_test extends \advanced_testcase {
     public function test_deleting_a_template(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
@@ -198,12 +206,12 @@ final class events_test extends \advanced_testcase {
         $event = array_shift($events);
         $this->assertInstanceOf(page_deleted::class, $event);
         $this->assertEquals($page1id, $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
 
         $event = array_shift($events);
         $this->assertInstanceOf(template_deleted::class, $event);
         $this->assertEquals($template->get_id(), $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
 
         // Check the above page_deleted and template_deleted events correspond
         // to actual deletions in the database.
@@ -220,7 +228,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_deleting_a_page(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
@@ -235,11 +243,11 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(page_deleted::class, $pagedeletedevent);
         $this->assertEquals($page1id, $pagedeletedevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $pagedeletedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $pagedeletedevent->contextid);
 
         $this->assertInstanceOf(template_updated::class, $templateupdatedevent);
         $this->assertEquals($template->get_id(), $templateupdatedevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $templateupdatedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $templateupdatedevent->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -249,7 +257,7 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\service\template_service::save_pages
      */
     public function test_updating_a_page(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $pageid = $service->add_page($template);
 
@@ -258,7 +266,7 @@ final class events_test extends \advanced_testcase {
         $leftmargin = 'pageleftmargin_' . $pageid;
         $rightmargin = 'pagerightmargin_' . $pageid;
 
-        $p = new \stdClass();
+        $p = new stdClass();
         $p->tid = $template->get_id();
         $p->$width = 1;
         $p->$height = 1;
@@ -275,7 +283,7 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(page_updated::class, $pageupdatedevent);
         $this->assertEquals($pageid, $pageupdatedevent->objectid);
-        $this->assertEquals(\context_system::instance()->id, $pageupdatedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $pageupdatedevent->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -285,11 +293,11 @@ final class events_test extends \advanced_testcase {
      * @covers \mod_customcert\element::save_form_elements
      */
     public function test_save_form_elements_insert(): void {
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->pageid = $page1id;
         $data->name = 'A name';
         $data->element = 'text';
@@ -307,7 +315,7 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(element_created::class, $event);
         $this->assertEquals($e->get_id(), $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
         // The method save_form_elements() is deprecated and should trigger debugging().
         $this->assertDebuggingCalled();
     }
@@ -320,12 +328,12 @@ final class events_test extends \advanced_testcase {
     public function test_save_form_elements_update(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $page1id;
         $element->name = 'Image';
         $elementid = $DB->insert_record('customcert_elements', $element);
@@ -333,9 +341,9 @@ final class events_test extends \advanced_testcase {
         $element = $DB->get_record('customcert_elements', ['id' => $elementid]);
 
         // Add an element to the page.
-        $element = new \customcertelement_text\element($element);
+        $element = new text_element($element);
 
-        $data = new \stdClass();
+        $data = new stdClass();
         $data->name = 'A new name';
         $data->text = 'New text';
 
@@ -349,7 +357,7 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(element_updated::class, $event);
         $this->assertEquals($element->get_id(), $event->objectid);
-        $this->assertEquals(\context_system::instance()->id, $event->contextid);
+        $this->assertEquals(context_system::instance()->id, $event->contextid);
         // The method save_form_elements() is deprecated and should trigger debugging().
         $this->assertDebuggingCalled();
     }
@@ -362,12 +370,12 @@ final class events_test extends \advanced_testcase {
     public function test_copy_to_template(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $page1id;
         $element->name = 'image';
         $element->element = 'image';
@@ -375,7 +383,7 @@ final class events_test extends \advanced_testcase {
         $element->id = $DB->insert_record('customcert_elements', $element);
 
         // Add another template.
-        $template2 = template::create('Test name 2', \context_system::instance()->id);
+        $template2 = template::create('Test name 2', context_system::instance()->id);
 
         $sink = $this->redirectEvents();
         $service->copy_to_template($template, $template2);
@@ -387,11 +395,11 @@ final class events_test extends \advanced_testcase {
 
         // Check that the event data is valid.
         $this->assertInstanceOf(page_created::class, $pagecreatedevent);
-        $this->assertEquals(\context_system::instance()->id, $pagecreatedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $pagecreatedevent->contextid);
         $this->assertDebuggingNotCalled();
 
         $this->assertInstanceOf(element_created::class, $elementcreatedevent);
-        $this->assertEquals(\context_system::instance()->id, $elementcreatedevent->contextid);
+        $this->assertEquals(context_system::instance()->id, $elementcreatedevent->contextid);
         $this->assertDebuggingNotCalled();
     }
 
@@ -404,12 +412,12 @@ final class events_test extends \advanced_testcase {
     public function test_load_template(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $page1id;
         $element->name = 'image';
         $element->element = 'image';
@@ -418,7 +426,7 @@ final class events_test extends \advanced_testcase {
 
         $course = $this->getDataGenerator()->create_course();
         $activity = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $contextid = \context_module::instance($activity->cmid)->id;
+        $contextid = context_module::instance($activity->cmid)->id;
         $template2 = template::create($activity->name, $contextid);
 
         $sink = $this->redirectEvents();
@@ -451,12 +459,12 @@ final class events_test extends \advanced_testcase {
     public function test_deleting_an_element(): void {
         global $DB;
 
-        $template = template::create('Test name', \context_system::instance()->id);
+        $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
         // Add an element to the page.
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $page1id;
         $element->name = 'image';
         $element->element = 'image';
@@ -474,12 +482,12 @@ final class events_test extends \advanced_testcase {
         // Check that the event data is valid.
         $this->assertInstanceOf(element_deleted::class, $elementdeletedevent);
         $this->assertEquals($elementdeletedevent->objectid, $element->id);
-        $this->assertEquals($elementdeletedevent->contextid, \context_system::instance()->id);
+        $this->assertEquals($elementdeletedevent->contextid, context_system::instance()->id);
         $this->assertDebuggingNotCalled();
 
         $this->assertInstanceOf(template_updated::class, $templateupdatedevent);
         $this->assertEquals($templateupdatedevent->objectid, $template->get_id());
-        $this->assertEquals($templateupdatedevent->contextid, \context_system::instance()->id);
+        $this->assertEquals($templateupdatedevent->contextid, context_system::instance()->id);
         $this->assertDebuggingNotCalled();
     }
 
@@ -495,7 +503,7 @@ final class events_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
-        $context = \context_module::instance($customcert->cmid);
+        $context = context_module::instance($customcert->cmid);
 
         $sink = $this->redirectEvents();
 
@@ -506,7 +514,7 @@ final class events_test extends \advanced_testcase {
         $this->assertCount(1, $events);
 
         $event = reset($events);
-        $this->assertInstanceOf(\mod_customcert\event\issue_created::class, $event);
+        $this->assertInstanceOf(issue_created::class, $event);
         $this->assertEquals($issueid, $event->objectid);
         $this->assertEquals($context->id, $event->contextid);
         $this->assertEquals($user->id, $event->relateduserid);
@@ -535,7 +543,7 @@ final class events_test extends \advanced_testcase {
         ]);
 
         $cm = get_coursemodule_from_instance('customcert', $customcert->id);
-        $context = \context_module::instance($cm->id);
+        $context = context_module::instance($cm->id);
 
         // Create an issue using the natural method.
         $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
@@ -559,7 +567,7 @@ final class events_test extends \advanced_testcase {
         ]);
 
         if ($deleted) {
-            $event = \mod_customcert\event\issue_deleted::create([
+            $event = issue_deleted::create([
                 'objectid'      => $issue->id,
                 'context'       => $context,
                 'relateduserid' => $issue->userid,
@@ -574,7 +582,7 @@ final class events_test extends \advanced_testcase {
         $this->assertTrue($deleted);
         $this->assertCount(1, $events);
         $event = reset($events);
-        $this->assertInstanceOf(\mod_customcert\event\issue_deleted::class, $event);
+        $this->assertInstanceOf(issue_deleted::class, $event);
         $this->assertEquals($issueid, $event->objectid);
         $this->assertEquals($student->id, $event->relateduserid);
         $this->assertEquals($context->id, $event->contextid);

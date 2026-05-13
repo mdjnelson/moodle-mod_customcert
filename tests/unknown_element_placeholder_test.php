@@ -24,6 +24,7 @@ use mod_customcert\element\unknown_element;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
+use context_system;
 
 /**
  * Tests that unknown element types produce HTML placeholders instead of being silently skipped.
@@ -48,7 +49,7 @@ final class unknown_element_placeholder_test extends advanced_testcase {
         // Minimal template + page.
         $template = (object) [
             'name' => 'Unknown placeholder template',
-            'contextid' => \context_system::instance()->id,
+            'contextid' => context_system::instance()->id,
             'timecreated' => time(),
             'timemodified' => time(),
         ];

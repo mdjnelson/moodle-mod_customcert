@@ -32,6 +32,8 @@ use context_module;
 use context_system;
 use mod_customcert\privacy\provider;
 use mod_customcert\service\certificate_issue_service;
+use core_privacy\local\request\writer;
+use core_privacy\tests\provider_testcase;
 
 /**
  * Privacy provider tests class.
@@ -40,7 +42,7 @@ use mod_customcert\service\certificate_issue_service;
  * @copyright  2018 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
+final class privacy_provider_test extends provider_testcase {
     /**
      * Test for provider::get_contexts_for_userid().
      *
@@ -122,7 +124,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $systemcontext = context_system::instance();
 
         $userlist = new userlist($systemcontext, 'mod_customcert');
-        \mod_customcert\privacy\provider::get_users_in_context($userlist);
+        provider::get_users_in_context($userlist);
 
         $this->assertCount(0, $userlist->get_userids());
     }
@@ -149,7 +151,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         // Export all of the data for the context for user 1.
         $cmcontext = context_module::instance($customcert->cmid);
         $this->export_context_data_for_user($user1->id, $cmcontext, 'mod_customcert');
-        $writer = \core_privacy\local\request\writer::with_context($cmcontext);
+        $writer = writer::with_context($cmcontext);
 
         $this->assertTrue($writer->has_any_data());
 
@@ -231,7 +233,7 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         $count = $DB->count_records('customcert_issues', ['customcertid' => $customcert->id]);
         $this->assertEquals(2, $count);
 
-        $context = \context_module::instance($customcert->cmid);
+        $context = context_module::instance($customcert->cmid);
         $contextlist = new approved_contextlist(
             $user1,
             'customcert',

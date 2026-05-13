@@ -32,11 +32,12 @@ use context_course;
 use invalid_parameter_exception;
 use mod_customcert\local\paging;
 use mod_customcert\service\template_repository;
+use advanced_testcase;
 
 /**
  * Tests for template_repository behaviour (ordering, paging, validation, duplication naming).
  */
-final class template_repository_test extends \advanced_testcase {
+final class template_repository_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $repo;
 

@@ -1551,7 +1551,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $pageid = $templateservice->add_page($template);
         $this->assertDebuggingNotCalled();
 
-        $element = new \stdClass();
+        $element = new stdClass();
         $element->pageid = $pageid;
         $element->name = 'Test Element';
         $DB->insert_record('customcert_elements', $element);
