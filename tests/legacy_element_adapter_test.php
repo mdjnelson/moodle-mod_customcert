@@ -383,6 +383,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
         // Should delegate to inner element's deprecated definition_after_data.
         $adapter->definition_after_data($mform);
+        $this->assertDebuggingCalled();
 
         // Verify the inner element's method was called.
         $this->assertTrue($legacy->called);
