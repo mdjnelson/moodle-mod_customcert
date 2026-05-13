@@ -23,7 +23,7 @@
  * signatures to verify they do not cause a PHP fatal at class-load time.
  *
  * @package    mod_customcert
- * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
