@@ -30,10 +30,12 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\service\validation_service;
+use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use mod_customcert\tests\fixtures\dummy_validatable_element;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__ . '/fixtures/dummy_element_interface_element.php');
 require_once(__DIR__ . '/fixtures/dummy_validatable_element.php');
 
 /**
@@ -136,47 +138,7 @@ final class validation_service_test extends advanced_testcase {
      * @covers \mod_customcert\service\validation_service::validate
      */
     public function test_pure_v2_element_with_no_validation_hook_produces_no_errors(): void {
-        $element = new class implements \mod_customcert\element\element_interface {
-            /**
-             * Get element ID.
-             * @return int
-             */
-            public function get_id(): int {
-                return 1;
-            }
-
-            /**
-             * Get page ID.
-             * @return int
-             */
-            public function get_pageid(): int {
-                return 1;
-            }
-
-            /**
-             * Get element name.
-             * @return string
-             */
-            public function get_name(): string {
-                return 'Test';
-            }
-
-            /**
-             * Get element data.
-             * @return mixed
-             */
-            public function get_data(): mixed {
-                return null;
-            }
-
-            /**
-             * Get element type.
-             * @return string
-             */
-            public function get_type(): string {
-                return 'test';
-            }
-        };
+        $element = new dummy_element_interface_element(1, 'test');
 
         $svc = new validation_service();
         $errors = $svc->validate($element, ['name' => 'Test']);

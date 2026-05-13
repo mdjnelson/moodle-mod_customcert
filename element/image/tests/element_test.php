@@ -32,9 +32,12 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\element\stylable_element_interface;
-use mod_customcert\service\element_renderer;
+use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../../../tests/fixtures/spy_element_renderer.php');
 
 /**
  * Unit tests for the image element.
@@ -260,48 +263,6 @@ final class element_test extends advanced_testcase {
      * @return object an anonymous class implementing element_renderer with a public $called flag
      */
     private function make_spy_renderer(): object {
-        return new class implements element_renderer {
-            /** @var bool */
-            public bool $called = false;
-            /**
-             * Render the element into a PDF context.
-             *
-             * @param \mod_customcert\element\renderable_element_interface $element
-             * @param \pdf $pdf
-             * @param bool $preview
-             * @param \stdClass $user
-             * @return void
-             */
-            public function render_pdf(
-                \mod_customcert\element\renderable_element_interface $element,
-                \pdf $pdf,
-                bool $preview,
-                \stdClass $user
-            ): void {
-                $element->render($pdf, $preview, $user, $this);
-            }
-            /**
-             * Render the element into HTML; records that it was called.
-             *
-             * @param \mod_customcert\element\renderable_element_interface $element
-             * @return string
-             */
-            public function render_html(\mod_customcert\element\renderable_element_interface $element): string {
-                $this->called = true;
-                return '';
-            }
-            /**
-             * Render common content (no-op spy).
-             *
-             * @param stylable_element_interface $element The element. Must also implement layout_element_interface.
-             * @param string $content
-             * @return void
-             */
-            public function render_content(
-                stylable_element_interface $element,
-                string $content
-            ): void {
-            }
-        };
+        return new spy_element_renderer();
     }
 }

@@ -22,13 +22,22 @@ use advanced_testcase;
 use mod_customcert\element as legacy_base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\service\persistence_helper;
+use mod_customcert\tests\fixtures\legacy_plain_string_element;
+use mod_customcert\tests\fixtures\minimal_persistable_element;
 use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/legacy_plain_string_element.php');
+require_once(__DIR__ . '/fixtures/minimal_persistable_element.php');
 
 /**
  * Unit tests for the persistence_helper.
  *
  * @package    mod_customcert
  * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_customcert\service\persistence_helper::to_json_data
  * @covers \mod_customcert\service\persistence_helper::to_object_json
  */
@@ -88,17 +97,7 @@ final class persistence_helper_test extends advanced_testcase {
         $this->resetAfterTest();
 
         // Minimal persistable element stub.
-        $persistable = new class implements persistable_element_interface {
-            /**
-             * Normalise incoming form data for persistence.
-             *
-             * @param stdClass $formdata Raw form data
-             * @return array
-             */
-            public function normalise_data(stdClass $formdata): array {
-                return ['value' => (string)($formdata->text ?? '')];
-            }
-        };
+        $persistable = new minimal_persistable_element();
 
         $form = (object)['text' => 'Hello helper'];
         $json = persistence_helper::to_json_data($persistable, $form);
@@ -115,38 +114,7 @@ final class persistence_helper_test extends advanced_testcase {
         $this->resetAfterTest();
 
         // Anonymous legacy element that returns a plain string.
-        $legacy = new class ((object)['id' => null, 'pageid' => 0, 'name' => 'L', 'data' => null]) extends legacy_base_element {
-            /**
-             * @param stdClass $data Raw form data
-             * @return string
-             */
-            public function save_unique_data($data) { // phpcs:ignore
-                return 'plainstring';
-            }
-            /** Render (unused in this test).
-             *
-             * @param \pdf $pdf The PDF instance
-             * @param bool $preview Preview flag
-             * @param stdClass $user User record
-             * @param \mod_customcert\service\element_renderer|null $renderer Optional renderer
-             * @return void
-             */
-            public function render(
-                \pdf $pdf,
-                bool $preview,
-                stdClass $user,
-                ?\mod_customcert\service\element_renderer $renderer = null
-            ): void {
-            }
-            /** Render HTML (unused in this test).
-             *
-             * @param \mod_customcert\service\element_renderer|null $renderer Optional renderer
-             * @return string
-             */
-            public function render_html(?\mod_customcert\service\element_renderer $renderer = null): string {
-                return '';
-            }
-        };
+        $legacy = new legacy_plain_string_element((object)['id' => null, 'pageid' => 0, 'name' => 'L', 'data' => null]);
 
         $form = new stdClass();
         $json = persistence_helper::to_json_data($legacy, $form);

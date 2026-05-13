@@ -30,6 +30,11 @@ namespace mod_customcert;
 
 use mod_customcert\local\upgrade\row_migrator;
 use mod_customcert\service\element_renderer;
+use mod_customcert\tests\fixtures\minimal_test_element;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/minimal_test_element.php');
 
 /**
  * Tests for the width/font/fontsize/colour migration helper and basic getter behaviour.
@@ -347,35 +352,6 @@ final class upgrade_visuals_migration_test extends \advanced_testcase {
      * @return element
      */
     private function make_test_element(\stdClass $record): element {
-        return new class ($record) extends element {
-            /**
-             * Renders the PDF content with the provided parameters.
-             *
-             * @param \pdf $pdf The PDF object to render.
-             * @param bool $preview Indicates whether the render is for preview purposes.
-             * @param \stdClass $user The user object that contains user-specific data for rendering.
-             * @param element_renderer|null $renderer An optional element renderer for custom rendering logic. Defaults to null.
-             * @return void
-             */
-            public function render(
-                \pdf $pdf,
-                bool $preview,
-                \stdClass $user,
-                ?element_renderer $renderer = null
-            ): void {
-                // No-op.
-            }
-
-            /**
-             * Renders the HTML content using the provided renderer or a default mechanism.
-             *
-             * @param element_renderer|null $renderer The optional renderer to render the HTML content.
-             *                                        If null, a default rendering process is used.
-             * @return string The generated HTML content as a string.
-             */
-            public function render_html(?element_renderer $renderer = null): string {
-                return '';
-            }
-        };
+        return new minimal_test_element($record);
     }
 }

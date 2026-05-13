@@ -23,10 +23,12 @@ use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\provider\plugin_provider;
 use mod_customcert\service\element_registry;
 use mod_customcert\tests\fixtures\fake_element_fixture;
+use mod_customcert\tests\fixtures\simple_plugin_provider;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/fake_element_fixture.php');
+require_once(__DIR__ . '/fixtures/simple_plugin_provider.php');
 
 /**
  * Tests auto-discovery of third-party customcertelement_* plugins by element_bootstrap.
@@ -58,14 +60,7 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
         $registry = new element_registry();
 
         // Use an injectable provider that returns a fake plugin list to exercise real bootstrap discovery.
-        $provider = new class implements plugin_provider {
-            /**
-             * {@inheritdoc}
-             */
-            public function get_plugins(): array {
-                return ['fakeplugin' => '/virtual/path'];
-            }
-        };
+        $provider = new simple_plugin_provider();
 
         // Run bootstrap with the fake provider; it should discover and register the fake element class.
         element_bootstrap::register_defaults($registry, $provider);
