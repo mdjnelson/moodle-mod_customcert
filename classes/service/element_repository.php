@@ -275,7 +275,8 @@ final class element_repository {
                     . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
                     DEBUG_DEVELOPER
                 );
-                if (!$inner->copy_element($e)) {
+                $copyresult = $inner->copy_element($e);
+                if ($copyresult === false) {
                     $this->delete($instance);
                     continue;
                 }

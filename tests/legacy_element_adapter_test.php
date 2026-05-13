@@ -39,6 +39,7 @@ use mod_customcert\tests\fixtures\legacy_definition_after_data_element;
 use mod_customcert\tests\fixtures\legacy_after_restore_element;
 use mod_customcert\tests\fixtures\legacy_invokable_test_element;
 use mod_customcert\tests\fixtures\legacy_validate_form_elements_element;
+use mod_customcert\tests\fixtures\legacy_void_copy_element;
 use mod_customcert\tests\fixtures\new_restorable_element;
 
 defined('MOODLE_INTERNAL') || die();
@@ -48,6 +49,7 @@ require_once(__DIR__ . '/fixtures/legacy_definition_after_data_element.php');
 require_once(__DIR__ . '/fixtures/legacy_after_restore_element.php');
 require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
 require_once(__DIR__ . '/fixtures/legacy_validate_form_elements_element.php');
+require_once(__DIR__ . '/fixtures/legacy_void_copy_element.php');
 require_once(__DIR__ . '/fixtures/new_restorable_element.php');
 
 /**
@@ -596,6 +598,67 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $this->assertFalse(
             interface_exists('mod_customcert\\element\\form_buildable_interface', true),
             'form_buildable_interface was never released and must not exist'
+        );
+    }
+
+    /**
+     * A legacy element whose copy_element() returns void/null is treated as copy success, not failure.
+     *
+     * Old third-party copy_element() implementations may have no return statement (void-returning).
+     * Only an explicit false return should abort the copy; null/void must be treated as success.
+     *
+     * @covers \mod_customcert\service\element_repository::copy_page
+     */
+    public function test_legacy_void_copy_element_treated_as_success(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        require_once(__DIR__ . '/fixtures/legacy_void_copy_element.php');
+
+        // Set up a course, customcert, template and page.
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $templatedata = $DB->get_record('customcert_templates', ['id' => $customcert->templateid]);
+        $templateservice = template_service::create();
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$templatedata->id));
+        $sourcepageid = $templateservice->add_page($template);
+
+        // Insert an element record whose type maps to the void-returning fixture.
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid'       => $sourcepageid,
+            'name'         => 'Void copy element',
+            'element'      => 'legacy_void_copy',
+            'data'         => null,
+            'sequence'     => 1,
+            'timecreated'  => time(),
+            'timemodified' => time(),
+        ]);
+
+        // Create a destination page.
+        $destpageid = $templateservice->add_page($template);
+
+        // Build a repository whose factory knows about the fixture type.
+        $registry = new element_registry();
+        \mod_customcert\element\element_bootstrap::register_defaults($registry);
+        $registry->register('legacy_void_copy', legacy_void_copy_element::class);
+        $factory = new element_factory($registry);
+        $repo = new \mod_customcert\service\element_repository($factory);
+
+        // Copy the page — the void-returning copy_element() must not cause the element to be deleted.
+        $count = $repo->copy_page($sourcepageid, $destpageid);
+
+        $this->assertDebuggingCalled(
+            'copy_element() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+            DEBUG_DEVELOPER
+        );
+
+        // One element should have been copied successfully.
+        $this->assertSame(1, $count);
+        // The copied element must exist in the destination page.
+        $this->assertTrue(
+            $DB->record_exists('customcert_elements', ['pageid' => $destpageid, 'element' => 'legacy_void_copy']),
+            'Copied element was incorrectly deleted because copy_element() returned null instead of false'
         );
     }
 
