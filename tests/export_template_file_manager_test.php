@@ -193,7 +193,7 @@ final class export_template_file_manager_test extends advanced_testcase {
     /**
      * Helper: create a ZIP using ZipArchive with arbitrary (potentially hostile) entry names.
      *
-     * @param array<string,string> $entries Map of entry name => content string.
+     * @param array $entries Map of entry name => content string.
      * @return string Path to the created ZIP file.
      */
     private function make_hostile_zip(array $entries): string {
