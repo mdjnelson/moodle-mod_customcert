@@ -194,7 +194,8 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
                     $legacywidth,
                     $legacyfont,
                     $legacyfontsize,
-                    $legacycolour
+                    $legacycolour,
+                    $data->element ?? null
                 );
         }
 

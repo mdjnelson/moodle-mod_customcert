@@ -255,6 +255,89 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
     }
 
     /**
+     * Data provider for element-specific scalar key migration cases.
+     *
+     * @return array
+     */
+    public static function element_scalar_key_provider(): array {
+        return [
+            'coursefield scalar maps to coursefield key' => [
+                'shortname', 'coursefield', 15, 'zapfdingbats', 15, '#C1B7FD',
+                ['coursefield' => 'shortname', 'width' => 15, 'font' => 'zapfdingbats', 'fontsize' => 15, 'colour' => '#C1B7FD'],
+            ],
+            'userfield scalar maps to userfield key' => [
+                'url', 'userfield', 15, 'zapfdingbats', 15, '#55FBA6',
+                ['userfield' => 'url', 'width' => 15, 'font' => 'zapfdingbats', 'fontsize' => 15, 'colour' => '#55FBA6'],
+            ],
+            'teachername scalar maps to teacher key' => [
+                '2', 'teachername', 15, 'zapfdingbats', 15, '#01410D',
+                ['teacher' => 2, 'width' => 15, 'font' => 'zapfdingbats', 'fontsize' => 15, 'colour' => '#01410D'],
+            ],
+            'gradeitemname scalar maps to gradeitem key' => [
+                '3', 'gradeitemname', 15, 'timesbi', 15, '#3CFB43',
+                ['gradeitem' => 3, 'width' => 15, 'font' => 'timesbi', 'fontsize' => 15, 'colour' => '#3CFB43'],
+            ],
+            'text scalar maps to value key' => [
+                'This is text 15', 'text', 15, 'timesbi', 15, '#2D4EFA',
+                ['value' => 'This is text 15', 'width' => 15, 'font' => 'timesbi', 'fontsize' => 15, 'colour' => '#2D4EFA'],
+            ],
+            'coursename scalar maps to value key' => [
+                '1', 'coursename', 15, 'zapfdingbats', 15, '#04D236',
+                ['value' => 1, 'width' => 15, 'font' => 'zapfdingbats', 'fontsize' => 15, 'colour' => '#04D236'],
+            ],
+            'unknown element scalar maps to value key' => [
+                'somedata', 'somecustomtype', 15, 'times', 12, '#000000',
+                ['value' => 'somedata', 'width' => 15, 'font' => 'times', 'fontsize' => 12, 'colour' => '#000000'],
+            ],
+            'coursefield scalar no visuals maps to coursefield key' => [
+                'shortname', 'coursefield', null, null, null, null,
+                ['coursefield' => 'shortname'],
+            ],
+            'userfield scalar no visuals maps to userfield key' => [
+                'url', 'userfield', null, null, null, null,
+                ['userfield' => 'url'],
+            ],
+            'teachername scalar no visuals maps to teacher key' => [
+                '2', 'teachername', null, null, null, null,
+                ['teacher' => 2],
+            ],
+            'gradeitemname scalar no visuals maps to gradeitem key' => [
+                '3', 'gradeitemname', null, null, null, null,
+                ['gradeitem' => 3],
+            ],
+        ];
+    }
+
+    /**
+     * Test that scalar legacy data is migrated into the element-specific canonical key.
+     *
+     * @dataProvider element_scalar_key_provider
+     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
+     *
+     * @param string $data
+     * @param string $element
+     * @param ?int $width
+     * @param ?string $font
+     * @param ?int $fontsize
+     * @param ?string $colour
+     * @param array $expected
+     */
+    public function test_migrate_row_element_specific_scalar_key(
+        string $data,
+        string $element,
+        ?int $width,
+        ?string $font,
+        ?int $fontsize,
+        ?string $colour,
+        array $expected
+    ): void {
+        $json = row_migrator::migrate_row($data, $width, $font, $fontsize, $colour, $element);
+        $this->assertNotNull($json, 'Expected a JSON string, got null.');
+        $arr = $this->decode_json_to_array($json);
+        $this->assert_array_contains_expected($expected, $arr);
+    }
+
+    /**
      * Verify runtime getters read from JSON as the single source of truth.
      */
     public function test_element_getters_read_from_json_data(): void {

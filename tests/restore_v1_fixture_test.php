@@ -126,7 +126,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#429600', $codebackup['colour']);
 
         $coursefield = $payload('Course field BACKUP');
-        $this->assertSame('shortname', $coursefield['value']);
+        $this->assertSame('shortname', $coursefield['coursefield']);
         $this->assertSame(20, (int)$coursefield['width']);
         $this->assertSame('times', $coursefield['font']);
         $this->assertSame(21, (int)$coursefield['fontsize']);
@@ -202,7 +202,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#1ED700', $grade['colour']);
 
         $gradeitemname = $payload('Grade item name BACKUP');
-        $this->assertSame($gradeitemref, (string)$gradeitemname['value']);
+        $this->assertSame($gradeitemref, (string)$gradeitemname['gradeitem']);
         // Validate the grade item name reference resolves to the same grade item id as the grade element.
         $this->assertGreaterThan(0, $resolvedgradeitemid);
         $this->assertSame(21, (int)$gradeitemname['width']);
@@ -228,7 +228,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#6EFCCA', $studentname['colour']);
 
         $teachername = $payload('Teacher name BACKUP');
-        $this->assertSame(2, (int)$teachername['value']);
+        $this->assertSame(2, (int)$teachername['teacher']);
         $this->assertSame(21, (int)$teachername['width']);
         $this->assertSame('helveticai', $teachername['font']);
         $this->assertSame(16, (int)$teachername['fontsize']);
@@ -242,7 +242,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#8BFB33', $text['colour']);
 
         $userfield = $payload('User field BACKUP');
-        $this->assertSame('idnumber', $userfield['value']);
+        $this->assertSame('idnumber', $userfield['userfield']);
         $this->assertSame(21, (int)$userfield['width']);
         $this->assertSame('helveticab', $userfield['font']);
         $this->assertSame(20, (int)$userfield['fontsize']);
