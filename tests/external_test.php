@@ -92,7 +92,7 @@ final class external_test extends advanced_testcase {
             'posy' => 20,
             'refpoint' => 1,
             'alignment' => 'L',
-            'data' => json_encode(['value' => 'old text']),
+            'data' => json_encode(['text' => 'old text']),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
@@ -114,7 +114,7 @@ final class external_test extends advanced_testcase {
         $this->assertIsString($row->data);
         $decoded = json_decode($row->data, true);
         $this->assertIsArray($decoded);
-        $this->assertSame('new text', $decoded['value'] ?? null, 'Submitted text value should be saved');
+        $this->assertSame('new text', $decoded['text'] ?? null, 'Submitted text value should be saved');
     }
 
     /**
@@ -157,7 +157,7 @@ final class external_test extends advanced_testcase {
             'name' => 'Secret element',
             'posx' => 0, 'posy' => 0,
             'refpoint' => 0, 'alignment' => 'L',
-            'data' => json_encode(['value' => 'secret']),
+            'data' => json_encode(['text' => 'secret']),
             'sequence' => 1,
             'timecreated' => time(), 'timemodified' => time(),
         ];
@@ -208,7 +208,7 @@ final class external_test extends advanced_testcase {
             'name' => 'Confidential',
             'posx' => 0, 'posy' => 0,
             'refpoint' => 0, 'alignment' => 'L',
-            'data' => json_encode(['value' => 'confidential text']),
+            'data' => json_encode(['text' => 'confidential text']),
             'sequence' => 1,
             'timecreated' => time(), 'timemodified' => time(),
         ];
@@ -257,7 +257,7 @@ final class external_test extends advanced_testcase {
             'name' => 'Confidential',
             'posx' => 0, 'posy' => 0,
             'refpoint' => 0, 'alignment' => 'L',
-            'data' => json_encode(['value' => 'confidential text']),
+            'data' => json_encode(['text' => 'confidential text']),
             'sequence' => 1,
             'timecreated' => time(), 'timemodified' => time(),
         ];

@@ -87,7 +87,7 @@ class element extends base_element implements
      */
     public function normalise_data(stdClass $formdata): array {
         return [
-            'value' => (string)($formdata->text ?? ''),
+            'text' => (string)($formdata->text ?? ''),
             'font' => (string)($formdata->font ?? ''),
             'fontsize' => (int)($formdata->fontsize ?? 0),
             'colour' => (string)($formdata->colour ?? ''),
@@ -139,6 +139,21 @@ class element extends base_element implements
         return element_helper::render_html_content($this, $this->get_text());
     }
 
+
+    /**
+     * Return the stored text value.
+     *
+     * Overrides the base get_value() to read from the element-specific 'text' key.
+     *
+     * @return string|null
+     */
+    public function get_value(): ?string {
+        $payload = $this->get_payload();
+        if (array_key_exists('text', $payload)) {
+            return is_scalar($payload['text']) ? (string)$payload['text'] : null;
+        }
+        return null;
+    }
 
     /**
      * Helper function that returns the text.

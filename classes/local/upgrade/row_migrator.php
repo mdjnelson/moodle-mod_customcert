@@ -124,6 +124,28 @@ final class row_migrator {
     }
 
     /**
+     * Return the canonical JSON key for a legacy scalar data value for the given element type.
+     *
+     * Some elements store their primary value under an element-specific key rather than
+     * the generic 'value' key. This mapping ensures that scalar legacy data is migrated
+     * into the correct key so that element save/load code continues to work after upgrade.
+     *
+     * @param string|null $element Element type name (e.g. 'coursefield', 'text').
+     * @return string The canonical key name to use for the scalar value.
+     */
+    private static function legacy_scalar_key_for_element(?string $element): string {
+        return match ($element) {
+            'text'          => 'text',
+            'coursename'    => 'coursenamedisplay',
+            'coursefield'   => 'coursefield',
+            'userfield'     => 'userfield',
+            'teachername'   => 'teacher',
+            'gradeitemname' => 'gradeitem',
+            default         => 'value',
+        };
+    }
+
+    /**
      * Migrate a legacy border element row.
      *
      * Legacy border elements stored their line thickness as a plain integer scalar in the
@@ -158,7 +180,7 @@ final class row_migrator {
                 $rawdata = null;
             }
         }
-        return self::migrate_row($rawdata, $width, $font, $fontsize, $colour);
+        return self::migrate_row($rawdata, $width, $font, $fontsize, $colour, 'border');
     }
 
     /**
@@ -174,17 +196,30 @@ final class row_migrator {
      * - If any visual is provided, always return JSON:
      *   - NULL/empty -> JSON with provided visuals.
      *   - Existing JSON object -> merge/overwrite provided visuals.
-     *   - JSON scalar/list -> {"value": <decoded native>, ...visuals...}.
-     *   - Invalid JSON string -> {"value": "...original string...", ...visuals...}.
+     *   - JSON scalar/list -> {"<element-key>": <decoded native>, ...visuals...}.
+     *   - Invalid JSON string -> {"<element-key>": "...original string...", ...visuals...}.
+     *
+     * The scalar key used for legacy data depends on the element type. For example,
+     * 'text' uses 'text', 'coursename' uses 'coursenamedisplay', 'coursefield' uses 'coursefield',
+     * 'userfield' uses 'userfield', 'teachername' uses 'teacher', 'gradeitemname' uses 'gradeitem',
+     * and all others default to 'value'.
      *
      * @param string|null $rawdata Original data field as stored (may be NULL, '', scalar, or JSON string).
      * @param int|null $width
      * @param string|null $font
      * @param int|null $fontsize
      * @param string|null $colour
+     * @param string|null $element Element type name used to determine the canonical scalar key.
      * @return string|null New JSON string (or original when unchanged); may be NULL when original was NULL and no visuals provided.
      */
-    public static function migrate_row(?string $rawdata, ?int $width, ?string $font, ?int $fontsize, ?string $colour): ?string {
+    public static function migrate_row(
+        ?string $rawdata,
+        ?int $width,
+        ?string $font,
+        ?int $fontsize,
+        ?string $colour,
+        ?string $element = null
+    ): ?string {
         if ($rawdata !== null) {
             $rawdata = trim($rawdata);
         }
@@ -203,13 +238,14 @@ final class row_migrator {
                 return $rawdata; // Already JSON object – leave unchanged (even for {}).
             }
             // For valid JSON scalars, lists, and null, keep native decoded value; else preserve original string.
+            $scalarkey = self::legacy_scalar_key_for_element($element);
             if ($jsonok) {
                 $value = ($decoded === null || is_scalar($decoded) || (is_array($decoded) && array_is_list($decoded)))
                     ? $decoded
                     : $rawdata;
-                return self::encode_payload(['value' => $value], $rawdata);
+                return self::encode_payload([$scalarkey => $value], $rawdata);
             }
-            return self::encode_payload(['value' => (string)$rawdata], $rawdata);
+            return self::encode_payload([$scalarkey => (string)$rawdata], $rawdata);
         }
 
         // Visuals provided – always output JSON.
@@ -230,11 +266,12 @@ final class row_migrator {
         }
 
         // For JSON scalars, JSON lists, or JSON null build a payload with correctly typed value.
+        $scalarkey = self::legacy_scalar_key_for_element($element);
         if ($jsonok && ($decoded === null || is_scalar($decoded) || (is_array($decoded) && array_is_list($decoded)))) {
-            $payload = ['value' => $decoded];
+            $payload = [$scalarkey => $decoded];
         } else {
             // Preserve the original string (not decoded) to avoid numeric coercion and keep leading zeros, etc.
-            $payload = ['value' => (string)$rawdata];
+            $payload = [$scalarkey => (string)$rawdata];
         }
         $payload = self::merge_visuals($payload, $width, $font, $fontsize, $colour);
         return self::encode_payload($payload, $rawdata);

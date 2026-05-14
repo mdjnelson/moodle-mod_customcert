@@ -391,7 +391,7 @@ function xmldb_customcert_upgrade($oldversion) {
 
                 $migrated = $rec->element === 'border'
                     ? row_migrator::migrate_border_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour)
-                    : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour);
+                    : row_migrator::migrate_row($rec->data, $recwidth, $recfont, $recfsize, $reccolour, $rec->element);
 
                 if ($migrated !== $rec->data) {
                     $batch[] = (object) ['id' => $rec->id, 'data' => $migrated];

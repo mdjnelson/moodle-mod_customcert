@@ -118,7 +118,7 @@ class element extends base_element implements
     public function normalise_data(stdClass $formdata): array {
         // Store selection in a consistent JSON structure.
         return [
-            'value' => isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : 0,
+            'coursenamedisplay' => isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : 0,
             'font' => (string)($formdata->font ?? ''),
             'fontsize' => (int)($formdata->fontsize ?? 0),
             'colour' => (string)($formdata->colour ?? ''),
@@ -196,8 +196,8 @@ class element extends base_element implements
         }
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
-            if (is_array($decoded) && array_key_exists('value', $decoded)) {
-                return (int)$decoded['value'];
+            if (is_array($decoded) && array_key_exists('coursenamedisplay', $decoded)) {
+                return (int)$decoded['coursenamedisplay'];
             }
         }
         return null;

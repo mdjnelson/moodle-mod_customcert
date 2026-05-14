@@ -115,7 +115,7 @@ final class persistence_json_test extends advanced_testcase {
         $this->assertIsString($row->data);
         $decoded = json_decode($row->data, true);
         $this->assertIsArray($decoded);
-        $this->assertSame('Hello JSON', $decoded['value'] ?? null);
+        $this->assertSame('Hello JSON', $decoded['text'] ?? null);
         // Visual fields (font, fontsize, colour, width) are no longer stored as separate columns
         // and may not be present in the JSON payload for text; assert core content only.
     }
