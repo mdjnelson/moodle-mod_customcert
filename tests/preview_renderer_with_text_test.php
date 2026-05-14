@@ -73,7 +73,7 @@ final class preview_renderer_with_text_test extends advanced_testcase {
             'pageid' => $page->id,
             'name' => 'Text',
             'data' => json_encode([
-                'value' => 'Hello world',
+                'text' => 'Hello world',
                 'font' => 'times',
                 'fontsize' => 12,
                 'colour' => '#000000',

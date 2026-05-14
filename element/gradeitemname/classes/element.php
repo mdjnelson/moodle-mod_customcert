@@ -174,8 +174,7 @@ class element extends base_element implements
             return;
         }
 
-        // Legacy fixtures may store the reference in 'value' rather than 'gradeitem'.
-        $gradeitemref = $data['gradeitem'] ?? ($data['value'] ?? '');
+        $gradeitemref = $data['gradeitem'] ?? '';
         if ($gradeitemref === '' || $gradeitemref === null) {
             return;
         }
@@ -189,8 +188,6 @@ class element extends base_element implements
         if ($newid) {
             $newref = ($isgradeitem ? 'gradeitem:' : '') . $newid;
             $data['gradeitem'] = $newref;
-            // Keep legacy consumers aligned by mirroring into value when present.
-            $data['value'] = $newref;
             $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
         }
     }

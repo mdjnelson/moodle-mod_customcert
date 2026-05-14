@@ -112,7 +112,7 @@ final class preview_renderer_test extends advanced_testcase {
             'element' => 'text',
             'name' => 'Test Text',
             'data' => json_encode([
-                'value' => 'Hello World',
+                'text' => 'Hello World',
                 'font' => 'times',
                 'fontsize' => 12,
                 'colour' => '#000000',

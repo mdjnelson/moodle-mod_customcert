@@ -309,7 +309,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'pageid' => $pageid,
             'name' => 'Test',
             'element' => 'text',
-            'data' => json_encode(['value' => 'Hello World']),
+            'data' => json_encode(['text' => 'Hello World']),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
@@ -319,7 +319,7 @@ final class legacy_element_adapter_test extends advanced_testcase {
             'id' => $elementid,
             'pageid' => $pageid,
             'name' => 'Test',
-            'data' => json_encode(['value' => 'Hello World']),
+            'data' => json_encode(['text' => 'Hello World']),
         ];
 
         $legacy = new text_element($record);

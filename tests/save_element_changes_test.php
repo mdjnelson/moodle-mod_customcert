@@ -278,7 +278,7 @@ final class save_element_changes_test extends advanced_testcase {
             'posy' => 20,
             'refpoint' => 1,
             'alignment' => 'L',
-            'data' => json_encode(['value' => 'old text', 'font' => 'freesans', 'fontsize' => 12]),
+            'data' => json_encode(['text' => 'old text', 'font' => 'freesans', 'fontsize' => 12]),
             'sequence' => 1,
             'timecreated' => time(),
             'timemodified' => time(),
@@ -293,7 +293,7 @@ final class save_element_changes_test extends advanced_testcase {
         $this->assertTrue($result);
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
-        $this->assertSame('new text', $decoded['value'] ?? null, 'normalise_data() value must be stored');
+        $this->assertSame('new text', $decoded['text'] ?? null, 'normalise_data() text must be stored');
     }
 
     // -----------------------------------------------------------------------

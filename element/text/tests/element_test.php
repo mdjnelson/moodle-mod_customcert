@@ -114,12 +114,12 @@ final class element_test extends advanced_testcase {
             'width' => 100,
         ];
         $result = $el->normalise_data($formdata);
-        $this->assertArrayHasKey('value', $result);
+        $this->assertArrayHasKey('text', $result);
         $this->assertArrayHasKey('font', $result);
         $this->assertArrayHasKey('fontsize', $result);
         $this->assertArrayHasKey('colour', $result);
         $this->assertArrayHasKey('width', $result);
-        $this->assertSame('My text', $result['value']);
+        $this->assertSame('My text', $result['text']);
         $this->assertSame('helvetica', $result['font']);
         $this->assertSame(14, $result['fontsize']);
         $this->assertSame('#ff0000', $result['colour']);
@@ -134,7 +134,7 @@ final class element_test extends advanced_testcase {
     public function test_normalise_data_handles_missing_fields(): void {
         $el = element::from_record($this->make_record());
         $result = $el->normalise_data(new stdClass());
-        $this->assertSame('', $result['value']);
+        $this->assertSame('', $result['text']);
         $this->assertSame('', $result['font']);
         $this->assertSame(0, $result['fontsize']);
         $this->assertSame('', $result['colour']);

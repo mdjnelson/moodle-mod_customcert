@@ -134,7 +134,7 @@ final class element_test extends advanced_testcase {
             'width' => 100,
         ];
         $result = $el->normalise_data($formdata);
-        $this->assertSame(element::COURSE_SHORT_NAME, $result['value']);
+        $this->assertSame(element::COURSE_SHORT_NAME, $result['coursenamedisplay']);
         $this->assertSame('helvetica', $result['font']);
         $this->assertSame(14, $result['fontsize']);
         $this->assertSame('#ff0000', $result['colour']);
@@ -149,7 +149,7 @@ final class element_test extends advanced_testcase {
     public function test_normalise_data_handles_missing_fields(): void {
         $el = element::from_record($this->make_record());
         $result = $el->normalise_data(new stdClass());
-        $this->assertSame(0, $result['value']);
+        $this->assertSame(0, $result['coursenamedisplay']);
         $this->assertSame('', $result['font']);
         $this->assertSame(0, $result['fontsize']);
         $this->assertSame('', $result['colour']);
@@ -234,7 +234,7 @@ final class element_test extends advanced_testcase {
         $record = $this->make_record([
             'pageid' => $page->id,
             'data' => json_encode([
-                'value' => element::COURSE_SHORT_NAME,
+                'coursenamedisplay' => element::COURSE_SHORT_NAME,
                 'font' => 'times',
                 'fontsize' => 12,
                 'colour' => '#000000',

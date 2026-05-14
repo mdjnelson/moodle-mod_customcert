@@ -126,14 +126,14 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#429600', $codebackup['colour']);
 
         $coursefield = $payload('Course field BACKUP');
-        $this->assertSame('shortname', $coursefield['value']);
+        $this->assertSame('shortname', $coursefield['coursefield']);
         $this->assertSame(20, (int)$coursefield['width']);
         $this->assertSame('times', $coursefield['font']);
         $this->assertSame(21, (int)$coursefield['fontsize']);
         $this->assertSame('#69AF00', $coursefield['colour']);
 
         $coursename = $payload('Course name BACKUP');
-        $this->assertSame(2, (int)$coursename['value']);
+        $this->assertSame(2, (int)$coursename['coursenamedisplay']);
         $this->assertSame(15, (int)$coursename['width']);
         $this->assertSame('times', $coursename['font']);
         $this->assertSame(21, (int)$coursename['fontsize']);
@@ -202,7 +202,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#1ED700', $grade['colour']);
 
         $gradeitemname = $payload('Grade item name BACKUP');
-        $this->assertSame($gradeitemref, (string)$gradeitemname['value']);
+        $this->assertSame($gradeitemref, (string)$gradeitemname['gradeitem']);
         // Validate the grade item name reference resolves to the same grade item id as the grade element.
         $this->assertGreaterThan(0, $resolvedgradeitemid);
         $this->assertSame(21, (int)$gradeitemname['width']);
@@ -228,21 +228,21 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#6EFCCA', $studentname['colour']);
 
         $teachername = $payload('Teacher name BACKUP');
-        $this->assertSame(2, (int)$teachername['value']);
+        $this->assertSame(2, (int)$teachername['teacher']);
         $this->assertSame(21, (int)$teachername['width']);
         $this->assertSame('helveticai', $teachername['font']);
         $this->assertSame(16, (int)$teachername['fontsize']);
         $this->assertSame('#000000', $teachername['colour']);
 
         $text = $payload('Text BACKUP');
-        $this->assertSame('HEY, THIS IS SOME TEXT.', $text['value']);
+        $this->assertSame('HEY, THIS IS SOME TEXT.', $text['text']);
         $this->assertSame(15, (int)$text['width']);
         $this->assertSame('times', $text['font']);
         $this->assertSame(21, (int)$text['fontsize']);
         $this->assertSame('#8BFB33', $text['colour']);
 
         $userfield = $payload('User field BACKUP');
-        $this->assertSame('idnumber', $userfield['value']);
+        $this->assertSame('idnumber', $userfield['userfield']);
         $this->assertSame(21, (int)$userfield['width']);
         $this->assertSame('helveticab', $userfield['font']);
         $this->assertSame(20, (int)$userfield['fontsize']);
