@@ -109,6 +109,11 @@ abstract class element implements
     protected ?int $refpoint;
 
     /**
+     * @var string The element type (plugin name, e.g. 'text', 'code').
+     */
+    private string $customcertelementtype;
+
+    /**
      * @var string The alignment.
      */
     protected string $alignment;
@@ -141,6 +146,9 @@ abstract class element implements
         $this->id = isset($element->id) ? (int) $element->id : 0;
         $this->pageid = isset($element->pageid) ? (int) $element->pageid : 0;
         $this->name = isset($element->name) ? (string) $element->name : '';
+
+        // Element type (plugin name).
+        $this->customcertelementtype = isset($element->element) ? (string) $element->element : '';
 
         // Mixed data payload.
         $this->data = $element->data ?? null;
@@ -184,10 +192,115 @@ abstract class element implements
     /**
      * Returns the data.
      *
+     * For legacy backwards-compatibility: if the stored data is a generic migration wrapper
+     * (a JSON object with a 'value' key and only migration visual/layout metadata keys),
+     * AND the element type is not a known bundled element type, this method unwraps and
+     * returns the scalar value directly so that legacy third-party elements extending this
+     * class continue to receive the original scalar they stored.
+     *
+     * Bundled element types always receive the raw stored data, even if the JSON object
+     * contains a 'value' key, because their save/load code expects the full JSON payload.
+     *
      * @return mixed
      */
     public function get_data(): mixed {
+        if (
+            is_string($this->data)
+            && $this->should_unwrap_generic_migration_wrapper()
+            && self::is_generic_migration_wrapper($this->data)
+        ) {
+            $decoded = json_decode($this->data, true);
+            return $decoded['value'];
+        }
         return $this->data;
+    }
+
+    /**
+     * Return true if this element instance should unwrap a generic migration wrapper in get_data().
+     *
+     * Unwrapping is only applied to unknown/third-party element types. Bundled element types
+     * use structured JSON payloads and must not be unwrapped.
+     *
+     * @return bool
+     */
+    private function should_unwrap_generic_migration_wrapper(): bool {
+        if ($this->customcertelementtype === '') {
+            return false;
+        }
+        return !in_array($this->customcertelementtype, self::BUNDLED_ELEMENT_TYPES, true);
+    }
+
+    /**
+     * The set of JSON keys that the upgrade migration adds as visual/layout metadata.
+     * A JSON object is only considered a generic migration wrapper if all its keys
+     * are either 'value' or one of these migration-only keys.
+     *
+     * @var string[]
+     */
+    private const MIGRATION_VISUAL_KEYS = ['width', 'height', 'font', 'fontsize', 'colour', 'alphachannel'];
+
+    /**
+     * Bundled/core customcert element types that use structured JSON payloads.
+     * These element types must never have their data unwrapped by get_data(),
+     * even if the JSON object looks like a generic migration wrapper.
+     *
+     * @var string[]
+     */
+    private const BUNDLED_ELEMENT_TYPES = [
+        'bgimage',
+        'border',
+        'categoryname',
+        'code',
+        'coursefield',
+        'coursename',
+        'date',
+        'digitalsignature',
+        'expiry',
+        'grade',
+        'gradeitemname',
+        'image',
+        'qrcode',
+        'studentname',
+        'teachername',
+        'text',
+        'userfield',
+        'userpicture',
+    ];
+
+    /**
+     * Return true if the given JSON string is a generic migration scalar wrapper.
+     *
+     * A generic migration wrapper is a JSON object that:
+     *  - Has a 'value' key.
+     *  - Has no keys other than 'value' and the known migration visual/layout metadata keys
+     *    (width, height, font, fontsize, colour, alphachannel).
+     *
+     * This is used by get_data() to provide backwards-compatibility for legacy third-party
+     * elements that call get_data() and expect the original scalar value.
+     *
+     * @param string $data The raw JSON string from the data column.
+     * @return bool
+     */
+    public static function is_generic_migration_wrapper(string $data): bool {
+        $decoded = json_decode($data, true);
+        if (!is_array($decoded) || !array_key_exists('value', $decoded)) {
+            return false;
+        }
+        $value = $decoded['value'];
+        if (
+            $value !== null
+            && !is_scalar($value)
+            && !(is_array($value) && array_is_list($value))
+        ) {
+            return false;
+        }
+        $allowed = array_merge(['value'], self::MIGRATION_VISUAL_KEYS);
+        foreach (array_keys($decoded) as $key) {
+            if (!in_array($key, $allowed, true)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -226,7 +339,7 @@ abstract class element implements
      * @return array<string,mixed>
      */
     public function get_payload(): array {
-        $raw = $this->get_data();
+        $raw = $this->data;
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
             if (is_array($decoded)) {
@@ -245,7 +358,7 @@ abstract class element implements
      * @return string|null The scalar value or null if not applicable.
      */
     public function get_value(): ?string {
-        $raw = $this->get_data();
+        $raw = $this->data;
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
             if (is_array($decoded) && array_key_exists('value', $decoded)) {
