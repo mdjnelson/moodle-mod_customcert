@@ -144,7 +144,7 @@ class edit_element_form extends moodleform {
 
         foreach ($properties as $property => $value) {
             if ($value !== null && $mform->elementExists($property)) {
-                $mform->getElement($property)->setValue($value);
+                $mform->setDefault($property, $value);
             }
         }
 
