@@ -72,9 +72,9 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that from_record() returns an instance of element.
+     * Test that the constructor returns an instance of element.
      *
-     * @covers \customcertelement_gradeitemname\element::from_record
+     * @covers \customcertelement_gradeitemname\element::__construct
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
