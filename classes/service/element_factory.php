@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
-use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\element_bootstrap;
 use mod_customcert\element as legacy_base;
@@ -82,18 +81,12 @@ final class element_factory {
      */
     public function create(string $type, stdClass $record): element_interface {
         $class = $this->registry->get($type);
-        // Prefer the explicit construction contract when provided.
         try {
-            if (is_subclass_of($class, constructable_element_interface::class)) {
-                $instance = $class::from_record($record);
-            } else {
-                $instance = new $class($record);
-            }
+            $instance = new $class($record);
         } catch (\Throwable $e) {
             // Provide a clearer developer hint if construction fails.
             debugging(
-                "Failed to construct element of type '{$type}' using class '{$class}': " . $e->getMessage() .
-                '. Implement constructable_element_interface::from_record() or ensure a compatible constructor.',
+                "Failed to construct element of type '{$type}' using class '{$class}': " . $e->getMessage(),
                 DEBUG_DEVELOPER
             );
             throw $e;

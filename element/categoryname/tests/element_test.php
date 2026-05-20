@@ -29,7 +29,6 @@ namespace customcertelement_categoryname;
 
 use advanced_testcase;
 use context_module;
-use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -74,12 +73,12 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that from_record() returns an instance of element.
+     * Test that the constructor returns an instance of element.
      *
-     * @covers \customcertelement_categoryname\element::from_record
+     * @covers \customcertelement_categoryname\element::__construct
      */
-    public function test_from_record_returns_instance(): void {
-        $el = element::from_record($this->make_record());
+    public function test_constructor_returns_instance(): void {
+        $el = new element($this->make_record());
         $this->assertInstanceOf(element::class, $el);
     }
 
@@ -89,8 +88,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_categoryname\element
      */
     public function test_implements_interfaces(): void {
-        $el = element::from_record($this->make_record());
-        $this->assertInstanceOf(constructable_element_interface::class, $el);
+        $el = new element($this->make_record());
         $this->assertInstanceOf(form_element_interface::class, $el);
         $this->assertInstanceOf(persistable_element_interface::class, $el);
         $this->assertInstanceOf(renderable_element_interface::class, $el);
@@ -103,7 +101,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_categoryname\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $formdata = (object) [
             'font' => 'helvetica',
             'fontsize' => 14,
@@ -123,7 +121,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_categoryname\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $result = $el->normalise_data(new stdClass());
         $this->assertSame('', $result['font']);
         $this->assertSame(0, $result['fontsize']);
@@ -137,7 +135,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_categoryname\element::validate
      */
     public function test_validate_returns_empty_array(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $this->assertSame([], $el->validate([]));
     }
 
@@ -173,7 +171,7 @@ final class element_test extends advanced_testcase {
         $record = $this->make_record(['pageid' => $page->id]);
         $record->id = $DB->insert_record('customcert_elements', $record);
 
-        $el = element::from_record($record);
+        $el = new element($record);
         $html = $el->render_html();
         $this->assertIsString($html);
         $this->assertStringContainsString('Test Category', $html);
@@ -185,7 +183,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_categoryname\element
      */
     public function test_get_type(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $this->assertSame('categoryname', $el->get_type());
     }
 }

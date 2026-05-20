@@ -29,7 +29,6 @@ namespace customcertelement_coursefield;
 
 use core_collator;
 use core_course\customfield\course_handler;
-use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\renderable_element_interface;
@@ -50,7 +49,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
-    constructable_element_interface,
     form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
@@ -105,15 +103,6 @@ class element extends base_element implements
         ];
     }
 
-    /**
-     * Build an element instance from a DB record.
-     *
-     * @param stdClass $record Raw DB row from customcert_elements.
-     * @return static
-     */
-    public static function from_record(stdClass $record): static {
-        return new static($record);
-    }
 
     /**
      * Handles rendering the element on the pdf.

@@ -65,7 +65,7 @@ final class save_element_changes_test extends advanced_testcase {
             'timemodified' => time(),
         ];
 
-        $element = border_element::from_record($record);
+        $element = new border_element($record);
 
         $formdata = (object)['colour' => '0000ff', 'width' => 2];
         $result = $element->normalise_data($formdata);

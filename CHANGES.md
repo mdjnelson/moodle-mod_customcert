@@ -112,8 +112,7 @@ Reserved JSON keys (visuals):
 - Saving elements is hardened to avoid corrupting stored JSON payloads when a caller provides a JSON list/array.
 
 #### Element construction + adapters
-- Factory now prefers `constructable_element_interface::from_record(\stdClass $record)` when present on the element class.
-- Legacy constructors remain supported as a fallback (`new Class($record)`).
+- Registered element classes are constructed by the element factory using `new Class(stdClass $record)`. The removed experimental `constructable_element_interface::from_record()` path was never released and is no longer part of the API.
 - Factory returns `mod_customcert\element\element_interface`; legacy elements may be wrapped by `mod_customcert\element\legacy_element_adapter`.
   - Avoid `instanceof` checks against legacy concrete classes; prefer `$element->get_type()` and/or `$element->get_inner()`.
 

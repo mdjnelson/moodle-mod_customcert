@@ -74,7 +74,7 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that from_record() returns an instance of element.
+     * Test that the constructor returns an instance of element.
      *
      * @covers \customcertelement_userfield\element
      */

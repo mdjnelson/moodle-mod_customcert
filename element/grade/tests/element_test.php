@@ -28,7 +28,6 @@ declare(strict_types=1);
 namespace customcertelement_grade;
 
 use advanced_testcase;
-use mod_customcert\element\constructable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -79,12 +78,12 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that from_record() returns an instance of element.
+     * Test that the constructor returns an instance of element.
      *
-     * @covers \customcertelement_grade\element::from_record
+     * @covers \customcertelement_grade\element::__construct
      */
-    public function test_from_record_returns_instance(): void {
-        $el = element::from_record($this->make_record());
+    public function test_constructor_returns_instance(): void {
+        $el = new element($this->make_record());
         $this->assertInstanceOf(element::class, $el);
     }
 
@@ -94,8 +93,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element
      */
     public function test_implements_interfaces(): void {
-        $el = element::from_record($this->make_record());
-        $this->assertInstanceOf(constructable_element_interface::class, $el);
+        $el = new element($this->make_record());
         $this->assertInstanceOf(form_element_interface::class, $el);
         $this->assertInstanceOf(persistable_element_interface::class, $el);
         $this->assertInstanceOf(renderable_element_interface::class, $el);
@@ -117,7 +115,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $formdata = (object) [
             'gradeitem' => element::GRADE_COURSE,
             'gradeformat' => GRADE_DISPLAY_TYPE_PERCENTAGE,
@@ -141,7 +139,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $result = $el->normalise_data(new stdClass());
         $this->assertSame('', $result['gradeitem']);
         $this->assertSame('', $result['gradeformat']);
@@ -157,7 +155,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element::validate
      */
     public function test_validate_returns_empty_array(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $this->assertSame([], $el->validate([]));
     }
 
@@ -167,7 +165,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
-        $el = element::from_record($this->make_record(['data' => null]));
+        $el = new element($this->make_record(['data' => null]));
         $this->assertSame('', $el->render_html());
     }
 
@@ -183,7 +181,7 @@ final class element_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $COURSE = $course;
 
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $html = $el->render_html();
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
@@ -195,7 +193,7 @@ final class element_test extends advanced_testcase {
      * @covers \customcertelement_grade\element
      */
     public function test_get_type(): void {
-        $el = element::from_record($this->make_record());
+        $el = new element($this->make_record());
         $this->assertSame('grade', $el->get_type());
     }
 }
