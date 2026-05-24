@@ -245,14 +245,13 @@ final class element_test extends advanced_testcase {
 
         $renderer = $this->make_spy_renderer();
 
-        // The pdf mock must silently accept Image() since the file exists and will be copied.
+        // The pdf mock must silently accept Image/ImageSVG/SetAlpha calls since the file exists and will be copied.
+        // These methods are inherited from TCPDF (not declared on pdf itself), so addMethods() is required
+        // to ensure PHPUnit stubs them even when TCPDF is not fully loaded during mock generation.
         $pdf = $this->getMockBuilder(pdf::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['Image', 'ImageSVG', 'SetAlpha'])
+            ->addMethods(['Image', 'ImageSVG', 'SetAlpha'])
             ->getMock();
-        $pdf->method('Image')->willReturn(null);
-        $pdf->method('ImageSVG')->willReturn(null);
-        $pdf->method('SetAlpha')->willReturn(null);
 
         $el->render($pdf, false, new stdClass(), $renderer);
 
