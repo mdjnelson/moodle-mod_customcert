@@ -178,6 +178,8 @@ final class element_test extends advanced_testcase {
      * PDF regression: render() must never fall back to the HTML render path when
      * a pdf_renderer passes itself in as the renderer argument.
      *
+     * Preview mode is used so the render path does not require a DB-backed issue record.
+     *
      * @covers \customcertelement_qrcode\element::render
      */
     public function test_render_with_pdf_renderer_does_not_call_render_html(): void {
@@ -187,7 +189,7 @@ final class element_test extends advanced_testcase {
         $renderer = new spy_element_renderer();
 
         $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
-        $el->render($pdf, false, new stdClass(), $renderer);
+        $el->render($pdf, true, new stdClass(), $renderer);
 
         $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
     }
