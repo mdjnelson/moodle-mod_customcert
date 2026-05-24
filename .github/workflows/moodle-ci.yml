@@ -128,11 +128,37 @@ jobs:
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
         run: |
-          moodle-plugin-ci phpunit
+          moodle-plugin-ci phpunit --fail-on-risky
           cd moodle
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter tool_dataprivacy_metadata_registry_testcase
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter core_externallib_testcase
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --testsuite core_privacy_testsuite --filter provider_testcase
+
+      - name: PHPUnit tests for subplugins
+        if: ${{ !cancelled() }}
+        run: |
+          fail=0
+          failures=()
+          for base in $(jq -r '.subplugintypes[]' ./plugin/db/subplugins.json); do
+            for dir in $(find "./plugin/$base" -mindepth 1 -maxdepth 1 -type d); do
+              if [ -d "$dir/tests" ]; then
+                echo "Running PHPUnit for $dir"
+                if moodle-plugin-ci phpunit --fail-on-risky "$dir"; then
+                  echo "OK: $dir"
+                else
+                  rc=$?
+                  echo "WARNING: PHPUnit failed for $dir (rc=$rc)"
+                  failures+=("$dir: returncode: $rc")
+                  fail=1
+                fi
+              fi
+            done
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some PHPUnit runs failed:"
+            printf '%s\n' "${failures[@]}"
+            exit 1
+          fi
 
       - name: Behat features
         id: behat
