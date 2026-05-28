@@ -810,10 +810,10 @@ class element_helper {
      * Returns the date in a readable format.
      *
      * @param int $date
-     * @param string $dateformat
+     * @param string|int $dateformat
      * @return string
      */
-    public static function get_date_format_string(int $date, string $dateformat): string {
+    public static function get_date_format_string(int $date, string|int $dateformat): string {
         // Keeping for backwards compatibility.
         if (is_number($dateformat)) {
             switch ($dateformat) {

@@ -454,4 +454,27 @@ final class element_helper_test extends advanced_testcase {
             $this->assertIsInt($value);
         }
     }
+
+    /**
+     * get_date_format_string accepts an int $dateformat for backwards
+     * compatibility with pre-5.2 customcert_elements data (where dateformat
+     * was stored as an int constant). The function body already handles this
+     * via is_number($dateformat); the strict 'string' type hint previously
+     * rejected such calls with a TypeError before the backwards-compat branch
+     * could run, breaking PDF generation on legacy data.
+     *
+     * @covers \mod_customcert\element_helper::get_date_format_string
+     */
+    public function test_get_date_format_string_accepts_int_dateformat_for_backwards_compat(): void {
+        $date = mktime(0, 0, 0, 6, 15, 2024);
+
+        // Both int and string-of-digit dateformat must be accepted and produce identical output.
+        $fromint = element_helper::get_date_format_string($date, 1);
+        $fromstr = element_helper::get_date_format_string($date, '1');
+
+        $this->assertIsString($fromint);
+        $this->assertIsString($fromstr);
+        $this->assertNotEmpty($fromint);
+        $this->assertSame($fromstr, $fromint);
+    }
 }
