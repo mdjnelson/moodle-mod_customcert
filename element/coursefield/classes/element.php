@@ -186,7 +186,7 @@ class element extends base_element implements
         }
         if (is_number($field)) { // Must be a custom course profile field.
             $handler = course_handler::create();
-            $data = $handler->get_instance_data($course->id, true);
+            $data = $handler->get_instance_data((int)$course->id, true);
             if ($preview && empty($data[$field]->export_value())) {
                 $fields = $handler->get_fields();
                 $value = $fields[$field]->get('shortname');
