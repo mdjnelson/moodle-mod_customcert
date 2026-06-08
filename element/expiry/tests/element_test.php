@@ -27,12 +27,25 @@ declare(strict_types=1);
 
 namespace customcertelement_expiry;
 
+defined('MOODLE_INTERNAL') || die();
+
 use advanced_testcase;
+use context_module;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
+use mod_customcert\element_helper;
+use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
+use mod_customcert\template;
+use pdf;
 use stdClass;
+
+global $CFG;
+
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the expiry element.
@@ -196,6 +209,104 @@ final class element_test extends advanced_testcase {
         $html = $el->render_html();
         $this->assertIsString($html);
         $this->assertNotEmpty($html);
+    }
+
+    /**
+     * Helper to create a full customcert setup and return [elementid, customcertid].
+     *
+     * @return array{int, int}
+     */
+    private function create_customcert_setup(): array {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => context_module::instance($customcert->cmid)->id]
+        );
+
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+
+        $rec = new stdClass();
+        $rec->name = 'Expiry';
+        $rec->element = 'expiry';
+        $rec->pageid = $pageid;
+        $rec->data = json_encode(['dateitem' => '-8', 'dateformat' => 'strftimedate', 'startfrom' => '-1']);
+        $rec->sequence = element_helper::get_element_sequence($pageid);
+        $rec->timecreated = time();
+        $rec->id = $DB->insert_record('customcert_elements', $rec);
+
+        return [(int)$rec->id, (int)$customcert->id];
+    }
+
+    /**
+     * Test render_html() does not throw a TypeError when dateformat is stored as a legacy integer.
+     *
+     * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
+     * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
+     * JSON payload and exercises the full render_html() code path to prove the fix holds.
+     *
+     * @covers \customcertelement_expiry\element::render_html
+     */
+    public function test_render_html_with_legacy_integer_dateformat(): void {
+        $el = new element($this->make_record([
+            'data' => json_encode([
+                'dateitem' => '-8',
+                'dateformat' => 1,
+                'startfrom' => '-1',
+                'font' => 'times',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 0,
+            ]),
+        ]));
+
+        $html = $el->render_html();
+
+        $this->assertIsString($html);
+        $this->assertNotEmpty($html);
+    }
+
+    /**
+     * Test render() does not throw a TypeError when dateformat is stored as a legacy integer.
+     *
+     * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
+     * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
+     * JSON payload and exercises the full render() code path to prove the fix holds.
+     *
+     * @covers \customcertelement_expiry\element::render
+     */
+    public function test_render_with_legacy_integer_dateformat(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        [$elementid, $customcertid] = $this->create_customcert_setup();
+
+        // Overwrite with an integer dateformat to simulate legacy JSON data.
+        $DB->set_field(
+            'customcert_elements',
+            'data',
+            json_encode(['dateitem' => '-8', 'dateformat' => 1, 'startfrom' => '-1']),
+            ['id' => $elementid]
+        );
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $DB->get_field('customcert', 'course', ['id' => $customcertid]));
+        certificate_issue_service::create()->issue_certificate($customcertid, (int)$student->id);
+
+        $rec = $DB->get_record('customcert_elements', ['id' => $elementid]);
+        $el = new element($rec);
+        $user = $DB->get_record('user', ['id' => $student->id]);
+
+        $pdf = new pdf();
+        $pdf->AddPage();
+        $el->render($pdf, false, $user);
+
+        $this->assertTrue(true);
     }
 
     /**
