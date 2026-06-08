@@ -332,6 +332,72 @@ final class element_test extends advanced_testcase {
     }
 
     /**
+     * Test render() does not throw a TypeError when dateformat is stored as a legacy integer.
+     *
+     * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
+     * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
+     * JSON payload and exercises the full render() code path to prove the fix holds.
+     *
+     * @covers \customcertelement_date\element::render
+     */
+    public function test_render_with_legacy_integer_dateformat(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        [$elementid, $customcertid] = $this->create_customcert_setup(element::DATE_ISSUE);
+
+        // Overwrite with an integer dateformat to simulate legacy JSON data.
+        $DB->set_field(
+            'customcert_elements',
+            'data',
+            json_encode(['dateitem' => element::DATE_ISSUE, 'dateformat' => 1]),
+            ['id' => $elementid]
+        );
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $DB->get_field('customcert', 'course', ['id' => $customcertid]));
+        certificate_issue_service::create()->issue_certificate($customcertid, (int)$student->id);
+
+        $rec = $DB->get_record('customcert_elements', ['id' => $elementid]);
+        $el = new element($rec);
+        $user = $DB->get_record('user', ['id' => $student->id]);
+
+        $pdf = new pdf();
+        $pdf->AddPage();
+        $el->render($pdf, false, $user);
+
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Test render_html() does not throw a TypeError when dateformat is stored as a legacy integer.
+     *
+     * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
+     * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
+     * JSON payload and exercises the full render_html() code path to prove the fix holds.
+     *
+     * @covers \customcertelement_date\element::render_html
+     */
+    public function test_render_html_with_legacy_integer_dateformat(): void {
+        $el = new element($this->make_record([
+            'data' => json_encode([
+                'dateitem' => element::DATE_CURRENT_DATE,
+                'dateformat' => 1,
+                'font' => 'times',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 0,
+            ]),
+        ]));
+
+        $html = $el->render_html();
+
+        $this->assertIsString($html);
+        $this->assertNotEmpty($html);
+    }
+
+    /**
      * Test render() uses grade item date when dateitem is gradeitem:N.
      *
      * @covers \customcertelement_date\element::render
