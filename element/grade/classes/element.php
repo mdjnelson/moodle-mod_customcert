@@ -158,20 +158,20 @@ class element extends base_element implements
                 $grade = element_helper::get_course_grade_info(
                     $courseid,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             } else if (strpos($gradeitem, 'gradeitem:') === 0) {
-                $gradeitemid = substr($gradeitem, 10);
+                $gradeitemid = (int)substr($gradeitem, 10);
                 $grade = element_helper::get_grade_item_info(
                     $gradeitemid,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             } else {
                 $grade = element_helper::get_mod_grade_info(
-                    $gradeitem,
+                    (int)$gradeitem,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             }
 
