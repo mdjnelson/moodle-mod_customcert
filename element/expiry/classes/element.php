@@ -201,7 +201,7 @@ class element extends base_element implements
                     $content = 'Valid for 5 years';
                 }
             } else {
-                $content = element_helper::get_date_format_string($date, $dateformat);
+                $content = element_helper::get_date_format_string($date, (string)$dateformat);
             }
 
             if (!empty($content)) {
@@ -250,7 +250,7 @@ class element extends base_element implements
         } else {
             $content = element_helper::get_date_format_string(
                 strtotime($this->relative[$dateitem], time()),
-                $dateformat
+                (string)$dateformat
             );
         }
 

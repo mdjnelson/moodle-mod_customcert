@@ -262,7 +262,7 @@ class element extends base_element implements
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            $content = element_helper::get_date_format_string((int)$date, $dateformat);
+            $content = element_helper::get_date_format_string((int)$date, (string)$dateformat);
             if ($renderer) {
                 $renderer->render_content($this, $content);
             } else {
@@ -290,7 +290,7 @@ class element extends base_element implements
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
 
-        $content = element_helper::get_date_format_string(time(), $dateformat);
+        $content = element_helper::get_date_format_string(time(), (string)$dateformat);
         if ($renderer) {
             return (string) $renderer->render_content($this, $content);
         }
