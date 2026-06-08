@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.2.1] - 2026-06-08
+
+### Fixed
+- Fixed `TypeError` caused by `$instanceid` not being cast to `int` in the `coursefield` element (#804).
+- Fixed `TypeError` in the `date` and `grade` elements where `get_mod_grade_info`, `get_grade_item_info`, and `get_course_grade_info` require integer arguments.
+- Fixed `TypeError` in the `date` and `expiry` elements caused by legacy integer `dateformat` values not being cast to `string`.
+
 ## [5.2.0] - 2026-05-24
 
 ### Requirements
