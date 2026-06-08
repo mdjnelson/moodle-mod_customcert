@@ -28,11 +28,25 @@ declare(strict_types=1);
 namespace customcertelement_date;
 
 use advanced_testcase;
+use context_module;
+use grade_grade;
+use grade_item;
+use mod_customcert\service\certificate_issue_service;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
+use mod_customcert\element_helper;
+use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
+use mod_customcert\template;
+use pdf;
 use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the date element.
@@ -196,5 +210,166 @@ final class element_test extends advanced_testcase {
     public function test_get_type(): void {
         $el = new element($this->make_record());
         $this->assertSame('date', $el->get_type());
+    }
+
+    /**
+     * Helper to create a full customcert setup and return [elementid, customcertid, courseid].
+     *
+     * @param string $dateitem
+     * @return array{int, int, int}
+     */
+    private function create_customcert_setup(string $dateitem): array {
+        global $DB;
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => context_module::instance($customcert->cmid)->id]
+        );
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $rec = new stdClass();
+        $rec->name = 'Date';
+        $rec->element = 'date';
+        $rec->pageid = $pageid;
+        $rec->data = json_encode(['dateitem' => $dateitem, 'dateformat' => 'strftimedate']);
+        $rec->sequence = element_helper::get_element_sequence($pageid);
+        $rec->timecreated = time();
+        $rec->id = $DB->insert_record('customcert_elements', $rec);
+        return [(int)$rec->id, (int)$customcert->id, (int)$course->id];
+    }
+
+    /**
+     * Test render() uses mod grade date when dateitem is a cmid (get_mod_grade_info path).
+     *
+     * @covers \customcertelement_date\element::render
+     */
+    public function test_render_mod_grade_date(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $course->id]);
+        $gi = grade_item::fetch([
+            'itemtype' => 'mod', 'itemmodule' => 'assign',
+            'iteminstance' => $assign->id, 'courseid' => $course->id,
+        ]);
+
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $gi->id;
+        $grade->userid = $student->id;
+        $grade->rawgrade = 75;
+        $grade->finalgrade = 75;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        // Use cmid as dateitem (the mod-grade path).
+        [$elementid, $customcertid] = $this->create_customcert_setup((string)$assign->cmid);
+        $DB->set_field(
+            'customcert_elements',
+            'data',
+            json_encode(['dateitem' => (string)$assign->cmid, 'dateformat' => 'strftimedate']),
+            ['id' => $elementid]
+        );
+        certificate_issue_service::create()->issue_certificate($customcertid, (int)$student->id);
+
+        $rec = $DB->get_record('customcert_elements', ['id' => $elementid]);
+        $el = new element($rec);
+        $user = $DB->get_record('user', ['id' => $student->id]);
+
+        $pdf = new pdf();
+        $pdf->AddPage();
+        $el->render($pdf, false, $user);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Test render() uses course grade date when dateitem is DATE_COURSE_GRADE.
+     *
+     * @covers \customcertelement_date\element::render
+     */
+    public function test_render_course_grade_date(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $coursegradeitem = grade_item::fetch_course_item($course->id);
+
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $coursegradeitem->id;
+        $grade->userid = $student->id;
+        $grade->rawgrade = 80;
+        $grade->finalgrade = 80;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        [$elementid, $customcertid] = $this->create_customcert_setup(element::DATE_COURSE_GRADE);
+        certificate_issue_service::create()->issue_certificate($customcertid, (int)$student->id);
+
+        $rec = $DB->get_record('customcert_elements', ['id' => $elementid]);
+        $el = new element($rec);
+        $user = $DB->get_record('user', ['id' => $student->id]);
+
+        $pdf = new pdf();
+        $pdf->AddPage();
+        $el->render($pdf, false, $user);
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Test render() uses grade item date when dateitem is gradeitem:N.
+     *
+     * @covers \customcertelement_date\element::render
+     */
+    public function test_render_gradeitem_date(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $gi = $this->getDataGenerator()->create_grade_item(['itemname' => 'Manual item', 'courseid' => $course->id]);
+        $gi = grade_item::fetch(['id' => $gi->id]);
+
+        $time = time();
+        $grade = new grade_grade();
+        $grade->itemid = $gi->id;
+        $grade->userid = $student->id;
+        $grade->rawgrade = 60;
+        $grade->finalgrade = 60;
+        $grade->rawgrademax = 100;
+        $grade->rawgrademin = 0;
+        $grade->timecreated = $time;
+        $grade->timemodified = $time;
+        $grade->insert();
+
+        $dateitem = 'gradeitem:' . $gi->id;
+        [$elementid, $customcertid] = $this->create_customcert_setup($dateitem);
+        certificate_issue_service::create()->issue_certificate($customcertid, (int)$student->id);
+
+        $rec = $DB->get_record('customcert_elements', ['id' => $elementid]);
+        $el = new element($rec);
+        $user = $DB->get_record('user', ['id' => $student->id]);
+
+        $pdf = new pdf();
+        $pdf->AddPage();
+        $el->render($pdf, false, $user);
+        $this->assertTrue(true);
     }
 }
