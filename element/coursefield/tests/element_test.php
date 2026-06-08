@@ -225,4 +225,139 @@ final class element_test extends advanced_testcase {
         $el = new element($this->make_record());
         $this->assertSame('coursefield', $el->get_type());
     }
+
+    /**
+     * Helper to set up a course, customcert, page and element record in the DB.
+     *
+     * @param array $coursefields Fields passed to create_course().
+     * @param array $dataoverride  Overrides for the element data payload.
+     * @return array{element, \stdClass} The instantiated element and the course object.
+     */
+    private function setup_db_element(array $coursefields = [], array $dataoverride = []): array {
+        global $DB, $COURSE;
+
+        $course = $this->getDataGenerator()->create_course($coursefields);
+        $COURSE = $course;
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => context_module::instance($customcert->cmid)->id]
+        );
+        $page = (object) [
+            'templateid' => $template->id,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1, 'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $page->id = $DB->insert_record('customcert_pages', $page);
+        $record = $this->make_record(array_merge(['pageid' => $page->id], $dataoverride));
+        $record->id = $DB->insert_record('customcert_elements', $record);
+
+        return [new element($record), $course];
+    }
+
+    /**
+     * Test render_html() with a custom course profile field in preview mode when the field has no value.
+     * In this case the element should fall back to displaying the field shortname.
+     *
+     * This exercises the (int)$course->id cast introduced in the last commit.
+     *
+     * @covers \customcertelement_coursefield\element::render_html
+     */
+    public function test_render_html_custom_profile_field_preview_shows_shortname(): void {
+        $this->resetAfterTest();
+
+        // Create a custom course field category and field.
+        $category = $this->getDataGenerator()->create_custom_field_category([
+            'component' => 'core_course',
+            'area'      => 'course',
+            'name'      => 'Test category',
+        ]);
+        $fieldid = $this->getDataGenerator()->create_custom_field([
+            'categoryid' => $category->get('id'),
+            'type'       => 'text',
+            'shortname'  => 'mytestfield',
+            'name'       => 'My test field',
+        ])->get('id');
+
+        // Build element pointing at the custom field (field id is numeric).
+        [$el] = $this->setup_db_element([], [
+            'data' => json_encode([
+                'coursefield' => $fieldid,
+                'font'        => 'times',
+                'fontsize'    => 12,
+                'colour'      => '#000000',
+                'width'       => 0,
+            ]),
+        ]);
+
+        // In preview mode with no value set the shortname should be rendered.
+        $html = $el->render_html();
+        $this->assertIsString($html);
+        $this->assertStringContainsString('mytestfield', $html);
+    }
+
+    /**
+     * Test render_html() with a custom course profile field that has a value set.
+     * The element should display the actual field value.
+     *
+     * This exercises the (int)$course->id cast introduced in the last commit.
+     *
+     * @covers \customcertelement_coursefield\element::render_html
+     */
+    public function test_render_html_custom_profile_field_shows_value(): void {
+        $this->resetAfterTest();
+
+        // Create a custom course field category and field.
+        $category = $this->getDataGenerator()->create_custom_field_category([
+            'component' => 'core_course',
+            'area'      => 'course',
+            'name'      => 'Test category',
+        ]);
+        $field = $this->getDataGenerator()->create_custom_field([
+            'categoryid' => $category->get('id'),
+            'type'       => 'text',
+            'shortname'  => 'mytestfield',
+            'name'       => 'My test field',
+        ]);
+        $fieldid = $field->get('id');
+
+        // Create a course and set the custom field value on it.
+        $course = $this->getDataGenerator()->create_course([
+            'customfields' => [
+                ['shortname' => 'mytestfield', 'value' => 'Hello custom field'],
+            ],
+        ]);
+
+        global $DB, $COURSE;
+        $COURSE = $course;
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => context_module::instance($customcert->cmid)->id]
+        );
+        $page = (object) [
+            'templateid' => $template->id,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1, 'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $page->id = $DB->insert_record('customcert_pages', $page);
+        $record = $this->make_record([
+            'pageid' => $page->id,
+            'data'   => json_encode([
+                'coursefield' => $fieldid,
+                'font'        => 'times',
+                'fontsize'    => 12,
+                'colour'      => '#000000',
+                'width'       => 0,
+            ]),
+        ]);
+        $record->id = $DB->insert_record('customcert_elements', $record);
+
+        $el = new element($record);
+        $html = $el->render_html();
+        $this->assertIsString($html);
+        $this->assertStringContainsString('Hello custom field', $html);
+    }
 }
