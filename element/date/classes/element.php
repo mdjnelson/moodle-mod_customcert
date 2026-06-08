@@ -248,9 +248,9 @@ class element extends base_element implements
                     );
                 } else {
                     $grade = element_helper::get_mod_grade_info(
-                        $dateitem,
+                        (int)$dateitem,
                         GRADE_DISPLAY_TYPE_DEFAULT,
-                        $user->id
+                        (int)$user->id
                     );
                 }
 
