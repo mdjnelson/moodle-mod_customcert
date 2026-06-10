@@ -49,6 +49,15 @@ $template->require_manage();
 
 // Loop through the data.
 foreach ($values as $value) {
+    // Verify the element belongs to this template before updating.
+    $sql = "SELECT e.id
+              FROM {customcert_elements} e
+              JOIN {customcert_pages} p ON p.id = e.pageid
+             WHERE e.id = :elementid
+               AND p.templateid = :templateid";
+    if (!$DB->record_exists_sql($sql, ['elementid' => (int) $value->id, 'templateid' => $template->get_id()])) {
+        throw new \moodle_exception('invalidrequest');
+    }
     $element = new stdClass();
     $element->id = $value->id;
     $element->posx = $value->posx;
