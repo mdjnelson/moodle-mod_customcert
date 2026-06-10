@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.4.10] - 2026-06-10
+
+### Fixed
+
+- Fixed issuing certificates to suspended users (#781).
+
+### Security
+
+- Hardened element and page ownership validation across edit, move, AJAX, external API, and fragment handlers to prevent cross-template access using mismatched request IDs (#818).
+
 ## [4.4.9] - 2026-03-15
 
 ### Security
