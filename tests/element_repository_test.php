@@ -413,6 +413,94 @@ final class element_repository_test extends advanced_testcase {
     }
 
     /**
+     * Ensures get_for_template_or_fail returns the element when it belongs to the template.
+     *
+     * @covers ::get_for_template_or_fail
+     */
+    public function test_get_for_template_or_fail_returns_element_for_correct_template(): void {
+        global $DB;
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'E',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $record = $this->repo->get_for_template_or_fail($templateid, $elementid);
+        $this->assertSame($elementid, (int) $record->id);
+    }
+
+    /**
+     * Ensures get_for_template_or_fail throws when the element belongs to a different template.
+     *
+     * @covers ::get_for_template_or_fail
+     */
+    public function test_get_for_template_or_fail_throws_for_mismatched_template(): void {
+        global $DB;
+        $generator = $this->getDataGenerator();
+
+        // Two separate courses model the cross-course tamper scenario.
+        $coursea = $generator->create_course();
+        $contexta = context_course::instance($coursea->id);
+        $courseb = $generator->create_course();
+        $contextb = context_course::instance($courseb->id);
+
+        $templateid = $this->trepo->create((object) [
+            'name' => 'T',
+            'contextid' => $contexta->id,
+        ]);
+        $othertemplateid = $this->trepo->create((object) [
+            'name' => 'Other',
+            'contextid' => $contextb->id,
+        ]);
+        $pageid = $this->prepo->create((object) [
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'E',
+            'element' => 'text',
+            'data' => null,
+            'posx' => null,
+            'posy' => null,
+            'refpoint' => null,
+            'alignment' => 'L',
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $this->expectException(\dml_missing_record_exception::class);
+        $this->repo->get_for_template_or_fail($othertemplateid, $elementid);
+    }
+
+    /**
      * Ensures delete_by_id removes the DB record without firing an event.
      *
      * @covers ::delete_by_id
