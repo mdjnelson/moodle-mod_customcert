@@ -444,7 +444,9 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $factory = element_factory::build_with_defaults();
         $elementrepo = new element_repository($factory);
 
-        $element = $elementrepo->get_by_id_or_fail((int)$itemid);
+        // This callback receives only $itemid with no template context; ownership is resolved by walking
+        // element -> page -> template immediately after. customcert-allow-raw-element-lookup.
+        $element = $elementrepo->get_by_id_or_fail((int)$itemid); // @codingStandardsIgnoreLine
         $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
         // Set the template object.
