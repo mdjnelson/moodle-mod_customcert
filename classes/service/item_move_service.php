@@ -101,14 +101,9 @@ final class item_move_service {
         }
 
         if ($itemname === self::ITEM_PAGE) {
-            if ((int)$moveitem->templateid !== $template->get_id()) {
-                throw new invalid_parameter_exception('Page does not belong to template');
-            }
+            $this->pages->get_for_template_or_fail($template->get_id(), $itemid);
         } else {
-            $page = $this->pages->get_by_id_or_fail((int)$moveitem->pageid);
-            if ((int)$page->templateid !== $template->get_id()) {
-                throw new invalid_parameter_exception('Element does not belong to template');
-            }
+            $this->pages->get_for_template_or_fail($template->get_id(), (int)$moveitem->pageid);
         }
 
         $sequence = $direction === self::DIRECTION_UP ? $moveitem->sequence - 1 : $moveitem->sequence + 1;
