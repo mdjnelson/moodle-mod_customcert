@@ -87,6 +87,10 @@ jobs:
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
           MUSTACHE_IGNORE_NAMES: 'mobile_*.mustache'
 
+      - name: Element ownership lookup guardrail
+        if: ${{ !cancelled() }}
+        run: php plugin/tools/check_element_ownership_lookups.php
+
       - name: PHP Lint
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci phplint
