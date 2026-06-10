@@ -334,14 +334,8 @@ function mod_customcert_output_fragment_editelement($args) {
         throw new moodle_exception('nopermissions', 'error', '', 'editelement');
     }
 
-    // Get the element.
-    $element = $elementrepo->get_by_id_or_fail((int)$args['elementid']);
-
-    // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
-    $elementtemplateid = $elementrepo->get_template_id_for_element((int)$args['elementid']);
-    if ($elementtemplateid === null || $elementtemplateid !== (int)$args['templateid']) {
-        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
-    }
+    // Load the element, verifying it belongs to the authorised template.
+    $element = $elementrepo->get_for_template_or_fail((int)$args['templateid'], (int)$args['elementid']);
 
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
     $form = new edit_element_form($pageurl, ['element' => $element]);
