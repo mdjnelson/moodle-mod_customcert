@@ -134,6 +134,29 @@ final class element_repository {
     }
 
     /**
+     * Load a single element record by id, verifying it belongs to the given template.
+     *
+     * Throws if the element does not exist or belongs to a different template.
+     *
+     * @param int $templateid
+     * @param int $elementid
+     * @return stdClass
+     * @throws \dml_missing_record_exception When the element does not exist or belongs to a different template.
+     * @throws \dml_exception For database errors.
+     */
+    public function get_for_template_or_fail(int $templateid, int $elementid): stdClass {
+        global $DB;
+
+        $sql = 'SELECT e.*
+                  FROM {customcert_elements} e
+                  JOIN {customcert_pages} p ON p.id = e.pageid
+                 WHERE e.id = :elementid
+                   AND p.templateid = :templateid';
+
+        return $DB->get_record_sql($sql, ['elementid' => $elementid, 'templateid' => $templateid], MUST_EXIST);
+    }
+
+    /**
      * Load elements for a given page id.
      *
      * @param int $pageid
