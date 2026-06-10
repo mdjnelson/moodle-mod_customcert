@@ -89,9 +89,6 @@ class external extends external_api {
         ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
-        $elementrepo = new element_repository(element_factory::build_with_defaults());
-        $element = $elementrepo->get_by_id_or_fail((int)$elementid);
-
         // Set the template.
         $templaterepo = new template_repository();
         $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
@@ -105,11 +102,9 @@ class external extends external_api {
         // Make sure the user has the required capabilities.
         $template->require_manage();
 
-        // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
-        $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
-        if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
-            throw new moodle_exception('nopermissions', 'error', '', 'save_element');
-        }
+        // Load the element, verifying it belongs to the authorised template.
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $element = $elementrepo->get_for_template_or_fail((int)$templateid, (int)$elementid);
 
         // Build the updated record by merging submitted values onto the existing element.
         $record = clone $element;
@@ -172,9 +167,6 @@ class external extends external_api {
         ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
-        $elementrepo = new element_repository(element_factory::build_with_defaults());
-        $element = $elementrepo->get_by_id_or_fail((int)$elementid);
-
         // Set the template.
         $templaterepo = new template_repository();
         $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
@@ -186,11 +178,9 @@ class external extends external_api {
             self::validate_context(context_system::instance());
         }
 
-        // Verify the element belongs to the exact template being viewed to prevent cross-template information disclosure.
-        $elementtemplateid = $elementrepo->get_template_id_for_element($elementid);
-        if ($elementtemplateid === null || $elementtemplateid !== (int)$templateid) {
-            throw new moodle_exception('nopermissions', 'error', '', 'get_element_html');
-        }
+        // Load the element, verifying it belongs to the authorised template.
+        $elementrepo = new element_repository(element_factory::build_with_defaults());
+        $element = $elementrepo->get_for_template_or_fail((int)$templateid, (int)$elementid);
 
         // Get an instance of the element class.
         $factory = element_factory::build_with_defaults();
