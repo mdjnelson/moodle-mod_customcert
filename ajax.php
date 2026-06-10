@@ -56,6 +56,9 @@ $elementrepo = new element_repository($factory);
 // Loop through the data.
 $contextid = $template->get_contextid();
 foreach ($values as $value) {
+    // Verify the element belongs to this template before updating — prevents cross-template
+    // parameter tampering where a user authorised for template A supplies element IDs from template B.
+    $elementrepo->get_for_template_or_fail($template->get_id(), (int)$value->id);
     // Round fractional positions to the nearest integer — the DB column is INT
     // but the JS editor may emit sub-pixel values.
     $elementrepo->update_position(
