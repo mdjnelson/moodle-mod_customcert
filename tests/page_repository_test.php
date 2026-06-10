@@ -191,6 +191,68 @@ final class page_repository_test extends advanced_testcase {
     }
 
     /**
+     * Ensures get_for_template_or_fail returns the page when it belongs to the template.
+     *
+     * @covers ::get_for_template_or_fail
+     */
+    public function test_get_for_template_or_fail_returns_page_for_correct_template(): void {
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $context = context_course::instance($course->id);
+        $trepo = new template_repository();
+        $templateid = $trepo->create((object)[
+            'name' => 'T',
+            'contextid' => $context->id,
+        ]);
+        $pageid = $this->repo->create((object)[
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+        $record = $this->repo->get_for_template_or_fail($templateid, $pageid);
+        $this->assertSame($pageid, (int) $record->id);
+    }
+
+    /**
+     * Ensures get_for_template_or_fail throws when the page belongs to a different template.
+     *
+     * @covers ::get_for_template_or_fail
+     */
+    public function test_get_for_template_or_fail_throws_for_mismatched_template(): void {
+        $generator = $this->getDataGenerator();
+
+        // Two separate courses model the cross-course tamper scenario.
+        $coursea = $generator->create_course();
+        $contexta = context_course::instance($coursea->id);
+        $courseb = $generator->create_course();
+        $contextb = context_course::instance($courseb->id);
+
+        $trepo = new template_repository();
+        $templateid = $trepo->create((object)[
+            'name' => 'T',
+            'contextid' => $contexta->id,
+        ]);
+        $othertemplateid = $trepo->create((object)[
+            'name' => 'Other',
+            'contextid' => $contextb->id,
+        ]);
+        $pageid = $this->repo->create((object)[
+            'templateid' => $templateid,
+            'width' => 800,
+            'height' => 600,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+        ]);
+
+        $this->expectException(\dml_missing_record_exception::class);
+        $this->repo->get_for_template_or_fail($othertemplateid, $pageid);
+    }
+
+    /**
      * Ensures delete() removes the page record from the database.
      *
      * @covers ::delete
