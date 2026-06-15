@@ -133,40 +133,15 @@ class restore_customcert_activity_task extends restore_activity_task {
             $factory = $this->get_element_factory();
             foreach ($elements as $element) {
                 // Get an instance of the element class.
-                if ($instance = $factory->create_from_legacy_record($element)) {
-                    // Prefer the new typed restore hook when implemented; otherwise fall back to the
-                    // legacy after_restore() method only when the concrete class actually overrides it
-                    // (i.e. it is not merely inherited from the mod_customcert\element base class).
+                if ($instance = $factory->create_from_record($element)) {
                     if ($instance instanceof restorable_element_interface) {
                         $instance->after_restore_from_backup($this);
-                    } else if (self::has_legacy_after_restore_override($instance)) {
-                        debugging(
-                            'after_restore() is deprecated since Moodle 5.2. Implement ' .
-                            'mod_customcert\\element\\restorable_element_interface::after_restore_from_backup() instead.',
-                            DEBUG_DEVELOPER
-                        );
-                        $instance->after_restore($this);
                     }
                 }
             }
         }
     }
 
-    /**
-     * Returns true only when the given element instance has a concrete override of after_restore()
-     * that is not merely the no-op base implementation on mod_customcert\element.
-     *
-     * @param object $instance Element instance to inspect.
-     * @return bool
-     */
-    private static function has_legacy_after_restore_override(object $instance): bool {
-        if (!method_exists($instance, 'after_restore')) {
-            return false;
-        }
-        $ref = new \ReflectionMethod($instance, 'after_restore');
-        // Only treat it as an override when the declaring class is not the base element class.
-        return $ref->getDeclaringClass()->getName() !== \mod_customcert\element::class;
-    }
 
     /**
      * Convenience wrapper to fetch mapped ids during element restore hooks.
