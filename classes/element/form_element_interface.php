@@ -31,21 +31,12 @@ use MoodleQuickForm;
 /**
  * Interface form_element_interface
  *
- * Implemented by elements (both v2 and legacy-adapted) that can participate in
- * the edit-element form lifecycle. edit_element_form types its element property
- * against this interface rather than the legacy base class, so that
- * legacy_element_adapter instances are accepted without a TypeError.
- *
- * All registered certificate elements must implement this interface (or extend
- * mod_customcert\element, which implements it). The build_form() method replaces
- * the legacy render_form_elements() hook for new elements.
+ * Implemented by elements that participate in the edit-element form lifecycle.
+ * All registered certificate elements must implement this interface.
  */
 interface form_element_interface extends element_interface {
     /**
      * Add element-specific fields to the edit form.
-     *
-     * New elements should implement this method directly. Legacy elements that
-     * override render_form_elements() are bridged automatically by the base class.
      *
      * @param MoodleQuickForm $mform
      * @return void
