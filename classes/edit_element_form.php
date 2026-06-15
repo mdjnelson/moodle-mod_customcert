@@ -88,7 +88,7 @@ class edit_element_form extends moodleform {
         $mform->addHelpButton('name', 'elementname', 'customcert');
 
         $factory = $this->_customdata['factory'] ?? element_factory::build_with_defaults();
-        $created = $factory->create_from_legacy_record($element);
+        $created = $factory->create_from_record($element);
         if (!$created) {
             throw new moodle_exception('invalidrecord', 'error');
         }
