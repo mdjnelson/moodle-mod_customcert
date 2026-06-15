@@ -27,9 +27,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\element_bootstrap;
-use mod_customcert\element as legacy_base;
 use stdClass;
 
 /**
@@ -75,6 +73,10 @@ final class element_factory {
     /**
      * Create an element instance from a record and type.
      *
+     * The registered class must implement element_interface. If it does not,
+     * element_registry::register() will have already thrown a coding_exception
+     * at registration time.
+     *
      * @param string $type
      * @param stdClass $record
      * @return element_interface
@@ -91,35 +93,27 @@ final class element_factory {
             );
             throw $e;
         }
-
-        if ($instance instanceof element_interface) {
-            return $instance;
-        }
-        return new legacy_element_adapter($instance);
+        return $instance;
     }
 
     /**
-     * Create an element from a legacy record structure, falling back to the shim when required.
+     * Create an element from a record, returning null when the type is unknown.
      *
      * @param stdClass $record
      * @return element_interface|null
      */
-    public function create_from_legacy_record(stdClass $record): ?element_interface {
+    public function create_from_record(stdClass $record): ?element_interface {
         $type = (string)($record->element ?? '');
         if ($type === '') {
             return null;
         }
-
         if (!$this->registry->has($type)) {
             return null;
         }
-
-        // Preserve legacy behaviour: default the name when not provided so forms/tests relying on
-        // legacy construction still see a sensible value (pluginname).
+        // Default the name when not provided so forms/tests see a sensible value.
         if (!property_exists($record, 'name') || $record->name === null || $record->name === '') {
             $record->name = get_string('pluginname', 'customcertelement_' . $type);
         }
-
         try {
             return $this->create($type, $record);
         } catch (\Throwable $e) {
@@ -129,64 +123,7 @@ final class element_factory {
                     DEBUG_DEVELOPER
                 );
             }
-        }
-
-        try {
-            $legacy = self::get_legacy_element_instance($record);
-        } catch (\Throwable $unused) {
             return null;
         }
-
-        if ($legacy instanceof element_interface) {
-            return $legacy;
-        }
-
-        return $legacy ? new legacy_element_adapter($legacy) : null;
-    }
-
-    /**
-     * Wrap a legacy element instance with the v2 adapter.
-     *
-     * @param legacy_base $legacy
-     * @return legacy_element_adapter
-     */
-    public function wrap_legacy(legacy_base $legacy): legacy_element_adapter {
-        return new legacy_element_adapter($legacy);
-    }
-
-    /**
-     * Internal helper: return legacy element instance for given record.
-     *
-     * Used by create_from_legacy_record() to instantiate old-style element classes.
-     * Do not call this from new code; use create() or create_from_legacy_record() instead.
-     *
-     * @param stdClass $element DB record or structure with at least the `element` type and optional fields.
-     * @return object|false Legacy element instance (customcertelement_*\element) or false if not found.
-     */
-    private static function get_legacy_element_instance(stdClass $element) {
-
-        // Compose legacy class name like: \customcertelement_{type}\element.
-        $classname = '\\customcertelement_' . ($element->element ?? '') . '\\element';
-
-        $data = new stdClass();
-        $data->id = $element->id ?? null;
-        $data->pageid = $element->pageid ?? null;
-        $data->name = $element->name ?? get_string('pluginname', 'customcertelement_' . ($element->element ?? ''));
-        $data->element = $element->element ?? null;
-        $data->data = $element->data ?? null;
-        $data->font = $element->font ?? null;
-        $data->fontsize = $element->fontsize ?? null;
-        $data->colour = $element->colour ?? null;
-        $data->posx = $element->posx ?? null;
-        $data->posy = $element->posy ?? null;
-        $data->width = $element->width ?? null;
-        $data->refpoint = $element->refpoint ?? null;
-        $data->alignment = $element->alignment ?? null;
-
-        if (class_exists($classname)) {
-            return new $classname($data);
-        }
-
-        return false;
     }
 }
