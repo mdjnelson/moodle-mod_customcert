@@ -94,8 +94,7 @@ final class element_factory_shim_test extends advanced_testcase {
 
         $this->assertDebuggingCalled(
             '\mod_customcert\element_factory::get_element_instance() is deprecated since Moodle 5.2. '
-            . 'Use \mod_customcert\service\element_factory::build_with_defaults()->create_from_legacy_record() '
-            . 'or inject \mod_customcert\service\element_factory and call create() / create_from_legacy_record().',
+            . 'Inject \mod_customcert\service\element_factory and call create_from_record() instead.',
             DEBUG_DEVELOPER
         );
     }

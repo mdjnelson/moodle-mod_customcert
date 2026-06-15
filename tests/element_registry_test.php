@@ -123,7 +123,12 @@ final class element_registry_test extends advanced_testcase {
     public function test_registering_legacy_element_class_throws_coding_exception(): void {
         $this->resetAfterTest();
 
+<<<<<<< HEAD
         // Simulate an old-style third-party element plugin that does not implement element_interface.
+=======
+        // \stdClass does NOT implement element_interface — simulates an old-style
+        // third-party element plugin that only extends mod_customcert\element.
+>>>>>>> 4ec8e9d8 (Fix v2 fixtures and unknown_element to implement build_form; update shim test message (#825))
         $classname = \stdClass::class;
 
         $registry = new element_registry();

@@ -20,6 +20,7 @@ namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
 use mod_customcert\service\element_renderer;
+use MoodleQuickForm;
 use pdf;
 use stdClass;
 /**
@@ -31,6 +32,15 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fake_element_fixture extends element {
+    /**
+     * Add element-specific fields to the edit form (no-op in fixture).
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function build_form(MoodleQuickForm $mform): void {
+    }
+
     /**
      * Render the element to PDF (no-op in fixture).
      *

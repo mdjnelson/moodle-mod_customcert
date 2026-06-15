@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use MoodleQuickForm;
 use mod_customcert\service\element_renderer;
 use stdClass;
 
@@ -37,6 +38,15 @@ use stdClass;
  * render() and render_html() are no-ops; all logic under test lives in the base class.
  */
 final class minimal_test_element extends element {
+    /**
+     * Add element-specific fields to the edit form (no-op in fixture).
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function build_form(MoodleQuickForm $mform): void {
+    }
+
     /**
      * Render into TCPDF (no-op).
      *
