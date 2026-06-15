@@ -358,8 +358,6 @@ abstract class element implements
         return null;
     }
 
-    }
-
     /**
      * This defines if an element plugin can be added to a certificate.
      * Can be overridden if an element plugin wants to take over the control.
