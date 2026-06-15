@@ -21,15 +21,13 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use customcertelement_text\element as text_element;
-use mod_customcert\tests\fixtures\legacy_plain_string_element;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
+use mod_customcert\service\persistence_helper;
 use stdClass;
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once(__DIR__ . '/fixtures/legacy_plain_string_element.php');
-
 /**
- * Tests that element data is always stored as JSON, both for new (persistable) and legacy elements.
+ * Tests that element data is always stored as JSON for v2 (persistable) elements.
  *
  * @package    mod_customcert
  * @category   test
@@ -72,97 +70,49 @@ final class persistence_json_test extends advanced_testcase {
     }
 
     /**
-     * Persistable (core) element writes JSON to data.
+     * A v2 persistable element writes JSON to the data column via persistence_helper.
      */
     public function test_persistable_element_writes_json(): void {
         global $DB;
 
         ['pageid' => $pageid] = $this->create_template_and_page();
 
-        // Build form submission for a Text element.
-        $form = new stdClass();
-        $form->name = 'Text';
-        $form->text = 'Hello JSON';
-        $form->posx = 10;
-        $form->posy = 20;
-        $form->refpoint = 1;
-        $form->alignment = 'L';
-        $form->element = 'text';
-        $form->pageid = $pageid;
-
-        // Instantiate the core Text element (persistable) with minimal legacy record.
-        $legacyrecord = (object) [
+        // Build a minimal record for a Text element.
+        $record = (object) [
             'id' => null,
             'pageid' => $pageid,
             'name' => 'Text',
+            'element' => 'text',
             'data' => null,
-            'posx' => null,
-            'posy' => null,
-            'refpoint' => null,
-            'alignment' => null,
+            'posx' => 10,
+            'posy' => 20,
+            'refpoint' => 1,
+            'alignment' => 'L',
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'width' => null,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
         ];
-        $el = new text_element($legacyrecord);
 
-        // This path intentionally exercises the legacy save_form_elements() in the base class,
-        // which emits a deprecation debugging() notice. Assert it explicitly so the test output
-        // documents the intent and CI does not treat it as an unexpected notice.
-        $newid = $el->save_form_elements($form);
-        // Assert the deprecation was triggered. The message may include guidance text; match by substring.
-        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
-        $this->assertIsNumeric($newid);
+        // Insert the element record directly.
+        $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
-        $row = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
+        // Use persistence_helper to produce JSON from a form submission.
+        $el = new text_element($record);
+        $form = new stdClass();
+        $form->text = 'Hello JSON';
+        $json = persistence_helper::to_json_data($el, $form);
+
+        // Write it back.
+        $DB->set_field('customcert_elements', 'data', $json, ['id' => $record->id]);
+
+        $row = $DB->get_record('customcert_elements', ['id' => $record->id], '*', MUST_EXIST);
         $this->assertIsString($row->data);
         $decoded = json_decode($row->data, true);
         $this->assertIsArray($decoded);
         $this->assertSame('Hello JSON', $decoded['text'] ?? null);
-        // Visual fields (font, fontsize, colour, width) are no longer stored as separate columns
-        // and may not be present in the JSON payload for text; assert core content only.
-    }
-
-    /**
-     * Legacy elements (non-persistable) are JSON-encoded via fallback logic.
-     */
-    public function test_legacy_element_fallback_json_encoding(): void {
-        global $DB;
-
-        ['pageid' => $pageid] = $this->create_template_and_page();
-
-        // Minimal anonymous legacy element: returns a plain string from save_unique_data().
-        $legacyrecord = (object) [
-            'id' => null,
-            'pageid' => $pageid,
-            'name' => 'LegacyPlain',
-            'data' => null,
-            'posx' => null,
-            'posy' => null,
-            'refpoint' => null,
-            'alignment' => null,
-        ];
-
-        $legacy = new legacy_plain_string_element($legacyrecord);
-
-        $form = (object) [
-            'name' => 'LegacyPlain',
-            'element' => 'legacyplain',
-            'pageid' => $pageid,
-            'posx' => 5,
-            'posy' => 6,
-            'refpoint' => 1,
-            'alignment' => 'L',
-        ];
-
-        // This anonymous legacy element uses the legacy save path which emits two deprecation
-        // debugging() messages: one for save_form_elements() and one for save_unique_data().
-        $newid = $legacy->save_form_elements($form);
-        // Assert both deprecation notices were triggered.
-        $this->assertDebuggingCalledCount(2);
-        $this->assertIsNumeric($newid);
-
-        $row = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
-        $this->assertIsString($row->data);
-        $decoded = json_decode($row->data, true);
-        $this->assertIsArray($decoded, 'Expected JSON-encoded fallback for legacy element');
-        $this->assertSame('plainstring', $decoded['value'] ?? null);
     }
 }
