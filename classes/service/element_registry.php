@@ -43,9 +43,9 @@ final class element_registry {
      * Register a class for a given element type key.
      *
      * As of Moodle 5.3 the legacy customcert element API compatibility layer has been removed.
-     * The registered class must implement element_interface (and therefore form_element_interface
-     * and renderable_element_interface). Classes that only extend mod_customcert\element without
-     * implementing element_interface will be rejected with a clear developer-facing exception.
+     * The registered class must implement element_interface, form_element_interface, and
+     * renderable_element_interface. Classes that do not implement these interfaces will be
+     * rejected with a clear developer-facing exception.
      *
      * @param string $type
      * @param string $class Must implement element_interface, form_element_interface and renderable_element_interface
