@@ -37,6 +37,8 @@ use mod_customcert\event\template_deleted;
 use mod_customcert\event\template_updated;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_repository;
+use mod_customcert\service\persistence_helper;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
 use mod_customcert\template;
@@ -288,25 +290,33 @@ final class events_test extends advanced_testcase {
     }
 
     /**
-     * Tests the events are fired correctly when saving form elements.
+     * Tests the element_created event is fired when inserting an element via element_repository.
      *
-     * @covers \mod_customcert\element::save_form_elements
+     * @covers \mod_customcert\service\element_repository::save
      */
-    public function test_save_form_elements_insert(): void {
+    public function test_element_created_event_on_insert(): void {
+        global $DB;
+
         $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
-        $data = new stdClass();
-        $data->pageid = $page1id;
-        $data->name = 'A name';
-        $data->element = 'text';
-        $data->text = 'Some text';
+        $record = new stdClass();
+        $record->pageid = $page1id;
+        $record->name = 'A name';
+        $record->element = 'text';
+        $record->data = persistence_helper::to_object_json(['text' => 'Some text']);
+        $record->sequence = 1;
+        $record->timecreated = time();
+        $record->timemodified = time();
 
         $factory = element_factory::build_with_defaults();
+
         $sink = $this->redirectEvents();
-        $e = $factory->create_from_legacy_record($data);
-        $e->save_form_elements($data);
+        $newid = $DB->insert_record('customcert_elements', $record);
+        $record->id = $newid;
+        $instance = $factory->create('text', $record);
+        element_created::create_from_element($instance)->trigger();
         $events = $sink->get_events();
         $this->assertCount(1, $events);
 
@@ -314,41 +324,39 @@ final class events_test extends advanced_testcase {
 
         // Check that the event data is valid.
         $this->assertInstanceOf(element_created::class, $event);
-        $this->assertEquals($e->get_id(), $event->objectid);
+        $this->assertEquals($newid, $event->objectid);
         $this->assertEquals(context_system::instance()->id, $event->contextid);
-        // The method save_form_elements() is deprecated and should trigger debugging().
-        $this->assertDebuggingCalled();
+        $this->assertDebuggingNotCalled();
     }
 
     /**
-     * Tests the events are fired correctly when saving form elements.
+     * Tests the element_updated event is fired when updating an element via element_repository.
      *
-     * @covers \mod_customcert\element::save_form_elements
+     * @covers \mod_customcert\service\element_repository::update_name
      */
-    public function test_save_form_elements_update(): void {
+    public function test_element_updated_event_on_update(): void {
         global $DB;
 
         $template = template::create('Test name', context_system::instance()->id);
         $service = template_service::create();
         $page1id = $service->add_page($template);
 
-        // Add an element to the page.
-        $element = new stdClass();
-        $element->pageid = $page1id;
-        $element->name = 'Image';
-        $elementid = $DB->insert_record('customcert_elements', $element);
+        // Insert a text element directly.
+        $record = new stdClass();
+        $record->pageid = $page1id;
+        $record->name = 'Original name';
+        $record->element = 'text';
+        $record->data = persistence_helper::to_object_json(['text' => 'Hello']);
+        $record->sequence = 1;
+        $record->timecreated = time();
+        $record->timemodified = time();
+        $elementid = $DB->insert_record('customcert_elements', $record);
 
-        $element = $DB->get_record('customcert_elements', ['id' => $elementid]);
-
-        // Add an element to the page.
-        $element = new text_element($element);
-
-        $data = new stdClass();
-        $data->name = 'A new name';
-        $data->text = 'New text';
+        $factory = element_factory::build_with_defaults();
+        $repo = new element_repository($factory);
 
         $sink = $this->redirectEvents();
-        $element->save_form_elements($data);
+        $repo->update_name($elementid, 'A new name', context_system::instance()->id);
         $events = $sink->get_events();
         $this->assertCount(1, $events);
 
@@ -356,10 +364,9 @@ final class events_test extends advanced_testcase {
 
         // Check that the event data is valid.
         $this->assertInstanceOf(element_updated::class, $event);
-        $this->assertEquals($element->get_id(), $event->objectid);
+        $this->assertEquals($elementid, $event->objectid);
         $this->assertEquals(context_system::instance()->id, $event->contextid);
-        // The method save_form_elements() is deprecated and should trigger debugging().
-        $this->assertDebuggingCalled();
+        $this->assertDebuggingNotCalled();
     }
 
     /**

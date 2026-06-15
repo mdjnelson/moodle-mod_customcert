@@ -61,7 +61,7 @@ final class form_handling_test extends advanced_testcase {
         ];
         set_config('showposxy', 1, 'customcert');
         $factory = element_factory::build_with_defaults();
-        $element = $factory->create_from_legacy_record($elementdata);
+        $element = $factory->create_from_record($elementdata);
         $this->assertNotNull($element);
 
         $validationservice = new validation_service();

@@ -19,16 +19,13 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use advanced_testcase;
-use mod_customcert\element as legacy_base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\service\persistence_helper;
-use mod_customcert\tests\fixtures\legacy_plain_string_element;
 use mod_customcert\tests\fixtures\minimal_persistable_element;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/fixtures/legacy_plain_string_element.php');
 require_once(__DIR__ . '/fixtures/minimal_persistable_element.php');
 
 /**
@@ -105,22 +102,5 @@ final class persistence_helper_test extends advanced_testcase {
         $decoded = json_decode($json, true);
         $this->assertIsArray($decoded);
         $this->assertSame('Hello helper', $decoded['value'] ?? null);
-    }
-
-    /**
-     * Legacy elements should be JSON-encoded with a value envelope when returning a scalar string.
-     */
-    public function test_legacy_path_scalar_string_is_wrapped(): void {
-        $this->resetAfterTest();
-
-        // Anonymous legacy element that returns a plain string.
-        $legacy = new legacy_plain_string_element((object)['id' => null, 'pageid' => 0, 'name' => 'L', 'data' => null]);
-
-        $form = new stdClass();
-        $json = persistence_helper::to_json_data($legacy, $form);
-        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
-        $decoded = json_decode($json, true);
-        $this->assertIsArray($decoded);
-        $this->assertSame('plainstring', $decoded['value'] ?? null);
     }
 }
