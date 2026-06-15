@@ -132,7 +132,7 @@ if ($data = $mform->get_data()) {
     }
 
     // Get an instance of the element class.
-    $elementinstance = $factory->create_from_legacy_record($data);
+    $elementinstance = $factory->create_from_record($data);
     if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();

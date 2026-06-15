@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.3.0] - Unreleased
+
+### Breaking changes
+
+- **Removed legacy customcert element API compatibility layer** (#825). Third-party element plugins must now implement the Element System v2 interfaces introduced in 5.2. Legacy hooks retained for the 5.2 transition are no longer called. Element classes that do not implement `element_interface`, `form_element_interface`, and `renderable_element_interface` will be rejected at registration time with a clear developer-facing exception.
+
+#### Migration guide
+
+| Legacy behavior | 5.3 replacement |
+|---|---|
+| Legacy element identity/data methods | `element_interface` |
+| Legacy edit form hooks (`render_form_elements`) | `form_element_interface` |
+| Legacy form preparation (`definition_after_data`) | `preparable_form_interface` |
+| Legacy rendering hooks (`render_html`, `render_pdf`) | `renderable_element_interface` |
+| Legacy style/font/colour handling | `stylable_element_interface` and normalized payload data |
+| Legacy layout handling | `layout_element_interface` and repository-managed layout fields |
+| Legacy save/load hooks (`save_unique_data`, `save_form_elements`) | `persistable_element_interface` |
+| Legacy validation hooks (`validate_form_elements`) | `validatable_element_interface` |
+| Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
+| Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
+
 ## [5.2.2] - 2026-06-10
 
 ### Security

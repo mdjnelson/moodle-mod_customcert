@@ -115,14 +115,14 @@ class external extends external_api {
 
         // Instantiate the element via the factory so element-specific normalisation is applied.
         $factory = element_factory::build_with_defaults();
-        $instance = $factory->create_from_legacy_record((object)(array)$record);
+        $instance = $factory->create_from_record((object)(array)$record);
         if (!$instance) {
             throw new moodle_exception('invalidelementtype', 'customcert');
         }
         $record->data = persistence_helper::to_json_data($instance, (object)(array)$record);
 
         // Create the final instance from the normalised record and persist.
-        $instance = $factory->create_from_legacy_record($record);
+        $instance = $factory->create_from_record($record);
         $layout = element_layout::from_record($record);
         $elementrepo->save($instance, $layout);
 
@@ -184,7 +184,7 @@ class external extends external_api {
 
         // Get an instance of the element class.
         $factory = element_factory::build_with_defaults();
-        if ($e = $factory->create_from_legacy_record($element)) {
+        if ($e = $factory->create_from_record($element)) {
             return $e->render_html();
         }
 
