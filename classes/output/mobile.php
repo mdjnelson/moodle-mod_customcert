@@ -27,7 +27,6 @@ namespace mod_customcert\output;
 use context;
 use context_module;
 use core_external\util;
-use mod_customcert\certificate;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\certificate_time_service;
 use moodle_url;
