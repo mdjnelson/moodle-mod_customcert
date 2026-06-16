@@ -17,7 +17,6 @@
 namespace mod_customcert\service;
 
 use core\task\manager;
-use mod_customcert\certificate;
 use mod_customcert\task\email_certificate_task;
 use context_module;
 use core_availability\info_module;

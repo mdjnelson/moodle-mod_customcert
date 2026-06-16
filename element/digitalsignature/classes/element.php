@@ -29,7 +29,6 @@ namespace customcertelement_digitalsignature;
 use context_course;
 use context_system;
 use core_collator;
-use mod_customcert\certificate;
 use mod_customcert\service\form_service;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\validatable_element_interface;
