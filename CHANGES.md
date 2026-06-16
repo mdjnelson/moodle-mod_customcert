@@ -8,6 +8,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Breaking changes
 
+- **Removed deprecated `mod_customcert\certificate` facade class** (#826). Use the focused certificate services and repositories instead: `form_service`, `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`, `certificate_repository`, and `certificate_issue_service`.
+- **Removed deprecated forwarding shims from `mod_customcert\template`** (#826). Use `template_service` and `pdf_generation_service` directly instead of the deprecated instance methods (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`, `copy_to_template`, `move_item`).
 - **Removed legacy customcert element API compatibility layer** (#825). Third-party element plugins must now implement the Element System v2 interfaces introduced in 5.2. Legacy hooks retained for the 5.2 transition are no longer called. Element classes that do not implement `element_interface`, `form_element_interface`, and `renderable_element_interface` will be rejected at registration time with a clear developer-facing exception.
 
 #### Migration guide
