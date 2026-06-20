@@ -6,6 +6,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.2.3] - Unreleased
 
+### Added
+
 - Added new **Group name** element that displays the name of the group(s) a student belongs to in the course (#155).
 
 ## [5.2.2] - 2026-06-10
