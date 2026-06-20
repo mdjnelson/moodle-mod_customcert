@@ -253,6 +253,26 @@ Feature: Being able to manage elements in a certificate template
       | Width                    | 20                      |
       | Reference point location | Top left                |
     And I press "Save changes"
+    # Group name.
+    And I add the element "Group name" to page "1" of the "Custom certificate 1" certificate template
+    And I set the following fields to these values:
+      | Element name             | My group name |
+      | Font                     | Helvetica     |
+      | Size                     | 20            |
+      | Colour                   | #045ECD       |
+      | Width                    | 20            |
+      | Reference point location | Top left      |
+    And I press "Save changes"
+    And I should see "My group name" in the "elementstable" "table"
+    And I click on ".edit-icon" "css_element" in the "My group name" "table_row"
+    And the following fields match these values:
+      | Element name             | My group name |
+      | Font                     | Helvetica     |
+      | Size                     | 20            |
+      | Colour                   | #045ECD       |
+      | Width                    | 20            |
+      | Reference point location | Top left      |
+    And I press "Save changes"
     # Image.
     And I add the element "Image" to page "1" of the "Custom certificate 1" certificate template
     And I set the following fields to these values:
