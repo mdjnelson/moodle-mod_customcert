@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.3.0] - Unreleased
 
+### Added
+
+- Added new **Group name** element that displays the name of the group(s) a student belongs to in the course (#155).
+
 ### Developer notes
 
 - **New `mod_customcert\element\stylable_payload` helper** (#814). Third-party element authors whose elements support the standard visual fields (`font`, `fontsize`, `colour`, `width`) can call `stylable_payload::from_form($formdata)` inside `normalise_data()` and merge the result with any element-specific fields. This avoids duplicating the four-field normalisation logic and ensures consistent type-casting across all text-like elements.
