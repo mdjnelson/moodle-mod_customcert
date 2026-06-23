@@ -169,6 +169,16 @@ final class myelement_payload implements element_payload_interface {
 
 ---
 
+## Element authoring safety guidelines
+
+- Store element-specific data in the JSON payload only. Do not duplicate layout fields such as `posx`, `posy`, `refpoint`, `alignment`, `sequence`, or `pageid` inside payload data.
+- Use `stylable_payload` for the standard visual fields: `font`, `fontsize`, `colour`, and `width`.
+- Do not load or mutate elements by raw `elementid` in request-facing code. Resolve the owning template/page first and use scoped repository helpers such as `get_for_template_or_fail()`.
+- Treat `elementid`, `pageid`, and `templateid` request parameters as untrusted. Always verify ownership before editing, moving, deleting, or rendering private/admin-only data.
+- Legacy element hooks are migration-only. New elements should implement the Element System v2 interfaces described above.
+
+---
+
 ## Backward compatibility
 
 - Existing JSON stored in `customcert_elements.data` is unaffected. `from_array()` is
