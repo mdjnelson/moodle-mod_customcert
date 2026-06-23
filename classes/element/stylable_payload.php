@@ -21,7 +21,7 @@ namespace mod_customcert\element;
 use stdClass;
 
 /**
- * Helper for normalising the standard style payload fields shared by text-like elements.
+ * Immutable value object for the standard visual style fields shared by text-like elements.
  *
  * Text-like elements (text, code, date, grade, studentname, teachername, coursename,
  * categoryname, userfield, coursefield, gradeitemname, expiry, etc.) all store the same
@@ -32,8 +32,9 @@ use stdClass;
  *   colour   - hex colour string (string)
  *   width    - text-box width in mm (int)
  *
- * Call {@see stylable_payload::from_form()} inside `normalise_data()` and merge the
- * result with any element-specific fields to avoid duplicating this logic.
+ * Use {@see stylable_payload::from_form()} inside `normalise_data()` and compose it
+ * into a typed payload class, or call `->to_array()` to merge with element-specific
+ * fields for direct array return.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
@@ -41,30 +42,68 @@ use stdClass;
  */
 final class stylable_payload {
     /**
-     * Extract and normalise the four standard style fields from form submission data.
+     * Construct a stylable_payload with the given style field values.
      *
-     * Returns an array with exactly the keys `font`, `fontsize`, `colour`, and `width`,
-     * cast to their canonical types. Merge this with element-specific fields inside
-     * `normalise_data()`:
-     *
-     * ```php
-     * public function normalise_data(stdClass $formdata): array {
-     *     return array_merge(
-     *         ['myfield' => (string)($formdata->myfield ?? '')],
-     *         stylable_payload::from_form($formdata),
-     *     );
-     * }
-     * ```
+     * @param string $font Font family name.
+     * @param int $fontsize Font size in points.
+     * @param string $colour Hex colour string (without leading #).
+     * @param int $width Text-box width in mm.
+     */
+    public function __construct(
+        /** @var string Font family name. */
+        public readonly string $font,
+        /** @var int Font size in points. */
+        public readonly int $fontsize,
+        /** @var string Hex colour string (without leading #). */
+        public readonly string $colour,
+        /** @var int Text-box width in mm. */
+        public readonly int $width,
+    ) {
+    }
+
+    /**
+     * Construct a stylable_payload from form submission data.
      *
      * @param stdClass $formdata Raw form submission data.
+     * @return static
+     */
+    public static function from_form(stdClass $formdata): static {
+        return new static(
+            font: (string)($formdata->font ?? ''),
+            fontsize: (int)($formdata->fontsize ?? 0),
+            colour: (string)($formdata->colour ?? ''),
+            width: (int)($formdata->width ?? 0),
+        );
+    }
+
+    /**
+     * Construct a stylable_payload from a decoded data array.
+     *
+     * Missing keys receive safe defaults; values are cast to their canonical types.
+     *
+     * @param array $data Associative array, typically from json_decode($raw, true).
+     * @return static
+     */
+    public static function from_array(array $data): static {
+        return new static(
+            font: (string)($data['font'] ?? ''),
+            fontsize: (int)($data['fontsize'] ?? 0),
+            colour: (string)($data['colour'] ?? ''),
+            width: (int)($data['width'] ?? 0),
+        );
+    }
+
+    /**
+     * Serialize the style fields to an associative array suitable for json_encode().
+     *
      * @return array{font:string,fontsize:int,colour:string,width:int}
      */
-    public static function from_form(stdClass $formdata): array {
+    public function to_array(): array {
         return [
-            'font' => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour' => (string)($formdata->colour ?? ''),
-            'width' => (int)($formdata->width ?? 0),
+            'font' => $this->font,
+            'fontsize' => $this->fontsize,
+            'colour' => $this->colour,
+            'width' => $this->width,
         ];
     }
 }
