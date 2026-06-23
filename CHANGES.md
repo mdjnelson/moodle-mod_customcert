@@ -8,8 +8,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Developer notes
 
-- **New `mod_customcert\element\stylable_payload` helper** (#814). Third-party element authors whose elements support the standard visual fields (`font`, `fontsize`, `colour`, `width`) can call `stylable_payload::from_form($formdata)` inside `normalise_data()` and merge the result with any element-specific fields. This avoids duplicating the four-field normalisation logic and ensures consistent type-casting across all text-like elements.
-- **New `mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class to give element data a clear PHP-side contract (known keys, canonical types, explicit validation). The database continues to store JSON; this interface governs the PHP layer only. The `coursename` element ships as the prototype implementation via `customcertelement_coursename\coursename_payload`. See `docs/element_payload_interface.md` for the full guide.
+- **`mod_customcert\element\stylable_payload` is an immutable value object** (#814, #815). `from_form()` and `from_array()` return a `stylable_payload` instance; call `->to_array()` when a plain array is needed.
+- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class to give element data a clear PHP-side contract (known keys, canonical types, explicit validation). The database continues to store JSON; this interface governs the PHP layer only. All bundled elements now ship typed payload classes (e.g. `customcertelement_coursename\coursename_payload`, `customcertelement_date\date_payload`). See `docs/element_payload_interface.md` for the full guide.
 
 ### Breaking changes
 

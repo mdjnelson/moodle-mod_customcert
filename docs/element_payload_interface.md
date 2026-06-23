@@ -47,9 +47,10 @@ class inside:
 
 ---
 
-## Prototype: `coursename_payload`
+## Bundled element payload classes
 
-The `coursename` element ships as the reference implementation.
+All bundled elements ship typed payload classes as of 5.3.0. The `coursename` element
+serves as the reference implementation for elements that compose `stylable_payload`.
 
 **File**: `element/coursename/classes/coursename_payload.php`
 
@@ -57,34 +58,28 @@ The `coursename` element ships as the reference implementation.
 namespace customcertelement_coursename;
 
 use mod_customcert\element\element_payload_interface;
+use mod_customcert\element\stylable_payload;
 
 final class coursename_payload implements element_payload_interface {
     public function __construct(
-        public readonly int    $coursenamedisplay,
-        public readonly string $font,
-        public readonly int    $fontsize,
-        public readonly string $colour,
-        public readonly int    $width,
+        /** @var int One of element::COURSE_FULL_NAME or element::COURSE_SHORT_NAME. */
+        public readonly int $coursenamedisplay,
+        /** @var stylable_payload The four standard visual style fields. */
+        public readonly stylable_payload $style,
     ) {}
 
     public static function from_array(array $data): static {
         return new static(
             coursenamedisplay: (int)($data['coursenamedisplay'] ?? element::COURSE_FULL_NAME),
-            font:              (string)($data['font'] ?? ''),
-            fontsize:          (int)($data['fontsize'] ?? 0),
-            colour:            (string)($data['colour'] ?? ''),
-            width:             (int)($data['width'] ?? 0),
+            style: stylable_payload::from_array($data),
         );
     }
 
     public function to_array(): array {
-        return [
-            'coursenamedisplay' => $this->coursenamedisplay,
-            'font'              => $this->font,
-            'fontsize'          => $this->fontsize,
-            'colour'            => $this->colour,
-            'width'             => $this->width,
-        ];
+        return array_merge(
+            ['coursenamedisplay' => $this->coursenamedisplay],
+            $this->style->to_array(),
+        );
     }
 
     public function validate(): void {
@@ -105,10 +100,7 @@ final class coursename_payload implements element_payload_interface {
 public function normalise_data(stdClass $formdata): array {
     $payload = new coursename_payload(
         coursenamedisplay: (int)($formdata->coursenamedisplay ?? element::COURSE_FULL_NAME),
-        font:              (string)($formdata->font ?? ''),
-        fontsize:          (int)($formdata->fontsize ?? 0),
-        colour:            (string)($formdata->colour ?? ''),
-        width:             (int)($formdata->width ?? 0),
+        style: stylable_payload::from_form($formdata),
     );
     $payload->validate();
     return $payload->to_array();
@@ -124,6 +116,7 @@ $payload = coursename_payload::from_array($decoded ?? []);
 
 // Now use typed properties:
 $mform->setDefault('coursenamedisplay', $payload->coursenamedisplay);
+$mform->setDefault('font', $payload->style->font);
 ```
 
 ---
