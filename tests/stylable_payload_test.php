@@ -43,11 +43,11 @@ final class stylable_payload_test extends advanced_testcase {
         $form->width    = '80';
 
         $result = stylable_payload::from_form($form);
-
-        $this->assertSame('Times', $result['font']);
-        $this->assertSame(14, $result['fontsize']);
-        $this->assertSame('FF0000', $result['colour']);
-        $this->assertSame(80, $result['width']);
+        $this->assertInstanceOf(stylable_payload::class, $result);
+        $this->assertSame('Times', $result->font);
+        $this->assertSame(14, $result->fontsize);
+        $this->assertSame('FF0000', $result->colour);
+        $this->assertSame(80, $result->width);
     }
 
     /**
@@ -55,11 +55,11 @@ final class stylable_payload_test extends advanced_testcase {
      */
     public function test_from_form_defaults_when_fields_missing(): void {
         $result = stylable_payload::from_form(new stdClass());
-
-        $this->assertSame('', $result['font']);
-        $this->assertSame(0, $result['fontsize']);
-        $this->assertSame('', $result['colour']);
-        $this->assertSame(0, $result['width']);
+        $this->assertInstanceOf(stylable_payload::class, $result);
+        $this->assertSame('', $result->font);
+        $this->assertSame(0, $result->fontsize);
+        $this->assertSame('', $result->colour);
+        $this->assertSame(0, $result->width);
     }
 
     /**
@@ -67,7 +67,50 @@ final class stylable_payload_test extends advanced_testcase {
      */
     public function test_from_form_returns_exactly_four_keys(): void {
         $result = stylable_payload::from_form(new stdClass());
-        $this->assertSame(['font', 'fontsize', 'colour', 'width'], array_keys($result));
+        $this->assertSame(['font', 'fontsize', 'colour', 'width'], array_keys($result->to_array()));
+    }
+
+    /**
+     * stylable_payload::from_array() populates all four fields with correct types.
+     */
+    public function test_from_array_returns_all_fields(): void {
+        $result = stylable_payload::from_array([
+            'font'     => 'Times',
+            'fontsize' => '14',
+            'colour'   => 'FF0000',
+            'width'    => '80',
+        ]);
+        $this->assertInstanceOf(stylable_payload::class, $result);
+        $this->assertSame('Times', $result->font);
+        $this->assertSame(14, $result->fontsize);
+        $this->assertSame('FF0000', $result->colour);
+        $this->assertSame(80, $result->width);
+    }
+
+    /**
+     * stylable_payload::from_array() uses safe defaults when the array is empty.
+     */
+    public function test_from_array_defaults_on_empty(): void {
+        $result = stylable_payload::from_array([]);
+        $this->assertInstanceOf(stylable_payload::class, $result);
+        $this->assertSame('', $result->font);
+        $this->assertSame(0, $result->fontsize);
+        $this->assertSame('', $result->colour);
+        $this->assertSame(0, $result->width);
+    }
+
+    /**
+     * stylable_payload round-trips cleanly through from_array() and to_array().
+     */
+    public function test_round_trip(): void {
+        $original = [
+            'font'     => 'Helvetica',
+            'fontsize' => 12,
+            'colour'   => '000000',
+            'width'    => 100,
+        ];
+        $result = stylable_payload::from_array($original);
+        $this->assertSame($original, $result->to_array());
     }
 
     /**
