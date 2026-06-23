@@ -40,6 +40,7 @@ use MoodleQuickForm;
 use pdf;
 use stdClass;
 use user_picture;
+use customcertelement_userpicture\userpicture_payload;
 
 /**
  * The customcert element userpicture's core interaction API.
@@ -76,10 +77,11 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return [
-            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
-            'height' => isset($formdata->height) ? (int)$formdata->height : 0,
-        ];
+        $payload = new userpicture_payload(
+            width: isset($formdata->width) ? (int)$formdata->width : 0,
+            height: isset($formdata->height) ? (int)$formdata->height : 0,
+        );
+        return $payload->to_array();
     }
 
     /**
