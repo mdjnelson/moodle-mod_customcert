@@ -212,7 +212,7 @@ function mod_customcert_output_fragment_editelement($args) {
  * @param navigation_node $customcertnode
  */
 function customcert_extend_settings_navigation(settings_navigation $settings, navigation_node $customcertnode) {
-    navigation_callbacks::extend_settings_navigation($settings, $customcertnode);
+    return navigation_callbacks::extend_settings_navigation($settings, $customcertnode);
 }
 
 /**
