@@ -60,6 +60,7 @@ final class lib_test extends advanced_testcase {
      * Tests apply_runtime_language() with valid and invalid languages.
      *
      * @covers ::mod_customcert_apply_runtime_language
+     * @covers \mod_customcert\callback\feature_callbacks::apply_runtime_language
      */
     public function test_mod_customcert_apply_runtime_language(): void {
         global $USER;
@@ -86,6 +87,7 @@ final class lib_test extends advanced_testcase {
      * Test get language to use certificate language.
      *
      * @covers ::mod_customcert_get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
      */
     public function test_get_language_to_use_precedence_cert_forced(): void {
         global $USER;
@@ -109,6 +111,7 @@ final class lib_test extends advanced_testcase {
      * Test get language to use course language.
      *
      * @covers ::mod_customcert_get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
      */
     public function test_get_language_to_use_precedence_course_when_cert_empty(): void {
         global $USER;
@@ -132,6 +135,7 @@ final class lib_test extends advanced_testcase {
      * Test what language to use when cert and course is empty.
      *
      * @covers ::mod_customcert_get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
      */
     public function test_get_language_to_use_user_when_cert_and_course_empty(): void {
         global $USER;
@@ -155,6 +159,7 @@ final class lib_test extends advanced_testcase {
      * Test that site default is used when everything else is empty.
      *
      * @covers ::mod_customcert_get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
      */
     public function test_get_language_to_use_site_default_when_all_empty(): void {
         global $CFG, $USER;
@@ -176,6 +181,7 @@ final class lib_test extends advanced_testcase {
      * Test that we use the global user when user is not passed.
      *
      * @covers ::mod_customcert_get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
      */
     public function test_get_language_to_use_defaults_to_global_user_when_user_null(): void {
         global $USER;
@@ -197,6 +203,7 @@ final class lib_test extends advanced_testcase {
      * Test we do not switch language if it is already active.
      *
      * @covers ::mod_customcert_apply_runtime_language
+     * @covers \mod_customcert\callback\feature_callbacks::apply_runtime_language
      */
     public function test_apply_runtime_language_noop_for_same_language(): void {
         $this->resetAfterTest();
@@ -211,6 +218,7 @@ final class lib_test extends advanced_testcase {
      * Test we do not switch language if it is invalid.
      *
      * @covers ::mod_customcert_apply_runtime_language
+     * @covers \mod_customcert\callback\feature_callbacks::apply_runtime_language
      */
     public function test_apply_runtime_language_invalid_code_is_ignored(): void {
         $this->resetAfterTest();
@@ -226,6 +234,7 @@ final class lib_test extends advanced_testcase {
      * Test we switch and can restore language successfully.
      *
      * @covers ::mod_customcert_apply_runtime_language
+     * @covers \mod_customcert\callback\feature_callbacks::apply_runtime_language
      */
     public function test_apply_runtime_language_switch_and_restore(): void {
         $this->resetAfterTest();
@@ -253,6 +262,8 @@ final class lib_test extends advanced_testcase {
      *
      * @covers ::mod_customcert_get_language_to_use
      * @covers ::mod_customcert_apply_runtime_language
+     * @covers \mod_customcert\callback\feature_callbacks::get_language_to_use
+     * @covers \mod_customcert\callback\feature_callbacks::apply_runtime_language
      */
     public function test_resolve_returns_uninstalled_code_but_apply_refuses(): void {
         $this->resetAfterTest();
@@ -333,6 +344,7 @@ final class lib_test extends advanced_testcase {
      * belongs to a different template (cross-template access attempt).
      *
      * @covers ::mod_customcert_output_fragment_editelement
+     * @covers \mod_customcert\callback\ajax_callbacks::output_fragment_editelement
      */
     public function test_output_fragment_editelement_cross_template_denied(): void {
         $this->setAdminUser();
@@ -361,6 +373,7 @@ final class lib_test extends advanced_testcase {
      * belongs to the supplied template.
      *
      * @covers ::mod_customcert_output_fragment_editelement
+     * @covers \mod_customcert\callback\ajax_callbacks::output_fragment_editelement
      */
     public function test_output_fragment_editelement_same_template_allowed(): void {
         $this->setAdminUser();
