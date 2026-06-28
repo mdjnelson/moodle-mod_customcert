@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/ateeducacion/moodle-playground/refs/heads/main/assets/blueprints/blueprint-schema.json",
   "preferredVersions": {
     "php": "8.3",
-    "moodle": "5.2"
+    "moodle": "5.3"
   },
   "landingPage": "/course/view.php?id=2",
   "constants": {
