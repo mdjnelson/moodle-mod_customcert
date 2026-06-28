@@ -2,6 +2,16 @@
 
 This activity allows dynamic generation of PDF certificates with full customisation in your browser.
 
+## Try in Moodle Playground
+
+Click the badge below to open the `main` branch instantly in [Moodle Playground](https://moodle-playground.com) with `mod_customcert` pre-installed. The playground boots a full Moodle site with a demo course (`CCERTDEMO01`) containing a preloaded certificate activity, so you can immediately edit the template, issue and download a PDF — no local setup required.
+
+<a href="https://moodle-playground.com/?blueprint-url=https://raw.githubusercontent.com/mdjnelson/moodle-mod_customcert/refs/heads/main/blueprint.json" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/ateeducacion/action-moodle-playground-pr-preview/refs/heads/main/assets/playground-preview-button.svg" alt="Preview in Moodle Playground" width="200"></a>
+
+The PR preview links are produced by the [ateeducacion/action-moodle-playground-pr-preview](https://github.com/ateeducacion/action-moodle-playground-pr-preview) GitHub Action, configured via `blueprint.json` at the repository root. The action installs the plugin in a fresh Moodle instance and appends a preview link to each pull request so reviewers can test the changes live.
+
+Automatic PR previews are generated only for same-repository pull requests. Forked pull requests are intentionally skipped because publishing the preview requires write access through `GITHUB_TOKEN`, and granting write-capable credentials to untrusted fork workflows would be unsafe.
+
 ## Requirements
 
 - A supported Moodle version (use the plugin release/branch that matches your Moodle version).

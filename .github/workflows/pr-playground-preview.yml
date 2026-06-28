@@ -1,0 +1,29 @@
+---
+name: PR Playground Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: playground-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  playground-preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: ateeducacion/action-moodle-playground-pr-preview@bfa63e4863a8cf9d6ac9394bd83f8669000dfd51
+        with:
+          blueprint-file: blueprint.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
