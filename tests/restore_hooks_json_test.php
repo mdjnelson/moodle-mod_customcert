@@ -134,15 +134,14 @@ final class restore_hooks_json_test extends advanced_testcase {
     }
 
     /**
-     * A plain element that does not override after_restore() should not trigger any
-     * deprecation debugging when the restore task processes it.
+     * A plain element that does not implement restorable_element_interface should not
+     * trigger any debugging when the restore task processes it.
      */
     public function test_non_restorable_element_does_not_trigger_debugging(): void {
         global $DB;
         $pageid = $this->create_template_and_page();
 
-        // The 'text' element does not implement restorable_element_interface and does not
-        // override after_restore(), so no deprecation should be emitted.
+        // The 'text' element does not implement restorable_element_interface, so no debugging should be emitted.
         $this->insert_element($pageid, 'text', 'Plain text', [
             'text' => 'Hello world',
         ]);
@@ -154,10 +153,11 @@ final class restore_hooks_json_test extends advanced_testcase {
         $restoreid = 'rid-' . uniqid();
         $task = $this->make_restore_task($restoreid, 0, $customcertid);
 
-        // Exercise the real production path: task loops elements and uses has_legacy_after_restore_override().
+        // Exercise the real production path: task loops elements and calls after_restore_from_backup()
+        // only on elements implementing restorable_element_interface.
         $this->resetDebugging();
         $task->after_restore();
-        // No debugging should have been emitted because text element has no after_restore() override.
+        // No debugging should have been emitted because text element does not implement restorable_element_interface.
         $this->assertDebuggingNotCalled();
     }
 
@@ -208,7 +208,7 @@ final class restore_hooks_json_test extends advanced_testcase {
         // Instantiate element object and interface.
         $factory = element_factory::build_with_defaults();
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = $factory->create_from_legacy_record($legacy);
+        $obj = $factory->create_from_record($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         // Create a fake restore mapping: map old cm id 456 -> new 999.
@@ -241,7 +241,7 @@ final class restore_hooks_json_test extends advanced_testcase {
 
         $factory = element_factory::build_with_defaults();
         $legacy = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
-        $obj = $factory->create_from_legacy_record($legacy);
+        $obj = $factory->create_from_record($legacy);
         $this->assertInstanceOf(restorable_element_interface::class, $obj);
 
         $restoreid = 'rid-' . uniqid();

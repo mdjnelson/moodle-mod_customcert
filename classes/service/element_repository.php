@@ -30,10 +30,8 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\unknown_element;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_layout;
 use mod_customcert\local\ordering;
@@ -41,7 +39,6 @@ use mod_customcert\event\element_created;
 use mod_customcert\service\element_factory;
 use mod_customcert\event\element_deleted;
 use mod_customcert\event\element_updated;
-use ReflectionMethod;
 use stdClass;
 
 /**
@@ -134,6 +131,29 @@ final class element_repository {
     }
 
     /**
+     * Load a single element record by id, verifying it belongs to the given template.
+     *
+     * Throws if the element does not exist or belongs to a different template.
+     *
+     * @param int $templateid
+     * @param int $elementid
+     * @return stdClass
+     * @throws \dml_missing_record_exception When the element does not exist or belongs to a different template.
+     * @throws \dml_exception For database errors.
+     */
+    public function get_for_template_or_fail(int $templateid, int $elementid): stdClass {
+        global $DB;
+
+        $sql = 'SELECT e.*
+                  FROM {customcert_elements} e
+                  JOIN {customcert_pages} p ON p.id = e.pageid
+                 WHERE e.id = :elementid
+                   AND p.templateid = :templateid';
+
+        return $DB->get_record_sql($sql, ['elementid' => $elementid, 'templateid' => $templateid], MUST_EXIST);
+    }
+
+    /**
      * Load elements for a given page id.
      *
      * @param int $pageid
@@ -205,8 +225,6 @@ final class element_repository {
         $record->timemodified = time();
 
         // Persist data exactly as provided by the element implementation.
-        // BC: legacy elements are wrapped via legacy_element_adapter, but their
-        // get_data() remains compatible with DB storage expectations.
         $record->data = $element->get_data();
 
         $DB->update_record('customcert_elements', $record);
@@ -257,26 +275,10 @@ final class element_repository {
             // Give the element a chance to handle any unique data copying.
             $newelement->id = $newid;
             $instance = $this->factory->create($e->element, $newelement);
-            $inner = $instance;
-            if ($instance instanceof legacy_element_adapter) {
-                $inner = $instance->get_inner();
-            }
 
             // If the element implements copyable_element_interface, delegate to copy_from().
-            if ($inner instanceof \mod_customcert\element\copyable_element_interface) {
-                if (!$inner->copy_from($e)) {
-                    $this->delete($instance);
-                    continue;
-                }
-            } else if (self::has_legacy_copy_override($inner)) {
-                // Back-compat: only call the legacy hook when the concrete class actually overrides it.
-                debugging(
-                    'copy_element() is deprecated since Moodle 5.2. '
-                    . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
-                    DEBUG_DEVELOPER
-                );
-                $copyresult = $inner->copy_element($e);
-                if ($copyresult === false) {
+            if ($instance instanceof \mod_customcert\element\copyable_element_interface) {
+                if (!$instance->copy_from($e)) {
                     $this->delete($instance);
                     continue;
                 }
@@ -396,20 +398,5 @@ final class element_repository {
         element_created::create_from_element($created)->trigger();
 
         return $record->id;
-    }
-
-    /**
-     * Returns true only when the given element instance has a concrete override of copy_element()
-     * that is not merely the no-op base implementation on mod_customcert\element.
-     *
-     * @param object $element Element instance to inspect.
-     * @return bool
-     */
-    private static function has_legacy_copy_override(object $element): bool {
-        if (!method_exists($element, 'copy_element')) {
-            return false;
-        }
-        $ref = new ReflectionMethod($element, 'copy_element');
-        return $ref->getDeclaringClass()->getName() !== element::class;
     }
 }

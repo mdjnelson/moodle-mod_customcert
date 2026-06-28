@@ -32,6 +32,8 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use customcertelement_coursename\coursename_payload;
+use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -114,14 +116,12 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        // Store selection in a consistent JSON structure.
-        return [
-            'coursenamedisplay' => isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : 0,
-            'font' => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour' => (string)($formdata->colour ?? ''),
-            'width' => (int)($formdata->width ?? 0),
-        ];
+        $payload = new coursename_payload(
+            coursenamedisplay: isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : self::COURSE_FULL_NAME,
+            style: stylable_payload::from_form($formdata),
+        );
+        $payload->validate();
+        return $payload->to_array();
     }
 
     /**
@@ -183,7 +183,7 @@ class element extends base_element implements
     }
 
     /**
-     * Resolve the selected display field from stored data, handling JSON-wrapped scalars.
+     * Resolve the selected display field from stored data via the typed payload.
      *
      * @return int|null One of COURSE_FULL_NAME or COURSE_SHORT_NAME, or null if not set.
      */
@@ -194,8 +194,8 @@ class element extends base_element implements
         }
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
-            if (is_array($decoded) && array_key_exists('coursenamedisplay', $decoded)) {
-                return (int)$decoded['coursenamedisplay'];
+            if (is_array($decoded)) {
+                return coursename_payload::from_array($decoded)->coursenamedisplay;
             }
         }
         return null;

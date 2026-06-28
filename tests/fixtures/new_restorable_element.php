@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use MoodleQuickForm;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_renderer;
 use pdf;
@@ -36,6 +37,15 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class new_restorable_element extends element implements restorable_element_interface {
+    /**
+     * Add element-specific fields to the edit form (no-op in fixture).
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function build_form(MoodleQuickForm $mform): void {
+    }
+
     /**
      * Flag to track if after_restore_from_backup was called.
      *

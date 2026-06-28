@@ -32,6 +32,8 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
+use mod_customcert\element\stylable_payload;
+use customcertelement_date\date_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
 use MoodleQuickForm;
@@ -130,14 +132,12 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return [
-            'dateitem' => $formdata->dateitem ?? '',
-            'dateformat' => $formdata->dateformat ?? '',
-            'font' => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour' => (string)($formdata->colour ?? ''),
-            'width' => (int)($formdata->width ?? 0),
-        ];
+        $payload = new date_payload(
+            dateitem: (string)($formdata->dateitem ?? ''),
+            dateformat: (string)($formdata->dateformat ?? ''),
+            style: stylable_payload::from_form($formdata),
+        );
+        return $payload->to_array();
     }
 
     /**
@@ -237,20 +237,20 @@ class element extends base_element implements
                     $grade = element_helper::get_course_grade_info(
                         $courseid,
                         GRADE_DISPLAY_TYPE_DEFAULT,
-                        $user->id
+                        (int)$user->id
                     );
                 } else if (strpos($dateitem, 'gradeitem:') === 0) {
                     $gradeitemid = (int)substr($dateitem, 10);
                     $grade = element_helper::get_grade_item_info(
                         $gradeitemid,
-                        $dateitem,
-                        $user->id
+                        GRADE_DISPLAY_TYPE_DEFAULT,
+                        (int)$user->id
                     );
                 } else {
                     $grade = element_helper::get_mod_grade_info(
-                        $dateitem,
+                        (int)$dateitem,
                         GRADE_DISPLAY_TYPE_DEFAULT,
-                        $user->id
+                        (int)$user->id
                     );
                 }
 
@@ -262,7 +262,7 @@ class element extends base_element implements
 
         // Ensure that a date has been set.
         if (!empty($date)) {
-            $content = element_helper::get_date_format_string((int)$date, $dateformat);
+            $content = element_helper::get_date_format_string((int)$date, (string)$dateformat);
             if ($renderer) {
                 $renderer->render_content($this, $content);
             } else {
@@ -290,7 +290,7 @@ class element extends base_element implements
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
 
-        $content = element_helper::get_date_format_string(time(), $dateformat);
+        $content = element_helper::get_date_format_string(time(), (string)$dateformat);
         if ($renderer) {
             return (string) $renderer->render_content($this, $content);
         }

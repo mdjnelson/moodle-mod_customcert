@@ -20,7 +20,9 @@ namespace mod_customcert\element;
 
 use html_writer;
 use mod_customcert\element;
+use mod_customcert\edit_element_form;
 use mod_customcert\service\element_renderer;
+use MoodleQuickForm;
 use pdf;
 use stdClass;
 
@@ -32,7 +34,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class unknown_element extends element implements element_interface, renderable_element_interface {
+final class unknown_element extends element implements element_interface, form_element_interface, renderable_element_interface {
     /** @var string */
     private string $unknowntype;
 
@@ -45,6 +47,34 @@ final class unknown_element extends element implements element_interface, render
     public function __construct(stdClass $record, string $unknowntype) {
         parent::__construct($record);
         $this->unknowntype = $unknowntype;
+    }
+
+    /**
+     * No-op form builder — unknown elements have no editable fields.
+     *
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function build_form(MoodleQuickForm $mform): void {
+    }
+
+    /**
+     * No-op — unknown elements do not use an edit form.
+     *
+     * @param edit_element_form $editelementform
+     * @return void
+     */
+    public function set_edit_element_form(edit_element_form $editelementform): void {
+    }
+
+    /**
+     * Not supported — unknown elements do not have an edit form.
+     *
+     * @return edit_element_form
+     * @throws \coding_exception always
+     */
+    public function get_edit_element_form(): edit_element_form {
+        throw new \coding_exception('unknown_element does not support edit forms.');
     }
 
     /**

@@ -31,7 +31,6 @@ use context_system;
 use stdClass;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_element_interface;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\preparable_form_interface;
 use MoodleQuickForm;
 
@@ -68,8 +67,8 @@ final class form_service {
      * Run element-specific form preparation at the definition_after_data() lifecycle point.
      *
      * This must be called from the form's definition_after_data() method, after
-     * common fields have been populated. It handles both v2 elements (via
-     * preparable_form_interface) and legacy elements (via definition_after_data()).
+     * common fields have been populated. Elements that implement preparable_form_interface
+     * will have their prepare_form() method called.
      *
      * @param MoodleQuickForm $mform
      * @param element_interface $element
@@ -77,9 +76,6 @@ final class form_service {
     public function prepare_after_data(MoodleQuickForm $mform, element_interface $element): void {
         if ($element instanceof preparable_form_interface) {
             $element->prepare_form($mform);
-        } else if ($element instanceof legacy_element_adapter) {
-            // Legacy fallback: delegate to the wrapped legacy element's definition_after_data().
-            $element->definition_after_data($mform);
         }
     }
 
@@ -110,7 +106,7 @@ final class form_service {
             }
         }
 
-        // Map known select fields to canonical file metadata so save_unique_data() can simply encode.
+        // Map known select fields to canonical file metadata so normalise_data() can encode them.
         if (!empty($data['fileid'])) {
             $fs = get_file_storage();
             if ($file = $fs->get_file_by_id((int)$data['fileid'])) {

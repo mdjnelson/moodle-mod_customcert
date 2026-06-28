@@ -147,7 +147,7 @@ final class element_test extends advanced_testcase {
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
         $result = $el->normalise_data(new stdClass());
-        $this->assertSame(0, $result['coursenamedisplay']);
+        $this->assertSame(element::COURSE_FULL_NAME, $result['coursenamedisplay']);
         $this->assertSame('', $result['font']);
         $this->assertSame(0, $result['fontsize']);
         $this->assertSame('', $result['colour']);

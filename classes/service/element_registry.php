@@ -28,6 +28,7 @@ namespace mod_customcert\service;
 
 use coding_exception;
 use moodle_exception;
+use mod_customcert\element\element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\renderable_element_interface;
 
@@ -41,14 +42,26 @@ final class element_registry {
     /**
      * Register a class for a given element type key.
      *
+     * As of Moodle 5.3 the legacy customcert element API compatibility layer has been removed.
+     * The registered class must implement element_interface, form_element_interface, and
+     * renderable_element_interface. Classes that do not implement these interfaces will be
+     * rejected with a clear developer-facing exception.
+     *
      * @param string $type
-     * @param string $class Must implement form_element_interface and renderable_element_interface
-     *                       (or extend mod_customcert\element, which does both)
+     * @param string $class Must implement element_interface, form_element_interface and renderable_element_interface
      * @return void
      */
     public function register(string $type, string $class): void {
         if (!class_exists($class)) {
             throw new coding_exception("Cannot register element type '{$type}': class '{$class}' does not exist.");
+        }
+        if (!is_a($class, element_interface::class, true)) {
+            throw new coding_exception(
+                "Cannot register element type '{$type}': '{$class}' must implement element_interface. "
+                . 'The legacy customcert element API compatibility layer was removed in Moodle 5.3. '
+                . 'Third-party element plugins must implement the Element System v2 interfaces. '
+                . 'See https://github.com/mdjnelson/moodle-mod_customcert/blob/main/CHANGES.md for migration guidance.'
+            );
         }
         if (
             !is_a($class, form_element_interface::class, true) ||

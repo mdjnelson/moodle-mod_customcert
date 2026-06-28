@@ -26,9 +26,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\persistable_element_interface;
-use ReflectionMethod;
 use stdClass;
 
 /**
@@ -43,37 +41,17 @@ final class persistence_helper {
      * Convert form submission to a JSON string according to element capabilities.
      *
      * - Persistable elements: use normalise_data() and enforce object JSON.
-     * - Legacy elements: use save_unique_data() (only when overridden) and enforce object JSON.
      * - Fallback: empty JSON object {}.
      *
-     * @param object $element Element instance (persistable or legacy)
+     * @param object $element Element instance implementing persistable_element_interface
      * @param stdClass $formdata Raw form data
      * @return string JSON object string suitable for DB storage
      */
     public static function to_json_data(object $element, stdClass $formdata): string {
-        // Persistable path.
         if ($element instanceof persistable_element_interface) {
             $normalised = $element->normalise_data($formdata);
             return self::to_object_json($normalised);
         }
-
-        // Legacy path: only invoke save_unique_data() when the concrete class actually overrides it,
-        // not when it is merely inherited from the mod_customcert\element base class.
-        // Unwrap the adapter so we inspect the inner legacy element's declaring class.
-        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
-        if (
-            method_exists($target, 'save_unique_data') &&
-            (new ReflectionMethod($target, 'save_unique_data'))->getDeclaringClass()->getName() !== \mod_customcert\element::class
-        ) {
-            debugging(
-                'save_unique_data() is deprecated since Moodle 5.2. Implement ' .
-                'mod_customcert\element\persistable_element_interface::normalise_data() instead.',
-                DEBUG_DEVELOPER
-            );
-            $legacy = $element->save_unique_data($formdata);
-            return self::to_object_json($legacy);
-        }
-
         // Absolute fallback: empty object.
         return json_encode(new stdClass());
     }
@@ -94,7 +72,6 @@ final class persistence_helper {
         if (is_array($value) && !array_is_list($value)) {
             return json_encode($value);
         }
-
         // JSON string: only pass through if it decodes to a JSON object (including '{}').
         // Use json_decode(..., false) so that '{}' becomes stdClass rather than [],
         // which lets us distinguish an empty object from an empty list.
@@ -105,12 +82,10 @@ final class persistence_helper {
             }
             // JSON list, scalar JSON, etc. — fall through to wrap.
         }
-
         // Null input: return empty object.
         if ($value === null) {
             return json_encode(new stdClass());
         }
-
         // List array, scalar (string/int/float/bool), or non-object JSON string → wrap.
         return json_encode(['value' => $value]);
     }

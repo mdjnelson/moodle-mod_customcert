@@ -22,9 +22,6 @@ use dml_exception;
 use invalid_parameter_exception;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\legacy_element_adapter;
-use mod_customcert\element as base_element;
-use ReflectionMethod;
 use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
 use mod_customcert\event\page_deleted;
@@ -98,36 +95,7 @@ final class template_service {
      * @return element_interface|null
      */
     private function create_element_from_record(stdClass $record): ?element_interface {
-        return $this->factory->create_from_legacy_record($record);
-    }
-
-    /**
-     * Returns true only when the given element instance has a concrete override of copy_element()
-     * that is not merely the no-op base implementation on mod_customcert\element.
-     *
-     * @param object $element Element instance to inspect.
-     * @return bool
-     */
-    private function has_legacy_copy_override(object $element): bool {
-        if (!method_exists($element, 'copy_element')) {
-            return false;
-        }
-        $ref = new ReflectionMethod($element, 'copy_element');
-        return $ref->getDeclaringClass()->getName() !== base_element::class;
-    }
-
-    /**
-     * Unwrap legacy adapters to their inner instance when required.
-     *
-     * @param element_interface $element
-     * @return object
-     */
-    private function unwrap_element(element_interface $element): object {
-        if ($element instanceof legacy_element_adapter) {
-            return $element->get_inner();
-        }
-
-        return $element;
+        return $this->factory->create_from_record($record);
     }
 
     /**
@@ -405,22 +373,9 @@ final class template_service {
                 $element->id = $newid;
 
                 if ($instance = $this->create_element_from_record($element)) {
-                    $inner = $this->unwrap_element($instance);
                     // If the element implements copyable_element_interface, delegate to copy_from().
-                    if ($inner instanceof copyable_element_interface) {
-                        if (!$inner->copy_from($templateelement)) {
-                            $this->elements->delete($instance);
-                            continue;
-                        }
-                    } else if ($this->has_legacy_copy_override($inner)) {
-                        // Legacy compatibility: invoke deprecated copy_element() for old third-party elements.
-                        debugging(
-                            'copy_element() is deprecated since Moodle 5.2. '
-                            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
-                            DEBUG_DEVELOPER
-                        );
-                        $copyresult = $inner->copy_element($templateelement);
-                        if ($copyresult === false) {
+                    if ($instance instanceof copyable_element_interface) {
+                        if (!$instance->copy_from($templateelement)) {
                             $this->elements->delete($instance);
                             continue;
                         }
@@ -451,7 +406,6 @@ final class template_service {
     public function move_item(template $template, string $itemname, int $itemid, string $direction): void {
         $this->moves->move_item($template, $itemname, $itemid, $direction);
     }
-
 
     /**
      * Determine if a page has been updated based on form data.

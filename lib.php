@@ -15,24 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Customcert module core interaction API
+ * Moodle callback bridge for the customcert module.
+ *
+ * This file exists solely to satisfy Moodle's global-function discovery mechanism.
+ * It contains no implementation logic — every function delegates immediately to a
+ * typed, namespaced callback class under classes/callback/.
+ *
+ * Callback classes:
+ *   - mod_customcert\callback\instance_callbacks   — add/update/delete instance lifecycle
+ *   - mod_customcert\callback\course_callbacks     — course reset and user activity reports
+ *   - mod_customcert\callback\file_callbacks       — file serving (pluginfile)
+ *   - mod_customcert\callback\navigation_callbacks — settings navigation and profile nodes
+ *   - mod_customcert\callback\ajax_callbacks       — fragment and inplace-editable callbacks
+ *   - mod_customcert\callback\feature_callbacks    — feature flags, language, cron, misc
  *
  * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core\output\inplace_editable;
-use mod_customcert\edit_element_form;
-use mod_customcert\event\issue_deleted;
-use mod_customcert\service\element_factory;
-use mod_customcert\service\element_repository;
-use mod_customcert\service\issue_repository;
-use mod_customcert\service\page_repository;
-use mod_customcert\service\template_repository;
-use mod_customcert\service\form_service;
-use mod_customcert\service\template_service;
-use mod_customcert\template;
+use mod_customcert\callback\ajax_callbacks;
+use mod_customcert\callback\course_callbacks;
+use mod_customcert\callback\feature_callbacks;
+use mod_customcert\callback\file_callbacks;
+use mod_customcert\callback\instance_callbacks;
+use mod_customcert\callback\navigation_callbacks;
 
 /**
  * Add customcert instance.
@@ -42,24 +49,7 @@ use mod_customcert\template;
  * @return int new customcert instance id
  */
 function customcert_add_instance($data, $mform) {
-    global $DB;
-
-    // Create a template for this customcert to use.
-    $context = context_module::instance($data->coursemodule);
-    $template = template::create($data->name, $context->id);
-
-    // Add the data to the DB.
-    $data->templateid = $template->get_id();
-    $data->protection = form_service::set_protection($data);
-    $data->timecreated = time();
-    $data->timemodified = $data->timecreated;
-    $data->id = $DB->insert_record('customcert', $data);
-
-    // Add a page to this customcert.
-    $service = template_service::create();
-    $service->add_page($template, false);
-
-    return $data->id;
+    return instance_callbacks::add_instance($data, $mform);
 }
 
 /**
@@ -70,13 +60,7 @@ function customcert_add_instance($data, $mform) {
  * @return bool true
  */
 function customcert_update_instance($data, $mform) {
-    global $DB;
-
-    $data->protection = form_service::set_protection($data);
-    $data->timemodified = time();
-    $data->id = $data->instance;
-
-    return $DB->update_record('customcert', $data);
+    return instance_callbacks::update_instance($data, $mform);
 }
 
 /**
@@ -88,50 +72,7 @@ function customcert_update_instance($data, $mform) {
  * @return bool true if successful
  */
 function customcert_delete_instance($id) {
-    global $CFG, $DB;
-
-    // Ensure the customcert exists.
-    if (!$customcert = $DB->get_record('customcert', ['id' => $id])) {
-        return false;
-    }
-
-    // Get the course module as it is used when deleting files.
-    if (!$cm = get_coursemodule_from_instance('customcert', $id)) {
-        return false;
-    }
-
-    $context = context_module::instance($cm->id);
-
-    // Trigger issue_deleted events for each issue.
-    $issuerepo = new issue_repository();
-    $issues = $issuerepo->list_by_certificate($id);
-    foreach ($issues as $issue) {
-        $event = issue_deleted::create([
-            'objectid' => $issue->id,
-            'context' => $context,
-            'relateduserid' => $issue->userid,
-        ]);
-        $event->trigger();
-    }
-    // Delete the customcert issues.
-    $issuerepo->delete_by_certificate($id);
-
-    // Now, delete the template associated with this certificate.
-    if (($templaterecord = (new template_repository())->get_by_id((int)$customcert->templateid)) !== null) {
-        $templateservice = template_service::create();
-        $templateservice->delete(template::from_record($templaterecord));
-    }
-
-    // Delete the customcert instance.
-    if (!$DB->delete_records('customcert', ['id' => $id])) {
-        return false;
-    }
-
-    // Delete any files associated with the customcert.
-    $fs = get_file_storage();
-    $fs->delete_area_files($context->id);
-
-    return true;
+    return instance_callbacks::delete_instance((int)$id);
 }
 
 /**
@@ -143,16 +84,7 @@ function customcert_delete_instance($id) {
  * @return array status array
  */
 function customcert_reset_userdata($data) {
-    $componentstr = get_string('modulenameplural', 'customcert');
-    $status = [];
-
-    if (!empty($data->reset_customcert)) {
-        (new issue_repository())->delete_by_course((int)$data->courseid);
-        $status[] = ['component' => $componentstr, 'item' => get_string('deleteissuedcertificates', 'customcert'),
-            'error' => false];
-    }
-
-    return $status;
+    return course_callbacks::reset_userdata($data);
 }
 
 /**
@@ -162,8 +94,7 @@ function customcert_reset_userdata($data) {
  * @param mod_customcert_mod_form $mform form passed by reference
  */
 function customcert_reset_course_form_definition(&$mform) {
-    $mform->addElement('header', 'customcertheader', get_string('modulenameplural', 'customcert'));
-    $mform->addElement('advcheckbox', 'reset_customcert', get_string('deleteissuedcertificates', 'customcert'));
+    course_callbacks::reset_course_form_definition($mform);
 }
 
 /**
@@ -173,7 +104,7 @@ function customcert_reset_course_form_definition(&$mform) {
  * @return array
  */
 function customcert_reset_course_form_defaults($course) {
-    return ['reset_customcert' => 1];
+    return course_callbacks::reset_course_form_defaults($course);
 }
 
 /**
@@ -187,15 +118,7 @@ function customcert_reset_course_form_defaults($course) {
  * @return stdClass the user outline object
  */
 function customcert_user_outline($course, $user, $mod, $customcert) {
-    $result = new stdClass();
-    if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
-        $result->info = get_string('receiveddate', 'customcert');
-        $result->time = $issue->timecreated;
-    } else {
-        $result->info = get_string('notissued', 'customcert');
-    }
-
-    return $result;
+    return course_callbacks::user_outline($course, $user, $mod, $customcert);
 }
 
 /**
@@ -209,15 +132,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
  * @return string the user complete information
  */
 function customcert_user_complete($course, $user, $mod, $customcert) {
-    global $OUTPUT;
-    if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
-        echo $OUTPUT->box_start();
-        echo get_string('receiveddate', 'customcert') . ": ";
-        echo userdate($issue->timecreated);
-        echo $OUTPUT->box_end();
-    } else {
-        print_string('notissued', 'customcert');
-    }
+    course_callbacks::user_complete($course, $user, $mod, $customcert);
 }
 
 /**
@@ -232,29 +147,7 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
  * @return bool|null false if file not found, does not return anything if found - just send the file
  */
 function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
-    global $CFG;
-
-    require_once($CFG->libdir . '/filelib.php');
-
-    // We are positioning the elements.
-    if ($filearea === 'image') {
-        if ($context->contextlevel == CONTEXT_MODULE) {
-            require_login($course, false, $cm);
-        } else if ($context->contextlevel == CONTEXT_SYSTEM && !has_capability('mod/customcert:manage', $context)) {
-            return false;
-        }
-
-        $relativepath = implode('/', $args);
-        $fullpath = '/' . $context->id . '/mod_customcert/image/' . $relativepath;
-
-        $fs = get_file_storage();
-        $file = $fs->get_file_by_hash(sha1($fullpath));
-        if (!$file || $file->is_directory()) {
-            return false;
-        }
-
-        send_stored_file($file, 0, 0, $forcedownload);
-    }
+    return file_callbacks::pluginfile($course, $cm, $context, $filearea, $args, $forcedownload);
 }
 
 /**
@@ -271,19 +164,7 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  * @return mixed True if module supports feature, null if doesn't know
  */
 function customcert_supports($feature) {
-    switch ($feature) {
-        case FEATURE_GROUPINGS:
-        case FEATURE_MOD_INTRO:
-        case FEATURE_SHOW_DESCRIPTION:
-        case FEATURE_COMPLETION_TRACKS_VIEWS:
-        case FEATURE_BACKUP_MOODLE2:
-        case FEATURE_GROUPS:
-            return true;
-        case FEATURE_MOD_PURPOSE:
-            return MOD_PURPOSE_OTHER;
-        default:
-            return null;
-    }
+    return feature_callbacks::supports($feature);
 }
 
 /**
@@ -292,7 +173,7 @@ function customcert_supports($feature) {
  * @return array
  */
 function customcert_get_view_actions() {
-    return ['view', 'view all', 'view report'];
+    return feature_callbacks::get_view_actions();
 }
 
 /**
@@ -301,14 +182,14 @@ function customcert_get_view_actions() {
  * @return array
  */
 function customcert_get_post_actions() {
-    return ['received'];
+    return feature_callbacks::get_post_actions();
 }
 
 /**
  * Function to be run periodically according to the moodle cron.
  */
 function customcert_cron() {
-    return true;
+    return feature_callbacks::cron();
 }
 
 /**
@@ -318,35 +199,7 @@ function customcert_cron() {
  * @return string
  */
 function mod_customcert_output_fragment_editelement($args) {
-    $factory = element_factory::build_with_defaults();
-    $elementrepo = new element_repository($factory);
-
-    // Require both elementid and templateid to be supplied.
-    if (empty($args['elementid']) || empty($args['templateid'])) {
-        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
-    }
-
-    // Verify the supplied templateid belongs to the supplied fragment context.
-    $templaterepo = new template_repository();
-    $templaterecord = $templaterepo->get_by_id_or_fail((int)$args['templateid']);
-    $authorisedcontext = \context::instance_by_id((int)$args['context']->id);
-    if ((int)$templaterecord->contextid !== (int)$authorisedcontext->id) {
-        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
-    }
-
-    // Get the element.
-    $element = $elementrepo->get_by_id_or_fail((int)$args['elementid']);
-
-    // Verify the element belongs to the exact template being edited to prevent cross-template tampering.
-    $elementtemplateid = $elementrepo->get_template_id_for_element((int)$args['elementid']);
-    if ($elementtemplateid === null || $elementtemplateid !== (int)$args['templateid']) {
-        throw new moodle_exception('nopermissions', 'error', '', 'editelement');
-    }
-
-    $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
-    $form = new edit_element_form($pageurl, ['element' => $element]);
-
-    return $form->render();
+    return ajax_callbacks::output_fragment_editelement($args);
 }
 
 /**
@@ -359,44 +212,7 @@ function mod_customcert_output_fragment_editelement($args) {
  * @param navigation_node $customcertnode
  */
 function customcert_extend_settings_navigation(settings_navigation $settings, navigation_node $customcertnode) {
-    global $DB, $PAGE;
-
-    $keys = $customcertnode->get_children_key_list();
-    $beforekey = null;
-    $i = array_search('modedit', $keys);
-    if ($i === false && array_key_exists(0, $keys)) {
-        $beforekey = $keys[0];
-    } else if (array_key_exists($i + 1, $keys)) {
-        $beforekey = $keys[$i + 1];
-    }
-
-    if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
-        // Get the template id.
-        $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
-        $node = navigation_node::create(
-            get_string('editcustomcert', 'customcert'),
-            new moodle_url('/mod/customcert/edit.php', ['tid' => $templateid]),
-            navigation_node::TYPE_SETTING,
-            null,
-            'mod_customcert_edit',
-            new pix_icon('t/edit', '')
-        );
-        $customcertnode->add_node($node, $beforekey);
-    }
-
-    if (has_capability('mod/customcert:verifycertificate', $settings->get_page()->cm->context)) {
-        $node = navigation_node::create(
-            get_string('verifycertificate', 'customcert'),
-            new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $settings->get_page()->cm->context->id]),
-            navigation_node::TYPE_SETTING,
-            null,
-            'mod_customcert_verify_certificate',
-            new pix_icon('t/check', '')
-        );
-        $customcertnode->add_node($node, $beforekey);
-    }
-
-    return $customcertnode->trim_if_empty();
+    return navigation_callbacks::extend_settings_navigation($settings, $customcertnode);
 }
 
 /**
@@ -409,30 +225,7 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
  * @return void
  */
 function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    global $USER;
-
-    if (
-        ($user->id != $USER->id)
-            && !has_capability('mod/customcert:viewallcertificates', context_system::instance())
-    ) {
-        return;
-    }
-
-    $params = [
-        'userid' => $user->id,
-    ];
-    if ($course) {
-        $params['course'] = $course->id;
-    }
-    $url = new moodle_url('/mod/customcert/my_certificates.php', $params);
-    $node = new core_user\output\myprofile\node(
-        'miscellaneous',
-        'mycustomcerts',
-        get_string('mycertificates', 'customcert'),
-        null,
-        $url
-    );
-    $tree->add_node($node);
+    navigation_callbacks::myprofile_navigation($tree, $user, $iscurrentuser, $course);
 }
 
 /**
@@ -444,49 +237,14 @@ function mod_customcert_myprofile_navigation(core_user\output\myprofile\tree $tr
  * @return \core\output\inplace_editable
  */
 function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
-    global $PAGE;
-
-    if ($itemtype === 'elementname') {
-        $factory = element_factory::build_with_defaults();
-        $elementrepo = new element_repository($factory);
-
-        $element = $elementrepo->get_by_id_or_fail((int)$itemid);
-        $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
-
-        // Set the template object.
-        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
-        // Perform checks.
-        if ($cm = $template->get_cm()) {
-            require_login($cm->course, false, $cm);
-        } else {
-            $PAGE->set_context(context_system::instance());
-            require_login();
-        }
-        // Make sure the user has the required capabilities.
-        $template->require_manage();
-
-        // Clean input and update the record.
-        $newname = clean_param($newvalue, PARAM_TEXT);
-        $elementrepo->update_name((int)$element->id, $newname, (int)$template->get_contextid());
-
-        return new inplace_editable(
-            'mod_customcert',
-            'elementname',
-            $element->id,
-            true,
-            $newname,
-            $newname
-        );
-    }
+    return ajax_callbacks::inplace_editable($itemtype, (int)$itemid, $newvalue);
 }
 
 /**
  * Get icon mapping for font-awesome.
  */
 function mod_customcert_get_fontawesome_icon_map() {
-    return [
-        'mod_customcert:download' => 'fa-download',
-    ];
+    return feature_callbacks::get_fontawesome_icon_map();
 }
 
 /**
@@ -504,25 +262,7 @@ function mod_customcert_get_fontawesome_icon_map() {
  * @return string Language code to use.
  */
 function mod_customcert_get_language_to_use(stdClass $customcert, ?stdClass $user = null, ?string $courselang = null): string {
-    global $CFG, $USER;
-
-    if (empty($user)) {
-        $user = $USER;
-    }
-
-    if (!empty($customcert->language)) {
-        return $customcert->language;
-    }
-
-    if (!empty($courselang)) {
-        return $courselang;
-    }
-
-    if (!empty($user) && !empty($user->lang)) {
-        return $user->lang;
-    }
-
-    return $CFG->lang;
+    return feature_callbacks::get_language_to_use($customcert, $user, $courselang);
 }
 
 /**
@@ -532,17 +272,5 @@ function mod_customcert_get_language_to_use(stdClass $customcert, ?stdClass $use
  * @return bool True if language was switched.
  */
 function mod_customcert_apply_runtime_language(string $language): bool {
-    if (empty($language)) {
-        return false;
-    }
-
-    $activelangs = get_string_manager()->get_list_of_translations();
-    $current = current_language();
-
-    if (array_key_exists($language, $activelangs) && $language !== $current) {
-        force_current_language($language);
-        return true;
-    }
-
-    return false;
+    return feature_callbacks::apply_runtime_language($language);
 }

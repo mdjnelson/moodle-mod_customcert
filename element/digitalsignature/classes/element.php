@@ -29,7 +29,6 @@ namespace customcertelement_digitalsignature;
 use context_course;
 use context_system;
 use core_collator;
-use mod_customcert\certificate;
 use mod_customcert\service\form_service;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\validatable_element_interface;
@@ -42,6 +41,7 @@ use MoodleQuickForm;
 use pdf;
 use stdClass;
 use stored_file;
+use customcertelement_digitalsignature\digitalsignature_payload;
 
 /**
  * The customcert element digital signature's core interaction API.
@@ -343,7 +343,7 @@ class element extends \customcertelement_image\element implements
             }
         }
 
-        return $arrtostore;
+        return digitalsignature_payload::from_array($arrtostore)->to_array();
     }
 
     /**

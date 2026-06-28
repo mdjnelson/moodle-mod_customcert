@@ -32,6 +32,8 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\stylable_payload;
+use customcertelement_expiry\expiry_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\element_renderer;
@@ -134,15 +136,13 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return [
-            'dateitem' => $formdata->dateitem ?? '',
-            'dateformat' => $formdata->dateformat ?? '',
-            'startfrom' => $formdata->startfrom ?? '',
-            'font' => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour' => (string)($formdata->colour ?? ''),
-            'width' => (int)($formdata->width ?? 0),
-        ];
+        $payload = new expiry_payload(
+            dateitem: (string)($formdata->dateitem ?? ''),
+            dateformat: (string)($formdata->dateformat ?? ''),
+            startfrom: (string)($formdata->startfrom ?? ''),
+            style: stylable_payload::from_form($formdata),
+        );
+        return $payload->to_array();
     }
 
     /**
@@ -201,7 +201,7 @@ class element extends base_element implements
                     $content = 'Valid for 5 years';
                 }
             } else {
-                $content = element_helper::get_date_format_string($date, $dateformat);
+                $content = element_helper::get_date_format_string($date, (string)$dateformat);
             }
 
             if (!empty($content)) {
@@ -250,7 +250,7 @@ class element extends base_element implements
         } else {
             $content = element_helper::get_date_format_string(
                 strtotime($this->relative[$dateitem], time()),
-                $dateformat
+                (string)$dateformat
             );
         }
 

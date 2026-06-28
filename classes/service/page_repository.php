@@ -52,6 +52,23 @@ final class page_repository {
     }
 
     /**
+     * Load a page by id, verifying it belongs to the given template.
+     *
+     * Throws if the page does not exist or belongs to a different template.
+     *
+     * @param int $templateid
+     * @param int $pageid
+     * @return stdClass
+     * @throws \dml_missing_record_exception When the page does not exist or belongs to a different template.
+     * @throws dml_exception For database errors.
+     */
+    public function get_for_template_or_fail(int $templateid, int $pageid): stdClass {
+        global $DB;
+
+        return $DB->get_record('customcert_pages', ['id' => $pageid, 'templateid' => $templateid], '*', MUST_EXIST);
+    }
+
+    /**
      * List all pages for a template id.
      *
      * @param int $templateid

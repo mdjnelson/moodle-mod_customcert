@@ -21,7 +21,6 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\service\form_service;
 use mod_customcert\tests\fixtures\form_element_test_element;
-use mod_customcert\tests\fixtures\legacy_invokable_test_element;
 use MoodleQuickForm;
 
 defined('MOODLE_INTERNAL') || die();
@@ -29,9 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
-require_once(__DIR__ . '/fixtures/legacy_only_test_element.php');
 require_once(__DIR__ . '/fixtures/form_element_test_element.php');
-require_once(__DIR__ . '/fixtures/legacy_invokable_test_element.php');
 
 /**
  * Tests for form_service.
@@ -75,23 +72,6 @@ final class form_service_test extends advanced_testcase {
         $this->assertEmpty($calls['setAdvanced']);
         $this->assertEmpty($calls['disabledIf']);
         $this->assertEmpty($calls['hideIf']);
-    }
-
-    /**
-     * Ensure legacy elements still use render_form_elements fallback when not form-definable.
-     */
-    public function test_build_form_falls_back_for_legacy_elements(): void {
-        $this->resetAfterTest();
-
-        $calls = [];
-        $mform = $this->get_form_double($calls);
-        $service = new form_service();
-
-        $element = new legacy_invokable_test_element((object) ['id' => 0, 'pageid' => 0, 'name' => 'Legacy']);
-
-        $service->build_form($mform, $element);
-
-        $this->assertTrue($element->called);
     }
 
     /**

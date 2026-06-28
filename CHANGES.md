@@ -4,6 +4,54 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.3.0] - Unreleased
+
+### Developer notes
+
+- **Element authoring guide added** (#819). A new `docs/element_authoring_guide.md` explains which interfaces are required versus optional, provides a decision table, and includes examples for common element types (minimal static, text/stylable, image sketch, and copy-aware elements).
+- **`mod_customcert\element\stylable_payload` is an immutable value object** (#814, #815). `from_form()` and `from_array()` return a `stylable_payload` instance; call `->to_array()` when a plain array is needed.
+- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class to give element data a clear PHP-side contract (known keys, canonical types, explicit validation). The database continues to store JSON; this interface governs the PHP layer only. All bundled elements now ship typed payload classes (e.g. `customcertelement_coursename\coursename_payload`, `customcertelement_date\date_payload`). See `docs/element_payload_interface.md` for the full guide.
+
+### Breaking changes
+
+- **Removed deprecated `mod_customcert\certificate` facade class** (#826). Use the focused certificate services and repositories instead: `form_service`, `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`, `certificate_repository`, and `certificate_issue_service`.
+- **Removed deprecated forwarding shims from `mod_customcert\template`** (#826). Use `template_service` and `pdf_generation_service` directly instead of the deprecated instance methods (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`, `copy_to_template`, `move_item`).
+- **Removed legacy customcert element API compatibility layer** (#825). Third-party element plugins must now implement the Element System v2 interfaces introduced in 5.2. Legacy hooks retained for the 5.2 transition are no longer called. Element classes that do not implement `element_interface`, `form_element_interface`, and `renderable_element_interface` will be rejected at registration time with a clear developer-facing exception.
+
+#### Migration guide
+
+| Legacy behavior | 5.3 replacement |
+|---|---|
+| Legacy element identity/data methods | `element_interface` |
+| Legacy edit form hooks (`render_form_elements`) | `form_element_interface` |
+| Legacy form preparation (`definition_after_data`) | `preparable_form_interface` |
+| Legacy rendering hooks (`render_html`, `render_pdf`) | `renderable_element_interface` |
+| Legacy style/font/colour handling | `stylable_element_interface` and normalized payload data |
+| Legacy layout handling | `layout_element_interface` and repository-managed layout fields |
+| Legacy save/load hooks (`save_unique_data`, `save_form_elements`) | `persistable_element_interface` |
+| Legacy validation hooks (`validate_form_elements`) | `validatable_element_interface` |
+| Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
+| Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
+
+## [5.2.3] - Unreleased
+
+### Added
+
+- Added new **Group name** element that displays the name of the group(s) a student belongs to in the course (#155).
+
+## [5.2.2] - 2026-06-10
+
+### Security
+
+- Hardened element and page ownership validation across edit, move, AJAX, external API, and fragment handlers to prevent cross-template access using mismatched request IDs (#818). 
+
+## [5.2.1] - 2026-06-08
+
+### Fixed
+- Fixed `TypeError` caused by `$instanceid` not being cast to `int` in the `coursefield` element (#804).
+- Fixed `TypeError` in the `date` and `grade` elements where `get_mod_grade_info`, `get_grade_item_info`, and `get_course_grade_info` require integer arguments.
+- Fixed `TypeError` in the `date` and `expiry` elements caused by legacy integer `dateformat` values not being cast to `string`.
+
 ## [5.2.0] - 2026-05-24
 
 ### Requirements
@@ -154,6 +202,7 @@ After (5.2+):
 - `certificate_issue_service::generate_code()` now throws a `moodle_exception` after 10 failed attempts to generate a unique code, preventing an infinite loop in systems with a very large number of issued certificates.
 - Web service hardening:
   - `external::save_element()` ignores JSON list payloads for `data` to prevent numeric-key pollution of stored element JSON.
+- Fixed issuing certificates to suspended users (#781).
 
 ### Security
 

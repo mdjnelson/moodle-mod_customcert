@@ -47,6 +47,7 @@ use pdf;
 use restore_customcert_activity_task;
 use stdClass;
 use stored_file;
+use customcertelement_image\image_payload;
 
 /**
  * The customcert element image's core interaction API.
@@ -229,7 +230,7 @@ class element extends base_element implements
             }
         }
 
-        return $arrtostore;
+        return image_payload::from_array($arrtostore)->to_array();
     }
 
     /**

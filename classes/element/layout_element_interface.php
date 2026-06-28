@@ -30,9 +30,7 @@ namespace mod_customcert\element;
  *
  * Implemented by elements that expose the standard positional and layout
  * attributes used by element_helper::render_content() and
- * element_helper::render_html_content(). Both the legacy element base class
- * and legacy_element_adapter implement this interface so that element_helper
- * can accept either without coupling to the concrete base class.
+ * element_helper::render_html_content().
  */
 interface layout_element_interface {
     /**

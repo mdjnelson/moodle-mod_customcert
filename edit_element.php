@@ -66,14 +66,19 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
     $title = $SITE->fullname;
 }
 
+if (!in_array($action, ['edit', 'add'], true)) {
+    throw new \moodle_exception('invalidrequest');
+}
+
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
-    $element = $elementrepo->get_by_id_or_fail($id);
+    $element = $elementrepo->get_for_template_or_fail($tid, $id);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['id' => $id, 'tid' => $tid, 'action' => $action]);
 } else { // Must be adding an element.
     // We need to supply what element we want added to what page.
     $pageid = required_param('pageid', PARAM_INT);
+    $pagerepo->get_for_template_or_fail($tid, $pageid);
     $element = new stdClass();
     $element->element = required_param('element', PARAM_ALPHA);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['tid' => $tid, 'element' => $element->element,
@@ -127,7 +132,7 @@ if ($data = $mform->get_data()) {
     }
 
     // Get an instance of the element class.
-    $elementinstance = $factory->create_from_legacy_record($data);
+    $elementinstance = $factory->create_from_record($data);
     if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();

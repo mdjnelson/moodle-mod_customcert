@@ -33,6 +33,8 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\stylable_payload;
+use customcertelement_grade\grade_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -102,14 +104,12 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return [
-            'gradeitem' => (string)($formdata->gradeitem ?? ''),
-            'gradeformat' => isset($formdata->gradeformat) ? (string)$formdata->gradeformat : '',
-            'font' => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour' => (string)($formdata->colour ?? ''),
-            'width' => (int)($formdata->width ?? 0),
-        ];
+        $payload = new grade_payload(
+            gradeitem: (string)($formdata->gradeitem ?? ''),
+            gradeformat: isset($formdata->gradeformat) ? (string)$formdata->gradeformat : '',
+            style: stylable_payload::from_form($formdata),
+        );
+        return $payload->to_array();
     }
 
 
@@ -158,20 +158,20 @@ class element extends base_element implements
                 $grade = element_helper::get_course_grade_info(
                     $courseid,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             } else if (strpos($gradeitem, 'gradeitem:') === 0) {
-                $gradeitemid = substr($gradeitem, 10);
+                $gradeitemid = (int)substr($gradeitem, 10);
                 $grade = element_helper::get_grade_item_info(
                     $gradeitemid,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             } else {
                 $grade = element_helper::get_mod_grade_info(
-                    $gradeitem,
+                    (int)$gradeitem,
                     $gradeformat,
-                    $user->id
+                    (int)$user->id
                 );
             }
 
