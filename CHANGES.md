@@ -39,6 +39,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Added new **Group name** element that displays the name of the group(s) a student belongs to in the course (#155).
 
+### Fixed
+
+- Fixed `dml_missing_record_exception` when previewing a site-level template that has no associated certificate activity (#840).
+
 ## [5.2.2] - 2026-06-10
 
 ### Security
