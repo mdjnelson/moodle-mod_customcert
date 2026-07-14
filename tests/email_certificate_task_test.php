@@ -32,6 +32,7 @@ use stdClass;
 use advanced_testcase;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_issuer_service;
+use mod_customcert\service\issue_repository;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\task\email_certificate_task;
@@ -162,6 +163,215 @@ final class email_certificate_task_test extends advanced_testcase {
         // Subsequent calls keep returning the same issue id.
         $repeat = $issuer->issue_if_needed((int)$customcert->id, (int)$student2->id);
         $this->assertEquals($newissue->id, $repeat->id);
+    }
+
+    /**
+     * issue_if_needed should not query the database at all when the issue is already
+     * present in a prefetched map (the bulk-prefetch optimisation for large courses).
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::issue_if_needed
+     */
+    public function test_issue_if_needed_skips_query_for_prefetched_existing_issue(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+
+        $issuedid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issuedid]);
+
+        $existingissues = (new issue_repository())->list_by_certificate_keyed_by_userid((int)$customcert->id);
+        $this->assertArrayHasKey((int)$student->id, $existingissues);
+
+        $issuer = certificate_issuer_service::create();
+
+        $readsbefore = $DB->perf_get_reads();
+        $issue = $issuer->issue_if_needed((int)$customcert->id, (int)$student->id, $existingissues);
+        $readsafter = $DB->perf_get_reads();
+
+        $this->assertSame(
+            $readsbefore,
+            $readsafter,
+            'issue_if_needed() must not hit the database when the issue is already in the prefetched map.'
+        );
+        $this->assertEquals($issuedid, $issue->id);
+        $this->assertEquals(1, $issue->emailed);
+    }
+
+    /**
+     * issue_if_needed should still issue a fresh certificate, via a tight check-then-insert,
+     * for a user absent from the prefetched map.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::issue_if_needed
+     */
+    public function test_issue_if_needed_issues_new_user_not_in_prefetched_map(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $existingstudent = $this->getDataGenerator()->create_user();
+        $newstudent = $this->getDataGenerator()->create_user();
+
+        $issuedid = $this->issue_certificate((int)$customcert->id, (int)$existingstudent->id);
+
+        $existingissues = (new issue_repository())->list_by_certificate_keyed_by_userid((int)$customcert->id);
+        $this->assertArrayHasKey((int)$existingstudent->id, $existingissues);
+        $this->assertArrayNotHasKey((int)$newstudent->id, $existingissues);
+
+        $issuer = certificate_issuer_service::create();
+        $issue = $issuer->issue_if_needed((int)$customcert->id, (int)$newstudent->id, $existingissues);
+
+        $this->assertNotNull($issue);
+        $this->assertNotEquals($issuedid, $issue->id);
+        $this->assertEquals(0, $issue->emailed);
+
+        $newlycreated = $DB->get_record('customcert_issues', ['id' => $issue->id], '*', MUST_EXIST);
+        $this->assertEquals($newstudent->id, (int)$newlycreated->userid);
+        $this->assertEquals($customcert->id, (int)$newlycreated->customcertid);
+    }
+
+    /**
+     * process_email_issuance_run should not create duplicate issue rows when candidates
+     * are a mix of users already issued (but not yet emailed, e.g. from a previously
+     * interrupted run) and genuinely new users, once the bulk-prefetch map is in play.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_creates_no_duplicate_issues_with_bulk_prefetch(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $issuedunemailed = $this->getDataGenerator()->create_user();
+        $newstudent = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($issuedunemailed->id, $course->id);
+        $this->getDataGenerator()->enrol_user($newstudent->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Simulate a user already issued in a prior (e.g. interrupted) run but not yet emailed.
+        $preissuedid = $this->issue_certificate((int)$customcert->id, (int)$issuedunemailed->id);
+
+        $sink = $this->redirectEmails();
+        $issuer = certificate_issuer_service::create();
+        $issuer->process_email_issuance_run();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(2, $issues);
+
+        // The pre-existing issue row for issuedunemailed was reused, not duplicated.
+        $issuedunemailedrows = array_values(array_filter(
+            $issues,
+            fn($issue): bool => (int)$issue->userid === (int)$issuedunemailed->id
+        ));
+        $this->assertCount(1, $issuedunemailedrows);
+        $this->assertEquals($preissuedid, (int)$issuedunemailedrows[0]->id);
+        $this->assertEquals(1, (int)$issuedunemailedrows[0]->emailed);
+
+        $newstudentrows = array_values(array_filter(
+            $issues,
+            fn($issue): bool => (int)$issue->userid === (int)$newstudent->id
+        ));
+        $this->assertCount(1, $newstudentrows);
+        $this->assertEquals(1, (int)$newstudentrows[0]->emailed);
+
+        $this->assertCount(2, $emails);
+
+        // Running again must not create any duplicates now that everyone is emailed.
+        $sink = $this->redirectEmails();
+        $issuer->process_email_issuance_run();
+        $emailsagain = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(0, $emailsagain);
+        $this->assertCount(2, $DB->get_records('customcert_issues'));
+    }
+
+    /**
+     * process_email_issuance_run's DB read count for already-issued-but-unemailed candidates
+     * must not scale roughly 1:1 with the number of such candidates, as it did before the
+     * bulk-prefetch fix (one find_by_user_certificate() query per candidate).
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_read_count_does_not_scale_with_already_issued_candidates(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $issuer = certificate_issuer_service::create();
+
+        // Small batch: a certificate with a handful of pre-issued-but-unemailed students.
+        $certa = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $templatea = template::from_record((new template_repository())->get_by_id_or_fail((int)$certa->templateid));
+        $pageida = template_service::create()->add_page($templatea);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageida, 'name' => 'E']);
+
+        $smallcount = 3;
+        for ($i = 0; $i < $smallcount; $i++) {
+            $student = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($student->id, $course->id);
+            $this->issue_certificate((int)$certa->id, (int)$student->id);
+        }
+
+        $sink = $this->redirectEmails();
+        $readsbefore = $DB->perf_get_reads();
+        $issuer->process_email_issuance_run();
+        $smallbatchreads = $DB->perf_get_reads() - $readsbefore;
+        $sink->close();
+
+        // Large batch: a second certificate in the same course with many more
+        // pre-issued-but-unemailed students. Certificate A has nothing left to do now
+        // (all emailed), so this run's extra reads are attributable to certificate B.
+        $certb = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $templateb = template::from_record((new template_repository())->get_by_id_or_fail((int)$certb->templateid));
+        $pageidb = template_service::create()->add_page($templateb);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageidb, 'name' => 'E']);
+
+        $largecount = 30;
+        for ($i = 0; $i < $largecount; $i++) {
+            $student = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($student->id, $course->id);
+            $this->issue_certificate((int)$certb->id, (int)$student->id);
+        }
+
+        $sink = $this->redirectEmails();
+        $readsbefore = $DB->perf_get_reads();
+        $issuer->process_email_issuance_run();
+        $largebatchreads = $DB->perf_get_reads() - $readsbefore;
+        $sink->close();
+
+        $extracandidates = $largecount - $smallcount;
+        $extrareads = $largebatchreads - $smallbatchreads;
+
+        $this->assertLessThan(
+            $extracandidates,
+            $extrareads,
+            "Expected DB reads to grow much slower than candidate count (candidates grew by {$extracandidates}, " .
+            "reads grew by {$extrareads}); this indicates a per-candidate query has regressed."
+        );
     }
 
     /**
