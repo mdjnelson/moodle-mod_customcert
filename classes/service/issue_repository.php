@@ -151,6 +151,24 @@ final class issue_repository {
     }
 
     /**
+     * List all issues for a certificate, keyed by userid, for bulk prefetching.
+     *
+     * Used to avoid one get_record() round-trip per candidate user when processing
+     * a certificate with a large number of eligible users. Callers must not treat
+     * this as authoritative for deciding whether to insert a new issue: a fresh
+     * find_by_user_certificate() check should still be done immediately before any
+     * insert, since customcert_issues has no unique constraint on (userid, customcertid).
+     *
+     * @param int $customcertid
+     * @return array<int, stdClass> keyed by userid, each with id and emailed fields
+     */
+    public function list_by_certificate_keyed_by_userid(int $customcertid): array {
+        global $DB;
+
+        return $DB->get_records('customcert_issues', ['customcertid' => $customcertid], '', 'userid, id, emailed');
+    }
+
+    /**
      * Delete all issues for a certificate.
      *
      * @param int $customcertid

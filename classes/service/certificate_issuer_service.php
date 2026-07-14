@@ -109,9 +109,22 @@ final class certificate_issuer_service {
      *
      * @param int $customcertid
      * @param int $userid
+     * @param array<int, stdClass> $existingissues Optional prefetched map of userid => {id, emailed} for
+     *                                              this customcertid, as returned by
+     *                                              issue_repository::list_by_certificate_keyed_by_userid().
+     *                                              When the user is present in this map, no query is
+     *                                              needed. When absent, a fresh check is still performed
+     *                                              immediately before any insert, since customcert_issues
+     *                                              has no unique constraint on (userid, customcertid) and
+     *                                              the prefetched map may be stale by the time we get here.
      * @return object|null Contains id and emailed flags for the issue
      */
-    public function issue_if_needed(int $customcertid, int $userid): ?object {
+    public function issue_if_needed(int $customcertid, int $userid, array $existingissues = []): ?object {
+        if (array_key_exists($userid, $existingissues)) {
+            $issue = $existingissues[$userid];
+            return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+        }
+
         $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
 
         if ($issue) {
@@ -173,8 +186,17 @@ final class certificate_issuer_service {
 
             $candidates = $this->get_email_candidates_for_customcert($customcert, $cm);
 
+            if (empty($candidates)) {
+                continue;
+            }
+
+            // Bulk-prefetch existing issues for this certificate once, instead of a get_record()
+            // round-trip per candidate. This is the dominant cost on large courses: without it,
+            // a course with thousands of eligible users means thousands of per-user queries here.
+            $existingissues = $this->issues->list_by_certificate_keyed_by_userid((int)$customcert->id);
+
             foreach ($candidates as $filtereduser) {
-                $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id);
+                $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id, $existingissues);
 
                 if (!empty($issue) && (int)$issue->emailed === 0) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
