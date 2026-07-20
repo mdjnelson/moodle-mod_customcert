@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ateeducacion/moodle-playground/refs/heads/main/assets/blueprints/blueprint-schema.json",
+  "preferredVersions": {
+    "php": "8.3",
+    "moodle": "5.3"
+  },
+  "landingPage": "/course/view.php?id=2",
+  "constants": {
+    "ADMIN_USER": "admin",
+    "ADMIN_PASS": "test",
+    "ADMIN_EMAIL": "admin@example.com"
+  },
+  "steps": [
+    {
+      "step": "installMoodle",
+      "options": {
+        "adminUser": "{{ADMIN_USER}}",
+        "adminPass": "{{ADMIN_PASS}}",
+        "adminEmail": "{{ADMIN_EMAIL}}",
+        "siteName": "Custom Certificate Activity Demo",
+        "locale": "en",
+        "timezone": "Europe/Madrid"
+      }
+    },
+    {
+      "step": "login",
+      "username": "{{ADMIN_USER}}"
+    },
+    {
+      "step": "installMoodlePlugin",
+      "pluginType": "mod",
+      "pluginName": "customcert",
+      "url": "https://github.com/mdjnelson/moodle-mod_customcert/archive/refs/heads/main.zip"
+    },
+    {
+      "step": "createCategory",
+      "name": "Test Courses"
+    },
+    {
+      "step": "createCourse",
+      "fullname": "Custom Certificate Activity Demo Course",
+      "shortname": "CCERTDEMO01",
+      "category": "Test Courses",
+      "summary": "Demo course for the mod_customcert activity module. A sample certificate activity with a default template is preloaded so you can immediately open the template editor and design a certificate, or issue and download a PDF.",
+      "format": "topics",
+      "numsections": 3
+    },
+    {
+      "step": "createUser",
+      "username": "student",
+      "password": "test",
+      "email": "student@example.com",
+      "firstname": "Demo",
+      "lastname": "Student"
+    },
+    {
+      "step": "enrolUser",
+      "username": "{{ADMIN_USER}}",
+      "course": "CCERTDEMO01",
+      "role": "editingteacher"
+    },
+    {
+      "step": "enrolUser",
+      "username": "student",
+      "course": "CCERTDEMO01",
+      "role": "student"
+    },
+    {
+      "step": "runPhpCode",
+      "code": "if (!defined('CLI_SCRIPT')) { define('CLI_SCRIPT', true); }\nrequire('/www/moodle/config.php');\nrequire_once($CFG->dirroot . '/course/lib.php');\nrequire_once($CFG->dirroot . '/mod/customcert/lib.php');\ntry {\n    $course = $DB->get_record('course', ['shortname' => 'CCERTDEMO01'], '*', MUST_EXIST);\n    $module = $DB->get_record('modules', ['name' => 'customcert'], '*', MUST_EXIST);\n    $admin = get_admin();\n    \\core\\session\\manager::set_user($admin);\n    $now = time();\n    $cm = (object)[\n        'course'       => $course->id,\n        'module'       => $module->id,\n        'instance'     => 0,\n        'section'      => 1,\n        'idnumber'     => '',\n        'added'        => $now,\n        'score'        => 0,\n        'indent'       => 0,\n        'visible'      => 1,\n        'visibleold'   => 1,\n        'groupmode'    => 0,\n        'groupingid'   => 0,\n        'completion'   => 0,\n        'showdescription' => 0,\n    ];\n    $cmid = add_course_module($cm);\n    course_add_cm_to_section($course->id, $cmid, 1);\n    $data = (object)[\n        'course'        => $course->id,\n        'coursemodule'  => $cmid,\n        'name'          => 'Sample certificate',\n        'intro'         => '<p>Open this activity to try <strong>mod_customcert</strong>: edit the certificate template (add text / images / borders), then issue and download a PDF as the demo student.</p>',\n        'introformat'   => FORMAT_HTML,\n        'requiredtime'  => 0,\n        'verifyany'     => 0,\n        'deliveryoption'=> 'I',\n        'protection_print'    => 0,\n        'protection_modify'   => 0,\n        'protection_copy'     => 0,\n        'emailstudents' => 0,\n        'emailteachers' => 0,\n        'emailothers'   => '',\n        'language'      => '',\n    ];\n    $instanceid = customcert_add_instance($data, null);\n    $DB->set_field('course_modules', 'instance', $instanceid, ['id' => $cmid]);\n    rebuild_course_cache($course->id, true);\n    $cert = $DB->get_record('customcert', ['id' => $instanceid], '*', MUST_EXIST);\n    $page = $DB->get_record('customcert_pages', ['templateid' => $cert->templateid], '*', IGNORE_MULTIPLE);\n    if ($page) {\n        $samples = [\n            ['name' => 'Title',      'text' => 'Certificate of Completion',                       'fontsize' => 30, 'posy' => 50,  'colour' => '#1d3557'],\n            ['name' => 'Subtitle',   'text' => 'This certificate is proudly presented to',         'fontsize' => 14, 'posy' => 90,  'colour' => '#333333'],\n            ['name' => 'Recipient',  'text' => 'Demo Student',                                     'fontsize' => 24, 'posy' => 115, 'colour' => '#000000'],\n            ['name' => 'Body',       'text' => 'for successfully completing the Moodle Playground demo course showcasing the mod_customcert activity.', 'fontsize' => 12, 'posy' => 145, 'colour' => '#333333'],\n            ['name' => 'Footer',     'text' => 'Issued on the Moodle Playground preview',          'fontsize' => 10, 'posy' => 245, 'colour' => '#666666'],\n        ];\n        $seq = 0;\n        foreach ($samples as $s) {\n            $payload = ['text' => $s['text'], 'font' => 'freesans', 'fontsize' => $s['fontsize'], 'colour' => $s['colour'], 'width' => 170];\n            $DB->insert_record('customcert_elements', (object)[\n                'pageid'       => $page->id,\n                'name'         => $s['name'],\n                'element'      => 'text',\n                'data'         => json_encode($payload),\n                'posx'         => 20,\n                'posy'         => $s['posy'],\n                'refpoint'     => 0,\n                'alignment'    => 'C',\n                'sequence'     => $seq++,\n                'timecreated'  => $now,\n                'timemodified' => $now,\n            ]);\n        }\n        echo \"Seeded \" . count($samples) . \" text elements on page {$page->id}\\n\";\n    }\n    echo \"Created mod_customcert instance id={$instanceid} cmid={$cmid} in course {$course->shortname}\\n\";\n} catch (\\Throwable $e) {\n    echo 'ERROR: ' . $e->getMessage() . \"\\n\";\n}"
+    },
+    {
+      "step": "setLandingPage",
+      "path": "/course/view.php?id=2"
+    }
+  ]
+}

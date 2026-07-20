@@ -2,6 +2,17 @@
 
 This activity allows dynamic generation of PDF certificates with full customisation in your browser.
 
+
+## Try in Moodle Playground
+
+Click the badge below to open this plugin instantly in
+[Moodle Playground](https://moodle-playground.com) — a full Moodle site
+running in the browser, with no local install. The demo includes a course
+with a preloaded certificate activity so you can edit the template, issue
+and download a PDF immediately.
+
+<a href="https://moodle-playground.com/?blueprint-url=https://raw.githubusercontent.com/mdjnelson/moodle-mod_customcert/refs/heads/main/blueprint.json" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/ateeducacion/action-moodle-playground-pr-preview/refs/heads/main/assets/playground-preview-button.svg" alt="Preview in Moodle Playground" width="200"></a>
+
 ## Requirements
 
 - A supported Moodle version (use the plugin release/branch that matches your Moodle version).
