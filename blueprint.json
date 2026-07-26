@@ -19,7 +19,7 @@
         "adminEmail": "{{ADMIN_EMAIL}}",
         "siteName": "Custom Certificate Activity Demo",
         "locale": "en",
-        "timezone": "Europe/Madrid"
+        "timezone": "UTC"
       }
     },
     {
