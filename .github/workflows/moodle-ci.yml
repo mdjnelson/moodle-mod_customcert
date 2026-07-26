@@ -8,6 +8,20 @@ permissions:
   contents: read
 
 jobs:
+  blueprint:
+    name: Blueprint policy checks
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Validate blueprint.json
+        run: php tools/validate_blueprint.php
+
   test:
     name: PHP ${{ matrix.php }} / ${{ matrix.moodle-branch }} / ${{ matrix.database }}
     runs-on: ubuntu-22.04
