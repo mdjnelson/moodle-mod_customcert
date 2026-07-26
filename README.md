@@ -11,7 +11,16 @@ running in the browser, with no local install. The demo includes a course
 with a preloaded certificate activity so you can edit the template, issue
 and download a PDF immediately.
 
-<a href="https://moodle-playground.com/?blueprint-url=https://raw.githubusercontent.com/mdjnelson/moodle-mod_customcert/refs/heads/main/blueprint.json" target="_blank" rel="noopener"><img src="https://raw.githubusercontent.com/ateeducacion/action-moodle-playground-pr-preview/refs/heads/main/assets/playground-preview-button.svg" alt="Preview in Moodle Playground" width="200"></a>
+<a href="https://moodle-playground.com/?blueprint-url=https://raw.githubusercontent.com/mdjnelson/moodle-mod_customcert/refs/heads/main/blueprint.json" target="_blank" rel="noopener"><img src=".github/assets/playground-preview-button.svg" alt="Preview in Moodle Playground" width="200"></a>
+
+> **Demo credentials:** log in as **student** / **test** to issue and download a PDF
+> certificate that shows your name, or as **admin** / **test** to edit the template.
+
+> **Branch coupling:** the badge URL and the plugin archive URL inside `blueprint.json`
+> both point to `refs/heads/main`. When backporting to a stable branch (e.g.
+> `MOODLE_405_STABLE`) update those two URLs to the matching plugin branch name.
+> Also set `preferredVersions.moodle` to the Moodle version compatible with that
+> branch — the Moodle version and the plugin branch name are separate values.
 
 ## Requirements
 
