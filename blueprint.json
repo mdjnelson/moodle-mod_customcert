@@ -23,6 +23,12 @@
       }
     },
     {
+      "step": "setAdminAccount",
+      "username": "{{ADMIN_USER}}",
+      "password": "{{ADMIN_PASS}}",
+      "email": "{{ADMIN_EMAIL}}"
+    },
+    {
       "step": "login",
       "username": "{{ADMIN_USER}}"
     },
