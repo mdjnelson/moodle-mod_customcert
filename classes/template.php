@@ -295,6 +295,24 @@ class template {
     }
 
     /**
+     * Ensures the user is allowed to use this template as the source when copying its
+     * content into another template (eg. via load_template.php).
+     *
+     * System context templates are shared, reusable presets that the load-template form
+     * lists to any user regardless of their capabilities at the system context, so they can
+     * be used as a source without holding mod/customcert:manage there. Templates in any other
+     * context (course or activity) still require manage capability, otherwise a user could
+     * copy the content of a private template belonging to a course they cannot access.
+     *
+     * @throws \required_capability_exception if the user does not have the necessary capabilities
+     */
+    public function require_use_as_source(): void {
+        if ($this->get_context()->contextlevel !== CONTEXT_SYSTEM) {
+            $this->require_manage();
+        }
+    }
+
+    /**
      * Creates a template.
      *
      * @param string $templatename the name of the template
