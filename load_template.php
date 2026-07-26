@@ -44,6 +44,7 @@ if ($cm = $template->get_cm()) {
     require_login();
 }
 $template->require_manage();
+$loadtemplate->require_use_as_source();
 
 if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
     $customcert = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);

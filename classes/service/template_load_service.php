@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use context;
 use dml_exception;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\template_service;
@@ -85,6 +84,10 @@ final class template_load_service {
      * All existing pages/elements on the target are removed, then source pages/elements are
      * copied preserving sequence. A template_updated event is fired for non-system contexts.
      *
+     * Authorization is enforced here (not only by callers) so that any current or future
+     * caller of this service gets the same protection against copying the contents of a
+     * template the user cannot access.
+     *
      * @param int $targetid Existing template to overwrite
      * @param int $sourceid Template to copy from
      * @return void
@@ -94,11 +97,13 @@ final class template_load_service {
         global $DB;
 
         $source = $this->templates->get_by_id_or_fail($sourceid);
+        $sourcetemplate = template::from_record($source);
 
         $targetrecord = $this->templates->get_by_id_or_fail($targetid);
         $targettemplate = template::from_record($targetrecord);
-        $context = context::instance_by_id($targettemplate->get_contextid());
-        require_capability('mod/customcert:manage', $context);
+
+        $targettemplate->require_manage();
+        $sourcetemplate->require_use_as_source();
 
         $transaction = $DB->start_delegated_transaction();
 
