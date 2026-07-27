@@ -113,15 +113,32 @@ final class certificate_issuer_service {
      * @return object|null Contains id and emailed flags for the issue
      */
     public function issue_if_needed(int $customcertid, int $userid): ?object {
-        $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
+        $issue = $this->find_existing_issue($customcertid, $userid);
 
         if ($issue) {
-            return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+            return $issue;
         }
 
         $issueid = $this->issues->create($customcertid, $userid);
 
         return (object)['id' => $issueid, 'emailed' => 0];
+    }
+
+    /**
+     * Find an existing issue for a user/certificate pair, without creating one.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @return object|null Contains id and emailed flags for the issue
+     */
+    private function find_existing_issue(int $customcertid, int $userid): ?object {
+        $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
+
+        if (!$issue) {
+            return null;
+        }
+
+        return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
     }
 
     /**
@@ -175,7 +192,13 @@ final class certificate_issuer_service {
             $candidates = $this->get_email_candidates_for_customcert($customcert, $cm);
 
             foreach ($candidates as $filtereduser) {
-                $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id);
+                // Only proactively issue a certificate on the student's behalf when emailstudents is
+                // enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not manufacture
+                // a certificate for a student who hasn't triggered issuance themselves (e.g. by viewing
+                // it) -- we can only notify about certificates that already exist.
+                $issue = !empty($customcert->emailstudents)
+                    ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id)
+                    : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id);
 
                 if (!empty($issue) && (int)$issue->emailed === 0) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
