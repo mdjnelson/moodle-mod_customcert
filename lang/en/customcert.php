@@ -111,7 +111,7 @@ $string['emailstudentcertificatelinktext'] = 'View certificate';
 $string['emailstudentfooter'] = '<a href="{$a->emailcertificatelink}">{$a->emailcertificatelinktext}</a>.';
 $string['emailstudentgreeting'] = 'Dear {$a}';
 $string['emailstudents'] = 'Email students';
-$string['emailstudents_help'] = 'If set this will email the students a copy of the certificate when it becomes available. <strong>Warning:</strong> Setting this to \'Yes\' before you have finished creating the certificate will email the student an incomplete certificate.';
+$string['emailstudents_help'] = 'If set this will email the students a copy of the certificate once it becomes available to them, taking into account any \'Restrict access\' and \'Activity completion\' conditions configured for this activity. <strong>Warning:</strong> Setting this to \'Yes\' before you have finished creating the certificate will email the student an incomplete certificate.';
 $string['emailstudentsubject'] = '{$a->coursefullname}: {$a->certificatename}';
 $string['emailteachers'] = 'Email teachers';
 $string['emailteachers_help'] = 'If set this will email the teachers a copy of the certificate when it becomes available. <strong>Warning:</strong> Setting this to \'Yes\' before you have finished creating the certificate will email the teacher an incomplete certificate.';
