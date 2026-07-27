@@ -194,7 +194,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     }
                 }
 
-                // Ensure the cert hasn't already been issued; if not, issue it now.
+                // Check whether the cert has already been issued.
                 $issue = $DB->get_record(
                     'customcert_issues',
                     ['userid' => $filtereduser->id, 'customcertid' => $customcert->id],
@@ -206,7 +206,11 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 if (!empty($issue)) {
                     $issueid = (int)$issue->id;
                     $emailed = (int)$issue->emailed;
-                } else {
+                } else if (!empty($customcert->emailstudents)) {
+                    // Only proactively issue a certificate on the student's behalf when emailstudents
+                    // is enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not
+                    // manufacture a certificate for a student who hasn't triggered issuance themselves
+                    // (e.g. by viewing it) -- we can only notify about certificates that already exist.
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
                     $emailed = 0;
                 }
