@@ -228,6 +228,90 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * list_email_candidates should not include a user until completion conditions configured on the
+     * certificate itself (core Activity completion, as distinct from Restrict access) are met.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_respects_own_completion_condition_not_met(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course with completion enabled and enrol a student.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate that requires viewing the activity to complete it, with no
+        // Restrict access rule configured (completion tracking is the only gating in place).
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issuer = certificate_issuer_service::create();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        // The student has not viewed the certificate yet, so its completion condition is not met.
+        $this->assertArrayNotHasKey($student->id, $candidates);
+    }
+
+    /**
+     * list_email_candidates should include a user once completion conditions configured on the
+     * certificate itself have been met.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_respects_own_completion_condition_met(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course with completion enabled and enrol a student.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate that requires viewing the activity to complete it, with no
+        // Restrict access rule configured (completion tracking is the only gating in place).
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Mark the certificate's own completion condition as met for the student by
+        // simulating a view, since automatic completion recalculates state from the
+        // actual criteria (a bare update_state() call would be recalculated away).
+        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm, $student->id);
+
+        $issuer = certificate_issuer_service::create();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        $this->assertArrayHasKey($student->id, $candidates);
+    }
+
+    /**
      * list_email_candidates should not include suspended users.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
