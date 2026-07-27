@@ -719,6 +719,135 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * Tests the email certificate task when completion conditions configured on the certificate
+     * itself (as distinct from Restrict access) have not been met.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_students_havent_met_own_completion_condition(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create a user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Enrol them in the course.
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a certificate that requires viewing the activity to complete it, with no
+        // Restrict access rule configured (completion tracking is the only gating in place).
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Confirm there are no issues as the user has not viewed the certificate yet.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(0, $issues);
+
+        // Confirm no emails were sent.
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Tests the email certificate task when completion conditions configured on the certificate
+     * itself have been met.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_students_have_met_own_completion_condition(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create a user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Enrol them in the course.
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a certificate that requires viewing the activity to complete it, with no
+        // Restrict access rule configured (completion tracking is the only gating in place).
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Mark the certificate's own completion condition as met for the user by simulating a
+        // view, since automatic completion recalculates state from the actual criteria (a bare
+        // update_state() call would be recalculated away).
+        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm, $user1->id);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Confirm there is an issue as the user has viewed the certificate.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues);
+
+        // Confirm an email was sent.
+        $this->assertCount(1, $emails);
+    }
+
+    /**
      * Tests the email certificate task running adhoc.
      *
      * @covers \mod_customcert\task\email_certificate_task

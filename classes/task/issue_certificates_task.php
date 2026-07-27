@@ -144,6 +144,8 @@ class issue_certificates_task extends \core\task\scheduled_task {
             $infomodule = new \core_availability\info_module($cm);
             $filteredusers = $infomodule->filter_user_list($userswithissueview);
 
+            $completion = new \completion_info(get_course((int)$customcert->courseid));
+
             foreach ($filteredusers as $filtereduser) {
                 // Do not issue certs to suspended users.
                 if ($filtereduser->suspended) {
@@ -163,6 +165,14 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 // Check whether the CM is visible to this user.
                 $usercm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
                 if (!$usercm->uservisible) {
+                    continue;
+                }
+
+                // Skip users who have not yet met completion conditions configured on the certificate itself.
+                if (
+                    $completion->is_enabled($usercm) &&
+                    !$this->has_met_own_completion($completion, $usercm, (int)$filtereduser->id)
+                ) {
                     continue;
                 }
 
@@ -208,5 +218,24 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 }
             }
         }
+    }
+
+    /**
+     * Check whether a user has met the completion conditions configured on the certificate cm itself.
+     *
+     * This is distinct from availability/restrict access, which is already enforced via uservisible.
+     * Activity completion tracking is only ever consulted by other activities' restrict access rules
+     * unless we check it explicitly here, so a certificate configured with completion conditions but no
+     * restrict access rule would otherwise be issued/emailed regardless of the user's completion state.
+     *
+     * @param \completion_info $completion
+     * @param object $cm
+     * @param int $userid
+     * @return bool
+     */
+    private function has_met_own_completion(\completion_info $completion, object $cm, int $userid): bool {
+        $data = $completion->get_data($cm, false, $userid);
+
+        return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
     }
 }
