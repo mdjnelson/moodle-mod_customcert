@@ -211,17 +211,9 @@ class element extends \customcertelement_image\element {
 
         $imageinfo = json_decode($this->get_data());
 
-        // If there is no file, we have nothing to display.
-        if (empty($imageinfo->filename)) {
-            return;
-        }
-
-        // If there is no signature file, we have nothing to display.
-        if (empty($imageinfo->signaturefilename)) {
-            return;
-        }
-
-        if ($file = $this->get_file()) {
+        // Render the visual image, if one is configured. This is optional and independent
+        // of whether the cryptographic signature below gets applied.
+        if (!empty($imageinfo->filename) && ($file = $this->get_file())) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
@@ -231,6 +223,11 @@ class element extends \customcertelement_image\element {
             } else {
                 $pdf->Image($location, $this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
             }
+        }
+
+        // If there is no signature file, there is nothing to cryptographically sign.
+        if (empty($imageinfo->signaturefilename)) {
+            return;
         }
 
         if ($signaturefile = $this->get_signature_file()) {
