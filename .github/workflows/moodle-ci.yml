@@ -28,7 +28,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -41,19 +41,18 @@ jobs:
           --health-retries 3
 
       mariadb:
-        image: mariadb:10.11
+        image: mariadb:11.4
         env:
-          MYSQL_USER: 'root'
-          MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
-          MYSQL_CHARACTER_SET_SERVER: 'utf8mb4'
-          MYSQL_COLLATION_SERVER: 'utf8mb4_unicode_ci'
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
+          MARIADB_CHARACTER_SET_SERVER: 'utf8mb4'
+          MARIADB_COLLATION_SERVER: 'utf8mb4_unicode_ci'
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     strategy:
       fail-fast: false
