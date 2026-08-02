@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.4.11] - 2026-08-02
+
+### Security
+
+- Fixed horizontal authorisation bypass in `load_template.php` that could allow a user to load a template they do not have access to (CVE-2026-30884 related).
+
+### Fixed
+
+- Do not bulk-issue certificates to students when only `emailteachers` or `emailothers` is enabled (#672).
+- Skip issuing and emailing certificates until a student's own completion conditions are met (#672).
+
+### Added
+
+- Applied digital signature without requiring an image (#725).
+- Clarified that the `includeinnotvisiblecourses` setting also applies to course categories (#783).
+
 ## [4.4.10] - 2026-06-10
 
 ### Fixed
