@@ -33,6 +33,22 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
+## [5.2.4] - 2026-08-02
+
+### Security
+
+- Fixed horizontal authorisation bypass in `load_template.php` that could allow a user to load a template they do not have access to (CVE-2026-30884 related).
+
+### Fixed
+
+- Do not bulk-issue certificates to students when only `emailteachers` or `emailothers` is enabled (#672).
+- Skip issuing and emailing certificates until a student's own completion conditions are met (#672).
+
+### Added
+
+- Applied digital signature without requiring an image (#725).
+- Clarified that the `includeinnotvisiblecourses` setting also applies to course categories (#783).
+
 ## [5.2.3] - 2026-07-06
 
 ### Added
