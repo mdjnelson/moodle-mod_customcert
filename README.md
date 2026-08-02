@@ -2,7 +2,6 @@
 
 This activity allows dynamic generation of PDF certificates with full customisation in your browser.
 
-
 ## Try in Moodle Playground
 
 Click the badge below to open this plugin instantly in
