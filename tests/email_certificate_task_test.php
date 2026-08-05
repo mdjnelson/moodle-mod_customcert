@@ -301,6 +301,7 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+<<<<<<< HEAD
      * issue_if_needed()'s DB read count for a batch of candidates already present in the
      * prefetched map must not scale with batch size: without the bulk-prefetch fix, this was
      * one find_by_user_certificate() query per candidate.
@@ -343,6 +344,78 @@ final class email_certificate_task_test extends advanced_testcase {
             $readsafter,
             'issue_if_needed() must not hit the database for any candidate already present in the ' .
             'prefetched map, regardless of batch size; this indicates a per-candidate query has regressed.'
+=======
+     * process_email_issuance_run's DB read count for already-issued-but-unemailed candidates
+     * must not scale roughly 1:1 with the number of such candidates, as it did before the
+     * bulk-prefetch fix (one find_by_user_certificate() query per candidate).
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
+     */
+    public function test_process_run_read_count_does_not_scale_with_already_issued_candidates(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $issuer = certificate_issuer_service::create();
+
+        // Small batch: a certificate with a handful of pre-issued-but-unemailed students.
+        $certa = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $templatea = template::from_record((new template_repository())->get_by_id_or_fail((int)$certa->templateid));
+        $pageida = template_service::create()->add_page($templatea);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageida, 'name' => 'E']);
+
+        $smallcount = 3;
+        for ($i = 0; $i < $smallcount; $i++) {
+            $student = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($student->id, $course->id);
+            $this->issue_certificate((int)$certa->id, (int)$student->id);
+        }
+
+        $sink = $this->redirectEmails();
+        $readsbefore = $DB->perf_get_reads();
+        $issuer->process_email_issuance_run();
+        $smallbatchreads = $DB->perf_get_reads() - $readsbefore;
+        $sink->close();
+
+        // Large batch: a second certificate in the same course with many more
+        // pre-issued-but-unemailed students. Certificate A has nothing left to do now
+        // (all emailed), so this run's extra reads are attributable to certificate B.
+        $certb = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $templateb = template::from_record((new template_repository())->get_by_id_or_fail((int)$certb->templateid));
+        $pageidb = template_service::create()->add_page($templateb);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageidb, 'name' => 'E']);
+
+        $largecount = 30;
+        for ($i = 0; $i < $largecount; $i++) {
+            $student = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($student->id, $course->id);
+            $this->issue_certificate((int)$certb->id, (int)$student->id);
+        }
+
+        $sink = $this->redirectEmails();
+        $readsbefore = $DB->perf_get_reads();
+        $issuer->process_email_issuance_run();
+        $largebatchreads = $DB->perf_get_reads() - $readsbefore;
+        $sink->close();
+
+        $extracandidates = $largecount - $smallcount;
+        $extrareads = $largebatchreads - $smallbatchreads;
+
+        $this->assertLessThan(
+            $extracandidates,
+            $extrareads,
+            "Expected DB reads to grow much slower than candidate count (candidates grew by {$extracandidates}, " .
+            "reads grew by {$extrareads}); this indicates a per-candidate query has regressed."
+>>>>>>> origin/fix/n-plus-one-certificate-issuance-query
         );
     }
 
