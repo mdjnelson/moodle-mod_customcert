@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace mod_customcert;
 
 use context_course;
+use context_system;
 use mod_customcert\event\template_updated;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
@@ -27,6 +28,7 @@ use mod_customcert\service\template_load_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use advanced_testcase;
+use required_capability_exception;
 
 /**
  * Tests for template_load_service behaviour.
@@ -171,5 +173,68 @@ final class template_load_service_test extends advanced_testcase {
         // Ensure template_updated fired for course context.
         $hasupdate = array_filter($events, static fn($e) => $e instanceof template_updated);
         $this->assertNotEmpty($hasupdate);
+    }
+
+    /**
+     * replace() must enforce authorization itself, not merely rely on callers such as
+     * load_template.php, so that any future caller of this service is protected against
+     * copying the contents of a template the user cannot access.
+     *
+     * @covers ::replace
+     */
+    public function test_replace_denies_unauthorized_source_template(): void {
+        $generator = $this->getDataGenerator();
+
+        // Course A: teacher can manage the target template here.
+        $coursea = $generator->create_course();
+        $targetid = $this->templates->create((object) [
+            'name' => 'Target',
+            'contextid' => context_course::instance($coursea->id)->id,
+        ]);
+        $teacher = $generator->create_user();
+        $generator->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        // Course B: a source template the teacher has no access to.
+        $courseb = $generator->create_course();
+        $sourceid = $this->templates->create((object) [
+            'name' => 'Source',
+            'contextid' => context_course::instance($courseb->id)->id,
+        ]);
+
+        $this->setUser($teacher);
+
+        $this->expectException(required_capability_exception::class);
+        $this->service->replace($targetid, $sourceid);
+    }
+
+    /**
+     * A system-context template remains usable as a source even for a user with no
+     * mod/customcert:manage capability at the system context, matching template::require_use_as_source().
+     *
+     * @covers ::replace
+     */
+    public function test_replace_allows_system_context_source_template(): void {
+        $generator = $this->getDataGenerator();
+
+        $coursea = $generator->create_course();
+        $targetid = $this->templates->create((object) [
+            'name' => 'Target',
+            'contextid' => context_course::instance($coursea->id)->id,
+        ]);
+        $teacher = $generator->create_user();
+        $generator->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        $sourceid = $this->templates->create((object) [
+            'name' => 'System source',
+            'contextid' => context_system::instance()->id,
+        ]);
+
+        $this->setUser($teacher);
+
+        // Must not throw, despite the teacher having no system-level capability.
+        $this->service->replace($targetid, $sourceid);
+
+        $pages = $this->pages->list_by_template($targetid);
+        $this->assertCount(0, $pages);
     }
 }

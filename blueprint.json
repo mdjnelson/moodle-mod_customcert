@@ -1,0 +1,79 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ateeducacion/moodle-playground/refs/heads/main/assets/blueprints/blueprint-schema.json",
+  "preferredVersions": {
+    "php": "8.3",
+    "moodle": "main"
+  },
+  "landingPage": "/my/",
+  "constants": {
+    "ADMIN_USER": "admin",
+    "ADMIN_PASS": "test",
+    "ADMIN_EMAIL": "admin@example.com"
+  },
+  "steps": [
+    {
+      "step": "installMoodle",
+      "options": {
+        "adminUser": "{{ADMIN_USER}}",
+        "adminPass": "{{ADMIN_PASS}}",
+        "adminEmail": "{{ADMIN_EMAIL}}",
+        "siteName": "Custom Certificate Activity Demo",
+        "locale": "en",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "step": "setAdminAccount",
+      "username": "{{ADMIN_USER}}",
+      "password": "{{ADMIN_PASS}}",
+      "email": "{{ADMIN_EMAIL}}"
+    },
+    {
+      "step": "login",
+      "username": "{{ADMIN_USER}}"
+    },
+    {
+      "step": "installMoodlePlugin",
+      "pluginType": "mod",
+      "pluginName": "customcert",
+      "url": "https://github.com/mdjnelson/moodle-mod_customcert/archive/refs/heads/main.zip"
+    },
+    {
+      "step": "createCategory",
+      "name": "Test Courses"
+    },
+    {
+      "step": "createCourse",
+      "fullname": "Custom Certificate Activity Demo Course",
+      "shortname": "CCERTDEMO01",
+      "category": "Test Courses",
+      "summary": "Demo course for the mod_customcert activity module. A sample certificate activity with a default template is preloaded so you can immediately open the template editor and design a certificate, or issue and download a PDF.",
+      "format": "topics",
+      "numsections": 3
+    },
+    {
+      "step": "createUser",
+      "username": "student",
+      "password": "test",
+      "email": "student@example.com",
+      "firstname": "Demo",
+      "lastname": "Student"
+    },
+    {
+      "step": "enrolUser",
+      "username": "{{ADMIN_USER}}",
+      "course": "CCERTDEMO01",
+      "role": "editingteacher"
+    },
+    {
+      "step": "enrolUser",
+      "username": "student",
+      "course": "CCERTDEMO01",
+      "role": "student"
+    },
+    {
+      "step": "runPhpCode",
+      "code": "if (!defined('CLI_SCRIPT')) { define('CLI_SCRIPT', true); }\nrequire('/www/moodle/config.php');\nrequire_once($CFG->dirroot . '/course/lib.php');\nrequire_once($CFG->dirroot . '/mod/customcert/lib.php');\n\n$course = $DB->get_record('course', ['shortname' => 'CCERTDEMO01'], '*', MUST_EXIST);\n$module = $DB->get_record('modules', ['name' => 'customcert'], '*', MUST_EXIST);\n$admin = get_admin();\n\\core\\session\\manager::set_user($admin);\n$now = time();\n$cm = (object)[\n    'course'       => $course->id,\n    'module'       => $module->id,\n    'instance'     => 0,\n    'section'      => 1,\n    'idnumber'     => '',\n    'added'        => $now,\n    'score'        => 0,\n    'indent'       => 0,\n    'visible'      => 1,\n    'visibleold'   => 1,\n    'groupmode'    => 0,\n    'groupingid'   => 0,\n    'completion'   => 0,\n    'showdescription' => 0,\n];\n$cmid = add_course_module($cm);\ncourse_add_cm_to_section($course->id, $cmid, 1);\n$data = (object)[\n    'course'        => $course->id,\n    'coursemodule'  => $cmid,\n    'name'          => 'Sample certificate',\n    'intro'         => '<p>Open this activity to try <strong>mod_customcert</strong>: edit the certificate template (add text, images, or borders), then issue and download a PDF. Log in as <strong>student / test</strong> to issue a certificate showing your name, or as <strong>admin / test</strong> to edit the template.</p>',\n    'introformat'   => FORMAT_HTML,\n    'requiredtime'  => 0,\n    'verifyany'     => 0,\n    'deliveryoption'=> 'I',\n    'protection_print'    => 0,\n    'protection_modify'   => 0,\n    'protection_copy'     => 0,\n    'emailstudents' => 0,\n    'emailteachers' => 0,\n    'emailothers'   => '',\n    'language'      => '',\n];\n$instanceid = customcert_add_instance($data, null);\n$DB->set_field('course_modules', 'instance', $instanceid, ['id' => $cmid]);\nrebuild_course_cache($course->id, true);\n$cert = $DB->get_record('customcert', ['id' => $instanceid], '*', MUST_EXIST);\n// The current public services do not provide a convenient element-creation API\n// for non-form provisioning, so this demo inserts the seed elements directly.\n$page = $DB->get_record('customcert_pages', ['templateid' => $cert->templateid], '*', MUST_EXIST);\n$samples = [\n    ['name' => 'Title',    'element' => 'text',        'fontsize' => 30, 'posy' => 50,  'colour' => '#1d3557',\n     'data' => json_encode(['text' => 'Certificate of Completion', 'font' => 'freesans', 'fontsize' => 30, 'colour' => '#1d3557', 'width' => 170], JSON_THROW_ON_ERROR)],\n    ['name' => 'Subtitle', 'element' => 'text',        'fontsize' => 14, 'posy' => 90,  'colour' => '#333333',\n     'data' => json_encode(['text' => 'This certificate is proudly presented to', 'font' => 'freesans', 'fontsize' => 14, 'colour' => '#333333', 'width' => 170], JSON_THROW_ON_ERROR)],\n    ['name' => 'Recipient', 'element' => 'studentname', 'fontsize' => 24, 'posy' => 115, 'colour' => '#000000',\n     'data' => json_encode(['font' => 'freesans', 'fontsize' => 24, 'colour' => '#000000', 'width' => 170], JSON_THROW_ON_ERROR)],\n    ['name' => 'Body',     'element' => 'text',        'fontsize' => 12, 'posy' => 145, 'colour' => '#333333',\n     'data' => json_encode(['text' => 'for successfully completing the Moodle Playground demo course showcasing the mod_customcert activity.', 'font' => 'freesans', 'fontsize' => 12, 'colour' => '#333333', 'width' => 170], JSON_THROW_ON_ERROR)],\n    ['name' => 'Footer',   'element' => 'text',        'fontsize' => 10, 'posy' => 245, 'colour' => '#666666',\n     'data' => json_encode(['text' => 'Issued on the Moodle Playground preview', 'font' => 'freesans', 'fontsize' => 10, 'colour' => '#666666', 'width' => 170], JSON_THROW_ON_ERROR)],\n];\n$seq = 0;\nforeach ($samples as $s) {\n    $DB->insert_record('customcert_elements', (object)[\n        'pageid'       => $page->id,\n        'name'         => $s['name'],\n        'element'      => $s['element'],\n        'data'         => $s['data'],\n        'posx'         => 20,\n        'posy'         => $s['posy'],\n        'refpoint'     => 0,\n        'alignment'    => 'C',\n        'sequence'     => $seq++,\n        'timecreated'  => $now,\n        'timemodified' => $now,\n    ]);\n}\necho \"Seeded \" . count($samples) . \" elements on page {$page->id}\\n\";\necho \"Created mod_customcert instance id={$instanceid} cmid={$cmid} in course {$course->shortname}\\n\";\n"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ use core\task\manager;
 use mod_customcert\task\email_certificate_task;
 use context_module;
 use core_availability\info_module;
+use completion_info;
 use mod_customcert\service\certificate_time_service;
 
 /**
@@ -120,6 +121,33 @@ final class certificate_issuer_service {
      * @return object|null Contains id and emailed flags for the issue
      */
     public function issue_if_needed(int $customcertid, int $userid, array $existingissues = []): ?object {
+        $issue = $this->find_existing_issue($customcertid, $userid, $existingissues);
+
+        if ($issue) {
+            return $issue;
+        }
+
+        $issueid = $this->issues->create($customcertid, $userid);
+
+        return (object)['id' => $issueid, 'emailed' => 0];
+    }
+
+    /**
+     * Find an existing issue for a user/certificate pair, without creating one.
+     *
+     * @param int $customcertid
+     * @param int $userid
+     * @param array $existingissues Optional prefetched map of userid => stdClass{id, emailed} for
+     *                               this customcertid, as returned by
+     *                               issue_repository::list_by_certificate_keyed_by_userid().
+     *                               When the user is present in this map, no query is
+     *                               needed. When absent, a fresh check is still performed
+     *                               immediately before any insert, since customcert_issues
+     *                               has no unique constraint on (userid, customcertid) and
+     *                               the prefetched map may be stale by the time we get here.
+     * @return object|null Contains id and emailed flags for the issue
+     */
+    private function find_existing_issue(int $customcertid, int $userid, array $existingissues = []): ?object {
         if (array_key_exists($userid, $existingissues)) {
             $issue = $existingissues[$userid];
             return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
@@ -127,13 +155,11 @@ final class certificate_issuer_service {
 
         $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
 
-        if ($issue) {
-            return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+        if (!$issue) {
+            return null;
         }
 
-        $issueid = $this->issues->create($customcertid, $userid);
-
-        return (object)['id' => $issueid, 'emailed' => 0];
+        return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
     }
 
     /**
@@ -196,7 +222,13 @@ final class certificate_issuer_service {
             $existingissues = $this->issues->list_by_certificate_keyed_by_userid((int)$customcert->id);
 
             foreach ($candidates as $filtereduser) {
-                $issue = $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id, $existingissues);
+                // Only proactively issue a certificate on the student's behalf when emailstudents is
+                // enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not manufacture
+                // a certificate for a student who hasn't triggered issuance themselves (e.g. by viewing
+                // it) -- we can only notify about certificates that already exist.
+                $issue = !empty($customcert->emailstudents)
+                    ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id, $existingissues)
+                    : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id, $existingissues);
 
                 if (!empty($issue) && (int)$issue->emailed === 0) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
@@ -264,6 +296,7 @@ final class certificate_issuer_service {
 
         $candidates = [];
         $timeservice = certificate_time_service::create();
+        $completion = new completion_info(get_course((int)$customcert->courseid));
 
         foreach ($filteredusers as $filtereduser) {
             // Do not issue certs to suspended users.
@@ -287,6 +320,14 @@ final class certificate_issuer_service {
                 continue;
             }
 
+            // Skip users who have not yet met completion conditions configured on the certificate itself.
+            if (
+                $completion->is_enabled($usercm) &&
+                !$this->has_met_own_completion($completion, $usercm, (int)$filtereduser->id)
+            ) {
+                continue;
+            }
+
             // Check required time (if any).
             if (!empty($customcert->requiredtime)) {
                 if (
@@ -303,5 +344,24 @@ final class certificate_issuer_service {
         }
 
         return $candidates;
+    }
+
+    /**
+     * Check whether a user has met the completion conditions configured on the certificate cm itself.
+     *
+     * This is distinct from availability/restrict access, which is already enforced via uservisible.
+     * Activity completion tracking is only ever consulted by other activities' restrict access rules
+     * unless we check it explicitly here, so a certificate configured with completion conditions but no
+     * restrict access rule would otherwise be issued/emailed regardless of the user's completion state.
+     *
+     * @param completion_info $completion
+     * @param object $cm
+     * @param int $userid
+     * @return bool
+     */
+    private function has_met_own_completion(completion_info $completion, object $cm, int $userid): bool {
+        $data = $completion->get_data($cm, false, $userid);
+
+        return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
     }
 }
