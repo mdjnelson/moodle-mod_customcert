@@ -109,7 +109,6 @@ final class certificate_issuer_service {
      *
      * @param int $customcertid
      * @param int $userid
-<<<<<<< HEAD
      * @param array $existingissues Optional prefetched map of userid => stdClass{id, emailed} for
      *                               this customcertid, as returned by
      *                               issue_repository::list_by_certificate_keyed_by_userid().
@@ -118,16 +117,6 @@ final class certificate_issuer_service {
      *                               immediately before any insert, since customcert_issues
      *                               has no unique constraint on (userid, customcertid) and
      *                               the prefetched map may be stale by the time we get here.
-=======
-     * @param array<int, stdClass> $existingissues Optional prefetched map of userid => {id, emailed} for
-     *                                              this customcertid, as returned by
-     *                                              issue_repository::list_by_certificate_keyed_by_userid().
-     *                                              When the user is present in this map, no query is
-     *                                              needed. When absent, a fresh check is still performed
-     *                                              immediately before any insert, since customcert_issues
-     *                                              has no unique constraint on (userid, customcertid) and
-     *                                              the prefetched map may be stale by the time we get here.
->>>>>>> origin/fix/n-plus-one-certificate-issuance-query
      * @return object|null Contains id and emailed flags for the issue
      */
     public function issue_if_needed(int $customcertid, int $userid, array $existingissues = []): ?object {

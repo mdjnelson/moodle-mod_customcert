@@ -160,11 +160,7 @@ final class issue_repository {
      * insert, since customcert_issues has no unique constraint on (userid, customcertid).
      *
      * @param int $customcertid
-<<<<<<< HEAD
      * @return array<int,stdClass> keyed by userid, each with id and emailed fields
-=======
-     * @return array<int, stdClass> keyed by userid, each with id and emailed fields
->>>>>>> origin/fix/n-plus-one-certificate-issuance-query
      */
     public function list_by_certificate_keyed_by_userid(int $customcertid): array {
         global $DB;
