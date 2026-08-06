@@ -38,7 +38,6 @@ use MoodleQuickForm;
 use pdf;
 use stdClass;
 use TCPDF_COLORS;
-use customcertelement_border\border_payload;
 
 /**
  * The customcert element border's core interaction API.
@@ -122,11 +121,10 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new border_payload(
-            colour: isset($formdata->colour) ? (string)$formdata->colour : '',
-            width: (int)($formdata->width ?? 0),
-        );
-        return $payload->to_array();
+        return [
+            'colour' => isset($formdata->colour) ? (string)$formdata->colour : '',
+            'width' => (int)($formdata->width ?? 0),
+        ];
     }
 
     /**
