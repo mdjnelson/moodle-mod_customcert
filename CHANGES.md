@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.2.5] - 2026-08-10
+
+### Security
+
+- Added a missing capability check so that only users who can manage a certificate template can fetch element HTML or the admin edit-element form via `get_element_html()` and the `editelement` fragment callback (#871).
+- `view.php`'s report-download flow (`downloadissue`) now verifies the target user has actually been issued the certificate before generating a PDF for them, preventing a report-viewer from generating a certificate for an arbitrary user who was never issued one (#871).
+- Moved the login check in `my_certificates.php` above the certificate-issuance existence check, preventing an unauthenticated user from probing whether a given user has been issued a given certificate (#871).
+
 ## [5.2.4] - 2026-08-02
 
 ### Security
