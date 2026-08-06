@@ -36,6 +36,15 @@ $userid = optional_param('userid', $USER->id, PARAM_INT);
 $download = optional_param('download', null, PARAM_ALPHA);
 $courseid = optional_param('course', null, PARAM_INT);
 $downloadcert = optional_param('downloadcert', '', PARAM_BOOL);
+
+// Requires a login. This must happen before any data-dependent checks below, so that
+// an unauthenticated request cannot be used to probe certificate-issuance existence.
+if ($courseid) {
+    require_login($courseid);
+} else {
+    require_login();
+}
+
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $certrepo = new certificate_repository();
@@ -50,13 +59,6 @@ $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', pagination::CUSTOMCERT_PER_PAGE, PARAM_INT);
 $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid' => $userid,
     'page' => $page, 'perpage' => $perpage]);
-
-// Requires a login.
-if ($courseid) {
-    require_login($courseid);
-} else {
-    require_login();
-}
 
 // Check that we have a valid user.
 $user = core_user::get_user($userid, '*', MUST_EXIST);

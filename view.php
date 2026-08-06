@@ -237,6 +237,10 @@ if (!$downloadown && !$downloadissue) {
         $completion = new completion_info($course);
         $completion->set_module_viewed($cm);
     } else if ($downloadissue && $canviewreport) {
+        // Only allow downloading a certificate PDF for a user who has actually been issued one.
+        if (!(new issue_repository())->exists_for_user((int)$customcert->id, (int)$downloadissue)) {
+            throw new moodle_exception('You have not been issued a certificate');
+        }
         $userid = $downloadissue;
     }
 
