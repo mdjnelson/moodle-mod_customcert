@@ -33,7 +33,6 @@ use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
-use customcertelement_date\date_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
 use MoodleQuickForm;
@@ -132,12 +131,13 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new date_payload(
-            dateitem: (string)($formdata->dateitem ?? ''),
-            dateformat: (string)($formdata->dateformat ?? ''),
-            style: stylable_payload::from_form($formdata),
+        return array_merge(
+            [
+                'dateitem' => (string)($formdata->dateitem ?? ''),
+                'dateformat' => (string)($formdata->dateformat ?? ''),
+            ],
+            stylable_payload::from_form($formdata)->to_array(),
         );
-        return $payload->to_array();
     }
 
     /**
