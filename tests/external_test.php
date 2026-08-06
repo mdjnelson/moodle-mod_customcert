@@ -659,4 +659,22 @@ final class external_test extends advanced_testcase {
         $result = external::get_element_html($cert->templateid, $elementid);
         $this->assertIsString($result);
     }
+
+    /**
+     * Test that get_element_html rejects a user who can view the certificate but cannot manage it.
+     *
+     * @covers \mod_customcert\external::get_element_html
+     */
+    public function test_get_element_html_rejects_view_only_capability(): void {
+        $course = $this->getDataGenerator()->create_course();
+        [$cert, , , $elementid] = $this->create_cert_with_element($course);
+
+        // A plain enrolled student has mod/customcert:view but not mod/customcert:manage.
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $this->setUser($student);
+
+        $this->expectException('required_capability_exception');
+        external::get_element_html($cert->templateid, $elementid);
+    }
 }

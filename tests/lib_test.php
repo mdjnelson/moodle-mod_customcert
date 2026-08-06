@@ -377,4 +377,29 @@ final class lib_test extends advanced_testcase {
         $html = mod_customcert_output_fragment_editelement($args);
         $this->assertIsString($html);
     }
+
+    /**
+     * Test that mod_customcert_output_fragment_editelement rejects a user who can view the
+     * certificate but cannot manage it.
+     *
+     * @covers ::mod_customcert_output_fragment_editelement
+     */
+    public function test_output_fragment_editelement_rejects_view_only_capability(): void {
+        $course = $this->getDataGenerator()->create_course();
+        [, , $elementid, $templateid, $context] = $this->create_cert_with_element($course);
+
+        // A plain enrolled student has mod/customcert:view but not mod/customcert:manage.
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $this->setUser($student);
+
+        $args = [
+            'elementid'  => $elementid,
+            'templateid' => $templateid,
+            'context'    => $context,
+        ];
+
+        $this->expectException('required_capability_exception');
+        mod_customcert_output_fragment_editelement($args);
+    }
 }
