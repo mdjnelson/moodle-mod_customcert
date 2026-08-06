@@ -327,6 +327,9 @@ function mod_customcert_output_fragment_editelement($args) {
         throw new \moodle_exception('Invalid access');
     }
 
+    // Only users who can manage this template may view the admin edit-element form.
+    (new \mod_customcert\template($template))->require_manage();
+
     $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $element->pageid]);
     $form = new \mod_customcert\edit_element_form($pageurl, ['element' => $element]);
 
