@@ -166,6 +166,9 @@ class external extends external_api {
             self::validate_context(\context_system::instance());
         }
 
+        // Only users who can manage this template may fetch its element HTML.
+        $template->require_manage();
+
         // Verify the element belongs to the given template to prevent cross-template information disclosure.
         $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
         if ($page->templateid != $templateid) {
