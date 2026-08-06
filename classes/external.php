@@ -178,6 +178,9 @@ class external extends external_api {
             self::validate_context(context_system::instance());
         }
 
+        // Only users who can manage this template may fetch its element HTML.
+        $template->require_manage();
+
         // Load the element, verifying it belongs to the authorised template.
         $elementrepo = new element_repository(element_factory::build_with_defaults());
         $element = $elementrepo->get_for_template_or_fail((int)$templateid, (int)$elementid);
