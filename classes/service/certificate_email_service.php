@@ -96,6 +96,12 @@ final class certificate_email_service {
     /**
      * Send an issued certificate via email to configured recipients.
      *
+     * Sending is skipped when the issue is already flagged as emailed. Whoever decided this
+     * issue needed emailing may have done so a long time ago -- an adhoc task can sit queued
+     * for an arbitrary period, and a scheduled run works through a batch of candidates that
+     * were assessed before the run began -- so that decision is re-checked here, against the
+     * flag as it stands now, rather than trusted at face value.
+     *
      * @param int $customcertid
      * @param int $issueid
      * @return void
@@ -106,8 +112,13 @@ final class certificate_email_service {
             return;
         }
 
+        // Carries the current emailed flag, so this costs no extra query.
         $user = $this->emailrepository->get_user_for_issue($customcertid, $issueid);
         if (!$user) {
+            return;
+        }
+
+        if (!empty($user->emailed)) {
             return;
         }
 
