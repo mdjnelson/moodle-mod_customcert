@@ -30,6 +30,7 @@ use context_course;
 use context_module;
 use stdClass;
 use advanced_testcase;
+use mod_customcert\service\certificate_email_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_issuer_service;
 use mod_customcert\service\issue_repository;
@@ -181,7 +182,8 @@ final class email_certificate_task_test extends advanced_testcase {
         $issuedid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issuedid]);
 
-        $existingissues = (new issue_repository())->list_by_certificate_keyed_by_userid((int)$customcert->id);
+        $existingissues = (new issue_repository())
+            ->list_by_users_keyed_by_userid((int)$customcert->id, [(int)$student->id]);
         $this->assertArrayHasKey((int)$student->id, $existingissues);
 
         $issuer = certificate_issuer_service::create();
@@ -200,8 +202,8 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * issue_if_needed should still issue a fresh certificate, via a tight check-then-insert,
-     * for a user absent from the prefetched map.
+     * issue_if_needed should still issue a fresh certificate for a user absent from the
+     * prefetched map, since an absent user is one the prefetch found no issue for.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::issue_if_needed
      */
@@ -215,7 +217,10 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $issuedid = $this->issue_certificate((int)$customcert->id, (int)$existingstudent->id);
 
-        $existingissues = (new issue_repository())->list_by_certificate_keyed_by_userid((int)$customcert->id);
+        $existingissues = (new issue_repository())->list_by_users_keyed_by_userid(
+            (int)$customcert->id,
+            [(int)$existingstudent->id, (int)$newstudent->id]
+        );
         $this->assertArrayHasKey((int)$existingstudent->id, $existingissues);
         $this->assertArrayNotHasKey((int)$newstudent->id, $existingissues);
 
@@ -301,49 +306,157 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * issue_if_needed()'s DB read count for a batch of candidates already present in the
-     * prefetched map must not scale with batch size: without the bulk-prefetch fix, this was
-     * one find_by_user_certificate() query per candidate.
+     * The prefetch plus the whole decision loop over a batch of candidates must cost a
+     * constant number of reads, whether or not those candidates already have an issue.
      *
-     * This is checked directly against issue_if_needed() over a batch, rather than via
-     * process_email_issuance_run(), because a full run's read count also includes the
-     * genuinely per-candidate cost of dispatching each certificate email (rendering and
-     * sending, or looking up the user to queue an adhoc task). That cost is real, unrelated
-     * to this optimisation, and unavoidably scales with candidate count, so it would swamp
-     * and invalidate a read-count comparison at the process_email_issuance_run() level.
+     * The measurement deliberately starts before the prefetch, so the prefetch's own cost is
+     * counted rather than excluded, and the batch is all cache misses -- users with no issue
+     * yet, which is the majority on a course being processed for the first time. Before this
+     * fix each of those still cost a find_by_user_certificate() lookup of its own, so the
+     * N+1 survived exactly where it hurt most.
+     *
+     * Reads are compared against the cost of issuing a certificate on its own, so the
+     * assertion pins the lookups at zero without hard-coding what creating an issue costs.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::issue_if_needed
+     * @covers \mod_customcert\service\issue_repository::list_by_users_keyed_by_userid
      */
-    public function test_issue_if_needed_reads_do_not_scale_with_batch_size_when_prefetched(): void {
+    public function test_prefetched_issuance_loop_costs_constant_reads_for_cache_misses(): void {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course();
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $issuer = certificate_issuer_service::create();
+        $repository = new issue_repository();
+
+        // Establish what a single issue creation costs in reads, with caches already warm so
+        // that first-call overhead is not attributed to the batch below. This goes straight to
+        // the repository rather than through issue_if_needed(), so that a lookup creeping back
+        // into the issuance path cannot inflate the baseline and hide itself.
+        $warmup = $this->getDataGenerator()->create_user();
+        $repository->create((int)$customcert->id, (int)$warmup->id);
+        $baselineuser = $this->getDataGenerator()->create_user();
+        $readsbefore = $DB->perf_get_reads();
+        $repository->create((int)$customcert->id, (int)$baselineuser->id);
+        $readspercreate = $DB->perf_get_reads() - $readsbefore;
 
         $userids = [];
         for ($i = 0; $i < 40; $i++) {
-            $student = $this->getDataGenerator()->create_user();
-            $userids[] = (int)$student->id;
-            $this->issue_certificate((int)$customcert->id, (int)$student->id);
+            $userids[] = (int)$this->getDataGenerator()->create_user()->id;
         }
 
-        $existingissues = (new issue_repository())->list_by_certificate_keyed_by_userid((int)$customcert->id);
-        $this->assertCount(40, $existingissues);
-
-        $issuer = certificate_issuer_service::create();
-
         $readsbefore = $DB->perf_get_reads();
+        $existingissues = $repository->list_by_users_keyed_by_userid((int)$customcert->id, $userids);
         foreach ($userids as $userid) {
             $issuer->issue_if_needed((int)$customcert->id, $userid, $existingissues);
         }
-        $readsafter = $DB->perf_get_reads();
+        $totalreads = $DB->perf_get_reads() - $readsbefore;
 
+        $this->assertEmpty($existingissues, 'None of these users should have an issue yet.');
+
+        // One read for the prefetch, then only the unavoidable cost of creating each issue.
+        $expected = 1 + (count($userids) * $readspercreate);
         $this->assertSame(
-            $readsbefore,
-            $readsafter,
-            'issue_if_needed() must not hit the database for any candidate already present in the ' .
-            'prefetched map, regardless of batch size; this indicates a per-candidate query has regressed.'
+            $expected,
+            $totalreads,
+            "Expected {$expected} reads (1 prefetch + " . count($userids) . " x {$readspercreate} per issue " .
+            "creation) but got {$totalreads}; a per-candidate lookup query has come back for cache misses."
         );
+
+        // The same holds for cache hits: re-running now that every user has an issue must cost
+        // the prefetch and nothing else.
+        $readsbefore = $DB->perf_get_reads();
+        $existingissues = $repository->list_by_users_keyed_by_userid((int)$customcert->id, $userids);
+        foreach ($userids as $userid) {
+            $issuer->issue_if_needed((int)$customcert->id, $userid, $existingissues);
+        }
+        $totalreads = $DB->perf_get_reads() - $readsbefore;
+
+        $this->assertCount(40, $existingissues);
+        $this->assertSame(
+            1,
+            $totalreads,
+            "Expected a single prefetch read for candidates that all already have an issue, got {$totalreads}."
+        );
+    }
+
+    /**
+     * A user with more than one issue row must survive the prefetch intact. customcert_issues
+     * has no unique constraint on (userid, customcertid), so keying a result set on userid in
+     * the database layer would drop rows and emit developer debugging.
+     *
+     * @covers \mod_customcert\service\issue_repository::list_by_users_keyed_by_userid
+     */
+    public function test_prefetch_handles_duplicate_issue_rows_without_debugging(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $student = $this->getDataGenerator()->create_user();
+        $other = $this->getDataGenerator()->create_user();
+
+        $firstid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+        $secondid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+        $otherid = $this->issue_certificate((int)$customcert->id, (int)$other->id);
+        $this->assertNotEquals($firstid, $secondid);
+
+        $existingissues = (new issue_repository())->list_by_users_keyed_by_userid(
+            (int)$customcert->id,
+            [(int)$student->id, (int)$other->id]
+        );
+        $this->assertDebuggingNotCalled();
+
+        // The duplicate collapses to the earliest row, and the unrelated user is untouched.
+        $this->assertCount(2, $existingissues);
+        $this->assertEquals($firstid, $existingissues[(int)$student->id]->id);
+        $this->assertEquals($otherid, $existingissues[(int)$other->id]->id);
+
+        // An already-emailed duplicate wins, so a duplicate row can never cause a re-send.
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $secondid]);
+        $existingissues = (new issue_repository())->list_by_users_keyed_by_userid(
+            (int)$customcert->id,
+            [(int)$student->id]
+        );
+        $this->assertDebuggingNotCalled();
+        $this->assertEquals($secondid, $existingissues[(int)$student->id]->id);
+        $this->assertEquals(1, $existingissues[(int)$student->id]->emailed);
+    }
+
+    /**
+     * An issue that has been emailed since it was queued must not be emailed again. The
+     * decision to email is made against a snapshot -- an adhoc task's payload, or a batch of
+     * candidates assessed before a long run started -- so it has to be revalidated at the
+     * point of sending.
+     *
+     * @covers \mod_customcert\service\certificate_email_service::send_issue
+     */
+    public function test_send_issue_skips_an_issue_already_emailed_since_it_was_queued(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $pageid = template_service::create()->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+
+        // Simulate the flag being set after this send was decided on but before it ran.
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+
+        $sink = $this->redirectEmails();
+        certificate_email_service::create()->send_issue((int)$customcert->id, $issueid);
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(0, $emails, 'An issue already flagged as emailed must not be sent again.');
     }
 
     /**

@@ -110,17 +110,12 @@ final class certificate_issuer_service {
      *
      * @param int $customcertid
      * @param int $userid
-     * @param array $existingissues Optional prefetched map of userid => stdClass{id, emailed} for
-     *                               this customcertid, as returned by
-     *                               issue_repository::list_by_certificate_keyed_by_userid().
-     *                               When the user is present in this map, no query is
-     *                               needed. When absent, a fresh check is still performed
-     *                               immediately before any insert, since customcert_issues
-     *                               has no unique constraint on (userid, customcertid) and
-     *                               the prefetched map may be stale by the time we get here.
+     * @param array|null $existingissues Prefetched issues keyed by userid, as returned by
+     *                                    issue_repository::list_by_users_keyed_by_userid().
+     *                                    See find_existing_issue() for how this is treated.
      * @return object|null Contains id and emailed flags for the issue
      */
-    public function issue_if_needed(int $customcertid, int $userid, array $existingissues = []): ?object {
+    public function issue_if_needed(int $customcertid, int $userid, ?array $existingissues = null): ?object {
         $issue = $this->find_existing_issue($customcertid, $userid, $existingissues);
 
         if ($issue) {
@@ -135,22 +130,31 @@ final class certificate_issuer_service {
     /**
      * Find an existing issue for a user/certificate pair, without creating one.
      *
+     * When $existingissues is supplied it is treated as authoritative for the users it was
+     * loaded for: it holds every issue row those users had for this certificate, so a user
+     * missing from it genuinely had no issue and needs no per-user lookup to confirm that.
+     * This is what keeps the issuance loop off a query-per-candidate, for users who already
+     * have an issue and for users who do not.
+     *
+     * The trade-off is that the map ages as the run proceeds. That is deliberate: a stale
+     * map can only cause a duplicate issue row, which the schema already permits and which
+     * the pre-existing check-then-insert could not prevent either, and it can no longer
+     * cause a duplicate email, because certificate_email_service::send_issue() re-reads the
+     * emailed flag at the moment it sends.
+     *
+     * Passing null (the default) skips the prefetch entirely and looks the user up directly,
+     * which is what single-user callers outside the batch loop want.
+     *
      * @param int $customcertid
      * @param int $userid
-     * @param array $existingissues Optional prefetched map of userid => stdClass{id, emailed} for
-     *                               this customcertid, as returned by
-     *                               issue_repository::list_by_certificate_keyed_by_userid().
-     *                               When the user is present in this map, no query is
-     *                               needed. When absent, a fresh check is still performed
-     *                               immediately before any insert, since customcert_issues
-     *                               has no unique constraint on (userid, customcertid) and
-     *                               the prefetched map may be stale by the time we get here.
+     * @param array|null $existingissues Prefetched issues keyed by userid, or null to query directly
      * @return object|null Contains id and emailed flags for the issue
      */
-    private function find_existing_issue(int $customcertid, int $userid, array $existingissues = []): ?object {
-        if (array_key_exists($userid, $existingissues)) {
-            $issue = $existingissues[$userid];
-            return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+    private function find_existing_issue(int $customcertid, int $userid, ?array $existingissues = null): ?object {
+        if ($existingissues !== null) {
+            $issue = $existingissues[$userid] ?? null;
+
+            return $issue ? (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed] : null;
         }
 
         $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
@@ -216,10 +220,13 @@ final class certificate_issuer_service {
                 continue;
             }
 
-            // Bulk-prefetch existing issues for this certificate once, instead of a get_record()
-            // round-trip per candidate. This is the dominant cost on large courses: without it,
-            // a course with thousands of eligible users means thousands of per-user queries here.
-            $existingissues = $this->issues->list_by_certificate_keyed_by_userid((int)$customcert->id);
+            // Bulk-prefetch the existing issues for exactly these candidates, instead of a
+            // get_record() round-trip per candidate. Without this, a course with thousands of
+            // eligible users means thousands of per-user queries here.
+            $existingissues = $this->issues->list_by_users_keyed_by_userid(
+                (int)$customcert->id,
+                array_keys($candidates)
+            );
 
             foreach ($candidates as $filtereduser) {
                 // Only proactively issue a certificate on the student's behalf when emailstudents is

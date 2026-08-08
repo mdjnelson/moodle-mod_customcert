@@ -151,21 +151,57 @@ final class issue_repository {
     }
 
     /**
-     * List all issues for a certificate, keyed by userid, for bulk prefetching.
+     * Bulk-load the issues for a certificate belonging to the given users, keyed by userid.
      *
-     * Used to avoid one get_record() round-trip per candidate user when processing
-     * a certificate with a large number of eligible users. Callers must not treat
-     * this as authoritative for deciding whether to insert a new issue: a fresh
-     * find_by_user_certificate() check should still be done immediately before any
-     * insert, since customcert_issues has no unique constraint on (userid, customcertid).
+     * Used to avoid one get_record() round-trip per candidate user when processing a
+     * certificate with a large number of eligible users. Only the requested users are
+     * loaded, so memory stays proportional to the batch being processed rather than to
+     * every issue ever created for the certificate.
+     *
+     * customcert_issues has no unique constraint on (userid, customcertid), so a user may
+     * legitimately have several rows. Those are collapsed deliberately here rather than by
+     * keying the result set directly: letting the database layer key on a non-unique column
+     * would silently overwrite rows and emit developer debugging. The earliest issue wins,
+     * except that an already-emailed row always takes precedence, so a duplicate can never
+     * cause a certificate to be emailed a second time.
      *
      * @param int $customcertid
-     * @return array<int,stdClass> keyed by userid, each with id and emailed fields
+     * @param array $userids User ids to load issues for. An empty array loads nothing.
+     * @return array Issues keyed by userid, each an object with id and emailed fields
      */
-    public function list_by_certificate_keyed_by_userid(int $customcertid): array {
+    public function list_by_users_keyed_by_userid(int $customcertid, array $userids): array {
         global $DB;
 
-        return $DB->get_records('customcert_issues', ['customcertid' => $customcertid], '', 'userid, id, emailed');
+        if (empty($userids)) {
+            return [];
+        }
+
+        $issues = [];
+
+        // Chunked so the IN() clause stays within the bind-parameter limits of all supported databases.
+        foreach (array_chunk(array_map('intval', array_values($userids)), 1000) as $chunk) {
+            [$insql, $inparams] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED, 'userid');
+
+            $sql = "SELECT id, userid, emailed
+                      FROM {customcert_issues}
+                     WHERE customcertid = :customcertid
+                           AND userid $insql
+                  ORDER BY userid, id";
+
+            $recordset = $DB->get_recordset_sql($sql, ['customcertid' => $customcertid] + $inparams);
+            foreach ($recordset as $record) {
+                $userid = (int)$record->userid;
+                $emailed = (int)$record->emailed;
+                $existing = $issues[$userid] ?? null;
+
+                if ($existing === null || ($emailed === 1 && (int)$existing->emailed === 0)) {
+                    $issues[$userid] = (object)['id' => (int)$record->id, 'emailed' => $emailed];
+                }
+            }
+            $recordset->close();
+        }
+
+        return $issues;
     }
 
     /**
