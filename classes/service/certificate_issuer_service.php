@@ -242,6 +242,13 @@ final class certificate_issuer_service {
     /**
      * Build the list of eligible users for a certificate within a CM context.
      *
+     * This decides who a *new* certificate should be issued/emailed to, based on capability,
+     * availability, suspension, completion and required-time rules. It is unrelated to
+     * issue_repository::get_conditional_issues_sql(), which scopes the already-issued-certificates
+     * *report* to what the current viewer is permitted to see (excluding managers/admins,
+     * restricting by the viewer's group). Despite both filtering a list of users, they answer
+     * different questions and must not be merged into one another.
+     *
      * @param object $customcert
      * @param object $cm
      * @return array
