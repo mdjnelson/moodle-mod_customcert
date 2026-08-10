@@ -328,6 +328,27 @@ final class element_repository {
     }
 
     /**
+     * Resequence remaining elements on a page after one has been deleted.
+     *
+     * Decrements the sequence of every element that came after the deleted element's former
+     * sequence position, closing the gap it left behind.
+     *
+     * @param int $pageid
+     * @param int $deletedsequence The sequence value the deleted element used to have.
+     * @return void
+     * @throws \dml_exception For database errors.
+     */
+    public function resequence_after_delete(int $pageid, int $deletedsequence): void {
+        global $DB;
+
+        $sql = "UPDATE {customcert_elements}
+                   SET sequence = sequence - 1
+                 WHERE pageid = :pageid
+                   AND sequence > :sequence";
+        $DB->execute($sql, ['pageid' => $pageid, 'sequence' => $deletedsequence]);
+    }
+
+    /**
      * Delete an element record and fire the deleted event.
      *
      * @param element_interface $element

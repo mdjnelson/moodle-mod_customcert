@@ -299,8 +299,6 @@ final class template_service {
      * @throws dml_exception
      */
     public function delete_element(template $template, int $elementid): void {
-        global $DB;
-
         $element = $this->elements->get_by_id_or_fail($elementid);
 
         $page = $this->pages->get_by_id_or_fail((int)$element->pageid);
@@ -317,15 +315,10 @@ final class template_service {
                 "deleting record directly without firing element_deleted event.",
                 DEBUG_DEVELOPER
             );
-            $DB->delete_records('customcert_elements', ['id' => $elementid]);
+            $this->elements->delete_by_id($elementid);
         }
 
-        // Resequence remaining elements.
-        $sql = "UPDATE {customcert_elements}
-                   SET sequence = sequence - 1
-                 WHERE pageid = :pageid
-                   AND sequence > :sequence";
-        $DB->execute($sql, ['pageid' => $element->pageid, 'sequence' => $element->sequence]);
+        $this->elements->resequence_after_delete((int)$element->pageid, (int)$element->sequence);
 
         template_updated::create_from_template($template)->trigger();
     }
