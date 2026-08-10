@@ -2,8 +2,12 @@ name: Moodle Plugin CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   test:
+    name: PHP ${{ matrix.php }} / ${{ matrix.moodle-branch }} / ${{ matrix.database }}
     runs-on: ubuntu-22.04
 
     services:
@@ -56,7 +60,7 @@ jobs:
             database: mariadb
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: plugin
 
@@ -64,6 +68,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          extensions: intl, mbstring, mysqli, pgsql, pdo_mysql, pdo_pgsql, soap, zip, gd, exif, sodium
           ini-values: max_input_vars=5000
           coverage: none
 
