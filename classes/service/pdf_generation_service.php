@@ -260,7 +260,7 @@ final class pdf_generation_service {
      */
     private function configure_pdf_for_customcert(pdf $pdf, $customcert): void {
         if ($customcert && !empty($customcert->protection)) {
-            $protection = explode(', ', $customcert->protection);
+            $protection = explode(form_service::PROTECTION_SEPARATOR, $customcert->protection);
             $pdf->SetProtection($protection);
         }
         $pdf->setPrintHeader(false);
