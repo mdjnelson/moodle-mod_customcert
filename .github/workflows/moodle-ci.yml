@@ -145,6 +145,46 @@ jobs:
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --filter core_externallib_testcase
           vendor/bin/phpunit --fail-on-risky --disallow-test-output --testsuite core_privacy_testsuite --filter provider_testcase
 
+      - name: PHPUnit tests for subplugins
+        if: ${{ !cancelled() }}
+        run: |
+          fail=0
+          failures=()
+          for base in $(jq -r '.subplugintypes[]' ./plugin/db/subplugins.json); do
+            for dir in $(find "./plugin/$base" -mindepth 1 -maxdepth 1 -type d); do
+              if [ -d "$dir/tests" ]; then
+                echo "Running PHPUnit for $dir"
+                if moodle-plugin-ci phpunit --fail-on-risky "$dir"; then
+                  echo "OK: $dir"
+                else
+                  rc=$?
+                  echo "WARNING: PHPUnit failed for $dir (rc=$rc)"
+                  failures+=("$dir: returncode: $rc")
+                  fail=1
+                fi
+              fi
+            done
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some PHPUnit runs failed:"
+            printf '%s\n' "${failures[@]}"
+            exit 1
+          fi
+
       - name: Behat features
+        id: behat
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci behat --profile chrome
+
+      - name: Upload Behat faildump
+        if: ${{ failure() && steps.behat.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Behat faildump (${{ matrix.php }}, ${{ matrix.moodle-branch }}, ${{ matrix.database }})
+          path: ${{ github.workspace }}/moodledata/behat_dump
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Mark cancelled jobs as failed
+        if: ${{ cancelled() }}
+        run: exit 1
