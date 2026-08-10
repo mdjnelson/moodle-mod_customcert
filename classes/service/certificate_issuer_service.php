@@ -79,6 +79,16 @@ final class certificate_issuer_service {
     /**
      * List eligible users for emailing for a single certificate.
      *
+     * This is a single-certificate public entry point to the same candidate-eligibility rules
+     * used by the batch cron path (process_email_issuance_run(), invoked from
+     * issue_certificates_task). It is not called by that batch path itself — batch processing
+     * loads its certificate list and visibility filtering via
+     * certificate_repository::list_for_issuance_run() instead, since that's cheaper to express
+     * as one SQL query across many certificates than as a per-certificate PHP check. This method
+     * exists for callers (e.g. an external script, or a future "preview eligible recipients"
+     * feature) that need the same eligibility rules for one known certificate id without running
+     * a full batch pass. Keep it — it is intentional API surface, not dead code.
+     *
      * @param int $customcertid
      * @return array keyed by userid
      */
