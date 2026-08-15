@@ -49,6 +49,8 @@ if ($cm = $template->get_cm()) {
 }
 // Make sure the user has the required capabilities.
 $template->require_manage();
+// Validate the session key to prevent CSRF attacks.
+require_sesskey();
 
 $factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
