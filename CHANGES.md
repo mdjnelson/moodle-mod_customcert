@@ -13,6 +13,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - Digital-signature signing passwords are now encrypted before being stored in element data, and existing plaintext passwords are encrypted during upgrade (#879).
 - Digital-signature signing passwords are normalised during backup restore: legacy plaintext passwords are encrypted, valid same-site ciphertext is preserved, and foreign-site ciphertext is cleared so the administrator can re-enter it (#879).
 - Fixed a CSRF vulnerability in `view.php` where the `downloadown` certificate self-issuance flow could be triggered without CSRF validation. The download action now requires a POST request, a valid sesskey, and the `mod/customcert:receiveissue` capability (#878).
+- Fixed CSRF vulnerability in `ajax.php` where the element-position update endpoint did not validate the Moodle session key, allowing a forged cross-site request to reposition certificate elements in a template managed by an authenticated user; the endpoint now calls `require_sesskey()` and the YUI client submits the session key with every save-positions request (#877).
 
 ## [4.4.12] - 2026-08-10
 
