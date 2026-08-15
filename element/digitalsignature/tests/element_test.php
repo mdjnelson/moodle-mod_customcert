@@ -174,4 +174,94 @@ final class element_test extends advanced_testcase {
         $el = new element($this->make_record());
         $this->assertSame('digitalsignature', $el->get_type());
     }
+
+    /**
+     * Test that normalise_data() stores the password when provided on first save.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_data
+     */
+    public function test_normalise_data_stores_password_on_first_save(): void {
+        $el = new element($this->make_record());
+        $formdata = (object) [
+            'signaturename' => 'Signer',
+            'signaturepassword' => 's3cr3t',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ];
+        $result = $el->normalise_data($formdata);
+        $this->assertSame('s3cr3t', $result['signaturepassword']);
+    }
+
+    /**
+     * Test that normalise_data() preserves the existing password when the field is left blank.
+     *
+     * When an administrator reopens the element form, the password field is intentionally
+     * left blank. The existing stored password must be preserved rather than overwritten
+     * with an empty string.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_data
+     */
+    public function test_normalise_data_preserves_password_when_field_is_blank(): void {
+        $existingdata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => 'original_secret',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+        $el = new element($this->make_record(['data' => $existingdata]));
+        $formdata = (object) [
+            'signaturename' => 'Signer',
+            'signaturepassword' => '',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ];
+        $result = $el->normalise_data($formdata);
+        $this->assertSame(
+            'original_secret',
+            $result['signaturepassword'],
+            'Existing password must be preserved when the password field is left blank.'
+        );
+    }
+
+    /**
+     * Test that normalise_data() replaces the password when a new value is provided.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_data
+     */
+    public function test_normalise_data_replaces_password_when_new_value_provided(): void {
+        $existingdata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => 'original_secret',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+        $el = new element($this->make_record(['data' => $existingdata]));
+        $formdata = (object) [
+            'signaturename' => 'Signer',
+            'signaturepassword' => 'new_secret',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ];
+        $result = $el->normalise_data($formdata);
+        $this->assertSame(
+            'new_secret',
+            $result['signaturepassword'],
+            'Password must be updated when a new value is explicitly provided.'
+        );
+    }
 }
