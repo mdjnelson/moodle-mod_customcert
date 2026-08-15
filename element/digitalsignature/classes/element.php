@@ -156,13 +156,20 @@ class element extends \customcertelement_image\element {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
-        // If the password field was left blank, preserve the previously stored password.
+        // If the password field was left blank, preserve the previously stored (encrypted) password.
         $existingpassword = '';
         if (!empty($this->get_data())) {
             $existing = json_decode($this->get_data(), true);
             $existingpassword = $existing['signaturepassword'] ?? '';
         }
-        $password = ($data->signaturepassword !== '') ? $data->signaturepassword : $existingpassword;
+
+        if ($data->signaturepassword !== '') {
+            // A new password was supplied — encrypt it before storing.
+            $password = \core\encryption::encrypt($data->signaturepassword);
+        } else {
+            // No new password — keep whatever is already stored (already encrypted or empty).
+            $password = $existingpassword;
+        }
 
         $arrtostore = [
             'signaturename' => $data->signaturename,
@@ -247,7 +254,11 @@ class element extends \customcertelement_image\element {
                 'Reason' => $imageinfo->signaturereason,
                 'ContactInfo' => $imageinfo->signaturecontactinfo,
             ];
-            $pdf->setSignature('file://' . $location, '', $imageinfo->signaturepassword, '', 2, $info);
+            // Decrypt the stored password before passing it to the PDF signing library.
+            $signaturepassword = !empty($imageinfo->signaturepassword)
+                ? \core\encryption::decrypt($imageinfo->signaturepassword)
+                : '';
+            $pdf->setSignature('file://' . $location, '', $signaturepassword, '', 2, $info);
             $pdf->setSignatureAppearance($this->get_posx(), $this->get_posy(), $imageinfo->width, $imageinfo->height);
         }
     }
@@ -304,6 +315,44 @@ class element extends \customcertelement_image\element {
         $element->setValue($draftitemid);
 
         parent::definition_after_data($mform);
+    }
+
+    /**
+     * Normalises a signaturepassword value recovered from a backup for safe storage.
+     *
+     * Three cases are handled:
+     *  - Empty/missing password: returned as-is (empty string).
+     *  - Recognisable Moodle ciphertext (starts with the Sodium method prefix) that decrypts
+     *    successfully on this site: preserved as-is (already encrypted with this site's key).
+     *  - Recognisable Moodle ciphertext that cannot be decrypted on this site (foreign-site
+     *    key): cleared to empty string so the administrator must re-enter it.
+     *  - Anything else (legacy plaintext, including plaintext containing a colon such as
+     *    "secret:1234"): encrypted with this site's key and returned.
+     *
+     * @param string $value The raw signaturepassword value from the backup.
+     * @return string The normalised value safe to store in customcert_elements.data.
+     */
+    public static function normalise_restore_password(string $value): string {
+        if ($value === '') {
+            return '';
+        }
+        // Detect Moodle ciphertext by its method prefix. A generic "<word>:" heuristic would
+        // misclassify legitimate plaintext passwords such as "secret:1234", so only the
+        // encryption method(s) this site's core encryption API actually supports are checked.
+        if (str_starts_with($value, \core\encryption::METHOD_SODIUM . ':')) {
+            // Looks like Moodle-encrypted data. Try to decrypt with this site's key.
+            try {
+                \core\encryption::decrypt($value);
+                // Decryption succeeded — preserve the existing ciphertext.
+                return $value;
+            } catch (\moodle_exception $e) {
+                // Cannot decrypt: foreign-site ciphertext. Clear it rather than
+                // double-encrypting the ciphertext as if it were plaintext.
+                return '';
+            }
+        }
+        // Legacy plaintext password — encrypt with this site's key.
+        return \core\encryption::encrypt($value);
     }
 
     /**

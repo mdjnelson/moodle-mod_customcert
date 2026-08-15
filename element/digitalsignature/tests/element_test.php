@@ -22,10 +22,13 @@
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 namespace customcertelement_digitalsignature;
-
 use advanced_testcase;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the digitalsignature element.
@@ -93,68 +96,173 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that the password is not stored in plaintext when saving for the first time.
-     *
-     * The password must be stored (it is needed at signing time), but this test
-     * verifies the save_unique_data path works correctly when a password is provided.
+     * Test that the plaintext password does not appear in persisted element JSON after saving.
      *
      * @covers \customcertelement_digitalsignature\element::save_unique_data
      */
-    public function test_save_unique_data_stores_password_on_first_save(): void {
+    public function test_save_unique_data_does_not_store_plaintext_password(): void {
         $record = $this->make_element_record();
         $element = new element($record);
-
         $data = $this->make_form_data('s3cr3t');
         $json = $element->save_unique_data($data);
-
-        $decoded = json_decode($json, true);
-        $this->assertSame('s3cr3t', $decoded['signaturepassword']);
-    }
-
-    /**
-     * Test that leaving the password field blank on edit preserves the existing password.
-     *
-     * When an administrator reopens the element form, the password field is intentionally
-     * left blank. The existing stored password must be preserved rather than overwritten
-     * with an empty string.
-     *
-     * @covers \customcertelement_digitalsignature\element::save_unique_data
-     */
-    public function test_save_unique_data_preserves_password_when_field_is_blank(): void {
-        $existingdata = json_encode([
-            'signaturename' => 'Signer',
-            'signaturepassword' => 'original_secret',
-            'signaturelocation' => 'Location',
-            'signaturereason' => 'Reason',
-            'signaturecontactinfo' => 'info@example.com',
-            'width' => 100,
-            'height' => 50,
-        ]);
-
-        $record = $this->make_element_record($existingdata);
-        $element = new element($record);
-
-        // Simulate the form being submitted with a blank password field.
-        $data = $this->make_form_data('');
-        $json = $element->save_unique_data($data);
-
-        $decoded = json_decode($json, true);
-        $this->assertSame(
-            'original_secret',
-            $decoded['signaturepassword'],
-            'Existing password must be preserved when the password field is left blank.'
+        $this->assertStringNotContainsString(
+            's3cr3t',
+            $json,
+            'The plaintext password must not appear in the persisted JSON.'
         );
     }
 
     /**
-     * Test that providing a new password on edit replaces the existing password.
+     * Test that the persisted encrypted value decrypts back to the original password.
+     *
+     * @covers \customcertelement_digitalsignature\element::save_unique_data
+     */
+    public function test_save_unique_data_encrypted_value_decrypts_correctly(): void {
+        $record = $this->make_element_record();
+        $element = new element($record);
+        $data = $this->make_form_data('s3cr3t');
+        $json = $element->save_unique_data($data);
+        $decoded = json_decode($json, true);
+        $this->assertSame(
+            's3cr3t',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'The stored encrypted password must decrypt to the original plaintext.'
+        );
+    }
+
+    /**
+     * Test that leaving the password field blank on edit preserves the existing encrypted password.
+     *
+     * When an administrator reopens the element form, the password field is intentionally
+     * left blank. The existing stored (encrypted) password must be preserved rather than
+     * overwritten with an empty string.
+     *
+     * @covers \customcertelement_digitalsignature\element::save_unique_data
+     */
+    public function test_save_unique_data_preserves_password_when_field_is_blank(): void {
+        $encryptedpassword = \core\encryption::encrypt('original_secret');
+        $existingdata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $encryptedpassword,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+        $record = $this->make_element_record($existingdata);
+        $element = new element($record);
+        // Simulate the form being submitted with a blank password field.
+        $data = $this->make_form_data('');
+        $json = $element->save_unique_data($data);
+        $decoded = json_decode($json, true);
+        $this->assertSame(
+            $encryptedpassword,
+            $decoded['signaturepassword'],
+            'Existing encrypted password must be preserved when the password field is left blank.'
+        );
+        $this->assertSame(
+            'original_secret',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'Preserved password must still decrypt to the original plaintext.'
+        );
+    }
+
+    /**
+     * Test that providing a new password on edit stores the replacement encrypted.
      *
      * @covers \customcertelement_digitalsignature\element::save_unique_data
      */
     public function test_save_unique_data_replaces_password_when_new_value_provided(): void {
+        $encryptedpassword = \core\encryption::encrypt('original_secret');
         $existingdata = json_encode([
             'signaturename' => 'Signer',
-            'signaturepassword' => 'original_secret',
+            'signaturepassword' => $encryptedpassword,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+        $record = $this->make_element_record($existingdata);
+        $element = new element($record);
+        $data = $this->make_form_data('new_secret');
+        $json = $element->save_unique_data($data);
+        $decoded = json_decode($json, true);
+        $this->assertStringNotContainsString(
+            'new_secret',
+            $json,
+            'The replacement plaintext password must not appear in the persisted JSON.'
+        );
+        $this->assertSame(
+            'new_secret',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'Replacement password must be stored encrypted and decrypt to the new plaintext.'
+        );
+    }
+
+    /**
+     * Test that the edit form does not expose the saved password.
+     *
+     * definition_after_data() must not repopulate the password field.
+     *
+     * @covers \customcertelement_digitalsignature\element::definition_after_data
+     */
+    public function test_definition_after_data_does_not_expose_password(): void {
+        // The definition_after_data() method calls file_prepare_draft_area(), which needs a
+        // real user.
+        $this->setAdminUser();
+
+        $encryptedpassword = \core\encryption::encrypt('s3cr3t');
+        $existingdata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $encryptedpassword,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+        $record = $this->make_element_record($existingdata);
+        $element = new element($record);
+
+        // Build a minimal MoodleQuickForm and run definition_after_data. The digitalsignature
+        // and customcertimage filemanager elements must both be present since
+        // definition_after_data() (and the parent image element's definition_after_data() it
+        // delegates to) unconditionally fetch them to populate their draft item ids.
+        $form = new \MoodleQuickForm('test', 'post', '');
+        $form->addElement('passwordunmask', 'signaturepassword', 'Password');
+        // Mirror render_form_elements(), which defaults the password field to '' rather than
+        // leaving it unset (null), so the assertion below reflects the real form's initial state.
+        $form->setDefault('signaturepassword', '');
+        $form->addElement('text', 'signaturename', 'Name');
+        $form->addElement('text', 'signaturelocation', 'Location');
+        $form->addElement('text', 'signaturereason', 'Reason');
+        $form->addElement('text', 'signaturecontactinfo', 'Contact');
+        $form->addElement('filemanager', 'digitalsignature', 'Signature file');
+        $form->addElement('filemanager', 'customcertimage', 'Image file');
+        $element->definition_after_data($form);
+
+        $passwordelement = $form->getElement('signaturepassword');
+        $this->assertSame(
+            '',
+            $passwordelement->getValue(),
+            'The password field must not be repopulated when editing an element.'
+        );
+    }
+
+    /**
+     * Test that the upgrade migration encrypts existing plaintext passwords.
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_encrypts_plaintext_passwords(): void {
+        global $DB, $CFG;
+
+        // Insert a fake digitalsignature element with a plaintext password.
+        $plaindata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => 's3cr3t',
             'signaturelocation' => 'Location',
             'signaturereason' => 'Reason',
             'signaturecontactinfo' => 'info@example.com',
@@ -162,17 +270,338 @@ final class element_test extends advanced_testcase {
             'height' => 50,
         ]);
 
-        $record = $this->make_element_record($existingdata);
+        // We need a real page/template to satisfy FK constraints; use the generator.
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record('customcert_templates', ['contextid' => \context_module::instance($customcert->cmid)->id]);
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $plaindata,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        // Run the upgrade step. The upgrade_plugin_savepoint() function lives in
+        // upgradelib.php, which is not loaded by the standard PHPUnit bootstrap since it is
+        // normally only required during a real upgrade.
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        // The test site already has this plugin installed at its current version, so force the
+        // recorded version back down to simulate upgrading from an older release; otherwise
+        // upgrade_plugin_savepoint() treats setting the same version as a downgrade and throws.
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        $this->assertStringNotContainsString(
+            's3cr3t',
+            $stored,
+            'After upgrade, the plaintext password must not appear in stored data.'
+        );
+        $this->assertSame(
+            's3cr3t',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'After upgrade, the stored value must decrypt to the original plaintext.'
+        );
+    }
+
+    /**
+     * Test that the upgrade migration does not double-encrypt already-migrated values.
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_does_not_double_encrypt_already_migrated_passwords(): void {
+        global $DB, $CFG;
+
+        $encryptedpassword = \core\encryption::encrypt('s3cr3t');
+        $encrypteddata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $encryptedpassword,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record('customcert_templates', ['contextid' => \context_module::instance($customcert->cmid)->id]);
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $encrypteddata,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        // Run the upgrade step. The upgrade_plugin_savepoint() function lives in
+        // upgradelib.php, which is not loaded by the standard PHPUnit bootstrap since it is
+        // normally only required during a real upgrade.
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        // The test site already has this plugin installed at its current version, so force the
+        // recorded version back down to simulate upgrading from an older release; otherwise
+        // upgrade_plugin_savepoint() treats setting the same version as a downgrade and throws.
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        // The stored value must be unchanged (same encrypted blob).
+        $this->assertSame(
+            $encryptedpassword,
+            $decoded['signaturepassword'],
+            'Already-encrypted password must not be modified by the upgrade step.'
+        );
+        // And it must still decrypt correctly.
+        $this->assertSame(
+            's3cr3t',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'Already-migrated password must still decrypt correctly after upgrade runs again.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() encrypts a legacy plaintext password.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_encrypts_plaintext(): void {
+        $result = element::normalise_restore_password('s3cr3t');
+        $this->assertNotSame(
+            's3cr3t',
+            $result,
+            'Plaintext password must not be returned as-is.'
+        );
+        $this->assertSame(
+            's3cr3t',
+            \core\encryption::decrypt($result),
+            'Normalised value must decrypt to the original plaintext.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() does not store plaintext in the result.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_plaintext_absent_from_result(): void {
+        $result = element::normalise_restore_password('s3cr3t');
+        $this->assertStringNotContainsString(
+            's3cr3t',
+            $result,
+            'The sentinel plaintext password must not appear in the normalised value.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() preserves valid same-site ciphertext.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_preserves_valid_ciphertext(): void {
+        $encrypted = \core\encryption::encrypt('s3cr3t');
+        $result = element::normalise_restore_password($encrypted);
+        $this->assertSame(
+            $encrypted,
+            $result,
+            'Valid same-site ciphertext must be preserved as-is.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() clears foreign-site ciphertext.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_clears_foreign_ciphertext(): void {
+        // Simulate a sodium: prefixed value that cannot be decrypted on this site.
+        $foreignciphertext = \core\encryption::METHOD_SODIUM . ':' . base64_encode('this-is-not-valid-ciphertext');
+        $result = element::normalise_restore_password($foreignciphertext);
+        $this->assertSame(
+            '',
+            $result,
+            'Foreign-site ciphertext that cannot be decrypted must be cleared.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() handles empty password.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_handles_empty(): void {
+        $result = element::normalise_restore_password('');
+        $this->assertSame(
+            '',
+            $result,
+            'Empty password must remain empty after normalisation.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() treats plaintext containing a colon as plaintext.
+     *
+     * A broad "/^[a-z]+:/" ciphertext heuristic would misclassify a legitimate plaintext
+     * password such as "secret:1234" as encrypted data and could clear it during restore.
+     * Only the encryption method prefixes this site's core encryption API actually supports
+     * must be treated as ciphertext.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_treats_plaintext_with_colon_as_plaintext(): void {
+        $plaintext = 'secret:1234';
+        $result = element::normalise_restore_password($plaintext);
+        $this->assertNotSame(
+            $plaintext,
+            $result,
+            'Plaintext containing a colon must still be encrypted, not stored as-is.'
+        );
+        $this->assertStringNotContainsString(
+            $plaintext,
+            json_encode(['signaturepassword' => $result]),
+            'The plaintext password must not appear in the persisted JSON.'
+        );
+        $this->assertSame(
+            $plaintext,
+            \core\encryption::decrypt($result),
+            'The stored value must decrypt back to the exact original plaintext.'
+        );
+    }
+
+    /**
+     * Test that normalise_restore_password() treats another plaintext-with-colon value correctly.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
+     */
+    public function test_normalise_restore_password_treats_another_plaintext_with_colon_as_plaintext(): void {
+        $plaintext = 'password:hunter2';
+        $result = element::normalise_restore_password($plaintext);
+        $this->assertNotSame(
+            $plaintext,
+            $result,
+            'Plaintext containing a colon must still be encrypted, not stored as-is.'
+        );
+        $this->assertSame(
+            $plaintext,
+            \core\encryption::decrypt($result),
+            'The stored value must decrypt back to the exact original plaintext.'
+        );
+    }
+
+    /**
+     * Test that render() decrypts the stored password before passing it to the PDF signing
+     * library, and never passes the encrypted stored representation.
+     *
+     * @covers \customcertelement_digitalsignature\element::render
+     */
+    public function test_render_uses_decrypted_password_for_signing(): void {
+        $syscontextid = \context_system::instance()->id;
+        $fs = get_file_storage();
+        $filerecord = [
+            'contextid' => $syscontextid,
+            'component' => 'mod_customcert',
+            'filearea' => 'signature',
+            'itemid' => 0,
+            'filepath' => '/',
+            'filename' => 'test.crt',
+        ];
+        $fs->create_file_from_string($filerecord, 'fake-certificate-content');
+
+        $plaintext = 'signing_secret';
+        $encryptedpassword = \core\encryption::encrypt($plaintext);
+
+        $data = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $encryptedpassword,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+            'signaturecontextid' => $syscontextid,
+            'signaturefilearea' => 'signature',
+            'signatureitemid' => 0,
+            'signaturefilepath' => '/',
+            'signaturefilename' => 'test.crt',
+        ]);
+
+        $record = $this->make_element_record($data);
         $element = new element($record);
 
-        $data = $this->make_form_data('new_secret');
-        $json = $element->save_unique_data($data);
+        $capturedpassword = null;
+        // The setSignature()/setSignatureAppearance() methods are inherited from TCPDF, which
+        // is loaded via the pdflib.php require above, so onlyMethods() (not addMethods()) is
+        // required to stub them.
+        $pdf = $this->getMockBuilder(\pdf::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['setSignature', 'setSignatureAppearance'])
+            ->getMock();
+        $pdf->expects($this->once())
+            ->method('setSignature')
+            ->willReturnCallback(function (...$args) use (&$capturedpassword) {
+                $capturedpassword = $args[2];
+                return null;
+            });
 
-        $decoded = json_decode($json, true);
+        $element->render($pdf, false, new \stdClass());
+
         $this->assertSame(
-            'new_secret',
-            $decoded['signaturepassword'],
-            'Password must be updated when a new value is explicitly provided.'
+            $plaintext,
+            $capturedpassword,
+            'The PDF signing library must receive the decrypted plaintext password.'
+        );
+        $this->assertNotSame(
+            $encryptedpassword,
+            $capturedpassword,
+            'The encrypted stored representation must never be passed to setSignature().'
         );
     }
 }
