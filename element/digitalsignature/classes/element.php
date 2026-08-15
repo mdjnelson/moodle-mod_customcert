@@ -156,9 +156,17 @@ class element extends \customcertelement_image\element {
      * @return string the json encoded array
      */
     public function save_unique_data($data) {
+        // If the password field was left blank, preserve the previously stored password.
+        $existingpassword = '';
+        if (!empty($this->get_data())) {
+            $existing = json_decode($this->get_data(), true);
+            $existingpassword = $existing['signaturepassword'] ?? '';
+        }
+        $password = ($data->signaturepassword !== '') ? $data->signaturepassword : $existingpassword;
+
         $arrtostore = [
             'signaturename' => $data->signaturename,
-            'signaturepassword' => $data->signaturepassword,
+            'signaturepassword' => $password,
             'signaturelocation' => $data->signaturelocation,
             'signaturereason' => $data->signaturereason,
             'signaturecontactinfo' => $data->signaturecontactinfo,
@@ -264,9 +272,6 @@ class element extends \customcertelement_image\element {
 
             $element = $mform->getElement('signaturename');
             $element->setValue($imageinfo->signaturename);
-
-            $element = $mform->getElement('signaturepassword');
-            $element->setValue($imageinfo->signaturepassword);
 
             $element = $mform->getElement('signaturelocation');
             $element->setValue($imageinfo->signaturelocation);
