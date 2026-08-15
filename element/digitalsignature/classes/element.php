@@ -183,9 +183,6 @@ class element extends \customcertelement_image\element implements
             if (isset($payload['signaturename'])) {
                 $mform->setDefault('signaturename', (string)$payload['signaturename']);
             }
-            if (isset($payload['signaturepassword'])) {
-                $mform->setDefault('signaturepassword', (string)$payload['signaturepassword']);
-            }
             if (isset($payload['signaturelocation'])) {
                 $mform->setDefault('signaturelocation', (string)$payload['signaturelocation']);
             }
@@ -308,7 +305,7 @@ class element extends \customcertelement_image\element implements
 
         $arrtostore = [
             'signaturename' => $formdata->signaturename ?? '',
-            'signaturepassword' => $formdata->signaturepassword ?? '',
+            'signaturepassword' => $this->resolve_password((string)($formdata->signaturepassword ?? '')),
             'signaturelocation' => $formdata->signaturelocation ?? '',
             'signaturereason' => $formdata->signaturereason ?? '',
             'signaturecontactinfo' => $formdata->signaturecontactinfo ?? '',
@@ -443,6 +440,21 @@ class element extends \customcertelement_image\element implements
         $arrfiles = ['0' => get_string('nosignature', 'customcertelement_digitalsignature')] + $arrfiles;
 
         return $arrfiles;
+    }
+
+    /**
+     * Returns the password to store: the submitted value when non-empty, otherwise the
+     * previously stored password so that leaving the field blank on edit does not erase it.
+     *
+     * @param string $submitted The value submitted via the form password field.
+     * @return string
+     */
+    private function resolve_password(string $submitted): string {
+        if ($submitted !== '') {
+            return $submitted;
+        }
+        $payload = $this->get_payload();
+        return (string)($payload['signaturepassword'] ?? '');
     }
 
     /**

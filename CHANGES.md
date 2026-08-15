@@ -33,6 +33,13 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
+## [5.2.6] - 2026-08-XY
+
+### Security
+
+- The digitalsignature element no longer repopulates the signing password into the edit form when an administrator reopens the element, preventing the stored secret from appearing in rendered HTML (#879).
+- When the password field is left blank on edit, the previously stored signing password is preserved rather than overwritten with an empty value (#879).
+
 ## [5.2.5] - 2026-08-10
 
 ### Security

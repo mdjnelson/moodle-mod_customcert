@@ -200,7 +200,7 @@ Feature: Being able to manage elements in a certificate template
     And the following fields match these values:
       | Element name           | My digital signature       |
       | Signature name         | This is the signature name |
-      | Signature password     | Some awesome password      |
+      | Signature password     |                            |
       | Signature location     | Mordor                     |
       | Signature reason       | Meh, felt like it.         |
       | Signature contact info | Sauron                     |
