@@ -41,7 +41,6 @@ class exporter extends subplugin_exportable {
             '$' => $this->filefield,
             'signature$' => $this->filefield,
             'signaturename' => new string_field(true),
-            'signaturepassword' => new string_field(true),
             'signaturelocation' => new string_field(true),
             'signaturereason' => new string_field(true),
             'signaturecontactinfo' => new string_field(true),
