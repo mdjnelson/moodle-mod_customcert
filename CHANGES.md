@@ -10,6 +10,8 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - The digitalsignature element no longer repopulates the signing password into the edit form when an administrator reopens the element, preventing the stored secret from appearing in rendered HTML (#879).
 - When the password field is left blank on edit, the previously stored signing password is preserved rather than overwritten with an empty value (#879).
+- Digital-signature signing passwords are now encrypted before being stored in element data, and existing plaintext passwords are encrypted during upgrade (#879).
+- Digital-signature signing passwords are normalised during backup restore: legacy plaintext passwords are encrypted, valid same-site ciphertext is preserved, and foreign-site ciphertext is cleared so the administrator can re-enter it (#879).
 
 ## [4.4.12] - 2026-08-10
 
