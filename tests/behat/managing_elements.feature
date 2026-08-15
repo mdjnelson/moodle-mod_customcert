@@ -214,7 +214,7 @@ Feature: Being able to manage elements in a certificate template
     And I click on ".edit-icon" "css_element" in the "Digital signature" "table_row"
     And the following fields match these values:
       | Signature name         | This is the signature name |
-      | Signature password     | Some awesome password      |
+      | Signature password     |                            |
       | Signature location     | Mordor                     |
       | Signature reason       | Meh, felt like it.         |
       | Signature contact info | Sauron                     |
