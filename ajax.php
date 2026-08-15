@@ -46,6 +46,8 @@ if ($cm = $template->get_cm()) {
 }
 // Make sure the user has the required capabilities.
 $template->require_manage();
+// Validate the session key to prevent CSRF attacks.
+require_sesskey();
 
 // Loop through the data.
 foreach ($values as $value) {
