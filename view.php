@@ -163,7 +163,7 @@ if (!$downloadown && !$downloadissue) {
     if ($canreceive) {
         $linkname = get_string('getcustomcert', 'customcert');
         $link = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id, 'downloadown' => true]);
-        $downloadbutton = new single_button($link, $linkname, 'get', single_button::BUTTON_PRIMARY);
+        $downloadbutton = new single_button($link, $linkname, 'post', single_button::BUTTON_PRIMARY);
         $downloadbutton->class .= ' m-b-1';  // Seems a bit hackish, ahem.
         $downloadbutton = $OUTPUT->render($downloadbutton);
         if ($displayreturnbutton) {
@@ -210,6 +210,13 @@ if (!$downloadown && !$downloadissue) {
     // Set the userid value of who we are downloading the certificate for.
     $userid = $USER->id;
     if ($downloadown) {
+        if (!data_submitted()) {
+            throw new moodle_exception('invalidrequest');
+        }
+
+        require_capability('mod/customcert:receiveissue', $context);
+        require_sesskey();
+
         // Create new customcert issue record if one does not already exist.
         if (!$DB->record_exists('customcert_issues', ['userid' => $USER->id, 'customcertid' => $customcert->id])) {
             \mod_customcert\certificate::issue_certificate($customcert->id, $USER->id);
