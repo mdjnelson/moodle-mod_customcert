@@ -200,6 +200,11 @@ class template {
         // Get the page.
         $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
 
+        // Make sure the page belongs to this template.
+        if ($page->templateid != $this->id) {
+            throw new \moodle_exception('invalidrequest');
+        }
+
         // The element may have some extra tasks it needs to complete to completely delete itself.
         if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id])) {
             foreach ($elements as $element) {
@@ -241,6 +246,12 @@ class template {
 
         // Ensure element exists and delete it.
         $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        // Make sure the element belongs to a page in this template.
+        $page = $DB->get_record('customcert_pages', ['id' => $element->pageid], '*', MUST_EXIST);
+        if ($page->templateid != $this->id) {
+            throw new \moodle_exception('invalidrequest');
+        }
 
         // Get an instance of the element class.
         if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
@@ -490,6 +501,17 @@ class template {
         }
 
         if ($moveitem = $DB->get_record($table, ['id' => $itemid])) {
+            // Make sure the item belongs to this template.
+            if ($itemname == 'page') {
+                $belongstotemplate = ($moveitem->templateid == $this->id);
+            } else { // Must be an element.
+                $movepage = $DB->get_record('customcert_pages', ['id' => $moveitem->pageid], '*', MUST_EXIST);
+                $belongstotemplate = ($movepage->templateid == $this->id);
+            }
+            if (!$belongstotemplate) {
+                throw new \moodle_exception('invalidrequest');
+            }
+
             // Check which direction we are going.
             if ($direction == 'up') {
                 $sequence = $moveitem->sequence - 1;
@@ -591,6 +613,47 @@ class template {
         if ($this->get_context()->contextlevel !== CONTEXT_SYSTEM) {
             $this->require_manage();
         }
+    }
+
+    /**
+     * Loads a page, ensuring it belongs to this template.
+     *
+     * Used to validate a caller-supplied page id against the template the caller is
+     * authorised for, before it is used to add an element or otherwise mutate the page.
+     *
+     * @param int $pageid the id of the page
+     * @return \stdClass the page record
+     * @throws \moodle_exception if the page does not exist, or belongs to a different template
+     */
+    public function get_page_or_fail(int $pageid): \stdClass {
+        global $DB;
+
+        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
+        if ($page->templateid != $this->id) {
+            throw new \moodle_exception('invalidrequest');
+        }
+
+        return $page;
+    }
+
+    /**
+     * Loads an element, ensuring its page belongs to this template.
+     *
+     * Used to validate a caller-supplied element id against the template the caller is
+     * authorised for, before it is edited or otherwise mutated.
+     *
+     * @param int $elementid the id of the element
+     * @return \stdClass the element record
+     * @throws \moodle_exception if the element does not exist, or its page belongs to a
+     *         different template
+     */
+    public function get_element_or_fail(int $elementid): \stdClass {
+        global $DB;
+
+        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $this->get_page_or_fail((int)$element->pageid);
+
+        return $element;
     }
 
     /**

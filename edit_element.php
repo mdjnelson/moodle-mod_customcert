@@ -51,11 +51,14 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
 if ($action == 'edit') {
     // The id of the element must be supplied if we are currently editing one.
     $id = required_param('id', PARAM_INT);
-    $element = $DB->get_record('customcert_elements', ['id' => $id], '*', MUST_EXIST);
+    // Make sure the element belongs to the template we are authorised to manage.
+    $element = $template->get_element_or_fail($id);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['id' => $id, 'tid' => $tid, 'action' => $action]);
 } else { // Must be adding an element.
     // We need to supply what element we want added to what page.
     $pageid = required_param('pageid', PARAM_INT);
+    // Make sure the page belongs to the template we are authorised to manage.
+    $template->get_page_or_fail($pageid);
     $element = new stdClass();
     $element->element = required_param('element', PARAM_ALPHA);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['tid' => $tid, 'element' => $element->element,
