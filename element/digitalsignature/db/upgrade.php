@@ -43,22 +43,24 @@ function xmldb_customcertelement_digitalsignature_upgrade($oldversion) {
 
         foreach ($elements as $element) {
             $data = json_decode($element->data, true);
-            if (!is_array($data) || empty($data['signaturepassword'])) {
+            if (!is_array($data) || !array_key_exists('signaturepassword', $data) || $data['signaturepassword'] === '') {
+                // Use a strict check here rather than empty(), as empty('0') is true and would
+                // incorrectly skip migrating a valid password consisting solely of "0".
                 continue;
             }
 
-            $storedpassword = $data['signaturepassword'];
+            $storedpassword = (string) $data['signaturepassword'];
 
-            // Attempt to decrypt the stored value. If it succeeds, the value is already
-            // encrypted and we skip it (idempotency). If decryption throws, the value is
-            // plaintext and must be encrypted.
-            try {
-                \core\encryption::decrypt($storedpassword);
-                // Already encrypted — nothing to do.
-                continue;
-            } catch (\moodle_exception $e) {
-                // Plaintext value — encrypt it now.
-                $data['signaturepassword'] = \core\encryption::encrypt($storedpassword);
+            // Reuse the same normalisation logic applied when restoring digitalsignature elements
+            // from a backup: legacy plaintext is encrypted, ciphertext that decrypts with this
+            // site's key is left untouched (idempotency), and ciphertext that cannot be decrypted
+            // (for example, it was encrypted with a different site's key, or is corrupt) is
+            // cleared rather than encrypted again, which would otherwise double-encrypt unusable
+            // ciphertext.
+            $normalisedpassword = \customcertelement_digitalsignature\element::normalise_restore_password($storedpassword);
+
+            if ($normalisedpassword !== $storedpassword) {
+                $data['signaturepassword'] = $normalisedpassword;
                 $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $element->id]);
             }
         }
