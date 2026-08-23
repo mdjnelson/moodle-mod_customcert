@@ -33,7 +33,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
-## [5.2.6] - 2026-08-XY
+## [5.2.6] - 2026-08-23
 
 ### Security
 
