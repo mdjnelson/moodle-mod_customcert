@@ -373,6 +373,327 @@ final class element_test extends advanced_testcase {
     }
 
     /**
+     * Test that the upgrade migration correctly encrypts a plaintext password of "0".
+     *
+     * empty('0') evaluates to true in PHP, so a naive empty() check on signaturepassword would
+     * incorrectly skip migrating a valid password consisting solely of "0".
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_encrypts_zero_string_password(): void {
+        global $DB, $CFG;
+
+        $plaindata = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => '0',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => \context_module::instance($customcert->cmid)->id]
+        );
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $plaindata,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        // The upgrade_plugin_savepoint() function lives in upgradelib.php, which is not loaded
+        // by the standard PHPUnit bootstrap since it is normally only required during a real
+        // upgrade.
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        // The test site already has this plugin installed at its current version, so force the
+        // recorded version back down to simulate upgrading from an older release; otherwise
+        // upgrade_plugin_savepoint() treats setting the same version as a downgrade and throws.
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        $this->assertNotSame(
+            '0',
+            $decoded['signaturepassword'],
+            'A plaintext password of "0" must be encrypted, not left as-is or skipped.'
+        );
+        $this->assertSame(
+            '0',
+            \core\encryption::decrypt($decoded['signaturepassword']),
+            'After upgrade, the stored value must decrypt back to the original "0" password.'
+        );
+    }
+
+    /**
+     * Test that the upgrade migration does not error, and does not fabricate a password, when
+     * signaturepassword is absent from the stored element data entirely.
+     *
+     * This is distinct from an empty-string password: it specifically exercises the
+     * array_key_exists() check, as a missing array key and an empty string are not the same
+     * thing in PHP.
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_skips_missing_signaturepassword_key(): void {
+        global $DB, $CFG;
+
+        // Deliberately omit signaturepassword entirely, rather than setting it to ''.
+        $data = json_encode([
+            'signaturename' => 'Signer',
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => \context_module::instance($customcert->cmid)->id]
+        );
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $data,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        $this->assertArrayNotHasKey(
+            'signaturepassword',
+            $decoded,
+            'The upgrade must not fabricate a signaturepassword value when the key is absent entirely.'
+        );
+        $this->assertSame(
+            'Signer',
+            $decoded['signaturename'],
+            'Other element data must be left untouched by the upgrade.'
+        );
+    }
+
+    /**
+     * Test that the upgrade migration clears ciphertext that cannot be decrypted with this
+     * site's key, rather than double-encrypting it.
+     *
+     * Decryption can fail for a value that is already encrypted but was encrypted with a
+     * different site's key, or is corrupt. Encrypting such a value again would produce ciphertext
+     * that, once decrypted, yields the previous unusable ciphertext rather than the actual
+     * private-key password.
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_clears_undecryptable_ciphertext_password(): void {
+        global $DB, $CFG;
+
+        // Build a value that is a structurally real, correctly-shaped ciphertext (correct
+        // method prefix, valid base64, correct length) so it is unambiguously recognisable as
+        // Moodle-encrypted data, but fails Sodium's integrity check on decryption. This
+        // simulates ciphertext that was encrypted with a different site's key, or has become
+        // corrupted, rather than an arbitrary malformed string.
+        $realciphertext = \core\encryption::encrypt('some-other-secret');
+        $prefixlength = strlen(\core\encryption::METHOD_SODIUM) + 1;
+        $rawbytes = base64_decode(substr($realciphertext, $prefixlength));
+        $rawbytes[strlen($rawbytes) - 1] = chr(ord($rawbytes[strlen($rawbytes) - 1]) ^ 0xFF);
+        $undecryptable = \core\encryption::METHOD_SODIUM . ':' . base64_encode($rawbytes);
+        $data = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $undecryptable,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => \context_module::instance($customcert->cmid)->id]
+        );
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $data,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        $this->assertSame(
+            '',
+            $decoded['signaturepassword'],
+            'Ciphertext that cannot be decrypted with this site\'s key must be cleared, not ' .
+                'double-encrypted.'
+        );
+    }
+
+    /**
+     * Test that the upgrade migration clears legacy OpenSSL-format ciphertext that cannot be
+     * decrypted with this site's key, rather than double-encrypting it.
+     *
+     * MOODLE_404_STABLE's normalise_restore_password() recognises both the current Sodium
+     * method prefix and the legacy OpenSSL method prefix as Moodle-encrypted data, so the
+     * upgrade migration must clear undecryptable ciphertext in either format.
+     *
+     * @covers \xmldb_customcertelement_digitalsignature_upgrade
+     */
+    public function test_upgrade_clears_undecryptable_openssl_ciphertext_password(): void {
+        global $DB, $CFG;
+
+        // Simulate a legacy openssl: prefixed value that cannot be decrypted on this site.
+        $undecryptable = \core\encryption::METHOD_OPENSSL . ':' . base64_encode('this-is-not-valid-ciphertext');
+        $data = json_encode([
+            'signaturename' => 'Signer',
+            'signaturepassword' => $undecryptable,
+            'signaturelocation' => 'Location',
+            'signaturereason' => 'Reason',
+            'signaturecontactinfo' => 'info@example.com',
+            'width' => 100,
+            'height' => 50,
+        ]);
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = $DB->get_record(
+            'customcert_templates',
+            ['contextid' => \context_module::instance($customcert->cmid)->id]
+        );
+        $pageid = $DB->insert_record('customcert_pages', [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $elementid = $DB->insert_record('customcert_elements', [
+            'pageid' => $pageid,
+            'name' => 'Sig',
+            'element' => 'digitalsignature',
+            'data' => $data,
+            'font' => null,
+            'fontsize' => null,
+            'colour' => null,
+            'posx' => 0,
+            'posy' => 0,
+            'width' => 0,
+            'height' => 0,
+            'refpoint' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once(__DIR__ . '/../db/upgrade.php');
+
+        set_config('version', 2023042400, 'customcertelement_digitalsignature');
+        xmldb_customcertelement_digitalsignature_upgrade(2023042400);
+
+        $stored = $DB->get_field('customcert_elements', 'data', ['id' => $elementid]);
+        $decoded = json_decode($stored, true);
+
+        $this->assertSame(
+            '',
+            $decoded['signaturepassword'],
+            'Legacy OpenSSL-format ciphertext that cannot be decrypted with this site\'s key ' .
+                'must be cleared, not double-encrypted.'
+        );
+    }
+
+    /**
      * Test that normalise_restore_password() encrypts a legacy plaintext password.
      *
      * @covers \customcertelement_digitalsignature\element::normalise_restore_password
