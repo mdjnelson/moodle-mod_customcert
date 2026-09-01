@@ -51,6 +51,8 @@ final class issue_email_repository {
     /**
      * Load the issued user for emailing.
      *
+     * studentemailed is returned as-is (int|null); NULL must not be coerced to 0.
+     *
      * @param int $customcertid
      * @param int $issueid
      * @return stdClass|null
@@ -59,7 +61,8 @@ final class issue_email_repository {
         global $DB;
 
         $userfields = helper::get_all_user_name_fields('u');
-        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed
+        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed,
+                       ci.studentemailed
                   FROM {customcert_issues} ci
                   JOIN {user} u ON ci.userid = u.id
                  WHERE ci.customcertid = :customcertid
