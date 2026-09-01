@@ -41,12 +41,10 @@ require_once($CFG->libdir . '/completionlib.php');
 /**
  * Unit tests for mod_customcert_mod_form's completionemailed rule.
  *
- * Moodle's "Default activity completion" settings page renders every module's completion
- * elements in the same page, so since Moodle 4.3 those elements must be suffixed with
- * $this->get_suffix() to avoid colliding element ids across module types. These tests exercise
- * add_completion_rules() and completion_rule_enabled() directly with the constructor skipped,
- * since moodleform_mod builds its full form (including capability/context lookups) eagerly in
- * the constructor and a real "default completion" page is expensive to stand up for this alone.
+ * Since Moodle 4.3, the Default activity completion page renders all modules' completion
+ * elements on one shared form, so element ids must be suffixed. These tests call
+ * add_completion_rules() etc. directly with the constructor skipped, since building a real
+ * moodleform_mod (or that shared page) is expensive for this alone.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
@@ -59,9 +57,12 @@ final class mod_form_completion_test extends advanced_testcase {
      *
      * @param string $suffix
      * @param int $currentemailstudents The emailstudents value to report as currently stored.
+     *   Ignored if $current is provided.
+     * @param object|null $current Override for $this->current, e.g. to simulate a new instance
+     *   (which has no stored emailstudents yet) via (object)['add' => 'customcert'].
      * @return \mod_customcert_mod_form
      */
-    private function make_form(string $suffix, int $currentemailstudents = 1): \mod_customcert_mod_form {
+    private function make_form(string $suffix, int $currentemailstudents = 1, ?object $current = null): \mod_customcert_mod_form {
         $refclass = new ReflectionClass(\mod_customcert_mod_form::class);
         $form = $refclass->newInstanceWithoutConstructor();
 
@@ -75,7 +76,7 @@ final class mod_form_completion_test extends advanced_testcase {
 
         $currentprop = $refclass->getProperty('current');
         $currentprop->setAccessible(true);
-        $currentprop->setValue($form, (object)['emailstudents' => $currentemailstudents]);
+        $currentprop->setValue($form, $current ?? (object)['emailstudents' => $currentemailstudents]);
 
         $form->set_suffix($suffix);
 
@@ -146,10 +147,81 @@ final class mod_form_completion_test extends advanced_testcase {
     }
 
     /**
-     * data_postprocessing() must clear completionemailed whenever the submitted completion mode
-     * isn't automatic, even if the checkbox field itself still carries a stale truthy value (e.g.
-     * it was checked before completion tracking was switched to manual/none, and hideIf only
-     * hides the element -- it doesn't stop a previously-checked checkbox from still submitting).
+     * On a new instance, a user without manageemailstudents falls back to the site default
+     * for emailstudents, not the (nonexistent) stored value.
+     *
+     * @covers \mod_customcert_mod_form::add_completion_rules
+     */
+    public function test_completion_checkbox_uses_site_default_on_new_instance_when_enabled(): void {
+        $this->resetAfterTest();
+        set_config('emailstudents', 1, 'customcert');
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $form = $this->make_form('_customcert', 0, (object)['add' => 'customcert']);
+
+        $form->add_completion_rules();
+
+        $formprop = (new ReflectionClass(\mod_customcert_mod_form::class))->getProperty('_form');
+        $formprop->setAccessible(true);
+        $mform = $formprop->getValue($form);
+
+        $this->assertFalse($mform->elementExists('completionemailed_disabled_note_customcert'));
+    }
+
+    /**
+     * Same as above, but the checkbox stays disabled when the site default is off.
+     *
+     * @covers \mod_customcert_mod_form::add_completion_rules
+     */
+    public function test_completion_checkbox_disabled_on_new_instance_when_site_default_off(): void {
+        $this->resetAfterTest();
+        set_config('emailstudents', 0, 'customcert');
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $form = $this->make_form('_customcert', 0, (object)['add' => 'customcert']);
+
+        $form->add_completion_rules();
+
+        $formprop = (new ReflectionClass(\mod_customcert_mod_form::class))->getProperty('_form');
+        $formprop->setAccessible(true);
+        $mform = $formprop->getValue($form);
+
+        $this->assertTrue($mform->elementExists('completionemailed_disabled_note_customcert'));
+    }
+
+    /**
+     * validation() must use the same site-default fallback as add_completion_rules() for a
+     * new instance.
+     *
+     * @covers \mod_customcert_mod_form::validation
+     */
+    public function test_validation_uses_site_default_emailstudents_on_new_instance(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $this->setUser($this->getDataGenerator()->create_user());
+        // Irrelevant to what's under test here; skips core_availability's own data requirements.
+        $CFG->enableavailability = false;
+
+        $form = $this->make_form('_customcert', 0, (object)['add' => 'customcert']);
+        $data = [
+            'modulename' => 'customcert',
+            'instance' => 0,
+            'coursemodule' => 0,
+            'completionemailed_customcert' => 1,
+        ];
+
+        set_config('emailstudents', 1, 'customcert');
+        $errors = $form->validation($data, []);
+        $this->assertArrayNotHasKey('completionemailed_customcert', $errors);
+
+        set_config('emailstudents', 0, 'customcert');
+        $errors = $form->validation($data, []);
+        $this->assertArrayHasKey('completionemailed_customcert', $errors);
+    }
+
+    /**
+     * data_postprocessing() clears completionemailed when completion tracking isn't automatic.
      *
      * @covers \mod_customcert_mod_form::data_postprocessing
      */
@@ -172,8 +244,7 @@ final class mod_form_completion_test extends advanced_testcase {
     }
 
     /**
-     * When automatic completion is active and the checkbox was submitted checked,
-     * data_postprocessing() must leave it alone.
+     * data_postprocessing() leaves completionemailed alone when automatic and checked.
      *
      * @covers \mod_customcert_mod_form::data_postprocessing
      */
@@ -193,5 +264,76 @@ final class mod_form_completion_test extends advanced_testcase {
         $form->data_postprocessing($data);
 
         $this->assertEquals(1, $data->completionemailed_customcert);
+    }
+
+    /**
+     * Data provider of the site-wide 'emailstudents' default, for the default-completion-form
+     * tests below that must behave identically regardless of it.
+     *
+     * @return array[]
+     */
+    public static function site_default_emailstudents_provider(): array {
+        return [
+            'Site default disabled' => [0],
+            'Site default enabled' => [1],
+        ];
+    }
+
+    /**
+     * With manageemailstudents, disabledIf() binds to 'emailstudents' -- a field the shared
+     * Default activity completion form never adds, so the checkbox stays usable there
+     * regardless of the site default.
+     *
+     * @covers \mod_customcert_mod_form::add_completion_rules
+     * @dataProvider site_default_emailstudents_provider
+     * @param int $sitedefault The site-wide 'emailstudents' config value.
+     */
+    public function test_default_completion_form_with_manageemailstudents_capability(int $sitedefault): void {
+        $this->resetAfterTest();
+        set_config('emailstudents', $sitedefault, 'customcert');
+        $this->setAdminUser();
+
+        // Core function core_completion\manager::get_module_form() sets $data->add = $modname
+        // when there is no cm_info, which is always the case on the Default activity completion
+        // page.
+        $form = $this->make_form('_customcert', 0, (object)['add' => 'customcert']);
+        $elements = $form->add_completion_rules();
+
+        $this->assertSame(['completionemailed_customcert'], $elements);
+
+        $formprop = (new ReflectionClass(\mod_customcert_mod_form::class))->getProperty('_form');
+        $formprop->setAccessible(true);
+        $mform = $formprop->getValue($form);
+
+        $this->assertFalse($mform->elementExists('completionemailed_disabled_note_customcert'));
+        $this->assertFalse($mform->elementExists('emailstudents'));
+        $this->assertTrue($mform->elementExists('completionemailed_customcert'));
+    }
+
+    /**
+     * Without manageemailstudents, the checkbox instead follows the site default via
+     * get_effective_emailstudents().
+     *
+     * @covers \mod_customcert_mod_form::add_completion_rules
+     * @dataProvider site_default_emailstudents_provider
+     * @param int $sitedefault The site-wide 'emailstudents' config value.
+     */
+    public function test_default_completion_form_without_manageemailstudents_capability(int $sitedefault): void {
+        $this->resetAfterTest();
+        set_config('emailstudents', $sitedefault, 'customcert');
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $form = $this->make_form('_customcert', 0, (object)['add' => 'customcert']);
+        $form->add_completion_rules();
+
+        $formprop = (new ReflectionClass(\mod_customcert_mod_form::class))->getProperty('_form');
+        $formprop->setAccessible(true);
+        $mform = $formprop->getValue($form);
+
+        if ($sitedefault) {
+            $this->assertFalse($mform->elementExists('completionemailed_disabled_note_customcert'));
+        } else {
+            $this->assertTrue($mform->elementExists('completionemailed_disabled_note_customcert'));
+        }
     }
 }
