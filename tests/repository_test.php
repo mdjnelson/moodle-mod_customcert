@@ -67,10 +67,66 @@ final class repository_test extends advanced_testcase {
         $this->assertEquals(0, (int)$issue->emailed);
 
         $issues->mark_emailed($issueid);
-        $issuedusers = $issues->list_emailed_users($customcert->id);
+        $issuedusers = $issues->list_emailed_users($customcert->id, false);
 
         $this->assertArrayHasKey($student->id, $issuedusers);
         $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+    }
+
+    /**
+     * With emailstudents enabled, list_emailed_users() must treat studentemailed = 0 as still a
+     * candidate, and both 1 and NULL (legacy/unknown) as handled.
+     *
+     * @covers \mod_customcert\service\issue_repository::list_emailed_users
+     * @covers \mod_customcert\service\issue_repository::mark_student_emailed
+     */
+    public function test_list_emailed_users_requires_studentemailed_when_emailstudents_enabled(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
+
+        $issues = new issue_repository();
+        $issueid = $issues->create($customcert->id, $student->id);
+        $issues->mark_emailed($issueid);
+
+        // Value studentemailed = 0: still a candidate.
+        $this->assertArrayNotHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+
+        // Value studentemailed = NULL (legacy/unknown): handled, not retried.
+        $DB->set_field('customcert_issues', 'studentemailed', null, ['id' => $issueid]);
+        $this->assertArrayHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+
+        // Value studentemailed = 1: handled.
+        $issues->mark_student_emailed($issueid);
+        $this->assertArrayHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+    }
+
+    /**
+     * mark_student_email_failed() moves studentemailed from NULL to the explicit, retryable 0
+     * state.
+     *
+     * @covers \mod_customcert\service\issue_repository::mark_student_email_failed
+     */
+    public function test_mark_student_email_failed_sets_explicit_zero(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $issues = new issue_repository();
+        $issueid = $issues->create($customcert->id, $student->id);
+
+        // Simulate a legacy/unknown issue by nulling out studentemailed directly.
+        $DB->set_field('customcert_issues', 'studentemailed', null, ['id' => $issueid]);
+        $this->assertNull($DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
+
+        $issues->mark_student_email_failed($issueid);
+        $this->assertEquals(0, (int)$DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
     }
 
     /**
@@ -428,10 +484,8 @@ final class repository_test extends advanced_testcase {
 
     /**
      * The upgrade step that introduced studentemailed must leave pre-existing issues NULL
-     * (unknown/legacy), never 0 -- 0 specifically means "a send was attempted by this feature and
-     * failed", which is not true of an issue that predates the feature entirely. This drops the
-     * column (simulating a site on the version just before it existed) and re-runs the real
-     * upgrade step against a table that already has data in it.
+     * (legacy/unknown), never 0. Drops the column to simulate a site upgrading from before it
+     * existed, then re-runs the upgrade step against a table that already has data.
      *
      * @covers ::xmldb_customcert_upgrade
      */
