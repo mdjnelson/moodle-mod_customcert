@@ -33,6 +33,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
+## [5.2.7] - 2026-MM-DD
+
+### Added
+
+- Added an automatic activity completion condition for certificates emailed to students, allowing students to complete the activity when their certificate is sent by email without needing to view the activity (#645).
+
 ## [5.2.6] - 2026-08-23
 
 ### Security
