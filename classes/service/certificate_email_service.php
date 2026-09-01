@@ -153,6 +153,8 @@ final class certificate_email_service {
         $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
         file_put_contents($tempfile, $filecontents);
 
+        $senttostudent = false;
+
         if ($customcert->emailstudents) {
             $recipientlang = mod_customcert_get_language_to_use($customcert, $user, $customcert->courselang ?? null);
             $switched = mod_customcert_apply_runtime_language($recipientlang);
@@ -174,7 +176,7 @@ final class certificate_email_service {
             $subject = get_string('emailstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user(
+            $senttostudent = email_to_user(
                 $user,
                 $userfrom,
                 html_entity_decode($subject, ENT_COMPAT),
@@ -264,6 +266,13 @@ final class certificate_email_service {
         }
 
         $this->issues->mark_emailed($issueid);
+
+        // Record the durable, recipient-specific fact separately from the generic 'emailed' flag
+        // above, which is also set when only teachers/others were emailed. Only record it when
+        // email_to_user() actually reported success, not merely attempted.
+        if ($senttostudent) {
+            $this->issues->mark_student_emailed($issueid);
+        }
 
         // Trigger completion reevaluation if the completionemailed rule is enabled for this instance.
         // This covers both the synchronous and adhoc email dispatch paths.
