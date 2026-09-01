@@ -145,27 +145,31 @@ class mod_customcert_mod_form extends moodleform_mod {
     public function add_completion_rules() {
         $mform =& $this->_form;
 
-        $mform->addElement('checkbox', 'completionissued', '', get_string('completionissued', 'customcert'));
-        $mform->setType('completionissued', PARAM_BOOL);
-        $mform->addHelpButton('completionissued', 'completionissued', 'customcert');
+        $mform->addElement('checkbox', 'completionemailed', '', get_string('completionemailed', 'customcert'));
+        $mform->setType('completionemailed', PARAM_BOOL);
+        $mform->addHelpButton('completionemailed', 'completionemailed', 'customcert');
 
         // Disable the completion checkbox if email to students is not enabled.
         // Check if the user has permission to manage email students setting.
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
             // If user can manage email students, disable completion when emailstudents is not checked.
-            $mform->disabledIf('completionissued', 'emailstudents', 'eq', 0);
+            $mform->disabledIf('completionemailed', 'emailstudents', 'eq', 0);
         } else {
             // If user can't manage email students, check global setting.
             $globalemailstudents = get_config('customcert', 'emailstudents');
             if (!$globalemailstudents) {
                 // If global setting is disabled, disable the completion checkbox entirely.
-                $mform->addElement('static', 'completionissued_disabled_note', '',
-                    get_string('completionissuedemailerror', 'customcert'));
-                $mform->setConstant('completionissued', 0);
+                $mform->addElement(
+                    'static',
+                    'completionemailed_disabled_note',
+                    '',
+                    get_string('completionemailedemailerror', 'customcert')
+                );
+                $mform->setConstant('completionemailed', 0);
             }
         }
 
-        return ['completionissued'];
+        return ['completionemailed'];
     }
 
     /**
@@ -175,7 +179,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @return bool True if one or more rules is enabled, false if none are.
      */
     public function completion_rule_enabled($data) {
-        return (!empty($data['completionissued']));
+        return (!empty($data['completionemailed']));
     }
 
     /**
@@ -247,6 +251,15 @@ class mod_customcert_mod_form extends moodleform_mod {
         if (!empty($data['requiredtime'])) {
             if ((!is_number($data['requiredtime']) || $data['requiredtime'] < 0)) {
                 $errors['requiredtime'] = get_string('requiredtimenotvalid', 'customcert');
+            }
+        }
+
+        // Server-side guard: completionemailed requires email-to-students to be available.
+        // The form disables the checkbox via JS, but a crafted POST could bypass that.
+        if (!empty($data['completionemailed'])) {
+            $globalemailstudents = get_config('customcert', 'emailstudents');
+            if (empty($data['emailstudents']) && !$globalemailstudents) {
+                $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
             }
         }
 

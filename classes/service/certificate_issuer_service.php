@@ -201,14 +201,6 @@ final class certificate_issuer_service {
                     ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id)
                     : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id);
 
-                // Trigger activity completion when a certificate is issued, if the feature is enabled.
-                if (!empty($issue) && !empty($customcert->completionissued)) {
-                    $completioninfo = new \completion_info($course);
-                    if ($completioninfo->is_enabled($cm)) {
-                        $completioninfo->update_state($cm, COMPLETION_COMPLETE, (int)$filtereduser->id);
-                    }
-                }
-
                 if (!empty($issue) && (int)$issue->emailed === 0) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
                 }
