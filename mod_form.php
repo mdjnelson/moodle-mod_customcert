@@ -155,10 +155,11 @@ class mod_customcert_mod_form extends moodleform_mod {
             // If user can manage email students, disable completion when emailstudents is not checked.
             $mform->disabledIf('completionemailed', 'emailstudents', 'eq', 0);
         } else {
-            // If user can't manage email students, check global setting.
-            $globalemailstudents = get_config('customcert', 'emailstudents');
-            if (!$globalemailstudents) {
-                // If global setting is disabled, disable the completion checkbox entirely.
+            // If the user can't manage email students, they have no way to guarantee emailstudents
+            // is (or will remain) enabled for this instance, so fall back to whatever is currently
+            // stored for it.
+            if (empty($this->current->emailstudents)) {
+                // If emailstudents isn't enabled for this instance, disable the checkbox entirely.
                 $mform->addElement(
                     'static',
                     'completionemailed_disabled_note',
@@ -254,11 +255,15 @@ class mod_customcert_mod_form extends moodleform_mod {
             }
         }
 
-        // Server-side guard: completionemailed requires email-to-students to be available.
+        // Server-side guard: completionemailed requires email-to-students to be enabled for this
+        // instance. The emailstudents field is only present in $data when the user has the
+        // mod/customcert:manageemailstudents capability, so fall back to the stored value otherwise.
         // The form disables the checkbox via JS, but a crafted POST could bypass that.
         if (!empty($data['completionemailed'])) {
-            $globalemailstudents = get_config('customcert', 'emailstudents');
-            if (empty($data['emailstudents']) && !$globalemailstudents) {
+            $emailstudents = array_key_exists('emailstudents', $data)
+                ? !empty($data['emailstudents'])
+                : !empty($this->current->emailstudents);
+            if (!$emailstudents) {
                 $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
             }
         }
