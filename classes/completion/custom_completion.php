@@ -54,28 +54,18 @@ class custom_completion extends activity_custom_completion {
         $userid = $this->userid;
 
         if ($rule === 'completionemailed') {
-            $customcert = $DB->get_record(
-                'customcert',
-                ['id' => $customcertid],
-                'id, completionemailed, emailstudents',
-                MUST_EXIST
-            );
+            $customcert = $DB->get_record('customcert', ['id' => $customcertid], 'id, completionemailed', MUST_EXIST);
 
             // Rule is only active when the teacher has explicitly enabled it for this instance.
             if (empty($customcert->completionemailed)) {
                 return COMPLETION_INCOMPLETE;
             }
 
-            // The issue's 'emailed' flag is also set when only emailteachers/emailothers is
-            // configured, so it only means "the student was emailed" when this instance actually
-            // emails students.
-            if (empty($customcert->emailstudents)) {
-                return COMPLETION_INCOMPLETE;
-            }
-
+            // Only studentemailed = 1 exactly satisfies completion; NULL (legacy/unknown) and 0
+            // (retryable) do not, and it is unaffected by later emailstudents changes.
             $emailed = $DB->record_exists(
                 'customcert_issues',
-                ['customcertid' => $customcertid, 'userid' => $userid, 'emailed' => 1]
+                ['customcertid' => $customcertid, 'userid' => $userid, 'studentemailed' => 1]
             );
 
             return $emailed ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;

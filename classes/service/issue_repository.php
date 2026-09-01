@@ -74,6 +74,25 @@ final class issue_repository {
     }
 
     /**
+     * Record, as a durable historical fact, that the certificate was successfully handed off to
+     * email_to_user() for this specific student. Unlike mark_emailed(), this must only be called
+     * when the recipient was the student and the send actually succeeded.
+     *
+     * studentemailed is three-state: NULL (unknown/legacy, e.g. an issue that predates this
+     * field, or predates emailstudents being enabled for this instance) must never be conflated
+     * with 0 (a known, retryable failure) or set here as a side effect of a *different* recipient
+     * succeeding -- this method only ever writes 1.
+     *
+     * @param int $issueid
+     * @return void
+     */
+    public function mark_student_emailed(int $issueid): void {
+        global $DB;
+
+        $DB->set_field('customcert_issues', 'studentemailed', 1, ['id' => $issueid]);
+    }
+
+    /**
      * Get an issue by id, throwing an exception if not found.
      *
      * @param int $id

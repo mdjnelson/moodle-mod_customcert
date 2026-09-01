@@ -144,16 +144,19 @@ class mod_customcert_mod_form extends moodleform_mod {
      */
     public function add_completion_rules() {
         $mform =& $this->_form;
+        $suffix = $this->get_suffix();
+        $completionemailedel = 'completionemailed' . $suffix;
 
-        $mform->addElement('checkbox', 'completionemailed', '', get_string('completionemailed', 'customcert'));
-        $mform->setType('completionemailed', PARAM_BOOL);
-        $mform->addHelpButton('completionemailed', 'completionemailed', 'customcert');
+        $mform->addElement('checkbox', $completionemailedel, '', get_string('completionemailed', 'customcert'));
+        $mform->setType($completionemailedel, PARAM_BOOL);
+        $mform->addHelpButton($completionemailedel, 'completionemailed', 'customcert');
 
-        // Disable the completion checkbox if email to students is not enabled.
+        // Disable the completion checkbox if email to students is not enabled. The emailstudents
+        // field itself is not part of the completion section, so it is never suffixed.
         // Check if the user has permission to manage email students setting.
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
             // If user can manage email students, disable completion when emailstudents is not checked.
-            $mform->disabledIf('completionemailed', 'emailstudents', 'eq', 0);
+            $mform->disabledIf($completionemailedel, 'emailstudents', 'eq', 0);
         } else {
             // If the user can't manage email students, they have no way to guarantee emailstudents
             // is (or will remain) enabled for this instance, so fall back to whatever is currently
@@ -162,15 +165,15 @@ class mod_customcert_mod_form extends moodleform_mod {
                 // If emailstudents isn't enabled for this instance, disable the checkbox entirely.
                 $mform->addElement(
                     'static',
-                    'completionemailed_disabled_note',
+                    'completionemailed_disabled_note' . $suffix,
                     '',
                     get_string('completionemailedemailerror', 'customcert')
                 );
-                $mform->setConstant('completionemailed', 0);
+                $mform->setConstant($completionemailedel, 0);
             }
         }
 
-        return ['completionemailed'];
+        return [$completionemailedel];
     }
 
     /**
@@ -180,7 +183,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @return bool True if one or more rules is enabled, false if none are.
      */
     public function completion_rule_enabled($data) {
-        return (!empty($data['completionemailed']));
+        return !empty($data['completionemailed' . $this->get_suffix()]);
     }
 
     /**
@@ -217,6 +220,15 @@ class mod_customcert_mod_form extends moodleform_mod {
         global $DB;
 
         parent::data_postprocessing($data);
+
+        // Set up completion section even if checkbox is not ticked, e.g. when this instance of
+        // the form is being submitted from the "Default activity completion" settings page.
+        if (!empty($data->completionunlocked)) {
+            $suffix = $this->get_suffix();
+            if (empty($data->{'completionemailed' . $suffix})) {
+                $data->{'completionemailed' . $suffix} = 0;
+            }
+        }
 
         // If creating a new activity.
         if (!empty($data->add)) {
@@ -259,12 +271,13 @@ class mod_customcert_mod_form extends moodleform_mod {
         // instance. The emailstudents field is only present in $data when the user has the
         // mod/customcert:manageemailstudents capability, so fall back to the stored value otherwise.
         // The form disables the checkbox via JS, but a crafted POST could bypass that.
-        if (!empty($data['completionemailed'])) {
+        $completionemailedel = 'completionemailed' . $this->get_suffix();
+        if (!empty($data[$completionemailedel])) {
             $emailstudents = array_key_exists('emailstudents', $data)
                 ? !empty($data['emailstudents'])
                 : !empty($this->current->emailstudents);
             if (!$emailstudents) {
-                $errors['completionemailed'] = get_string('completionemailedemailerror', 'customcert');
+                $errors[$completionemailedel] = get_string('completionemailedemailerror', 'customcert');
             }
         }
 
