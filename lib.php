@@ -169,6 +169,18 @@ function customcert_supports($feature) {
 }
 
 /**
+ * Given a course_module object, this function returns any "extra" information that may be
+ * needed when printing this activity in a course listing, and populates the custom completion
+ * rules so that core completion can evaluate them for this instance.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info|false
+ */
+function customcert_get_coursemodule_info($coursemodule) {
+    return feature_callbacks::get_coursemodule_info($coursemodule);
+}
+
+/**
  * Used for course participation report (in case customcert is added).
  *
  * @return array
