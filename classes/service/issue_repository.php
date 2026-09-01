@@ -74,14 +74,7 @@ final class issue_repository {
     }
 
     /**
-     * Record, as a durable historical fact, that the certificate was successfully handed off to
-     * email_to_user() for this specific student. Unlike mark_emailed(), this must only be called
-     * when the recipient was the student and the send actually succeeded.
-     *
-     * studentemailed is three-state: NULL (unknown/legacy, e.g. an issue that predates this
-     * field, or predates emailstudents being enabled for this instance) must never be conflated
-     * with 0 (a known, retryable failure) or set here as a side effect of a *different* recipient
-     * succeeding -- this method only ever writes 1.
+     * Record that the certificate was successfully emailed to this student.
      *
      * @param int $issueid
      * @return void
@@ -90,6 +83,20 @@ final class issue_repository {
         global $DB;
 
         $DB->set_field('customcert_issues', 'studentemailed', 1, ['id' => $issueid]);
+    }
+
+    /**
+     * Record that a send to this student was attempted and did not succeed.
+     *
+     * studentemailed = 0 means the student email has not yet succeeded and is retryable.
+     *
+     * @param int $issueid
+     * @return void
+     */
+    public function mark_student_email_failed(int $issueid): void {
+        global $DB;
+
+        $DB->set_field('customcert_issues', 'studentemailed', 0, ['id' => $issueid]);
     }
 
     /**
@@ -333,12 +340,16 @@ final class issue_repository {
     }
 
     /**
-     * List user ids that already have emailed issues for a certificate.
+     * List user ids whose issue for a certificate needs no further email processing.
+     *
+     * When $requirestudentemailed is true, only studentemailed = 0 remains a retry candidate;
+     * NULL (legacy/unknown) on an already-processed issue is treated as handled, not retried.
      *
      * @param int $customcertid
+     * @param bool $requirestudentemailed Whether emailstudents is enabled for this certificate.
      * @return array<int, stdClass> keyed by userid
      */
-    public function list_emailed_users(int $customcertid): array {
+    public function list_emailed_users(int $customcertid, bool $requirestudentemailed): array {
         global $DB;
 
         $sql = "SELECT u.id
@@ -346,6 +357,10 @@ final class issue_repository {
                   JOIN {user} u ON ci.userid = u.id
                  WHERE ci.customcertid = :customcertid
                        AND ci.emailed = 1";
+
+        if ($requirestudentemailed) {
+            $sql .= " AND (ci.studentemailed = 1 OR ci.studentemailed IS NULL)";
+        }
 
         return $DB->get_records_sql($sql, ['customcertid' => $customcertid]);
     }
