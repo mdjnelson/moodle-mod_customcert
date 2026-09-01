@@ -153,6 +153,14 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         // Disable the completion checkbox if email to students is not enabled. The emailstudents
         // field itself is not part of the completion section, so it is never suffixed.
+        //
+        // Known limitation: Moodle's "Default activity completion" settings page only injects a
+        // module's completion elements into its own form, not ordinary fields like emailstudents,
+        // and its own validation() never calls this module's validation(). So on that page, this
+        // disabledIf has no field to bind to and the checkbox is effectively always enabled,
+        // regardless of the site-wide emailstudents default. data_postprocessing() still zeroes
+        // completionemailed whenever automatic completion isn't active, but the emailstudents
+        // dependency itself isn't enforceable there. This is accepted for now rather than fixed.
         // Check if the user has permission to manage email students setting.
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
             // If user can manage email students, disable completion when emailstudents is not checked.
@@ -223,10 +231,15 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         // Set up completion section even if checkbox is not ticked, e.g. when this instance of
         // the form is being submitted from the "Default activity completion" settings page.
+        // Also clear the rule whenever automatic completion isn't active, so a submitted
+        // completion = NONE/MANUAL doesn't leave a stale completionemailed = 1 in place.
         if (!empty($data->completionunlocked)) {
             $suffix = $this->get_suffix();
-            if (empty($data->{'completionemailed' . $suffix})) {
-                $data->{'completionemailed' . $suffix} = 0;
+            $completionel = 'completion' . $suffix;
+            $completionemailedel = 'completionemailed' . $suffix;
+            $autocompletion = !empty($data->{$completionel}) && $data->{$completionel} == COMPLETION_TRACKING_AUTOMATIC;
+            if (empty($data->{$completionemailedel}) || !$autocompletion) {
+                $data->{$completionemailedel} = 0;
             }
         }
 

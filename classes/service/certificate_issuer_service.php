@@ -325,14 +325,38 @@ final class certificate_issuer_service {
      * unless we check it explicitly here, so a certificate configured with completion conditions but no
      * restrict access rule would otherwise be issued/emailed regardless of the user's completion state.
      *
+     * For automatic tracking, deliberately excludes the completionemailed custom rule: it is what
+     * issuing/emailing this certificate is *for*, so requiring it here would make it permanently
+     * unreachable through this candidate list -- the student would need to already be emailed to
+     * become eligible to be emailed. Other core completion criteria configured on the certificate
+     * itself (e.g. completionview) still gate candidacy normally.
+     *
+     * For manual tracking there is no such circularity -- completionemailed is only ever a
+     * custom rule evaluated under automatic tracking, so get_core_completion_state() would
+     * return an empty array here (it only covers grade/passgrade/view) and vacuously pass anyone
+     * who hasn't manually ticked the activity complete. Use the aggregate completion state
+     * instead, exactly as before this method started excluding completionemailed.
+     *
      * @param completion_info $completion
      * @param object $cm
      * @param int $userid
      * @return bool
      */
     private function has_met_own_completion(completion_info $completion, object $cm, int $userid): bool {
-        $data = $completion->get_data($cm, false, $userid);
+        if ($cm->completion == COMPLETION_TRACKING_MANUAL) {
+            $data = $completion->get_data($cm, false, $userid);
 
-        return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+            return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+        }
+
+        $completionstate = $completion->get_core_completion_state($cm, $userid);
+
+        foreach ($completionstate as $state) {
+            if (!in_array((int)$state, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
