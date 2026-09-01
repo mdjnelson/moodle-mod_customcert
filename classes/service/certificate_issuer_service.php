@@ -189,7 +189,7 @@ final class certificate_issuer_service {
 
         foreach ($customcerts as $customcert) {
             // Check if the certificate is hidden, quit early.
-            [$course, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
+            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
             if (!$cm->visible) {
                 continue;
             }
