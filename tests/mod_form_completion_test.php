@@ -36,6 +36,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/mod/customcert/mod_form.php');
 require_once($CFG->libdir . '/formslib.php');
+require_once($CFG->libdir . '/completionlib.php');
 
 /**
  * Unit tests for mod_customcert_mod_form's completionemailed rule.
@@ -142,5 +143,55 @@ final class mod_form_completion_test extends advanced_testcase {
 
         $this->assertTrue($mform->elementExists('completionemailed_disabled_note_customcert'));
         $this->assertFalse($mform->elementExists('completionemailed_disabled_note'));
+    }
+
+    /**
+     * data_postprocessing() must clear completionemailed whenever the submitted completion mode
+     * isn't automatic, even if the checkbox field itself still carries a stale truthy value (e.g.
+     * it was checked before completion tracking was switched to manual/none, and hideIf only
+     * hides the element -- it doesn't stop a previously-checked checkbox from still submitting).
+     *
+     * @covers \mod_customcert_mod_form::data_postprocessing
+     */
+    public function test_data_postprocessing_clears_rule_when_not_automatic(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $form = $this->make_form('_customcert');
+
+        $data = (object)[
+            'add' => 1,
+            'completionunlocked' => 1,
+            'completion_customcert' => COMPLETION_TRACKING_MANUAL,
+            'completionemailed_customcert' => 1,
+        ];
+
+        $form->data_postprocessing($data);
+
+        $this->assertEquals(0, $data->completionemailed_customcert);
+    }
+
+    /**
+     * When automatic completion is active and the checkbox was submitted checked,
+     * data_postprocessing() must leave it alone.
+     *
+     * @covers \mod_customcert_mod_form::data_postprocessing
+     */
+    public function test_data_postprocessing_keeps_rule_when_automatic_and_checked(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $form = $this->make_form('_customcert');
+
+        $data = (object)[
+            'add' => 1,
+            'completionunlocked' => 1,
+            'completion_customcert' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionemailed_customcert' => 1,
+        ];
+
+        $form->data_postprocessing($data);
+
+        $this->assertEquals(1, $data->completionemailed_customcert);
     }
 }
