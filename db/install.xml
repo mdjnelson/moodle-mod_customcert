@@ -51,6 +51,8 @@
         <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="code" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="emailed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="studentemailed" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"
+               COMMENT="Three-state: NULL means unknown/legacy (for example, an issue predating this field) and must not be inferred from 'emailed'. 0 means the student email has not yet succeeded and is retryable. 1 means successfully emailed to the student."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

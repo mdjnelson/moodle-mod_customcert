@@ -433,5 +433,19 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2026060501, 'customcert');
     }
 
+    if ($oldversion < 2026060502) {
+        // Records whether email_to_user() succeeded for this student specifically, unlike
+        // 'emailed' which is also set for teachers/others. Nullable with no default: existing
+        // issues predate this field and stay NULL (unknown/legacy), never inferred from
+        // 'emailed'. New issues initialise explicitly to 0 (retryable), never NULL.
+        $table = new xmldb_table('customcert_issues');
+        $field = new xmldb_field('studentemailed', XMLDB_TYPE_INTEGER, '1', null, null, null, null, 'emailed');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026060502, 'customcert');
+    }
+
     return true;
 }

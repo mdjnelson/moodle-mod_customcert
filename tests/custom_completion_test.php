@@ -53,22 +53,19 @@ final class custom_completion_test extends advanced_testcase {
     public static function get_state_provider(): array {
         return [
             'Undefined rule' => [
-                'somenonexistentrule', COMPLETION_DISABLED, 0, 0, false, null, coding_exception::class,
+                'somenonexistentrule', COMPLETION_DISABLED, 0, false, null, coding_exception::class,
             ],
             'Rule not available' => [
-                'completionemailed', COMPLETION_DISABLED, 0, 0, false, null, moodle_exception::class,
+                'completionemailed', COMPLETION_DISABLED, 0, false, null, moodle_exception::class,
             ],
             'Available in cache but disabled on the instance record' => [
-                'completionemailed', COMPLETION_ENABLED, 0, 1, true, COMPLETION_INCOMPLETE, null,
+                'completionemailed', COMPLETION_ENABLED, 0, true, COMPLETION_INCOMPLETE, null,
             ],
-            'Enabled, but emailstudents is disabled for this instance' => [
-                'completionemailed', COMPLETION_ENABLED, 1, 0, true, COMPLETION_INCOMPLETE, null,
+            'Enabled, but the student has not been emailed yet' => [
+                'completionemailed', COMPLETION_ENABLED, 1, false, COMPLETION_INCOMPLETE, null,
             ],
-            'Enabled, emailstudents on, but the student has not been emailed yet' => [
-                'completionemailed', COMPLETION_ENABLED, 1, 1, false, COMPLETION_INCOMPLETE, null,
-            ],
-            'Enabled, emailstudents on, and the student has been emailed' => [
-                'completionemailed', COMPLETION_ENABLED, 1, 1, true, COMPLETION_COMPLETE, null,
+            'Enabled, and the student has been emailed' => [
+                'completionemailed', COMPLETION_ENABLED, 1, true, COMPLETION_COMPLETE, null,
             ],
         ];
     }
@@ -81,8 +78,7 @@ final class custom_completion_test extends advanced_testcase {
      * @param string $rule The custom completion rule.
      * @param int $available Whether this rule is available (from cm_info::customdata).
      * @param int $completionemailed The completionemailed field on the customcert instance record.
-     * @param int $emailstudents The emailstudents field on the customcert instance record.
-     * @param bool $emailed Whether the student's issue has been marked emailed.
+     * @param bool $studentemailed Whether the student's issue has studentemailed set.
      * @param int|null $status Expected completion status.
      * @param string|null $exception Expected exception class.
      */
@@ -90,8 +86,7 @@ final class custom_completion_test extends advanced_testcase {
         string $rule,
         int $available,
         int $completionemailed,
-        int $emailstudents,
-        bool $emailed,
+        bool $studentemailed,
         ?int $status,
         ?string $exception
     ): void {
@@ -119,19 +114,57 @@ final class custom_completion_test extends advanced_testcase {
             ->method('get_custom_data')
             ->willReturn($customdataval);
 
-        // Mock the DB calls: the instance record lookup and the emailed-issue check.
+        // Mock the DB calls: the instance record lookup and the studentemailed-issue check.
         $DB = $this->createMock(get_class($DB));
         $DB->method('get_record')
             ->willReturn((object)[
                 'id' => 1,
                 'completionemailed' => $completionemailed,
-                'emailstudents' => $emailstudents,
             ]);
         $DB->method('record_exists')
-            ->willReturn($emailed);
+            ->willReturn($studentemailed);
 
         $customcompletion = new custom_completion($mockcminfo, 2);
         $this->assertEquals($status, $customcompletion->get_state($rule));
+    }
+
+    /**
+     * get_state() must only treat studentemailed = 1 as complete; NULL (unknown/legacy) and 0
+     * (retryable) are both incomplete.
+     *
+     * @covers \mod_customcert\completion\custom_completion::get_state
+     */
+    public function test_get_state_studentemailed_tri_state_against_real_db(): void {
+        global $CFG, $DB;
+
+        $this->resetAfterTest();
+        $CFG->enablecompletion = true;
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completionemailed' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+        ]);
+
+        $issueid = (new \mod_customcert\service\issue_repository())->create((int)$customcert->id, (int)$student->id);
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+
+        $cminfo = get_fast_modinfo($course->id, $student->id)->get_cm($customcert->cmid);
+        $customcompletion = new custom_completion($cminfo, (int)$student->id);
+
+        $DB->set_field('customcert_issues', 'studentemailed', null, ['id' => $issueid]);
+        $this->assertEquals(COMPLETION_INCOMPLETE, $customcompletion->get_state('completionemailed'));
+
+        $DB->set_field('customcert_issues', 'studentemailed', 0, ['id' => $issueid]);
+        $this->assertEquals(COMPLETION_INCOMPLETE, $customcompletion->get_state('completionemailed'));
+
+        $DB->set_field('customcert_issues', 'studentemailed', 1, ['id' => $issueid]);
+        $this->assertEquals(COMPLETION_COMPLETE, $customcompletion->get_state('completionemailed'));
     }
 
     /**

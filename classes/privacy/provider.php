@@ -59,6 +59,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
                 'customcertid' => 'privacy:metadata:customcert_issues:customcertid',
                 'code' => 'privacy:metadata:customcert_issues:code',
                 'emailed' => 'privacy:metadata:customcert_issues:emailed',
+                'studentemailed' => 'privacy:metadata:customcert_issues:studentemailed',
                 'timecreated' => 'privacy:metadata:customcert_issues:timecreated',
             ],
             'privacy:metadata:customcert_issues'
@@ -164,9 +165,15 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             'timecreated, id ASC'
         );
         self::recordset_loop_and_export($recordset, 'customcertid', [], function ($carry, $record) {
+            // NULL (unknown/legacy) is a different fact from 0 (retryable); do not export both
+            // via yesno() as if they were the same.
+            $studentemailed = $record->studentemailed === null
+                ? get_string('studentemailedunknown', 'customcert')
+                : transform::yesno($record->studentemailed);
             $carry[] = [
                 'code' => $record->code,
                 'emailed' => transform::yesno($record->emailed),
+                'studentemailed' => $studentemailed,
                 'timecreated' => transform::datetime($record->timecreated),
             ];
             return $carry;
