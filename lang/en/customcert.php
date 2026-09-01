@@ -203,6 +203,7 @@ $string['privacy:metadata:customcert_issues'] = 'The list of issued certificates
 $string['privacy:metadata:customcert_issues:code'] = 'The code that belongs to the certificate';
 $string['privacy:metadata:customcert_issues:customcertid'] = 'The ID of the certificate';
 $string['privacy:metadata:customcert_issues:emailed'] = 'Whether or not the certificate was emailed';
+$string['privacy:metadata:customcert_issues:studentemailed'] = 'Whether or not the certificate was successfully emailed to the student';
 $string['privacy:metadata:customcert_issues:timecreated'] = 'The time the certificate was issued';
 $string['privacy:metadata:customcert_issues:userid'] = 'The ID of the user who was issued the certificate';
 $string['rearrangeelements'] = 'Reposition elements';
@@ -232,6 +233,7 @@ $string['showposxy'] = 'Show position X and Y';
 $string['showposxy_desc'] = 'This will show the X and Y position when editing of an element, allowing the user to accurately specify the location.
 
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
+$string['studentemailedunknown'] = 'Unknown (predates this feature)';
 $string['subplugintype_customcertelement'] = 'Element';
 $string['subplugintype_customcertelement_plural'] = 'Elements';
 $string['taskemailcertificate'] = 'Handles emailing certificates.';

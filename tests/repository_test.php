@@ -425,4 +425,44 @@ final class repository_test extends advanced_testcase {
         $this->assertEquals($customcert->id, $cert->id);
         $this->assertEquals($course->fullname, $cert->coursename);
     }
+
+    /**
+     * The upgrade step that introduced studentemailed must leave pre-existing issues NULL
+     * (unknown/legacy), never 0 -- 0 specifically means "a send was attempted by this feature and
+     * failed", which is not true of an issue that predates the feature entirely. This drops the
+     * column (simulating a site on the version just before it existed) and re-runs the real
+     * upgrade step against a table that already has data in it.
+     *
+     * @covers ::xmldb_customcert_upgrade
+     */
+    public function test_upgrade_leaves_historical_issues_studentemailed_null(): void {
+        global $DB, $CFG;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $issueid = (new issue_repository())->create($customcert->id, $student->id);
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('customcert_issues');
+        $field = new \xmldb_field('studentemailed');
+        $dbman->drop_field($table, $field);
+
+        // Upgrade_mod_savepoint() refuses to "advance" to a version that isn't strictly greater
+        // than what's on record, so roll the stored plugin version back to simulate a site that
+        // is genuinely upgrading from before this field existed.
+        set_config('version', 2026060501, 'mod_customcert');
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once($CFG->dirroot . '/mod/customcert/db/upgrade.php');
+        xmldb_customcert_upgrade(2026060501);
+
+        $this->assertTrue($dbman->field_exists($table, new \xmldb_field('studentemailed')));
+        $this->assertNull($DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
+        // The pre-existing 'emailed' processing marker is untouched by this upgrade step.
+        $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+    }
 }
