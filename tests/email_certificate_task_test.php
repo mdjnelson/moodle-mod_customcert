@@ -30,6 +30,7 @@ use context_course;
 use context_module;
 use stdClass;
 use advanced_testcase;
+use mod_customcert\service\certificate_email_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_issuer_service;
 use mod_customcert\service\template_repository;
@@ -2067,6 +2068,124 @@ final class email_certificate_task_test extends advanced_testcase {
             $this->assertContains($email->to, $expected);
             $expected = array_diff($expected, [$email->to]);
         }
+    }
+
+    /**
+     * Tests that sending the certificate email to a student marks the completionemailed rule
+     * complete for them once emailstudents is enabled for the instance.
+     *
+     * @covers \mod_customcert\service\certificate_email_service
+     * @covers \mod_customcert\completion\custom_completion
+     */
+    public function test_send_issue_completes_activity_for_emailed_student(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Note: completionview is deliberately not set here. If it were the only other
+        // available rule, and completionemailed were required before a student is even
+        // considered a candidate for auto-issuance, no one could ever satisfy it -- but that
+        // candidacy gating is certificate_issuer_service's concern, not send_issue()'s, so this
+        // test calls send_issue() directly rather than going through the issuance cron.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completionemailed' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+        ]);
+
+        // Build a minimal template with one element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
+
+        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
+        $completioninfo = new completion_info($course);
+
+        // Not emailed yet, so the activity must not be complete.
+        $data = $completioninfo->get_data($cm, false, $student->id);
+        $this->assertEquals(COMPLETION_INCOMPLETE, $data->completionstate);
+
+        // Issue and email the certificate to the student.
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+
+        $sink = $this->redirectEmails();
+        $emailservice = certificate_email_service::create();
+        $emailservice->send_issue((int)$customcert->id, $issueid);
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+        $this->assertCount(1, $emails);
+        $this->assertEquals($student->email, $emails[0]->to);
+
+        // Now that the student has been emailed, the activity must be complete.
+        $data = $completioninfo->get_data($cm, false, $student->id);
+        $this->assertEquals(COMPLETION_COMPLETE, $data->completionstate);
+    }
+
+    /**
+     * Tests that the completionemailed rule does not report complete for a student who was
+     * never emailed, even if the issue was processed because only teachers were emailed and the
+     * completionemailed flag is set directly on the instance record.
+     *
+     * @covers \mod_customcert\service\certificate_email_service
+     * @covers \mod_customcert\completion\custom_completion
+     */
+    public function test_send_issue_does_not_complete_activity_when_student_is_not_emailed(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $student = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, $roleids['editingteacher']);
+
+        // Only emailteachers is enabled, but completionemailed is set on the instance too -- this
+        // combination shouldn't be reachable via the form, but the completion rule must still not
+        // treat "the issue was processed" as "the student was emailed" if it occurs regardless.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailteachers' => 1,
+            'completionemailed' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+        ]);
+
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
+
+        // The student triggers issuance themselves (e.g. by viewing the certificate).
+        $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
+
+        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
+        $completioninfo = new completion_info($course);
+
+        $sink = $this->redirectEmails();
+        $emailservice = certificate_email_service::create();
+        $emailservice->send_issue((int)$customcert->id, $issueid);
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // The issue was processed (only the teacher was emailed about it) ...
+        $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+        $this->assertCount(1, $emails);
+        $this->assertEquals($teacher->email, $emails[0]->to);
+
+        // ... but the student themselves never received anything, so they must not be complete.
+        $data = $completioninfo->get_data($cm, false, $student->id);
+        $this->assertEquals(COMPLETION_INCOMPLETE, $data->completionstate);
     }
 
     /**
