@@ -47,6 +47,7 @@ class mod_customcert_generator extends testing_module_generator {
             'emailstudents' => 0,
             'emailteachers' => 0,
             'emailothers' => '',
+            'completionemailed' => 0,
             'protection' => '',
         ];
 
