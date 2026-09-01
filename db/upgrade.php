@@ -422,5 +422,26 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025122800, 'customcert');
     }
 
+    if ($oldversion < 2026042008) {
+        // Add 'completionemailed' field to enable per-instance completion when a certificate is emailed.
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('completionemailed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Records whether email_to_user() succeeded for this student specifically, unlike
+        // 'emailed' which is also set for teachers/others. Nullable with no default: existing
+        // issues predate this field and stay NULL (unknown/legacy), never inferred from
+        // 'emailed'. New issues initialise explicitly to 0 (retryable), never NULL.
+        $table = new xmldb_table('customcert_issues');
+        $field = new xmldb_field('studentemailed', XMLDB_TYPE_INTEGER, '1', null, null, null, null, 'emailed');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2026042008, 'customcert');
+    }
+
     return true;
 }
