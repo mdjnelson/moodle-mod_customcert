@@ -151,25 +151,17 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->setType($completionemailedel, PARAM_BOOL);
         $mform->addHelpButton($completionemailedel, 'completionemailed', 'customcert');
 
-        // Disable the completion checkbox if email to students is not enabled. The emailstudents
-        // field itself is not part of the completion section, so it is never suffixed.
-        //
-        // Known limitation: Moodle's "Default activity completion" settings page only injects a
-        // module's completion elements into its own form, not ordinary fields like emailstudents,
-        // and its own validation() never calls this module's validation(). So on that page, this
-        // disabledIf has no field to bind to and the checkbox is effectively always enabled,
-        // regardless of the site-wide emailstudents default. data_postprocessing() still zeroes
-        // completionemailed whenever automatic completion isn't active, but the emailstudents
-        // dependency itself isn't enforceable there. This is accepted for now rather than fixed.
-        // Check if the user has permission to manage email students setting.
+        // The emailstudents field itself is not part of the completion section, so it is never
+        // suffixed. Moodle's Default activity completion form does not include normal module
+        // fields such as emailstudents, so this dependency is instance-form only (see
+        // tests/mod_form_completion_test.php).
         if (has_capability('mod/customcert:manageemailstudents', $this->get_context())) {
             // If user can manage email students, disable completion when emailstudents is not checked.
             $mform->disabledIf($completionemailedel, 'emailstudents', 'eq', 0);
         } else {
             // If the user can't manage email students, they have no way to guarantee emailstudents
-            // is (or will remain) enabled for this instance, so fall back to whatever is currently
-            // stored for it.
-            if (empty($this->current->emailstudents)) {
+            // is (or will remain) enabled for this instance, so fall back to its effective value.
+            if (!$this->get_effective_emailstudents()) {
                 // If emailstudents isn't enabled for this instance, disable the checkbox entirely.
                 $mform->addElement(
                     'static',
@@ -229,9 +221,7 @@ class mod_customcert_mod_form extends moodleform_mod {
 
         parent::data_postprocessing($data);
 
-        // Set up completion section even if checkbox is not ticked, e.g. when this instance of
-        // the form is being submitted from the "Default activity completion" settings page.
-        // Also clear the rule whenever automatic completion isn't active, so a submitted
+        // Clear the rule whenever automatic completion isn't active, so a submitted
         // completion = NONE/MANUAL doesn't leave a stale completionemailed = 1 in place.
         if (!empty($data->completionunlocked)) {
             $suffix = $this->get_suffix();
@@ -280,21 +270,34 @@ class mod_customcert_mod_form extends moodleform_mod {
             }
         }
 
-        // Server-side guard: completionemailed requires email-to-students to be enabled for this
-        // instance. The emailstudents field is only present in $data when the user has the
-        // mod/customcert:manageemailstudents capability, so fall back to the stored value otherwise.
-        // The form disables the checkbox via JS, but a crafted POST could bypass that.
+        // Server-side guard against a crafted POST bypassing the JS-side disabledIf(). The
+        // emailstudents field is absent from $data without manageemailstudents.
         $completionemailedel = 'completionemailed' . $this->get_suffix();
         if (!empty($data[$completionemailedel])) {
             $emailstudents = array_key_exists('emailstudents', $data)
                 ? !empty($data['emailstudents'])
-                : !empty($this->current->emailstudents);
+                : $this->get_effective_emailstudents();
             if (!$emailstudents) {
                 $errors[$completionemailedel] = get_string('completionemailedemailerror', 'customcert');
             }
         }
 
         return $errors;
+    }
+
+    /**
+     * The effective emailstudents value when the field isn't present in the submitted/current
+     * data (i.e. the user lacks mod/customcert:manageemailstudents): the stored value for an
+     * existing instance, or the site default for a new one.
+     *
+     * @return bool
+     */
+    private function get_effective_emailstudents(): bool {
+        if (!empty($this->current->add)) {
+            return (bool)get_config('customcert', 'emailstudents');
+        }
+
+        return !empty($this->current->emailstudents);
     }
 
     /**
