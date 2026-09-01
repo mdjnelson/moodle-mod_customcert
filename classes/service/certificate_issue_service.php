@@ -75,6 +75,8 @@ final class certificate_issue_service {
         $issue->customcertid = $certificateid;
         $issue->code = $this->generate_code();
         $issue->emailed = 0;
+        // Explicit 0 (retryable), not NULL, which is reserved for issues predating this field.
+        $issue->studentemailed = 0;
         $issue->timecreated = ($this->timeprovider)();
 
         // Insert the record into the database.
