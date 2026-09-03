@@ -44,7 +44,12 @@ if ($tid) {
 $context = context::instance_by_id($contextid);
 
 require_login();
-require_capability('mod/customcert:manage', $context);
+if ($tid) {
+    // Check capability against the template's own context, not the caller-supplied $contextid.
+    $template->require_manage();
+} else {
+    require_capability('mod/customcert:manage', $context);
+}
 
 $title = $SITE->fullname;
 
