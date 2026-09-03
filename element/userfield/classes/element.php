@@ -40,6 +40,10 @@ class element extends \mod_customcert\element {
      * @param \MoodleQuickForm $mform the edit_form instance
      */
     public function render_form_elements($mform) {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+
         // Get the user profile fields.
         $userfields = [
             'firstname' => fields::get_display_name('firstname'),
@@ -56,10 +60,14 @@ class element extends \mod_customcert\element {
             'phone2' => fields::get_display_name('phone2'),
             'address' => fields::get_display_name('address'),
         ];
-        // Get the user custom fields.
+        // Get the user custom fields, excluding ones the configuring user isn't permitted to disclose.
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
         $customfields = [];
+        $canviewalldetails = has_capability('moodle/user:viewalldetails', \context_system::instance());
         foreach ($arrcustomfields as $key => $customfield) {
+            if ($customfield->visible == PROFILE_VISIBLE_NONE && !$canviewalldetails) {
+                continue;
+            }
             $customfields[$customfield->id] = $customfield->name;
         }
         // Combine the two.
@@ -139,6 +147,9 @@ class element extends \mod_customcert\element {
         } else {
             $value = '';
         }
+
+        $context = \mod_customcert\element_helper::get_context($this->get_id());
+
         if (is_number($field)) { // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', ['id' => $field])) {
                 // Found the field name, let's update the value to display.
@@ -149,14 +160,16 @@ class element extends \mod_customcert\element {
                     require_once($file);
                     $class = "profile_field_{$field->datatype}";
                     $field = new $class($field->id, $user->id);
-                    $value = $field->display_data();
+                    // Only disclose the value if the field is visible to the current viewer.
+                    if ($field->is_visible($context)) {
+                        $value = $field->display_data();
+                    }
                 }
             }
         } else if (!empty($user->$field)) { // Field in the user table.
             $value = $user->$field;
         }
 
-        $context = \mod_customcert\element_helper::get_context($this->get_id());
         return format_string($value, true, ['context' => $context]);
     }
 }
