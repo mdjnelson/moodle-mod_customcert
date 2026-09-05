@@ -26,11 +26,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 use mod_customcert\local\hook_callbacks;
+use mod_customcert\local\completion_hook_callbacks;
 use core\hook\di_configuration;
+use core_completion\hook\after_cm_completion_updated;
 
 $callbacks = [
     [
         'hook' => di_configuration::class,
         'callback' => [hook_callbacks::class, 'di_configuration'],
+    ],
+    [
+        'hook' => after_cm_completion_updated::class,
+        'callback' => [completion_hook_callbacks::class, 'after_cm_completion_updated'],
     ],
 ];
