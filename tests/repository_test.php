@@ -67,10 +67,66 @@ final class repository_test extends advanced_testcase {
         $this->assertEquals(0, (int)$issue->emailed);
 
         $issues->mark_emailed($issueid);
-        $issuedusers = $issues->list_emailed_users($customcert->id);
+        $issuedusers = $issues->list_emailed_users($customcert->id, false);
 
         $this->assertArrayHasKey($student->id, $issuedusers);
         $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+    }
+
+    /**
+     * With emailstudents enabled, list_emailed_users() must treat studentemailed = 0 as still a
+     * candidate, and both 1 and NULL (legacy/unknown) as handled.
+     *
+     * @covers \mod_customcert\service\issue_repository::list_emailed_users
+     * @covers \mod_customcert\service\issue_repository::mark_student_emailed
+     */
+    public function test_list_emailed_users_requires_studentemailed_when_emailstudents_enabled(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id, 'emailstudents' => 1]);
+
+        $issues = new issue_repository();
+        $issueid = $issues->create($customcert->id, $student->id);
+        $issues->mark_emailed($issueid);
+
+        // Value studentemailed = 0: still a candidate.
+        $this->assertArrayNotHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+
+        // Value studentemailed = NULL (legacy/unknown): handled, not retried.
+        $DB->set_field('customcert_issues', 'studentemailed', null, ['id' => $issueid]);
+        $this->assertArrayHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+
+        // Value studentemailed = 1: handled.
+        $issues->mark_student_emailed($issueid);
+        $this->assertArrayHasKey($student->id, $issues->list_emailed_users($customcert->id, true));
+    }
+
+    /**
+     * mark_student_email_failed() moves studentemailed from NULL to the explicit, retryable 0
+     * state.
+     *
+     * @covers \mod_customcert\service\issue_repository::mark_student_email_failed
+     */
+    public function test_mark_student_email_failed_sets_explicit_zero(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $issues = new issue_repository();
+        $issueid = $issues->create($customcert->id, $student->id);
+
+        // Simulate a legacy/unknown issue by nulling out studentemailed directly.
+        $DB->set_field('customcert_issues', 'studentemailed', null, ['id' => $issueid]);
+        $this->assertNull($DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
+
+        $issues->mark_student_email_failed($issueid);
+        $this->assertEquals(0, (int)$DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
     }
 
     /**
@@ -424,5 +480,43 @@ final class repository_test extends advanced_testcase {
         $cert = reset($certs);
         $this->assertEquals($customcert->id, $cert->id);
         $this->assertEquals($course->fullname, $cert->coursename);
+    }
+
+    /**
+     * The upgrade step that introduced studentemailed must leave pre-existing issues NULL
+     * (legacy/unknown), never 0. Drops the column to simulate a site upgrading from before it
+     * existed, then re-runs the upgrade step against a table that already has data.
+     *
+     * @covers ::xmldb_customcert_upgrade
+     */
+    public function test_upgrade_leaves_historical_issues_studentemailed_null(): void {
+        global $DB, $CFG;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $issueid = (new issue_repository())->create($customcert->id, $student->id);
+        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('customcert_issues');
+        $field = new \xmldb_field('studentemailed');
+        $dbman->drop_field($table, $field);
+
+        // Upgrade_mod_savepoint() refuses to "advance" to a version that isn't strictly greater
+        // than what's on record, so roll the stored plugin version back to simulate a site that
+        // is genuinely upgrading from before this field existed.
+        set_config('version', 2026060501, 'mod_customcert');
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once($CFG->dirroot . '/mod/customcert/db/upgrade.php');
+        xmldb_customcert_upgrade(2026060501);
+
+        $this->assertTrue($dbman->field_exists($table, new \xmldb_field('studentemailed')));
+        $this->assertNull($DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
+        // The pre-existing 'emailed' processing marker is untouched by this upgrade step.
+        $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
     }
 }

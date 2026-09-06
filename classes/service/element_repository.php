@@ -96,27 +96,6 @@ final class element_repository {
     }
 
     /**
-     * Return the template contextid that owns the given element, or null if the chain is broken.
-     *
-     * Traverses customcert_elements → customcert_pages → customcert_templates.
-     *
-     * @param int $elementid
-     * @return int|null
-     */
-    public function get_template_context_id_for_element(int $elementid): ?int {
-        global $DB;
-
-        $sql = 'SELECT t.contextid
-                  FROM {customcert_elements} e
-                  JOIN {customcert_pages} p ON p.id = e.pageid
-                  JOIN {customcert_templates} t ON t.id = p.templateid
-                 WHERE e.id = :elementid';
-
-        $contextid = $DB->get_field_sql($sql, ['elementid' => $elementid]);
-        return $contextid !== false ? (int)$contextid : null;
-    }
-
-    /**
      * Load a single element record by id or throw if missing.
      *
      * @param int $id
@@ -346,6 +325,27 @@ final class element_repository {
     public function delete_by_id(int $id): bool {
         global $DB;
         return $DB->delete_records('customcert_elements', ['id' => $id]);
+    }
+
+    /**
+     * Resequence remaining elements on a page after one has been deleted.
+     *
+     * Decrements the sequence of every element that came after the deleted element's former
+     * sequence position, closing the gap it left behind.
+     *
+     * @param int $pageid
+     * @param int $deletedsequence The sequence value the deleted element used to have.
+     * @return void
+     * @throws \dml_exception For database errors.
+     */
+    public function resequence_after_delete(int $pageid, int $deletedsequence): void {
+        global $DB;
+
+        $sql = "UPDATE {customcert_elements}
+                   SET sequence = sequence - 1
+                 WHERE pageid = :pageid
+                   AND sequence > :sequence";
+        $DB->execute($sql, ['pageid' => $pageid, 'sequence' => $deletedsequence]);
     }
 
     /**

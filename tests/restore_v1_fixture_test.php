@@ -149,7 +149,13 @@ final class restore_v1_fixture_test extends advanced_testcase {
 
         $digitalsignature = $payload('Digital signature BACKUP');
         $this->assertSame('Signature name', $digitalsignature['signaturename']);
-        $this->assertSame('signaturepassword', $digitalsignature['signaturepassword']);
+        // The v1 fixture's plaintext password is encrypted during restore; verify it decrypts
+        // back to the original value rather than comparing the stored ciphertext directly.
+        $this->assertNotSame('signaturepassword', $digitalsignature['signaturepassword']);
+        $this->assertSame(
+            'signaturepassword',
+            \core\encryption::decrypt($digitalsignature['signaturepassword'])
+        );
         $this->assertSame('Signature location', $digitalsignature['signaturelocation']);
         $this->assertSame('Signature reason', $digitalsignature['signaturereason']);
         $this->assertSame('Signature contact info', $digitalsignature['signaturecontactinfo']);

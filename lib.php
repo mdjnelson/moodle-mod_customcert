@@ -158,6 +158,7 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  * @uses FEATURE_GROUPMEMBERSONLY
  * @uses FEATURE_MOD_INTRO
  * @uses FEATURE_COMPLETION_TRACKS_VIEWS
+ * @uses FEATURE_COMPLETION_HAS_RULES
  * @uses FEATURE_GRADE_HAS_GRADE
  * @uses FEATURE_GRADE_OUTCOMES
  * @param string $feature FEATURE_xx constant for requested feature
@@ -165,6 +166,18 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  */
 function customcert_supports($feature) {
     return feature_callbacks::supports($feature);
+}
+
+/**
+ * Given a course_module object, this function returns any "extra" information that may be
+ * needed when printing this activity in a course listing, and populates the custom completion
+ * rules so that core completion can evaluate them for this instance.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info|false
+ */
+function customcert_get_coursemodule_info($coursemodule) {
+    return feature_callbacks::get_coursemodule_info($coursemodule);
 }
 
 /**

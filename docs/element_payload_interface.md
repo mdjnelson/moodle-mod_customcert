@@ -36,10 +36,14 @@ interface element_payload_interface {
 
 ## When to use it
 
-Implement `element_payload_interface` on a dedicated payload class for any new element
-with non-trivial data (more than one or two fields, or fields with meaningful
-constraints). Simple elements with no real invariants can skip it. Use the payload
-class inside:
+Implement `element_payload_interface` on a dedicated payload class only when the
+element has a genuine invariant, default, or conditional-serialization rule to
+enforce — an enum-membership check, an all-or-none field grouping, omitting a key
+when it's null, etc. Field count alone is not the deciding factor: several bundled
+elements have two or three payload fields with no constraints and do not warrant a
+dedicated class — see
+[Simple elements: skip the wrapper class](#simple-elements-skip-the-wrapper-class)
+below for what to do instead. When a payload class *is* warranted, use it inside:
 
 - `normalise_data(stdClass $formdata): array` — construct the payload from form data, call `to_array()`.
 - `prepare_form(MoodleQuickForm $mform): void` — decode stored JSON via `from_array()`, read typed properties.
@@ -49,8 +53,17 @@ class inside:
 
 ## Bundled element payload classes
 
-All bundled elements ship typed payload classes as of 5.3.0. The `coursename` element
-serves as the reference implementation for elements that compose `stylable_payload`.
+Only elements with a genuine invariant or conditional-serialization rule ship a
+dedicated payload class: `coursename` (enum-membership check on
+`coursenamedisplay`), and `image`, `bgimage`, `digitalsignature` (all-or-none
+file-metadata field grouping, with null groups omitted from the serialized
+array). Simple elements — those that store nothing but the four
+`stylable_payload` fields, optionally plus one or more unconstrained scalars —
+compose `stylable_payload` directly in `normalise_data()` instead of wrapping it
+in an element-specific class; see
+[Simple elements: skip the wrapper class](#simple-elements-skip-the-wrapper-class)
+below. The `coursename` element serves as the reference implementation for
+elements that *do* warrant a dedicated payload class.
 
 **File**: `element/coursename/classes/coursename_payload.php`
 
@@ -118,6 +131,50 @@ $payload = coursename_payload::from_array($decoded ?? []);
 $mform->setDefault('coursenamedisplay', $payload->coursenamedisplay);
 $mform->setDefault('font', $payload->style->font);
 ```
+
+---
+
+## Simple elements: skip the wrapper class
+
+If an element stores only the four `stylable_payload` fields, or those fields
+plus one or more unconstrained scalars, do not create a dedicated payload class
+for it. There is nothing for `from_array()`/`to_array()`/`validate()` to do
+beyond what `stylable_payload` and a plain type cast already provide, and a
+class with a no-op `validate()` that's never read back as an object outside
+`normalise_data()` is pure ceremony. Compose `stylable_payload` inline instead:
+
+```php
+public function normalise_data(stdClass $formdata): array {
+    return array_merge(
+        ['coursefield' => (string)($formdata->coursefield ?? '')],
+        stylable_payload::from_form($formdata)->to_array(),
+    );
+}
+```
+
+For an element with no fields beyond the four style fields:
+
+```php
+public function normalise_data(stdClass $formdata): array {
+    return stylable_payload::from_form($formdata)->to_array();
+}
+```
+
+For an element with no style fields at all (e.g. two plain integers):
+
+```php
+public function normalise_data(stdClass $formdata): array {
+    return [
+        'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+        'height' => isset($formdata->height) ? (int)$formdata->height : 0,
+    ];
+}
+```
+
+Reach for a dedicated payload class only once the element has something worth
+protecting — an enum-membership check, an all-or-none field grouping,
+conditional key omission, etc. — the way `coursename_payload`, `image_payload`,
+`bgimage_payload`, and `digitalsignature_payload` do.
 
 ---
 
@@ -197,9 +254,13 @@ final class myelement_payload implements element_payload_interface {
 - `validate()` is **not called automatically** by the framework. Call it explicitly
   in `normalise_data()` if you want invalid data to fail loudly at save time. Omitting
   the call is acceptable when the form layer already guarantees valid values.
-- Simple payloads with no meaningful invariants may implement `validate()` as a no-op.
-  The method is on the interface so callers can always invoke it without an `instanceof`
-  check, not because every payload must have constraints.
+- Don't create a payload class just to give a no-op `validate()` a home — if an
+  element has no invariant to check, skip the class entirely and compose
+  `stylable_payload` inline (see
+  [Simple elements: skip the wrapper class](#simple-elements-skip-the-wrapper-class)).
+  `validate()` is on the interface so callers of payload classes that *do* have
+  invariants can invoke it without an `instanceof` check, not to justify
+  manufacturing a class around zero constraints.
 - The default for `coursenamedisplay` was changed from `0` (the old raw-array fallback)
   to `element::COURSE_FULL_NAME`. `0` was never a valid display value; `COURSE_FULL_NAME`
   is the correct sentinel for "not explicitly set".

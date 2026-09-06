@@ -32,7 +32,6 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\stylable_payload;
-use customcertelement_studentname\studentname_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -105,10 +104,7 @@ class element extends base_element implements
      * @return array
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new studentname_payload(
-            style: stylable_payload::from_form($formdata),
-        );
-        return $payload->to_array();
+        return stylable_payload::from_form($formdata)->to_array();
     }
 
     /**

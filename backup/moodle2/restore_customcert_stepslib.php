@@ -202,6 +202,20 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         // Unset legacy fields so they are not inserted as separate columns.
         unset($data->font, $data->fontsize, $data->colour);
 
+        // Normalise the signaturepassword for digitalsignature elements.
+        // Passwords are site-specific encrypted values; a plaintext legacy password must be
+        // encrypted, a valid same-site ciphertext is preserved, and a foreign-site ciphertext
+        // (which cannot be decrypted here) is cleared so the admin can re-enter it.
+        if (($data->element ?? null) === 'digitalsignature' && !empty($data->data)) {
+            $elementdata = json_decode($data->data, true);
+            if (is_array($elementdata) && array_key_exists('signaturepassword', $elementdata)) {
+                $elementdata['signaturepassword'] = \customcertelement_digitalsignature\element::normalise_restore_password(
+                    (string)($elementdata['signaturepassword'] ?? '')
+                );
+                $data->data = json_encode($elementdata);
+            }
+        }
+
         $newitemid = $DB->insert_record('customcert_elements', $data);
         $this->set_mapping('customcert_element', $oldid, $newitemid);
     }

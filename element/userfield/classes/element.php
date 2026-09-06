@@ -36,7 +36,6 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\stylable_payload;
-use customcertelement_userfield\userfield_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -104,11 +103,10 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new userfield_payload(
-            userfield: (string)($formdata->userfield ?? ''),
-            style: stylable_payload::from_form($formdata),
+        return array_merge(
+            ['userfield' => (string)($formdata->userfield ?? '')],
+            stylable_payload::from_form($formdata)->to_array(),
         );
-        return $payload->to_array();
     }
 
     /**

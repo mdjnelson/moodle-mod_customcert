@@ -231,6 +231,7 @@ Y.extend(Rearrange, Y.Base, {
         // The parameters to send the AJAX call.
         var params = {
             tid: this.templateid,
+            sesskey: M.cfg.sesskey,
             values: []
         };
 

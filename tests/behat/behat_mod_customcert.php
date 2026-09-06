@@ -162,4 +162,29 @@ class behat_mod_customcert extends behat_base {
         $url = new moodle_url('/mod/customcert/verify_certificate.php');
         $this->getSession()->visit($this->locate_path($url->out_as_local_url()));
     }
+
+    /**
+     * Directs the current (possibly logged-out) user to the personal certificate download URL
+     * for another user.
+     *
+     * Used to test that the certificate-issuance existence check cannot be probed before the
+     * caller is authenticated.
+     *
+     * phpcs:ignore
+     * @Given /^I attempt to download the personal certificate PDF for "(?P<user_name>(?:[^"]|\\")*)" in "(?P<certificate_name>(?:[^"]|\\")*)"$/
+     * @param string $username
+     * @param string $certificatename
+     */
+    public function i_attempt_to_download_the_personal_certificate_pdf_for($username, $certificatename) {
+        global $DB;
+
+        $certificate = $DB->get_record('customcert', ['name' => $certificatename], '*', MUST_EXIST);
+        $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
+
+        $url = new moodle_url(
+            '/mod/customcert/my_certificates.php',
+            ['downloadcert' => 1, 'certificateid' => $certificate->id, 'userid' => $user->id]
+        );
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
 }

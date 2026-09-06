@@ -42,6 +42,9 @@ $string['codegenerationmethod'] = 'Code generation method';
 $string['codegenerationmethod_desc'] = 'Choose between the two methods for generating certificate codes.';
 $string['codegenerationmethod_digitshyphens'] = '0123-4567-8901 (Digits with hyphens)';
 $string['codegenerationmethod_upperlowerdigits'] = '6aOdbLEuoC (Upper/lower/digits random string)';
+$string['completionemailed'] = 'Student is emailed their certificate';
+$string['completionemailed_help'] = 'If enabled, the activity is marked complete when the certificate email has been sent to the student.';
+$string['completionemailedemailerror'] = 'Certificate completion by email requires \'Email students\' to be enabled for this activity.';
 $string['copy'] = 'Copy';
 $string['coursetimereq'] = 'Required minutes in course';
 $string['coursetimereq_help'] = 'Enter here the minimum amount of time, in minutes, that a student must be logged into the course before they will be able to receive
@@ -200,6 +203,7 @@ $string['privacy:metadata:customcert_issues'] = 'The list of issued certificates
 $string['privacy:metadata:customcert_issues:code'] = 'The code that belongs to the certificate';
 $string['privacy:metadata:customcert_issues:customcertid'] = 'The ID of the certificate';
 $string['privacy:metadata:customcert_issues:emailed'] = 'Whether or not the certificate was emailed';
+$string['privacy:metadata:customcert_issues:studentemailed'] = 'Whether or not the certificate was successfully emailed to the student';
 $string['privacy:metadata:customcert_issues:timecreated'] = 'The time the certificate was issued';
 $string['privacy:metadata:customcert_issues:userid'] = 'The ID of the user who was issued the certificate';
 $string['rearrangeelements'] = 'Reposition elements';
@@ -229,6 +233,7 @@ $string['showposxy'] = 'Show position X and Y';
 $string['showposxy_desc'] = 'This will show the X and Y position when editing of an element, allowing the user to accurately specify the location.
 
 This isn\'t required if you plan on solely using the drag and drop interface for this purpose.';
+$string['studentemailedunknown'] = 'Unknown (predates this feature)';
 $string['subplugintype_customcertelement'] = 'Element';
 $string['subplugintype_customcertelement_plural'] = 'Elements';
 $string['taskemailcertificate'] = 'Handles emailing certificates.';

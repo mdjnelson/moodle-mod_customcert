@@ -10,7 +10,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - **Element authoring guide added** (#819). A new `docs/element_authoring_guide.md` explains which interfaces are required versus optional, provides a decision table, and includes examples for common element types (minimal static, text/stylable, image sketch, and copy-aware elements).
 - **`mod_customcert\element\stylable_payload` is an immutable value object** (#814, #815). `from_form()` and `from_array()` return a `stylable_payload` instance; call `->to_array()` when a plain array is needed.
-- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class to give element data a clear PHP-side contract (known keys, canonical types, explicit validation). The database continues to store JSON; this interface governs the PHP layer only. All bundled elements now ship typed payload classes (e.g. `customcertelement_coursename\coursename_payload`, `customcertelement_date\date_payload`). See `docs/element_payload_interface.md` for the full guide.
+- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class when an element has a genuine invariant or conditional-serialization rule to enforce; the database continues to store JSON, and this interface governs the PHP layer only. Elements with a real invariant ship a dedicated payload class (`customcertelement_coursename\coursename_payload`, `customcertelement_image\image_payload`, `customcertelement_bgimage\bgimage_payload`, `customcertelement_digitalsignature\digitalsignature_payload`); simple elements compose `mod_customcert\element\stylable_payload` directly in `normalise_data()` instead of wrapping it in an element-specific class. See `docs/element_payload_interface.md` for the full guide.
 
 ### Breaking changes
 
@@ -32,6 +32,33 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy validation hooks (`validate_form_elements`) | `validatable_element_interface` |
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
+
+## [5.2.7] - 2026-MM-DD
+
+### Added
+
+- Added an automatic activity completion condition for certificates emailed to students, allowing students to complete the activity when their certificate is sent by email without needing to view the activity (#645).
+
+## [5.2.6] - 2026-08-23
+
+### Security
+
+- The digitalsignature element no longer repopulates the signing password into the edit form when an administrator reopens the element, preventing the stored secret from appearing in rendered HTML (#879).
+- When the password field is left blank on edit, the previously stored signing password is preserved rather than overwritten with an empty value (#879).
+- Digital-signature signing passwords are now encrypted before being stored in element data, and existing plaintext passwords are encrypted during upgrade (#879).
+- Digital-signature signing passwords are normalised during backup restore: legacy plaintext passwords are encrypted, valid same-site ciphertext is preserved, and foreign-site ciphertext is cleared so the administrator can re-enter it (#879).
+- Digital-signature signing passwords are no longer included in template exports or imports (#879).
+- Hardened the digitalsignature password upgrade migration: a stored password consisting solely of `"0"` is now correctly detected and encrypted rather than treated as empty, and ciphertext that cannot be decrypted with the site's key (for example, because it was encrypted with a different site's key, or is corrupt) is now cleared instead of being encrypted again (#896). Note that encrypting the value in the current database does not remove any plaintext copies that may remain in historical backups, snapshots, replicas, or database dumps; administrators who previously stored digital signature private-key passwords in this plugin should consider rotating those passwords where feasible.
+- Fixed a CSRF vulnerability in `view.php` where the `downloadown` certificate self-issuance flow could be triggered without CSRF validation. The download action now requires a POST request, a valid sesskey, and the `mod/customcert:receiveissue` capability (#878).
+- Fixed CSRF vulnerability in `ajax.php` where the element-position update endpoint did not validate the Moodle session key, allowing a forged cross-site request to reposition certificate elements in a template managed by an authenticated user; the endpoint now calls `require_sesskey()` and the YUI client submits the session key with every save-positions request (#877).
+
+## [5.2.5] - 2026-08-10
+
+### Security
+
+- Added a missing capability check so that only users who can manage a certificate template can fetch element HTML or the admin edit-element form via `get_element_html()` and the `editelement` fragment callback (#872).
+- `view.php`'s report-download flow (`downloadissue`) now verifies the target user has actually been issued the certificate before generating a PDF for them, preventing a report-viewer from generating a certificate for an arbitrary user who was never issued one (#872).
+- Moved the login check in `my_certificates.php` above the certificate-issuance existence check, preventing an unauthenticated user from probing whether a given user has been issued a given certificate (#872).
 
 ## [5.2.4] - 2026-08-02
 

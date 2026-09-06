@@ -51,6 +51,7 @@ class feature_callbacks {
             case FEATURE_MOD_INTRO:
             case FEATURE_SHOW_DESCRIPTION:
             case FEATURE_COMPLETION_TRACKS_VIEWS:
+            case FEATURE_COMPLETION_HAS_RULES:
             case FEATURE_BACKUP_MOODLE2:
             case FEATURE_GROUPS:
                 return true;
@@ -59,6 +60,38 @@ class feature_callbacks {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Populates the custom completion rules so core completion can evaluate
+     * mod_customcert\completion\custom_completion for this instance.
+     *
+     * Without this, cm_info::get_custom_data() never contains 'completionemailed', and core
+     * completion silently skips the rule instead of evaluating it.
+     *
+     * @param \stdClass $coursemodule The coursemodule object (record).
+     * @return \cached_cm_info|false
+     */
+    public static function get_coursemodule_info(\stdClass $coursemodule) {
+        global $DB;
+
+        $customcert = $DB->get_record(
+            'customcert',
+            ['id' => $coursemodule->instance],
+            'id, name, completionemailed'
+        );
+        if (!$customcert) {
+            return false;
+        }
+
+        $info = new \cached_cm_info();
+        $info->name = $customcert->name;
+
+        if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+            $info->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
+        }
+
+        return $info;
     }
 
     /**

@@ -54,6 +54,11 @@ final class form_service {
     public const string PROTECTION_COPY = 'copy';
 
     /**
+     * @var string the separator used to encode/decode customcert.protection as a single string
+     */
+    public const string PROTECTION_SEPARATOR = ', ';
+
+    /**
      * Build the form for an element.
      *
      * @param MoodleQuickForm $mform
@@ -138,7 +143,7 @@ final class form_service {
             $protection[] = self::PROTECTION_COPY;
         }
 
-        return implode(', ', $protection);
+        return implode(self::PROTECTION_SEPARATOR, $protection);
     }
 
     /**

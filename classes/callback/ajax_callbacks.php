@@ -63,6 +63,9 @@ class ajax_callbacks {
             throw new \moodle_exception('nopermissions', 'error', '', 'editelement');
         }
 
+        // Only users who can manage this template may view the admin edit-element form.
+        template::from_record($templaterecord)->require_manage();
+
         // Load the element, verifying it belongs to the authorised template.
         $element = $elementrepo->get_for_template_or_fail((int)$args['templateid'], (int)$args['elementid']);
 

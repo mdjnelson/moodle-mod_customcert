@@ -41,7 +41,6 @@ use pdf;
 use stdClass;
 use TCPDF2DBarcode;
 use Throwable;
-use customcertelement_qrcode\qrcode_payload;
 
 
 defined('MOODLE_INTERNAL') || die();
@@ -89,11 +88,10 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new qrcode_payload(
-            width: isset($formdata->width) ? (int)$formdata->width : 0,
-            height: isset($formdata->height) ? (int)$formdata->height : 0,
-        );
-        return $payload->to_array();
+        return [
+            'width' => isset($formdata->width) ? (int)$formdata->width : 0,
+            'height' => isset($formdata->height) ? (int)$formdata->height : 0,
+        ];
     }
 
 

@@ -79,6 +79,10 @@ final class certificate_issuer_service {
     /**
      * List eligible users for emailing for a single certificate.
      *
+     * A single-certificate entry point to the same candidate-eligibility rules used by the batch
+     * cron path (process_email_issuance_run()); not called by it, since batch processing loads
+     * its certificate list via certificate_repository::list_for_issuance_run() instead.
+     *
      * @param int $customcertid
      * @return array keyed by userid
      */
@@ -113,7 +117,8 @@ final class certificate_issuer_service {
      * @param array|null $existingissues Prefetched issues keyed by userid, as returned by
      *                                    issue_repository::list_by_users_keyed_by_userid().
      *                                    See find_existing_issue() for how this is treated.
-     * @return object|null Contains id and emailed flags for the issue
+     * @return object|null Contains id, emailed, and studentemailed (int|null; see
+     *   needs_email_processing()) flags for the issue
      */
     public function issue_if_needed(int $customcertid, int $userid, ?array $existingissues = null): ?object {
         $issue = $this->find_existing_issue($customcertid, $userid, $existingissues);
@@ -122,9 +127,11 @@ final class certificate_issuer_service {
             return $issue;
         }
 
+        // A newly created issue is always explicitly 0 (known, retryable), never NULL -- see
+        // certificate_issue_service::issue_certificate().
         $issueid = $this->issues->create($customcertid, $userid);
 
-        return (object)['id' => $issueid, 'emailed' => 0];
+        return (object)['id' => $issueid, 'emailed' => 0, 'studentemailed' => 0];
     }
 
     /**
@@ -140,7 +147,7 @@ final class certificate_issuer_service {
      * map can only cause a duplicate issue row, which the schema already permits and which
      * the pre-existing check-then-insert could not prevent either, and it can no longer
      * cause a duplicate email, because certificate_email_service::send_issue() re-reads the
-     * emailed flag at the moment it sends.
+     * emailed and studentemailed flags at the moment it sends.
      *
      * Passing null (the default) skips the prefetch entirely and looks the user up directly,
      * which is what single-user callers outside the batch loop want.
@@ -148,13 +155,23 @@ final class certificate_issuer_service {
      * @param int $customcertid
      * @param int $userid
      * @param array|null $existingissues Prefetched issues keyed by userid, or null to query directly
-     * @return object|null Contains id and emailed flags for the issue
+     * @return object|null Contains id, emailed, and studentemailed (int|null; see
+     *   needs_email_processing()) flags for the issue
      */
     private function find_existing_issue(int $customcertid, int $userid, ?array $existingissues = null): ?object {
         if ($existingissues !== null) {
             $issue = $existingissues[$userid] ?? null;
 
-            return $issue ? (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed] : null;
+            if (!$issue) {
+                return null;
+            }
+
+            return (object)[
+                'id' => (int)$issue->id,
+                'emailed' => (int)$issue->emailed,
+                // Preserve NULL rather than casting to int, which would collapse it into 0.
+                'studentemailed' => $issue->studentemailed === null ? null : (int)$issue->studentemailed,
+            ];
         }
 
         $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
@@ -163,7 +180,12 @@ final class certificate_issuer_service {
             return null;
         }
 
-        return (object)['id' => (int)$issue->id, 'emailed' => (int)$issue->emailed];
+        return (object)[
+            'id' => (int)$issue->id,
+            'emailed' => (int)$issue->emailed,
+            // Preserve NULL rather than casting to int, which would collapse it into 0.
+            'studentemailed' => $issue->studentemailed === null ? null : (int)$issue->studentemailed,
+        ];
     }
 
     /**
@@ -204,7 +226,7 @@ final class certificate_issuer_service {
 
         foreach ($customcerts as $customcert) {
             // Check if the certificate is hidden, quit early.
-            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
+            [, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
             if (!$cm->visible) {
                 continue;
             }
@@ -237,7 +259,7 @@ final class certificate_issuer_service {
                     ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id, $existingissues)
                     : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id, $existingissues);
 
-                if (!empty($issue) && (int)$issue->emailed === 0) {
+                if (!empty($issue) && $this->needs_email_processing($issue, $customcert)) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);
                 }
             }
@@ -264,6 +286,25 @@ final class certificate_issuer_service {
     }
 
     /**
+     * Determine whether an issue still needs email processing.
+     *
+     * NULL is legacy/unknown and is not retryable; 0 is explicitly retryable. Must compare with
+     * === rather than (int) casting, which would collapse NULL into 0.
+     *
+     * @param object $issue Contains emailed (int) and studentemailed (int|null) flags, e.g. from
+     *   issue_if_needed().
+     * @param object $customcert
+     * @return bool
+     */
+    private function needs_email_processing(object $issue, object $customcert): bool {
+        if ((int)$issue->emailed === 0) {
+            return true;
+        }
+
+        return !empty($customcert->emailstudents) && $issue->studentemailed === 0;
+    }
+
+    /**
      * Determine if the course/category should be skipped when hidden.
      *
      * @param object $customcert
@@ -279,13 +320,21 @@ final class certificate_issuer_service {
     /**
      * Build the list of eligible users for a certificate within a CM context.
      *
+     * This decides who a *new* certificate should be issued/emailed to, based on capability,
+     * availability, suspension, completion and required-time rules. It is unrelated to
+     * issue_repository::get_conditional_issues_sql(), which scopes the already-issued-certificates
+     * *report* to what the current viewer is permitted to see (excluding managers/admins,
+     * restricting by the viewer's group). Despite both filtering a list of users, they answer
+     * different questions and must not be merged into one another.
+     *
      * @param object $customcert
      * @param object $cm
      * @return array
      */
     private function get_email_candidates_for_customcert(object $customcert, object $cm): array {
-        // Get a list of all the issues that are already emailed (skip these users).
-        $issuedusers = $this->issues->list_emailed_users((int)$customcert->id);
+        // Users who need no further email processing (skip these users): once emailstudents is
+        // enabled, only studentemailed = 0 remains a retry candidate.
+        $issuedusers = $this->issues->list_emailed_users((int)$customcert->id, !empty($customcert->emailstudents));
 
         // Get the context of the Custom Certificate module.
         $cmcontext = context_module::instance($cm->id);
@@ -361,14 +410,30 @@ final class certificate_issuer_service {
      * unless we check it explicitly here, so a certificate configured with completion conditions but no
      * restrict access rule would otherwise be issued/emailed regardless of the user's completion state.
      *
+     * Automatic tracking excludes the completionemailed custom rule to avoid a circular
+     * dependency (it would need to already be emailed to become eligible to be emailed); manual
+     * tracking uses the saved completion state directly.
+     *
      * @param completion_info $completion
      * @param object $cm
      * @param int $userid
      * @return bool
      */
     private function has_met_own_completion(completion_info $completion, object $cm, int $userid): bool {
-        $data = $completion->get_data($cm, false, $userid);
+        if ($cm->completion == COMPLETION_TRACKING_MANUAL) {
+            $data = $completion->get_data($cm, false, $userid);
 
-        return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+            return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+        }
+
+        $completionstate = $completion->get_core_completion_state($cm, $userid);
+
+        foreach ($completionstate as $state) {
+            if (!in_array((int)$state, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

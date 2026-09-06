@@ -31,7 +31,6 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\stylable_payload;
-use customcertelement_text\text_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -86,11 +85,10 @@ class element extends base_element implements
      * @return array
      */
     public function normalise_data(stdClass $formdata): array {
-        $payload = new text_payload(
-            text: (string)($formdata->text ?? ''),
-            style: stylable_payload::from_form($formdata),
+        return array_merge(
+            ['text' => (string)($formdata->text ?? '')],
+            stylable_payload::from_form($formdata)->to_array(),
         );
-        return $payload->to_array();
     }
 
     /**

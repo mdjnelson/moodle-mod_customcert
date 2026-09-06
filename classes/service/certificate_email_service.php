@@ -96,11 +96,15 @@ final class certificate_email_service {
     /**
      * Send an issued certificate via email to configured recipients.
      *
-     * Sending is skipped when the issue is already flagged as emailed. Whoever decided this
-     * issue needed emailing may have done so a long time ago -- an adhoc task can sit queued
-     * for an arbitrary period, and a scheduled run works through a batch of candidates that
-     * were assessed before the run began -- so that decision is re-checked here, against the
-     * flag as it stands now, rather than trusted at face value.
+     * Safe to call more than once: teachers/others are only emailed on the first call, and the
+     * student is only (re)emailed while not already known to have succeeded. On an issue not yet
+     * processed, an initial student send is attempted even if studentemailed is NULL (legacy or
+     * restored data); once processed, NULL is treated as unknown, not retryable.
+     *
+     * Those flags are re-read here rather than trusted from whoever decided this issue needed
+     * emailing. That decision may have been made a long time ago -- an adhoc task can sit queued
+     * for an arbitrary period, and a scheduled run works through a batch of candidates that were
+     * assessed before the run began -- so it is re-checked against the flags as they stand now.
      *
      * @param int $customcertid
      * @param int $issueid
@@ -112,15 +116,14 @@ final class certificate_email_service {
             return;
         }
 
-        // Carries the current emailed flag, so this costs no extra query.
+        // Carries the current emailed/studentemailed flags, so this costs no extra query.
         $user = $this->emailrepository->get_user_for_issue($customcertid, $issueid);
         if (!$user) {
             return;
         }
 
-        if (!empty($user->emailed)) {
-            return;
-        }
+        // Teachers/others have no per-recipient retry tracking, so they must only be emailed once.
+        $alreadyprocessed = (bool)$user->emailed;
 
         $tempdir = make_temp_directory('certificate/attachment');
         if (!$tempdir) {
@@ -164,7 +167,14 @@ final class certificate_email_service {
         $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
         file_put_contents($tempfile, $filecontents);
 
-        if ($customcert->emailstudents) {
+        $senttostudent = false;
+        $attemptedstudentsend = false;
+
+        // Retry a processed issue only when studentemailed is explicitly 0.
+        $studentemailed = $user->studentemailed === null ? null : (int)$user->studentemailed;
+        $needsstudentemail = $studentemailed !== 1 && (!$alreadyprocessed || $studentemailed === 0);
+        if ($customcert->emailstudents && $needsstudentemail) {
+            $attemptedstudentsend = true;
             $recipientlang = mod_customcert_get_language_to_use($customcert, $user, $customcert->courselang ?? null);
             $switched = mod_customcert_apply_runtime_language($recipientlang);
             if ($switched) {
@@ -185,7 +195,7 @@ final class certificate_email_service {
             $subject = get_string('emailstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user(
+            $senttostudent = email_to_user(
                 $user,
                 $userfrom,
                 html_entity_decode($subject, ENT_COMPAT),
@@ -200,7 +210,7 @@ final class certificate_email_service {
             }
         }
 
-        if ($customcert->emailteachers) {
+        if ($customcert->emailteachers && !$alreadyprocessed) {
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
             $renderable = new email_certificate(
@@ -240,7 +250,7 @@ final class certificate_email_service {
             }
         }
 
-        if (!empty($customcert->emailothers)) {
+        if (!empty($customcert->emailothers) && !$alreadyprocessed) {
             $others = explode(',', $customcert->emailothers);
             foreach ($others as $email) {
                 $email = trim($email);
@@ -274,6 +284,28 @@ final class certificate_email_service {
             }
         }
 
-        $this->issues->mark_emailed($issueid);
+        // Field 'emailed' just means "processed"; only needs setting once.
+        if (!$alreadyprocessed) {
+            $this->issues->mark_emailed($issueid);
+        }
+
+        // Only record success when actually confirmed; a failed attempt moves studentemailed to
+        // the explicit, retryable 0 state rather than being left NULL or unset.
+        if ($senttostudent) {
+            $this->issues->mark_student_emailed($issueid);
+        } else if ($attemptedstudentsend) {
+            $this->issues->mark_student_email_failed($issueid);
+        }
+
+        // Trigger completion reevaluation if the completionemailed rule is enabled for this instance.
+        // This covers both the synchronous and adhoc email dispatch paths.
+        if (!empty($customcert->completionemailed)) {
+            $cm = get_coursemodule_from_instance('customcert', $customcertid, 0, false, MUST_EXIST);
+            $course = get_course($cm->course);
+            $completioninfo = new \completion_info($course);
+            if ($completioninfo->is_enabled($cm)) {
+                $completioninfo->update_state($cm, COMPLETION_UNKNOWN, (int)$user->id);
+            }
+        }
     }
 }
