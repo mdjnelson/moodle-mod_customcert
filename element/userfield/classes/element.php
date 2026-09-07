@@ -63,6 +63,8 @@ class element extends base_element implements
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
+        global $PAGE;
+
         // Get the user profile fields.
         $userfields = [
             'firstname' => fields::get_display_name('firstname'),
@@ -79,10 +81,15 @@ class element extends base_element implements
             'phone2' => fields::get_display_name('phone2'),
             'address' => fields::get_display_name('address'),
         ];
-        // Get the user custom fields.
+        // Get the user custom fields, excluding ones the configuring user isn't permitted to disclose.
+        $context = $PAGE->context;
+        $canviewalldetails = has_capability('moodle/user:viewalldetails', $context);
         $arrcustomfields = condition::get_custom_profile_fields();
         $customfields = [];
         foreach ($arrcustomfields as $key => $customfield) {
+            if ((int) $customfield->visible === (int) PROFILE_VISIBLE_NONE && !$canviewalldetails) {
+                continue;
+            }
             $customfields[$customfield->id] = $customfield->name;
         }
         // Combine the two.
@@ -170,6 +177,8 @@ class element extends base_element implements
     protected function get_user_field_value(stdClass $user, bool $preview): string {
         global $CFG, $DB;
 
+        $context = element_helper::get_context($this->get_id());
+
         // The user field to display.
         $payload = $this->get_payload();
         $field = isset($payload['userfield']) ? $payload['userfield'] : '';
@@ -188,15 +197,17 @@ class element extends base_element implements
                     require_once($CFG->dirroot . '/user/profile/lib.php');
                     require_once($file);
                     $class = "profile_field_{$field->datatype}";
-                    $field = new $class($field->id, $user->id);
-                    $value = $field->display_data();
+                    $formfield = new $class($field->id, $user->id);
+                    // Only disclose the value if the field is visible to the current viewer.
+                    if ($formfield->is_visible($context)) {
+                        $value = $formfield->display_data();
+                    }
                 }
             }
         } else if (!empty($user->$field)) { // Field in the user table.
             $value = $user->$field;
         }
 
-        $context = element_helper::get_context($this->get_id());
         return format_string($value, true, ['context' => $context]);
     }
 
