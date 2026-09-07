@@ -28,12 +28,15 @@ declare(strict_types=1);
 namespace customcertelement_userfield;
 
 use advanced_testcase;
+use availability_profile\condition;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
 use context_system;
+use MoodleQuickForm;
+use ReflectionMethod;
 
 /**
  * Unit tests for the userfield element.
@@ -44,6 +47,15 @@ use context_system;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class element_test extends advanced_testcase {
+    /**
+     * Requires user/profile/lib.php so PROFILE_VISIBLE_* constants are defined.
+     */
+    public static function setUpBeforeClass(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+        parent::setUpBeforeClass();
+    }
+
     /**
      * Helper to build a minimal element DB record.
      *
@@ -71,6 +83,130 @@ final class element_test extends advanced_testcase {
             'timecreated' => time(),
             'timemodified' => time(),
         ], $override);
+    }
+
+    /**
+     * Helper to create a persisted userfield element.
+     *
+     * @param string $userfield The userfield value.
+     * @param int|null $contextid The context id.
+     * @return element
+     */
+    private function create_persisted_element(string $userfield, ?int $contextid = null): element {
+        global $DB;
+
+        $template = (object) [
+            'name' => 'Test', 'contextid' => $contextid,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $template->id = $DB->insert_record('customcert_templates', $template);
+        $page = (object) [
+            'templateid' => $template->id, 'width' => 222, 'height' => 333,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1, 'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $page->id = $DB->insert_record('customcert_pages', $page);
+        $record = $this->make_record([
+            'pageid' => $page->id,
+            'data' => json_encode([
+                'userfield' => $userfield,
+                'font' => 'times',
+                'fontsize' => 14,
+                'colour' => '#C0FFEE',
+                'width' => 0,
+            ]),
+        ]);
+        $record->id = $DB->insert_record('customcert_elements', $record);
+
+        return new element($record);
+    }
+
+    /**
+     * Helper to create a custom user profile field with the given visibility.
+     *
+     * @param string $shortname The shortname of the custom profile field.
+     * @param int|string $visible One of PROFILE_VISIBLE_NONE/PRIVATE/TEACHERS/ALL.
+     * @return stdClass The inserted user_info_field record (with id set).
+     */
+    private function create_custom_profile_field(string $shortname, int|string $visible): stdClass {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+
+        $field = (object) [
+            'shortname' => $shortname,
+            'name' => 'Test ' . $shortname,
+            'datatype' => 'text',
+            'description' => '',
+            'descriptionformat' => FORMAT_HTML,
+            'categoryid' => 0,
+            'sortorder' => 1,
+            'required' => 0,
+            'locked' => 0,
+            'visible' => (int) $visible,
+            'forceunique' => 0,
+            'signup' => 0,
+            'defaultdata' => '',
+            'defaultdataformat' => FORMAT_HTML,
+            'param1' => '30',
+            'param2' => '2048',
+        ];
+        $field->id = $DB->insert_record('user_info_field', $field);
+        // Wipe the static cache so build_form() sees this field.
+        condition::wipe_static_cache();
+
+        return $field;
+    }
+
+    /**
+     * Helper to set a value for a user's custom profile field directly in the DB.
+     *
+     * @param int $userid The user ID.
+     * @param int $fieldid The user_info_field ID.
+     * @param string $data The data to set for the custom profile field.
+     * @return void
+     */
+    private function set_custom_profile_field_data($userid, int $fieldid, string $data): void {
+        global $DB;
+
+        $DB->insert_record('user_info_data', (object) [
+            'userid' => (int) $userid,
+            'fieldid' => $fieldid,
+            'data' => $data,
+            'dataformat' => FORMAT_HTML,
+        ]);
+    }
+
+    /**
+     * Helper to invoke the protected get_user_field_value() method via reflection.
+     *
+     * @param element $el The element instance.
+     * @param stdClass $user The user we are rendering this for.
+     * @param bool $preview Whether this is a preview.
+     * @return string
+     */
+    private function invoke_get_user_field_value(element $el, stdClass $user, bool $preview = false): string {
+        $method = new ReflectionMethod(element::class, 'get_user_field_value');
+        $method->setAccessible(true);
+        return $method->invoke($el, $user, $preview);
+    }
+
+    /**
+     * Helper to create a standalone MoodleQuickForm with the colour picker registered.
+     *
+     * @return MoodleQuickForm
+     */
+    private function create_test_mform(): MoodleQuickForm {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
+        MoodleQuickForm::registerElementType(
+            'customcert_colourpicker',
+            $CFG->dirroot . '/mod/customcert/includes/colourpicker.php',
+            'MoodleQuickForm_customcert_colourpicker'
+        );
+
+        return new MoodleQuickForm('test', 'post', '');
     }
 
     /**
@@ -225,5 +361,134 @@ final class element_test extends advanced_testcase {
     public function test_get_type(): void {
         $el = new element($this->make_record());
         $this->assertSame('userfield', $el->get_type());
+    }
+
+    /**
+     * Test a PROFILE_VISIBLE_NONE field is hidden from another user without viewalldetails.
+     *
+     * @covers \customcertelement_userfield\element::get_user_field_value
+     */
+    public function test_admin_only_custom_field_is_not_disclosed_to_other_user(): void {
+        $this->resetAfterTest();
+
+        $field = $this->create_custom_profile_field('nationalid', PROFILE_VISIBLE_NONE);
+        $victim = $this->getDataGenerator()->create_user();
+        $this->set_custom_profile_field_data($victim->id, $field->id, 'SECRET-VICTIM-001');
+
+        // Viewer has no special capabilities.
+        $viewer = $this->getDataGenerator()->create_user();
+        $this->setUser($viewer);
+
+        $el = $this->create_persisted_element((string) $field->id, context_system::instance()->id);
+        $value = $this->invoke_get_user_field_value($el, $victim);
+
+        $this->assertStringNotContainsString('SECRET-VICTIM-001', $value);
+    }
+
+    /**
+     * Test a PROFILE_VISIBLE_NONE field is shown to a viewer with viewalldetails.
+     *
+     * @covers \customcertelement_userfield\element::get_user_field_value
+     */
+    public function test_admin_only_custom_field_is_disclosed_with_viewalldetails(): void {
+        $this->resetAfterTest();
+
+        $field = $this->create_custom_profile_field('nationalid', PROFILE_VISIBLE_NONE);
+        $victim = $this->getDataGenerator()->create_user();
+        $this->set_custom_profile_field_data($victim->id, $field->id, 'SECRET-VICTIM-001');
+
+        $viewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign('manager', $viewer->id);
+        $this->setUser($viewer);
+
+        $el = $this->create_persisted_element((string) $field->id, context_system::instance()->id);
+        $value = $this->invoke_get_user_field_value($el, $victim);
+
+        $this->assertStringContainsString('SECRET-VICTIM-001', $value);
+    }
+
+    /**
+     * Test a PROFILE_VISIBLE_PRIVATE field is shown to its own owner.
+     *
+     * @covers \customcertelement_userfield\element::get_user_field_value
+     */
+    public function test_private_custom_field_is_disclosed_to_own_user(): void {
+        $this->resetAfterTest();
+
+        $field = $this->create_custom_profile_field('nationalid', PROFILE_VISIBLE_PRIVATE);
+        $user = $this->getDataGenerator()->create_user();
+        $this->set_custom_profile_field_data($user->id, $field->id, 'PRIVATE-OWN-001');
+        $this->setUser($user);
+
+        $el = $this->create_persisted_element((string) $field->id, context_system::instance()->id);
+        $value = $this->invoke_get_user_field_value($el, $user);
+
+        $this->assertStringContainsString('PRIVATE-OWN-001', $value);
+    }
+
+    /**
+     * Test an identity field is shown with viewuseridentity and showuseridentity set.
+     *
+     * @covers \customcertelement_userfield\element::get_user_field_value
+     */
+    public function test_identity_field_is_disclosed_with_capability_and_showuseridentity(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->showuseridentity = 'email';
+
+        $victim = $this->getDataGenerator()->create_user(['email' => 'victim@example.com']);
+        // Editingteacher holds moodle/site:viewuseridentity by default.
+        $viewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign('editingteacher', $viewer->id);
+        $this->setUser($viewer);
+
+        $el = $this->create_persisted_element('email', context_system::instance()->id);
+        $value = $this->invoke_get_user_field_value($el, $victim);
+
+        $this->assertStringContainsString('victim@example.com', $value);
+    }
+
+    /**
+     * Test build_form() excludes a PROFILE_VISIBLE_NONE field for a regular user.
+     *
+     * @covers \customcertelement_userfield\element::build_form
+     */
+    public function test_build_form_excludes_admin_only_field_for_regular_user(): void {
+        $this->resetAfterTest();
+
+        $field = $this->create_custom_profile_field('nationalid', PROFILE_VISIBLE_NONE);
+        $viewer = $this->getDataGenerator()->create_user();
+        $this->setUser($viewer);
+
+        $el = new element($this->make_record());
+        $mform = $this->create_test_mform();
+        $el->build_form($mform);
+
+        $options = $mform->getElement('userfield')->_options;
+        $values = array_column(array_column($options, 'attr'), 'value');
+        $this->assertNotContains($field->id, $values);
+    }
+
+    /**
+     * Test build_form() includes a PROFILE_VISIBLE_NONE field for a privileged user.
+     *
+     * @covers \customcertelement_userfield\element::build_form
+     */
+    public function test_build_form_includes_admin_only_field_for_privileged_user(): void {
+        $this->resetAfterTest();
+
+        $field = $this->create_custom_profile_field('nationalid', PROFILE_VISIBLE_NONE);
+        $viewer = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->role_assign('manager', $viewer->id);
+        $this->setUser($viewer);
+
+        $el = new element($this->make_record());
+        $mform = $this->create_test_mform();
+        $el->build_form($mform);
+
+        $options = $mform->getElement('userfield')->_options;
+        $values = array_column(array_column($options, 'attr'), 'value');
+        $this->assertContains($field->id, $values);
     }
 }
