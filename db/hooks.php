@@ -1,5 +1,5 @@
 <?php
-// This file is part of the customcert module for Moodle - http://moodle.org/
+// This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,19 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code fragment to define the version of the customcert module
+ * Plugin hooks.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025041410; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2025041400; // Requires this Moodle version (5.0).
-$plugin->cron      = 0; // Period for cron to check this module (secs).
-$plugin->component = 'mod_customcert';
+use mod_customcert\completion_hook_callbacks;
+use core_completion\hook\after_cm_completion_updated;
 
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "5.0.7"; // User-friendly version number.
+$callbacks = [
+    [
+        'hook' => after_cm_completion_updated::class,
+        'callback' => [completion_hook_callbacks::class, 'after_cm_completion_updated'],
+    ],
+];
