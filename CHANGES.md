@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.0.8] - 2026-MM-DD
+
+### Fixed
+
+- Fixed certificates not being issued when activity completion is manually overridden to complete (#625).
+
 ## [5.0.7] - 2026-08-23
 
 ### Security
