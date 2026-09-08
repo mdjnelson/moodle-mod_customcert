@@ -101,6 +101,11 @@ final class certificate_email_service {
      * processed, an initial student send is attempted even if studentemailed is NULL (legacy or
      * restored data); once processed, NULL is treated as unknown, not retryable.
      *
+     * Those flags are re-read here rather than trusted from whoever decided this issue needed
+     * emailing. That decision may have been made a long time ago -- an adhoc task can sit queued
+     * for an arbitrary period, and a scheduled run works through a batch of candidates that were
+     * assessed before the run began -- so it is re-checked against the flags as they stand now.
+     *
      * @param int $customcertid
      * @param int $issueid
      * @return void
@@ -111,6 +116,7 @@ final class certificate_email_service {
             return;
         }
 
+        // Carries the current emailed/studentemailed flags, so this costs no extra query.
         $user = $this->emailrepository->get_user_for_issue($customcertid, $issueid);
         if (!$user) {
             return;

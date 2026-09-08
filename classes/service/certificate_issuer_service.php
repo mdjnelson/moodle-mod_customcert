@@ -114,11 +114,14 @@ final class certificate_issuer_service {
      *
      * @param int $customcertid
      * @param int $userid
+     * @param array|null $existingissues Prefetched issues keyed by userid, as returned by
+     *                                    issue_repository::list_by_users_keyed_by_userid().
+     *                                    See find_existing_issue() for how this is treated.
      * @return object|null Contains id, emailed, and studentemailed (int|null; see
      *   needs_email_processing()) flags for the issue
      */
-    public function issue_if_needed(int $customcertid, int $userid): ?object {
-        $issue = $this->find_existing_issue($customcertid, $userid);
+    public function issue_if_needed(int $customcertid, int $userid, ?array $existingissues = null): ?object {
+        $issue = $this->find_existing_issue($customcertid, $userid, $existingissues);
 
         if ($issue) {
             return $issue;
@@ -134,12 +137,43 @@ final class certificate_issuer_service {
     /**
      * Find an existing issue for a user/certificate pair, without creating one.
      *
+     * When $existingissues is supplied it is treated as authoritative for the users it was
+     * loaded for: it holds every issue row those users had for this certificate, so a user
+     * missing from it genuinely had no issue and needs no per-user lookup to confirm that.
+     * This is what keeps the issuance loop off a query-per-candidate, for users who already
+     * have an issue and for users who do not.
+     *
+     * The trade-off is that the map ages as the run proceeds. That is deliberate: a stale
+     * map can only cause a duplicate issue row, which the schema already permits and which
+     * the pre-existing check-then-insert could not prevent either, and it can no longer
+     * cause a duplicate email, because certificate_email_service::send_issue() re-reads the
+     * emailed and studentemailed flags at the moment it sends.
+     *
+     * Passing null (the default) skips the prefetch entirely and looks the user up directly,
+     * which is what single-user callers outside the batch loop want.
+     *
      * @param int $customcertid
      * @param int $userid
+     * @param array|null $existingissues Prefetched issues keyed by userid, or null to query directly
      * @return object|null Contains id, emailed, and studentemailed (int|null; see
      *   needs_email_processing()) flags for the issue
      */
-    private function find_existing_issue(int $customcertid, int $userid): ?object {
+    private function find_existing_issue(int $customcertid, int $userid, ?array $existingissues = null): ?object {
+        if ($existingissues !== null) {
+            $issue = $existingissues[$userid] ?? null;
+
+            if (!$issue) {
+                return null;
+            }
+
+            return (object)[
+                'id' => (int)$issue->id,
+                'emailed' => (int)$issue->emailed,
+                // Preserve NULL rather than casting to int, which would collapse it into 0.
+                'studentemailed' => $issue->studentemailed === null ? null : (int)$issue->studentemailed,
+            ];
+        }
+
         $issue = $this->issues->find_by_user_certificate($customcertid, $userid);
 
         if (!$issue) {
@@ -204,14 +238,26 @@ final class certificate_issuer_service {
 
             $candidates = $this->get_email_candidates_for_customcert($customcert, $cm);
 
+            if (empty($candidates)) {
+                continue;
+            }
+
+            // Bulk-prefetch the existing issues for exactly these candidates, instead of a
+            // get_record() round-trip per candidate. Without this, a course with thousands of
+            // eligible users means thousands of per-user queries here.
+            $existingissues = $this->issues->list_by_users_keyed_by_userid(
+                (int)$customcert->id,
+                array_keys($candidates)
+            );
+
             foreach ($candidates as $filtereduser) {
                 // Only proactively issue a certificate on the student's behalf when emailstudents is
                 // enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not manufacture
                 // a certificate for a student who hasn't triggered issuance themselves (e.g. by viewing
                 // it) -- we can only notify about certificates that already exist.
                 $issue = !empty($customcert->emailstudents)
-                    ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id)
-                    : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id);
+                    ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id, $existingissues)
+                    : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id, $existingissues);
 
                 if (!empty($issue) && $this->needs_email_processing($issue, $customcert)) {
                     $this->queue_or_send_email((int)$customcert->id, (int)$issue->id);

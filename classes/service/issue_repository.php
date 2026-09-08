@@ -177,6 +177,87 @@ final class issue_repository {
     }
 
     /**
+     * Bulk-load the issues for a certificate belonging to the given users, keyed by userid.
+     *
+     * Used to avoid one get_record() round-trip per candidate user when processing a
+     * certificate with a large number of eligible users. Only the requested users are
+     * loaded, so memory stays proportional to the batch being processed rather than to
+     * every issue ever created for the certificate.
+     *
+     * customcert_issues has no unique constraint on (userid, customcertid), so a user may
+     * legitimately have several rows. Those are collapsed deliberately here rather than by
+     * keying the result set directly: letting the database layer key on a non-unique column
+     * would silently overwrite rows and emit developer debugging. The earliest issue wins,
+     * except that a row needing less further email processing always takes precedence, so a
+     * duplicate can never cause a certificate to be emailed a second time. Precedence runs
+     * fully processed (emailed, with studentemailed not explicitly 0) over processed with a
+     * retryable student send (studentemailed = 0) over not yet processed at all.
+     *
+     * @param int $customcertid
+     * @param array $userids User ids to load issues for. An empty array loads nothing.
+     * @return array Issues keyed by userid, each an object with id, emailed and studentemailed
+     *   fields (studentemailed is int|null; NULL is legacy/unknown, not retryable)
+     */
+    public function list_by_users_keyed_by_userid(int $customcertid, array $userids): array {
+        global $DB;
+
+        if (empty($userids)) {
+            return [];
+        }
+
+        $issues = [];
+
+        // Chunked so the IN() clause stays within the bind-parameter limits of all supported databases.
+        foreach (array_chunk(array_map('intval', array_values($userids)), 1000) as $chunk) {
+            [$insql, $inparams] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED, 'userid');
+
+            $sql = "SELECT id, userid, emailed, studentemailed
+                      FROM {customcert_issues}
+                     WHERE customcertid = :customcertid
+                           AND userid $insql
+                  ORDER BY userid, id";
+
+            $recordset = $DB->get_recordset_sql($sql, ['customcertid' => $customcertid] + $inparams);
+            foreach ($recordset as $record) {
+                $userid = (int)$record->userid;
+                $issue = (object)[
+                    'id' => (int)$record->id,
+                    'emailed' => (int)$record->emailed,
+                    // Preserve NULL rather than casting to int, which would collapse it into 0.
+                    'studentemailed' => $record->studentemailed === null ? null : (int)$record->studentemailed,
+                ];
+                $existing = $issues[$userid] ?? null;
+
+                if ($existing === null
+                        || self::email_processing_rank($issue) > self::email_processing_rank($existing)) {
+                    $issues[$userid] = $issue;
+                }
+            }
+            $recordset->close();
+        }
+
+        return $issues;
+    }
+
+    /**
+     * Rank an issue by how little email processing it still needs, highest first.
+     *
+     * Used to decide which of a user's duplicate rows the prefetch keeps, mirroring
+     * certificate_issuer_service::needs_email_processing(): 2 is fully processed, 1 is processed
+     * with a retryable student send outstanding, 0 has not been processed at all.
+     *
+     * @param stdClass $issue Contains emailed (int) and studentemailed (int|null) fields.
+     * @return int
+     */
+    private static function email_processing_rank(stdClass $issue): int {
+        if ((int)$issue->emailed !== 1) {
+            return 0;
+        }
+
+        return $issue->studentemailed === 0 ? 1 : 2;
+    }
+
+    /**
      * Delete all issues for a certificate.
      *
      * @param int $customcertid
