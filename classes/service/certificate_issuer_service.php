@@ -204,12 +204,12 @@ final class certificate_issuer_service {
 
             $candidates = $this->get_email_candidates_for_customcert($customcert, $cm);
 
+            // Auto-issue only for "Email students", or when this certificate's own "Issue
+            // certificates automatically" setting is enabled (#672, #904).
+            $autoissue = !empty($customcert->emailstudents) || !empty($customcert->issueautomatically);
+
             foreach ($candidates as $filtereduser) {
-                // Only proactively issue a certificate on the student's behalf when emailstudents is
-                // enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not manufacture
-                // a certificate for a student who hasn't triggered issuance themselves (e.g. by viewing
-                // it) -- we can only notify about certificates that already exist.
-                $issue = !empty($customcert->emailstudents)
+                $issue = $autoissue
                     ? $this->issue_if_needed((int)$customcert->id, (int)$filtereduser->id)
                     : $this->find_existing_issue((int)$customcert->id, (int)$filtereduser->id);
 
