@@ -1136,7 +1136,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create a custom certificate. Note emailstudents is not set, so certificates must not be
         // manufactured on the students' behalf -- only students who trigger issuance themselves
-        // (e.g. by viewing the certificate) should be notified about.
+        // (e.g. by obtaining their own certificate) should be notified about.
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
             'emailteachers' => 1]);
 
@@ -1154,7 +1154,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
 
-        // Both students issue their own certificate (e.g. by viewing it) before the task runs.
+        // Both students obtain their own certificate before the task runs.
         $this->issue_certificate((int)$customcert->id, (int)$user1->id);
         $this->issue_certificate((int)$customcert->id, (int)$user2->id);
 
@@ -1214,15 +1214,189 @@ final class email_certificate_task_test extends advanced_testcase {
         $emails = $sink->get_messages();
         $sink->close();
 
-        // Neither student has viewed the certificate, so no certificates should have been issued.
+        // Neither student has obtained their own certificate, so none should have been issued.
         $this->assertCount(0, $DB->get_records('customcert_issues'));
         $this->assertCount(0, $emails);
     }
 
     /**
+     * Enabling this certificate's "Issue certificates automatically" setting restores the #904
+     * workflow for emailteachers without emailstudents, without making it the default behaviour
+     * (#672 is still protected for certificates that leave the setting off).
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_teachers_auto_issues_when_setting_enabled(): void {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create and enrol two students, plus a teacher; neither student will self-issue.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, $roleids['editingteacher']);
+
+        // Certificate only notifies teachers, not students, with no restrictions, but opts in to
+        // automatic issuance.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailteachers' => 1,
+            'issueautomatically' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // With the setting enabled, both students' certificates are issued automatically.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(2, $issues);
+        $issueuserids = array_column($issues, 'userid');
+        $this->assertContains($user1->id, $issueuserids);
+        $this->assertContains($user2->id, $issueuserids);
+
+        // Both notifications go to the teacher; the students are never emailed directly.
+        $this->assertCount(2, $emails);
+        $tos = array_map(fn($email) => $email->to, $emails);
+        $this->assertSame([$teacher->email, $teacher->email], $tos);
+    }
+
+    /**
+     * Completion conditions still gate issuance even with "Issue certificates automatically"
+     * enabled: eligibility is required in addition to the setting, not bypassed by it.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_teachers_respects_completion_with_auto_issue_enabled(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course with completion enabled.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create and enrol two students, plus a teacher.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Teacher', 'lastname' => 'One']);
+        $roleids = $DB->get_records_menu('role', null, '', 'shortname, id');
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, $roleids['editingteacher']);
+
+        // Certificate requires viewing the activity to complete it, with automatic issuance enabled.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailteachers' => 1,
+            'issueautomatically' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Only user1 has viewed it, meeting the completion condition; user2 has not.
+        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
+        $completion = new completion_info($course);
+        $completion->set_module_viewed($cm, $user1->id);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Only user1's certificate should exist; user2 hasn't met the completion condition, even
+        // though automatic issuance is enabled for this certificate.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(1, $issues);
+        $issue = reset($issues);
+        $this->assertEquals($user1->id, (int)$issue->userid);
+
+        // Only one email, to the teacher, about user1's certificate.
+        $this->assertCount(1, $emails);
+        $this->assertEquals($teacher->email, $emails[0]->to);
+    }
+
+    /**
+     * "Issue certificates automatically" is stored per certificate, not read from a global
+     * configuration value: two certificates in the same course with different values behave
+     * independently within the same task run.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_issueautomatically_is_per_certificate_not_global(): void {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create and enrol two students; neither will self-issue.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+
+        // Two unrestricted certificates in the same course, differing only in issueautomatically.
+        $certoff = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailteachers' => 1,
+            'issueautomatically' => 0,
+        ]);
+        $certon = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailteachers' => 1,
+            'issueautomatically' => 1,
+        ]);
+
+        foreach ([$certoff, $certon] as $customcert) {
+            $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+            $templateservice = template_service::create();
+            $pageid = $templateservice->add_page($template);
+            $this->assertDebuggingNotCalled();
+            $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+        }
+
+        // Run the task once; it processes every qualifying certificate in the run.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $sink->close();
+
+        // The certificate with automatic issuance off must still have no issues (#672); the one
+        // with it on must have issued both students' certificates (#904).
+        $this->assertCount(0, $DB->get_records('customcert_issues', ['customcertid' => $certoff->id]));
+        $this->assertCount(2, $DB->get_records('customcert_issues', ['customcertid' => $certon->id]));
+    }
+
+    /**
      * Tests that the email certificate task only notifies teachers about certificates that were
-     * actually issued (e.g. by a student viewing them), and not about students who were merely
-     * eligible but never triggered issuance themselves.
+     * actually issued (e.g. by a student obtaining their certificate), and not about students who
+     * were merely eligible but never triggered issuance themselves.
      *
      * @covers \mod_customcert\task\issue_certificates_task
      * @covers \mod_customcert\task\email_certificate_task
@@ -1255,7 +1429,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        // Only user1 issues their own certificate (e.g. by viewing it); user2 never does.
+        // Only user1 obtains their own certificate; user2 never does.
         $this->issue_certificate((int)$customcert->id, (int)$user1->id);
 
         // Run the task.
@@ -1298,7 +1472,7 @@ final class email_certificate_task_test extends advanced_testcase {
 
         // Create a custom certificate. Note emailstudents is not set, so certificates must not be
         // manufactured on the students' behalf -- only students who trigger issuance themselves
-        // (e.g. by viewing the certificate) should be notified about.
+        // (e.g. by obtaining their own certificate) should be notified about.
         $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id,
             'emailothers' => 'testcustomcert@example.com, doo@dah']);
 
@@ -1316,7 +1490,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
 
-        // Both students issue their own certificate (e.g. by viewing it) before the task runs.
+        // Both students obtain their own certificate before the task runs.
         $this->issue_certificate((int)$customcert->id, (int)$user1->id);
         $this->issue_certificate((int)$customcert->id, (int)$user2->id);
 
@@ -1376,9 +1550,65 @@ final class email_certificate_task_test extends advanced_testcase {
         $emails = $sink->get_messages();
         $sink->close();
 
-        // Neither student has viewed the certificate, so no certificates should have been issued.
+        // Neither student has obtained their own certificate, so none should have been issued.
         $this->assertCount(0, $DB->get_records('customcert_issues'));
         $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Enabling this certificate's "Issue certificates automatically" setting restores the #904
+     * workflow for emailothers without emailstudents, without making it the default behaviour
+     * (#672 is still protected for certificates that leave the setting off).
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_others_auto_issues_when_setting_enabled(): void {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create and enrol two students; neither will view/issue their own certificate.
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+
+        // Certificate only notifies an external address, not students, with no restrictions, but
+        // opts in to automatic issuance.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailothers' => 'testcustomcert@example.com',
+            'issueautomatically' => 1,
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // With the setting enabled, both students' certificates are issued automatically.
+        $issues = $DB->get_records('customcert_issues');
+        $this->assertCount(2, $issues);
+        $issueuserids = array_column($issues, 'userid');
+        $this->assertContains($user1->id, $issueuserids);
+        $this->assertContains($user2->id, $issueuserids);
+
+        // Both notifications go to the configured "others" address; the students are never
+        // emailed directly.
+        $this->assertCount(2, $emails);
+        $tos = array_map(fn($email) => $email->to, $emails);
+        $this->assertSame(['testcustomcert@example.com', 'testcustomcert@example.com'], $tos);
     }
 
     /**
@@ -2168,7 +2398,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
 
-        // The student triggers issuance themselves (e.g. by viewing the certificate).
+        // The student triggers issuance themselves by obtaining their own certificate.
         $issueid = $this->issue_certificate((int)$customcert->id, (int)$student->id);
 
         $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
