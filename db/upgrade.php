@@ -349,5 +349,16 @@ function xmldb_customcert_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2025041401, 'customcert');
     }
 
+    if ($oldversion < 2025041411) {
+        // Per-certificate opt-in for automatic issuance independent of 'emailstudents' (#672, #904).
+        $table = new xmldb_table('customcert');
+        $field = new xmldb_field('issueautomatically', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'emailothers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2025041411, 'customcert');
+    }
+
     return true;
 }
