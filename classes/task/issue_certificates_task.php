@@ -61,6 +61,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
         $sql = "SELECT DISTINCT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, $emailothersselect,
+                       c.issueautomatically,
                        ct.id AS templateid, ct.name AS templatename, ct.contextid, co.id AS courseid,
                        co.fullname AS coursefullname, co.shortname AS courseshortname
                   FROM {customcert} c
@@ -152,6 +153,10 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
             $completion = new \completion_info(get_course((int)$customcert->courseid));
 
+            // Auto-issue only for "Email students", or when this certificate's own "Issue
+            // certificates automatically" setting is enabled (#672, #904).
+            $autoissue = !empty($customcert->emailstudents) || !empty($customcert->issueautomatically);
+
             foreach ($filteredusers as $filtereduser) {
                 // Do not issue certs to suspended users.
                 if ($filtereduser->suspended) {
@@ -206,11 +211,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 if (!empty($issue)) {
                     $issueid = (int)$issue->id;
                     $emailed = (int)$issue->emailed;
-                } else if (!empty($customcert->emailstudents)) {
-                    // Only proactively issue a certificate on the student's behalf when emailstudents
-                    // is enabled. Otherwise (e.g. only emailteachers/emailothers is set), we must not
-                    // manufacture a certificate for a student who hasn't triggered issuance themselves
-                    // (e.g. by viewing it) -- we can only notify about certificates that already exist.
+                } else if ($autoissue) {
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
                     $emailed = 0;
                 }
