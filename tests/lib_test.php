@@ -390,4 +390,34 @@ final class lib_test extends advanced_testcase {
         $this->expectException('required_capability_exception');
         mod_customcert_output_fragment_editelement($args);
     }
+
+    /**
+     * The upgrade step that introduced issueautomatically must default existing certificates to
+     * 0 (disabled), preserving the #672 behaviour for sites that have not opted in.
+     *
+     * @covers ::xmldb_customcert_upgrade
+     */
+    public function test_upgrade_defaults_issueautomatically_to_disabled(): void {
+        global $DB, $CFG;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('customcert');
+        $field = new \xmldb_field('issueautomatically');
+        $dbman->drop_field($table, $field);
+
+        // Upgrade_mod_savepoint() refuses to "advance" to a version that isn't strictly greater
+        // than what's on record, so roll the stored plugin version back to simulate a site that
+        // is genuinely upgrading from before this field existed.
+        set_config('version', 2025041410, 'mod_customcert');
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once($CFG->dirroot . '/mod/customcert/db/upgrade.php');
+        xmldb_customcert_upgrade(2025041410);
+
+        $this->assertTrue($dbman->field_exists($table, new \xmldb_field('issueautomatically')));
+        $this->assertEquals(0, (int)$DB->get_field('customcert', 'issueautomatically', ['id' => $customcert->id]));
+    }
 }
