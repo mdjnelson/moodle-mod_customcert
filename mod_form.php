@@ -97,6 +97,13 @@ class mod_customcert_mod_form extends moodleform_mod {
             $mform->setType('emailothers', PARAM_TEXT);
         }
 
+        if (has_capability('mod/customcert:manageautomaticissuance', $this->get_context())) {
+            $mform->addElement('advcheckbox', 'issueautomatically', get_string('issueautomatically', 'customcert'));
+            $mform->addHelpButton('issueautomatically', 'issueautomatically', 'customcert');
+            $mform->setDefault('issueautomatically', 0);
+            $mform->setType('issueautomatically', PARAM_INT);
+        }
+
         if (has_capability('mod/customcert:manageverifyany', $this->get_context())) {
             $mform->addElement('selectyesno', 'verifyany', get_string('verifycertificateanyone', 'customcert'));
             $mform->addHelpButton('verifyany', 'verifycertificateanyone', 'customcert');
@@ -223,6 +230,7 @@ class mod_customcert_mod_form extends moodleform_mod {
             'emailstudents' => 'mod/customcert:manageemailstudents',
             'emailteachers' => 'mod/customcert:manageemailteachers',
             'emailothers' => 'mod/customcert:manageemailothers',
+            'issueautomatically' => 'mod/customcert:manageautomaticissuance',
             'verifyany' => 'mod/customcert:manageverifyany',
             'requiredtime' => 'mod/customcert:managerequiredtime',
             'protection_print' => 'mod/customcert:manageprotection',
