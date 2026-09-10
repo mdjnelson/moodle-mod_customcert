@@ -10,6 +10,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Fixed certificates not being issued when activity completion is manually overridden to complete (#625).
 
+### Added
+
+- Added an option to automatically issue certificates when "Email teachers" or "Email others" is enabled without "Email students" (#904).
+
 ## [5.0.7] - 2026-08-23
 
 ### Security

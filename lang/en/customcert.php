@@ -49,6 +49,7 @@ the certificate.';
 $string['createtemplate'] = 'Create template';
 $string['customcert:addinstance'] = 'Add a new custom certificate instance';
 $string['customcert:manage'] = 'Manage a custom certificate';
+$string['customcert:manageautomaticissuance'] = 'Manage automatic certificate issuance';
 $string['customcert:manageemailothers'] = 'Manage email others setting';
 $string['customcert:manageemailstudents'] = 'Manage email students setting';
 $string['customcert:manageemailteachers'] = 'Manage email teachers setting';
@@ -148,6 +149,8 @@ $string['invalidheight'] = 'The height has to be a valid number greater than 0.'
 $string['invalidmargin'] = 'The margin has to be a valid number greater than 0.';
 $string['invalidposition'] = 'Please select a positive number for position {$a}.';
 $string['invalidwidth'] = 'The width has to be a valid number greater than 0.';
+$string['issueautomatically'] = 'Issue certificates automatically';
+$string['issueautomatically_help'] = 'When enabled, certificates can be automatically issued to eligible users so they can be sent to "Email teachers" or "Email others" recipients even when "Email students" is disabled. When disabled, certificates are only sent to those recipients after the user has obtained their certificate.';
 $string['landscape'] = 'Landscape';
 $string['leftmargin'] = 'Left margin';
 $string['leftmargin_help'] = 'This is the left margin of the certificate PDF in mm.';
