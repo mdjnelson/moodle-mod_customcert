@@ -519,4 +519,34 @@ final class repository_test extends advanced_testcase {
         // The pre-existing 'emailed' processing marker is untouched by this upgrade step.
         $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
     }
+
+    /**
+     * The upgrade step that introduced issueautomatically must default existing certificates to
+     * 0 (disabled), preserving the #672 behaviour for sites that have not opted in.
+     *
+     * @covers ::xmldb_customcert_upgrade
+     */
+    public function test_upgrade_defaults_issueautomatically_to_disabled(): void {
+        global $DB, $CFG;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('customcert');
+        $field = new \xmldb_field('issueautomatically');
+        $dbman->drop_field($table, $field);
+
+        // Upgrade_mod_savepoint() refuses to "advance" to a version that isn't strictly greater
+        // than what's on record, so roll the stored plugin version back to simulate a site that
+        // is genuinely upgrading from before this field existed.
+        set_config('version', 2026060502, 'mod_customcert');
+
+        require_once($CFG->libdir . '/upgradelib.php');
+        require_once($CFG->dirroot . '/mod/customcert/db/upgrade.php');
+        xmldb_customcert_upgrade(2026060502);
+
+        $this->assertTrue($dbman->field_exists($table, new \xmldb_field('issueautomatically')));
+        $this->assertEquals(0, (int)$DB->get_field('customcert', 'issueautomatically', ['id' => $customcert->id]));
+    }
 }

@@ -41,8 +41,8 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         $customcert = new backup_nested_element('customcert', ['id'], [
             'templateid', 'name', 'intro', 'introformat', 'requiredtime', 'verifyany',
             'deliveryoption', 'usecustomfilename', 'customfilenamepattern', 'emailstudents',
-            'emailteachers', 'emailothers', 'completionemailed', 'protection', 'language',
-            'timecreated', 'timemodified']);
+            'emailteachers', 'emailothers', 'issueautomatically', 'completionemailed', 'protection',
+            'language', 'timecreated', 'timemodified']);
 
         // The template.
         $template = new backup_nested_element('template', ['id'], [
