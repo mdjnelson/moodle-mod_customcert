@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [4.4.14] - 2026-MM-DD
+
+### Added
+
+- Added an option to automatically issue certificates when "Email teachers" or "Email others" is enabled without "Email students" (#904).
+
 ## [4.4.13] - 2026-08-23
 
 ### Security
