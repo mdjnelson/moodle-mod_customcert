@@ -97,3 +97,21 @@ Feature: Being able to manage site templates
     And I press "Continue"
     And I should see "Site template"
     And I should see "Site template (duplicate)"
+
+  Scenario: A user cannot manage a template by supplying another context they have access to
+    Given the following "courses" exist:
+      | fullname | shortname | category |
+      | Course A | CA        | 0        |
+      | Course B | CB        | 0        |
+    And the following "users" exist:
+      | username | firstname | lastname | email                 |
+      | teacher2 | Teacher   | 2        | teacher2@example.com  |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | teacher2 | CA     | editingteacher |
+    And the following "activities" exist:
+      | activity   | name          | intro               | course | idnumber |
+      | customcert | Certificate A | Certificate A intro | CA     | certa    |
+      | customcert | Certificate B | Certificate B intro | CB     | certb    |
+    And I log in as "teacher2"
+    Then I should be denied access to the manage templates page for the "Certificate B" certificate using the context of the "Certificate A" certificate
