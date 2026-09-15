@@ -33,7 +33,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
-## [5.2.7] - 2026-MM-DD
+## [5.2.7] - 2026-09-15
+
+### Security
+
+- Fixed template management authorisation to ensure permissions are checked against the target template's context rather than a caller-supplied context.
+- Custom profile fields used by the User field element now respect Moodle's profile field visibility rules, preventing hidden profile data from being displayed to users who do not have permission to view it.
 
 ### Fixed
 
