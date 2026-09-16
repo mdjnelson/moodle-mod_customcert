@@ -1,0 +1,10 @@
+import{fetchOne as a}from"@moodle/lms/core/ajax";import{requireAsync as s}from"@moodle/lms/core/amd";import i from"@moodle/lms/core/config";/**
+ * Data-access helpers for the certificate rearranger.
+ *
+ * Wraps existing mod_customcert web services, the editelement fragment, and the
+ * legacy ajax.php position saver without changing their contracts.
+ *
+ * @module     mod_customcert/repository
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */async function u(e){(await s("core/notification")).exception(e)}async function p(e,n,t=""){await(await s("core/templates")).replaceNodeContents(e,n,t)}async function g(){(await s("core_form/changechecker")).resetAllFormDirtyStates()}async function d(e,n,t){const o=await a({methodname:"core_get_fragment",args:{component:"mod_customcert",callback:"editelement",contextid:e,args:[{name:"elementid",value:String(t)},{name:"templateid",value:String(n)}]}}),r=await s("core/fragment");return{html:o.html??"",javascript:r.processCollectedJavascript(o.javascript??"")}}async function f(e,n){return a({methodname:"mod_customcert_get_element_html",args:{templateid:e,elementid:n}})}async function w(e,n,t){return a({methodname:"mod_customcert_save_element",args:{templateid:e,elementid:n,values:t}})}async function h(e,n){const t=new URLSearchParams;t.set("tid",String(e)),t.set("sesskey",i.sesskey),t.set("values",JSON.stringify(n));const o=await fetch(`${i.wwwroot}/mod/customcert/ajax.php`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:t.toString(),credentials:"same-origin"});if(!o.ok){const r=await o.text();throw new Error(`${o.status} ${o.statusText}: ${r}`)}}function y(e){const n=new FormData(e),t=[];return n.forEach((o,r)=>{typeof o=="string"&&t.push({name:r,value:o})}),t}export{f as getElementHtml,d as loadEditElementFragment,u as notifyException,p as replaceNodeContents,g as resetFormDirtyStates,w as saveElement,h as savePositions,y as serializeForm};

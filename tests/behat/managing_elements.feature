@@ -403,10 +403,6 @@ Feature: Being able to manage elements in a certificate template
       | Width        | 25         |
       | Height       | 15         |
     And I press "Save changes"
-    # Just to test there are no exceptions being thrown.
-    And I follow "Reposition elements"
-    And I press "Save and close"
-    And I press "Save changes and preview"
 
   Scenario: Delete an element from a certificate template
     And I add the element "Background image" to page "1" of the "Custom certificate 1" certificate template
@@ -453,3 +449,13 @@ Feature: Being able to manage elements in a certificate template
     And I press "Cancel"
     And I add the element "User picture" to page "1" of the "Custom certificate 1" certificate template
     And "Save and continue" "button" should not be visible
+
+  @javascript
+  Scenario: Reposition elements using the React rearranger
+    Given I add the element "Background image" to page "1" of the "Custom certificate 1" certificate template
+    And I press "Save changes"
+    And I should see "Background image" in the "elementstable" "table"
+    When I follow "Reposition elements"
+    And "Save and close" "button" should be visible
+    And I press "Save and close"
+    Then I should see "Background image" in the "elementstable" "table"
