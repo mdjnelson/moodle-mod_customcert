@@ -35,4 +35,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => 'mod_customcert\task\cleanup_site_certificates_downloads_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '3',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];
