@@ -47,3 +47,11 @@ export const KEYBOARD_NUDGE_MM = 1;
 
 /** Keyboard nudge step when Shift is held, in millimetres. */
 export const KEYBOARD_NUDGE_MM_LARGE = 5;
+
+/**
+ * Pointer movement, in CSS pixels, allowed during a pointer down/up before it is
+ * treated as a drag rather than a click. Large enough to tolerate the small
+ * incidental movement of a normal mouse click, small enough to still register a
+ * deliberate drag promptly.
+ */
+export const DRAG_THRESHOLD_PX = 8;

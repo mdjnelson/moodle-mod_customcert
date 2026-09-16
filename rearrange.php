@@ -17,14 +17,16 @@
 /**
  * Handles position elements on the PDF via drag and drop.
  *
+ * The interactive editor is a React ESM component mounted via Moodle's
+ * data-react-component auto-init mechanism. Element preview HTML and edit forms
+ * remain server-rendered so third-party customcertelement_* plugins keep working.
+ *
  * @package    mod_customcert
  * @copyright  2013 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 use action_link;
-use mod_customcert\element;
-use mod_customcert\element_helper;
 use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
@@ -88,91 +90,50 @@ $PAGE->navbar->add($str, new action_link($link, $str));
 
 $PAGE->navbar->add(get_string('rearrangeelements', 'customcert'));
 
-// Include the JS we need.
-$PAGE->requires->yui_module(
-    'moodle-mod_customcert-rearrange',
-    'Y.M.mod_customcert.rearrange.init',
-    [$template->get_id(),
-          $page,
-    $elementrecords]
-);
-
-// Create the buttons to save the position of the elements.
-$html = html_writer::start_tag('div', ['class' => 'buttons']);
-$html .= $OUTPUT->single_button(
-    new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
-    get_string('saveandclose', 'customcert'),
-    'get',
-    ['class' => 'savepositionsbtn']
-);
-$html .= $OUTPUT->single_button(
-    new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]),
-    get_string('saveandcontinue', 'customcert'),
-    'get',
-    ['class' => 'applypositionsbtn']
-);
-$html .= $OUTPUT->single_button(
-    new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]),
-    get_string('cancel'),
-    'get',
-    ['class' => 'cancelbtn']
-);
-$html .= html_writer::end_tag('div');
-
-// Create the div that represents the PDF.
-$style = 'height: ' . $page->height . 'mm; line-height: normal; width: ' . $page->width . 'mm;';
-$marginstyle = 'height: ' . $page->height . 'mm; width:1px; float:left; position:relative;';
-$html .= html_writer::start_tag('div', [
-    'data-templateid' => $template->get_id(),
-    'data-contextid' => $template->get_contextid(),
-    'id' => 'pdf',
-    'style' => $style]);
-if ($page->leftmargin) {
-    $position = 'left:' . $page->leftmargin . 'mm;';
-    $html .= "<div id='leftmargin' style='$position $marginstyle'></div>";
-}
-if ($elementrecords) {
-    foreach ($elementrecords as $element) {
-        $instance = $elementinstances[(int)$element->id] ?? null;
-
-        if ($instance) {
-            switch ($element->refpoint) {
-                case element_helper::CUSTOMCERT_REF_POINT_TOPRIGHT:
-                    $class = 'element refpoint-right';
-                    break;
-                case element_helper::CUSTOMCERT_REF_POINT_TOPCENTER:
-                    $class = 'element refpoint-center';
-                    break;
-                case element_helper::CUSTOMCERT_REF_POINT_TOPLEFT:
-                default:
-                    $class = 'element refpoint-left';
-            }
-            switch ($element->alignment) {
-                case element::ALIGN_CENTER:
-                    $class .= ' align-center';
-                    break;
-                case element::ALIGN_RIGHT:
-                    $class .= ' align-right';
-                    break;
-                case element::ALIGN_LEFT:
-                default:
-                    $class .= ' align-left';
-                    break;
-            }
-            $html .= html_writer::tag('div', $instance->render_html(), ['class' => $class,
-                'data-refpoint' => $element->refpoint, 'id' => 'element-' . $element->id]);
-        }
+// Build element props with server-rendered preview HTML (element-type agnostic).
+// Save / cancel controls are rendered by the React rearranger.
+$elementsdata = [];
+foreach ($elementrecords as $element) {
+    $instance = $elementinstances[(int)$element->id] ?? null;
+    if (!$instance) {
+        continue;
     }
+
+    $elementsdata[] = [
+        'id' => (int)$element->id,
+        'name' => (string)$element->name,
+        'posx' => (int)($element->posx ?? 0),
+        'posy' => (int)($element->posy ?? 0),
+        'width' => $instance->get_width(),
+        'refpoint' => (int)($element->refpoint ?? 0),
+        'alignment' => (string)($element->alignment ?? 'L'),
+        'html' => $instance->render_html(),
+    ];
 }
-if ($page->rightmargin) {
-    $position = 'left:' . ($page->width - $page->rightmargin) . 'mm;';
-    $html .= "<div id='rightmargin' style='$position $marginstyle'></div>";
-}
-$html .= html_writer::end_tag('div');
+
+$editurl = (new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]))->out(false);
+$rearrangeurl = (new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]))->out(false);
+
+$reactprops = [
+    'templateid' => $template->get_id(),
+    'contextid' => $template->get_contextid(),
+    'pageid' => (int)$pid,
+    'page' => [
+        'width' => (float)$page->width,
+        'height' => (float)$page->height,
+        'leftmargin' => (float)($page->leftmargin ?? 0),
+        'rightmargin' => (float)($page->rightmargin ?? 0),
+    ],
+    'elements' => $elementsdata,
+    'editurl' => $editurl,
+    'rearrangeurl' => $rearrangeurl,
+];
+
+// Mount the React rearranger; Moodle's react_autoinit picks this up from data attributes.
+$html = html_writer::react_component('@moodle/lms/mod_customcert/Rearrange', $reactprops);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 3);
 echo $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING);
 echo $html;
-$PAGE->requires->js_call_amd('mod_customcert/rearrange-area', 'init', ['#pdf']);
 echo $OUTPUT->footer();

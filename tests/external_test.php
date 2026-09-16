@@ -106,8 +106,15 @@ final class external_test extends advanced_testcase {
 
         $result = external::save_element($template->id, $element->id, $values);
         // Simulate WS return value cleaning.
-        external_api::clean_returnvalue(external::save_element_returns(), $result);
-        $this->assertTrue($result);
+        $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertIsArray($cleaned);
+        $this->assertSame((int)$element->id, (int)$cleaned['id']);
+        $this->assertArrayHasKey('posx', $cleaned);
+        $this->assertArrayHasKey('posy', $cleaned);
+        $this->assertArrayHasKey('width', $cleaned);
+        $this->assertArrayHasKey('refpoint', $cleaned);
+        $this->assertArrayHasKey('alignment', $cleaned);
+        $this->assertArrayHasKey('html', $cleaned);
 
         // Verify the submitted value was normalised and saved.
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
@@ -620,7 +627,10 @@ final class external_test extends advanced_testcase {
                 ['name' => 'text', 'value' => 'Updated text'],
             ]
         );
-        $this->assertTrue($result);
+        $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertIsArray($cleaned);
+        $this->assertSame((int)$elementid, (int)$cleaned['id']);
+        $this->assertArrayHasKey('html', $cleaned);
     }
 
     /**

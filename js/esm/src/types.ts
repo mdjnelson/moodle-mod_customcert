@@ -88,3 +88,25 @@ export type ElementFormValue = {
     name: string;
     value: string;
 };
+
+/**
+ * Generic layout properties returned by mod_customcert_save_element after a successful save.
+ *
+ * These are element-type agnostic so the rearranger can refresh React state without a reload.
+ */
+export type SaveElementResult = {
+    /** Element instance id. */
+    id: number;
+    /** X position in mm. */
+    posx: number;
+    /** Y position in mm. */
+    posy: number;
+    /** Optional max width in mm. */
+    width: number | null;
+    /** Reference point: 0 top-left, 1 top-center, 2 top-right. */
+    refpoint: number;
+    /** Text alignment: L, C, or R. */
+    alignment: string;
+    /** Server-rendered preview HTML for the element. */
+    html: string;
+};

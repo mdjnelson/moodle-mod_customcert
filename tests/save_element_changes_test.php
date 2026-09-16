@@ -289,8 +289,10 @@ final class save_element_changes_test extends advanced_testcase {
             ['name' => 'text', 'value' => 'new text'],
         ];
         $result = external::save_element($template->id, $element->id, $values);
-        external_api::clean_returnvalue(external::save_element_returns(), $result);
-        $this->assertTrue($result);
+        $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertIsArray($cleaned);
+        $this->assertSame((int)$element->id, (int)$cleaned['id']);
+        $this->assertArrayHasKey('html', $cleaned);
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
         $this->assertSame('new text', $decoded['text'] ?? null, 'normalise_data() text must be stored');
@@ -347,8 +349,11 @@ final class save_element_changes_test extends advanced_testcase {
             ['name' => 'width', 'value' => '3'],
         ];
         $result = external::save_element($template->id, $element->id, $values);
-        external_api::clean_returnvalue(external::save_element_returns(), $result);
-        $this->assertTrue($result);
+        $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertIsArray($cleaned);
+        $this->assertSame((int)$element->id, (int)$cleaned['id']);
+        $this->assertArrayHasKey('html', $cleaned);
+        $this->assertSame(3, (int)$cleaned['width'], 'Returned width must reflect the saved value');
         $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
         $decoded = json_decode($row->data, true);
         $this->assertSame('0000ff', $decoded['colour'] ?? null, 'Submitted colour must be stored');
