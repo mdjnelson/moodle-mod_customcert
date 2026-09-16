@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use action_link;
 use mod_customcert\element;
 use mod_customcert\element_helper;
 use mod_customcert\page_helper;
