@@ -1,0 +1,14 @@
+{
+  "Rearrange": {
+    "eject": "safe",
+    "wrap": "safe"
+  },
+  "CertificateElement": {
+    "eject": "safe",
+    "wrap": "safe"
+  },
+  "EditElementModal": {
+    "eject": "safe",
+    "wrap": "safe"
+  }
+}
