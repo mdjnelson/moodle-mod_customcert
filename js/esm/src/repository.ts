@@ -27,7 +27,7 @@
 import {fetchOne} from '@moodle/lms/core/ajax';
 import {requireAsync} from '@moodle/lms/core/amd';
 import config from '@moodle/lms/core/config';
-import type {ElementFormValue, ElementPositionValue} from './types';
+import type {ElementFormValue, ElementPositionValue, SaveElementResult} from './types';
 
 /** Result of loading a Moodle fragment. */
 export type FragmentResult = {
@@ -156,14 +156,14 @@ export async function getElementHtml(templateid: number, elementid: number): Pro
  * @param templateid Template id.
  * @param elementid Element id.
  * @param values Serialized form name/value pairs.
- * @returns True on success.
+ * @returns Updated generic layout properties for the saved element.
  */
 export async function saveElement(
     templateid: number,
     elementid: number,
     values: ElementFormValue[],
-): Promise<boolean> {
-    return fetchOne<boolean>({
+): Promise<SaveElementResult> {
+    return fetchOne<SaveElementResult>({
         methodname: 'mod_customcert_save_element',
         args: {
             templateid,

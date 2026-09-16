@@ -42,6 +42,17 @@
     cursor: move;
 }
 
+#page-mod-customcert-rearrange .element:focus,
+#page-mod-customcert-rearrange .element:focus-visible {
+    outline: 2px solid #0f6cbf;
+    outline-offset: 2px;
+}
+
+#page-mod-customcert-rearrange .element.is-dragging {
+    opacity: 0.85;
+    z-index: 10;
+}
+
 #page-mod-customcert-rearrange .element.refpoint-left:before {
     background-position: left top;
     margin: -4px -5px -5px -4px;
@@ -76,18 +87,29 @@
     position: relative;
 }
 
-#page-mod-customcert-rearrange div#leftmargin {
+#page-mod-customcert-rearrange div#leftmargin,
+#page-mod-customcert-rearrange .rearrange-margin-guide-left {
     border-left: 1px dotted black;
 }
 
-#page-mod-customcert-rearrange div#rightmargin {
+#page-mod-customcert-rearrange div#rightmargin,
+#page-mod-customcert-rearrange .rearrange-margin-guide-right {
     border-right: 1px dotted black;
+}
+
+#page-mod-customcert-rearrange .rearrange-margin-guide {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    pointer-events: none;
 }
 
 /*
     This is a hack - the fieldset being returned by the edit_element_form class contains
     the CSS class 'hidden' which when shown in a dialogue hides the fieldset.
 */
-.moodle-dialogue #editelementform fieldset.hidden {
+.moodle-dialogue #editelementform fieldset.hidden,
+.modal #editelementform fieldset.hidden {
     display: block;
 }
