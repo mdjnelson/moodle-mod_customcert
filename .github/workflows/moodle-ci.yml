@@ -142,6 +142,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: moodle-plugin-ci grunt --max-lint-warnings 0
 
+      # Run Jest once (not for every matrix leg). Moodle 5.x installs the plugin under
+      # public/mod/customcert inside the checked-out moodle tree.
+      - name: Jest tests
+        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.database == 'pgsql' }}
+        run: |
+          cd moodle
+          npm test -- --testPathPatterns=public/mod/customcert/js/esm/tests
+
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
         run: |
