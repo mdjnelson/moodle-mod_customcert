@@ -24,6 +24,8 @@
 
 namespace mod_customcert\callback;
 
+use mod_customcert\service\certificate_download_service;
+
 /**
  * Handles file-serving callbacks for customcert.
  *
@@ -54,7 +56,7 @@ class file_callbacks {
         array $args,
         bool $forcedownload
     ) {
-        global $CFG;
+        global $CFG, $USER;
 
         require_once($CFG->libdir . '/filelib.php');
 
@@ -76,6 +78,34 @@ class file_callbacks {
             }
 
             send_stored_file($file, 0, 0, $forcedownload);
+        } else if ($filearea === certificate_download_service::SITE_DOWNLOAD_FILEAREA) {
+            // The generated site-wide "download all certificates" archive, only ever served to the
+            // user it was generated for.
+            if ($context->contextlevel != CONTEXT_SYSTEM) {
+                return false;
+            }
+
+            require_login();
+
+            if (!has_capability('mod/customcert:viewallcertificates', $context)) {
+                return false;
+            }
+
+            $itemid = (int) array_shift($args);
+            if ($itemid !== (int) $USER->id) {
+                return false;
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
+
+            $fs = get_file_storage();
+            $file = $fs->get_file($context->id, 'mod_customcert', $filearea, $itemid, $filepath, $filename);
+            if (!$file || $file->is_directory()) {
+                return false;
+            }
+
+            send_stored_file($file, 0, 0, true);
         }
     }
 }
