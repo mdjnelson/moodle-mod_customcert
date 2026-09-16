@@ -35,8 +35,11 @@ class file_callbacks {
     /**
      * Serves certificate issues and other files.
      *
-     * @param \stdClass $course
-     * @param \stdClass $cm
+     * $course and $cm may be null when serving files from the system context
+     * (file_pluginfile() obtains them via get_context_info_array()).
+     *
+     * @param \stdClass|null $course
+     * @param \stdClass|null $cm
      * @param \context $context
      * @param string $filearea
      * @param array $args
@@ -44,8 +47,8 @@ class file_callbacks {
      * @return bool|null false if file not found, does not return anything if found - just send the file
      */
     public static function pluginfile(
-        \stdClass $course,
-        \stdClass $cm,
+        ?\stdClass $course,
+        ?\stdClass $cm,
         \context $context,
         string $filearea,
         array $args,

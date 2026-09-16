@@ -138,8 +138,10 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
 /**
  * Serves certificate issues and other files.
  *
- * @param stdClass $course
- * @param stdClass $cm
+ * $course and $cm may be null for system-context requests.
+ *
+ * @param stdClass|null $course
+ * @param stdClass|null $cm
  * @param context $context
  * @param string $filearea
  * @param array $args
