@@ -102,22 +102,23 @@ final class pdf_generation_service {
         $customcert = $this->certificates->get_by_template_id($template->get_id());
 
         $originallang = $this->apply_runtime_language_for_user($customcert, $user, false);
+        try {
+            $this->configure_pdf_for_customcert($pdf, $customcert);
 
-        $this->configure_pdf_for_customcert($pdf, $customcert);
+            $deliveryoption = ($customcert && !empty($customcert->deliveryoption))
+                ? $customcert->deliveryoption
+                : self::DELIVERY_OPTION_INLINE;
+            $filename = $this->compute_filename_for_user($template, $user, $customcert);
 
-        $deliveryoption = ($customcert && !empty($customcert->deliveryoption))
-            ? $customcert->deliveryoption
-            : self::DELIVERY_OPTION_INLINE;
-        $filename = $this->compute_filename_for_user($template, $user, $customcert);
+            $pdf->SetTitle($filename);
 
-        $pdf->SetTitle($filename);
-
-        $previewrenderer = preview_renderer::create();
-        foreach ($pages as $page) {
-            $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user, $preview);
+            $previewrenderer = preview_renderer::create();
+            foreach ($pages as $page) {
+                $previewrenderer->render_pdf_page((int)$page->id, $pdf, $user, $preview);
+            }
+        } finally {
+            $this->restore_runtime_language($originallang);
         }
-
-        $this->restore_runtime_language($originallang);
 
         if ($return) {
             return $pdf->Output('', 'S');
