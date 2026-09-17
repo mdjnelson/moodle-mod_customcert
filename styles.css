@@ -39,7 +39,7 @@
     margin-bottom: 1rem;
     padding: 0.75rem 0;
     position: sticky;
-    top: var(--navbar-height, 0px);
+    top: var(--navbar-height, 0);
     z-index: 20;
 }
 
