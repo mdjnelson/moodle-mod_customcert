@@ -132,7 +132,13 @@ $reactprops = [
 $html = html_writer::react_component('@moodle/lms/mod_customcert/Rearrange', $reactprops);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('rearrangeelementsheading', 'customcert'), 3);
-echo $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING);
+echo html_writer::start_div('rearrange-intro');
+echo $OUTPUT->heading(get_string('rearrangeelements', 'customcert'), 3);
+echo html_writer::tag('p', get_string('rearrangeelementsheading', 'customcert'), ['class' => 'rearrange-instructions']);
+echo html_writer::end_div();
+echo html_writer::div(
+    $OUTPUT->notification(get_string('exampledatawarning', 'customcert'), \core\output\notification::NOTIFY_WARNING),
+    'rearrange-exampledata-notification'
+);
 echo $html;
 echo $OUTPUT->footer();

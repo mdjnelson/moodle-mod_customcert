@@ -16,10 +16,51 @@
     margin-right: auto;
 }
 
-#page-mod-customcert-rearrange .savepositionsbtn,
-#page-mod-customcert-rearrange .applypositionsbtn,
-#page-mod-customcert-rearrange .cancelbtn {
-    float: left;
+#page-mod-customcert-rearrange .rearrange-intro {
+    margin-bottom: 0.5rem;
+}
+
+#page-mod-customcert-rearrange .rearrange-intro .rearrange-instructions {
+    color: var(--bs-secondary-color, #6c757d);
+    margin-bottom: 1rem;
+}
+
+#page-mod-customcert-rearrange .rearrange-exampledata-notification .notification {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+#page-mod-customcert-rearrange .rearrange-actions {
+    align-items: center;
+    background-color: var(--bs-body-bg, #fff);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 0;
+    position: sticky;
+    top: var(--navbar-height, 0px);
+    z-index: 20;
+}
+
+#page-mod-customcert-rearrange .rearrange-actions .cancelbtn {
+    margin-left: auto;
+}
+
+#page-mod-customcert-rearrange .rearrange-workspace {
+    background-color: var(--bs-tertiary-bg, #f8f9fa);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: var(--bs-border-radius, 0.25rem);
+    padding: 2rem 1rem;
+}
+
+#page-mod-customcert-rearrange .rearrange-canvas-wrap {
+    display: flex;
+    overflow-x: auto;
+}
+
+#page-mod-customcert-rearrange .rearrange-canvas-wrap #pdf {
+    margin-inline: auto;
 }
 
 #page-mod-customcert-rearrange .element {
@@ -39,16 +80,19 @@
 }
 
 #page-mod-customcert-rearrange .element:hover {
+    box-shadow: 0 0 0 1px var(--bs-primary, #0f6cbf);
     cursor: move;
 }
 
 #page-mod-customcert-rearrange .element:focus,
 #page-mod-customcert-rearrange .element:focus-visible {
-    outline: 2px solid #0f6cbf;
+    box-shadow: 0 0 0 2px var(--bs-primary, #0f6cbf);
+    outline: 2px solid var(--bs-primary, #0f6cbf);
     outline-offset: 2px;
 }
 
 #page-mod-customcert-rearrange .element.is-dragging {
+    box-shadow: 0 0 0 2px var(--bs-primary, #0f6cbf), 0 0.25rem 0.5rem rgba(0, 0, 0, 0.25);
     opacity: 0.85;
     z-index: 10;
 }
@@ -81,9 +125,11 @@
 }
 
 #page-mod-customcert-rearrange #pdf {
-    border-style: solid;
-    border-width: 1px;
+    background-color: #fff;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15);
     clear: both;
+    flex-shrink: 0;
     position: relative;
 }
 
