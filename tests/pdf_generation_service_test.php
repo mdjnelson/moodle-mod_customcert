@@ -22,6 +22,7 @@ use advanced_testcase;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
+use mod_customcert\tests\fixtures\throwing_template;
 use context_system;
 use pdf;
 
@@ -261,5 +262,73 @@ final class pdf_generation_service_test extends advanced_testcase {
         $this->assertStringNotContainsString('{GROUP_NAME}', $filename);
         $this->assertStringContainsString('NoGroup--', $filename);
         $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * Test that the runtime language is restored even if an exception occurs during PDF generation.
+     *
+     * @covers \mod_customcert\service\pdf_generation_service::generate_pdf
+     */
+    public function test_generate_pdf_restores_language_on_exception(): void {
+        global $CFG, $USER;
+
+        require_once(__DIR__ . '/fixtures/throwing_template.php');
+
+        $this->setAdminUser();
+
+        // Mimic an installed language pack without requiring the real pack in CI.
+        $langdir = $CFG->dataroot . '/lang/fr';
+        $createdlangdir = !is_dir($langdir);
+        if ($createdlangdir) {
+            mkdir($langdir, 0777, true);
+        }
+        get_string_manager()->reset_caches(true);
+
+        $course = $this->getDataGenerator()->create_course();
+        // Force English on the certificate so generation switches away from 'fr'.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'language' => 'en',
+        ]);
+
+        $basetemplate = template::from_record(
+            (new template_repository())->get_by_id_or_fail((int)$customcert->templateid)
+        );
+
+        // Throw after the runtime language switch (filename computation calls get_context()).
+        // The named fixture verifies the switch actually happened before the failure point.
+        $template = new throwing_template(
+            $basetemplate->get_id(),
+            $basetemplate->get_name(),
+            $basetemplate->get_contextid()
+        );
+
+        $service = pdf_generation_service::create();
+        $originallanguage = current_language();
+
+        try {
+            force_current_language('fr');
+            $this->assertSame('fr', current_language());
+
+            $exceptionthrown = false;
+            try {
+                $service->generate_pdf($template, true, (int)$USER->id, true);
+            } catch (\RuntimeException $exception) {
+                $exceptionthrown = true;
+                $this->assertSame('Intentional test exception', $exception->getMessage());
+                // Production finally must restore the pre-generation language.
+                $this->assertSame('fr', current_language());
+            }
+
+            $this->assertTrue($exceptionthrown, 'Expected RuntimeException was not thrown during PDF generation.');
+        } finally {
+            force_current_language($originallanguage);
+
+            if ($createdlangdir && is_dir($langdir)) {
+                rmdir($langdir);
+            }
+
+            get_string_manager()->reset_caches(true);
+        }
     }
 }
