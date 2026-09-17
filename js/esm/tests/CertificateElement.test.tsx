@@ -229,4 +229,112 @@ describe('CertificateElement pointer interaction', () => {
         expect(onEdit).not.toHaveBeenCalled();
         expect(onPositionChange).not.toHaveBeenCalled();
     });
+
+    it('renders the opaque server-rendered preview directly inside the interactive wrapper', () => {
+        // Real browser CSS hit-testing (i.e. that `pointer-events: none` on descendants of
+        // `.element` actually routes clicks on the preview to the `.element` wrapper itself) is
+        // not something JSDOM can verify; that behaviour was checked manually/with a real
+        // browser. This test instead asserts the DOM structure the CSS fix depends on: the
+        // preview HTML is a direct child of the interactive `.element` wrapper (matching the
+        // structure used before this fix, so third-party CSS relying on it keeps working), and
+        // that wrapper node (not the preview content) is the one exposing the pointer/keyboard
+        // handlers.
+        render(
+            <CertificateElement
+                element={element}
+                page={page}
+                onPositionChange={jest.fn()}
+                onEdit={jest.fn()}
+            />,
+        );
+        const node = screen.getByRole('button', {name: 'Course name'});
+
+        expect(node.innerHTML).toBe(element.html);
+        // The wrapper is the interactive/focusable node; the preview content has no handlers of
+        // its own.
+        expect(node.tabIndex).toBe(0);
+        expect(node.firstElementChild?.getAttribute('tabindex')).toBeNull();
+    });
+
+    it('opens the editor when clicking the reference-point marker area (the wrapper itself)', () => {
+        const onEdit = jest.fn();
+        const onPositionChange = jest.fn();
+        render(
+            <CertificateElement
+                element={element}
+                page={page}
+                onPositionChange={onPositionChange}
+                onEdit={onEdit}
+            />,
+        );
+        const node = screen.getByRole('button', {name: 'Course name'});
+
+        // The reference-point marker is rendered as a ::before pseudo-element on the wrapper
+        // itself, so a click there targets the wrapper directly rather than its content.
+        firePointerSequence(node, {downX: 5, downY: 2, upX: 5, upY: 2});
+
+        expect(onEdit).toHaveBeenCalledTimes(1);
+        expect(onEdit).toHaveBeenCalledWith(21);
+        expect(onPositionChange).not.toHaveBeenCalled();
+    });
+
+    it('does not fire onEdit more than once for a single click', () => {
+        const onEdit = jest.fn();
+        const onPositionChange = jest.fn();
+        render(
+            <CertificateElement
+                element={element}
+                page={page}
+                onPositionChange={onPositionChange}
+                onEdit={onEdit}
+            />,
+        );
+        const node = screen.getByRole('button', {name: 'Course name'});
+
+        firePointerSequence(node, {downX: 50, downY: 10, upX: 50, upY: 10});
+
+        expect(onEdit).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the editor when Enter is pressed', () => {
+        const onEdit = jest.fn();
+        const onPositionChange = jest.fn();
+        render(
+            <CertificateElement
+                element={element}
+                page={page}
+                onPositionChange={onPositionChange}
+                onEdit={onEdit}
+            />,
+        );
+        const node = screen.getByRole('button', {name: 'Course name'});
+
+        act(() => {
+            node.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, cancelable: true, key: 'Enter'}));
+        });
+
+        expect(onEdit).toHaveBeenCalledWith(21);
+        expect(onPositionChange).not.toHaveBeenCalled();
+    });
+
+    it('opens the editor when Space is pressed', () => {
+        const onEdit = jest.fn();
+        const onPositionChange = jest.fn();
+        render(
+            <CertificateElement
+                element={element}
+                page={page}
+                onPositionChange={onPositionChange}
+                onEdit={onEdit}
+            />,
+        );
+        const node = screen.getByRole('button', {name: 'Course name'});
+
+        act(() => {
+            node.dispatchEvent(new KeyboardEvent('keydown', {bubbles: true, cancelable: true, key: ' '}));
+        });
+
+        expect(onEdit).toHaveBeenCalledWith(21);
+        expect(onPositionChange).not.toHaveBeenCalled();
+    });
 });
