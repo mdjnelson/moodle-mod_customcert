@@ -123,12 +123,12 @@ function Rearrange(props) {
   const leftGuide = mmToPx(page.leftmargin || 0);
   const rightGuide = mmToPx(page.width) - mmToPx(page.rightmargin || 0);
   return /* @__PURE__ */ jsxDEV(Fragment, { children: [
-    /* @__PURE__ */ jsxDEV("div", { className: "buttons", children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "buttons rearrange-actions", children: [
       /* @__PURE__ */ jsxDEV(
         "button",
         {
           type: "button",
-          className: "btn btn-secondary savepositionsbtn",
+          className: "btn btn-primary savepositionsbtn",
           onClick: handleSaveAndClose,
           disabled: saving,
           children: saveAndCloseLabel
@@ -164,7 +164,7 @@ function Rearrange(props) {
         "button",
         {
           type: "button",
-          className: "btn btn-secondary cancelbtn",
+          className: "btn btn-link cancelbtn",
           onClick: handleCancel,
           disabled: saving,
           children: cancelLabel
@@ -183,7 +183,7 @@ function Rearrange(props) {
       lineNumber: 179,
       columnNumber: 13
     }, this),
-    /* @__PURE__ */ jsxDEV(
+    /* @__PURE__ */ jsxDEV("div", { className: "rearrange-workspace", children: /* @__PURE__ */ jsxDEV("div", { className: "rearrange-canvas-wrap", children: /* @__PURE__ */ jsxDEV(
       "div",
       {
         id: "pdf",
@@ -205,8 +205,8 @@ function Rearrange(props) {
             false,
             {
               fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
-              lineNumber: 215,
-              columnNumber: 21
+              lineNumber: 217,
+              columnNumber: 29
             },
             this
           ),
@@ -221,8 +221,8 @@ function Rearrange(props) {
             false,
             {
               fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
-              lineNumber: 222,
-              columnNumber: 21
+              lineNumber: 224,
+              columnNumber: 29
             },
             this
           ),
@@ -238,8 +238,8 @@ function Rearrange(props) {
             false,
             {
               fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
-              lineNumber: 229,
-              columnNumber: 21
+              lineNumber: 231,
+              columnNumber: 29
             },
             this
           ))
@@ -249,11 +249,19 @@ function Rearrange(props) {
       true,
       {
         fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
-        lineNumber: 205,
-        columnNumber: 13
+        lineNumber: 207,
+        columnNumber: 21
       },
       this
-    ),
+    ) }, void 0, false, {
+      fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
+      lineNumber: 206,
+      columnNumber: 17
+    }, this) }, void 0, false, {
+      fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
+      lineNumber: 205,
+      columnNumber: 13
+    }, this),
     editingElement && /* @__PURE__ */ jsxDEV(
       EditElementModal,
       {
@@ -269,7 +277,7 @@ function Rearrange(props) {
       false,
       {
         fileName: "public/mod/customcert/js/esm/src/Rearrange.tsx",
-        lineNumber: 239,
+        lineNumber: 243,
         columnNumber: 17
       },
       this
