@@ -39,6 +39,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.2.8] - Unreleased
 
+### Fixed
+
+- Restored the runtime language when PDF generation fails (#933).
+
 ### Changed
 
 - Downloading all certificates from the site is now asynchronous (#692).
