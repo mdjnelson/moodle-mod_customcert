@@ -17,14 +17,15 @@
 namespace mod_customcert;
 
 use advanced_testcase;
-use mod_customcert\service\template_repository;
-use zip_archive;
+use file_archive;
 use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\pdf_generation_service;
+use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
-use file_archive;
+use moodle_exception;
 use stdClass;
+use zip_archive;
 
 /**
  * Tests for the certificate_download_service.
@@ -104,6 +105,7 @@ final class certificate_download_service_test extends advanced_testcase {
     /**
      * Ensure site-wide download builds a ZIP archive of certificate PDFs.
      * @covers ::download_all_for_site
+     * @covers ::generate_all_for_site_zip
      */
     public function test_download_all_for_site_creates_zip(): void {
         global $DB;
@@ -158,5 +160,107 @@ final class certificate_download_service_test extends advanced_testcase {
 
         $this->assertCount(1, $files);
         $this->assertSame('grace_hopper/site_template_certificate.pdf', $files[0]->pathname);
+    }
+
+    /**
+     * generate_all_for_site_zip returns null when there are no certificates.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_generate_all_for_site_zip_returns_null_when_no_certificates(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $service = new certificate_download_service(
+            new template_repository(),
+            pdf_generation_service::create(),
+            $DB
+        );
+
+        $this->assertNull($service->generate_all_for_site_zip());
+    }
+
+    /**
+     * generate_all_for_site_zip throws when the temporary directory cannot be created.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_generate_all_for_site_zip_throws_when_temp_dir_fails(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->create_issued_certificate();
+
+        $service = new certificate_download_service(
+            new template_repository(),
+            pdf_generation_service::create(),
+            $DB,
+            null,
+            null,
+            static fn(): false => false
+        );
+
+        try {
+            $service->generate_all_for_site_zip();
+            $this->fail('Expected moodle_exception when temp dir creation fails');
+        } catch (moodle_exception $exception) {
+            $this->assertSame('errorcreatetempdir', $exception->errorcode);
+            $this->assertSame('customcert', $exception->module);
+        }
+    }
+
+    /**
+     * generate_all_for_site_zip throws when the zip archive cannot be opened/created.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_generate_all_for_site_zip_throws_when_zip_open_fails(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $this->create_issued_certificate();
+
+        $failingzip = $this->createStub(zip_archive::class);
+        $failingzip->method('open')->willReturn(false);
+
+        $service = new certificate_download_service(
+            new template_repository(),
+            pdf_generation_service::create(),
+            $DB,
+            static fn() => $failingzip
+        );
+
+        try {
+            $service->generate_all_for_site_zip();
+            $this->fail('Expected moodle_exception when zip open fails');
+        } catch (moodle_exception $exception) {
+            $this->assertSame('errorcreatezip', $exception->errorcode);
+            $this->assertSame('customcert', $exception->module);
+        }
+    }
+
+    /**
+     * Create a single issued certificate used by failure-path tests.
+     */
+    private function create_issued_certificate(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user([
+            'firstname' => 'Test',
+            'lastname' => 'User',
+        ]);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        $issuer = new certificate_issue_service($DB, static fn(): int => time());
+        $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
     }
 }
