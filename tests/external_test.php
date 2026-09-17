@@ -687,4 +687,37 @@ final class external_test extends advanced_testcase {
         $this->expectException('required_capability_exception');
         external::get_element_html($cert->templateid, $elementid);
     }
+
+    /**
+     * Test list_issues PDF limit.
+     *
+     * @covers \mod_customcert\external::list_issues
+     */
+    public function test_list_issues_pdf_limit(): void {
+        $this->setAdminUser();
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        // Create 25 issues (more than the limit of 20).
+        for ($i = 0; $i < 25; $i++) {
+            $user = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($user->id, $course->id);
+            $this->issue_certificate((int) $customcert->id, (int) $user->id);
+        }
+
+        // Call the external function with includepdf=true and limit=500.
+        // It should be clamped to 20.
+        $result = external::list_issues(null, null, null, true, 500, 0);
+        $result = external_api::clean_returnvalue(external::list_issues_returns(), $result);
+
+        $this->assertCount(20, $result);
+
+        // Call the external function with includepdf=false and limit=500.
+        // It should not be clamped by the PDF limit (still clamped by 500 though).
+        $result = external::list_issues(null, null, null, false, 500, 0);
+        $result = external_api::clean_returnvalue(external::list_issues_returns(), $result);
+
+        $this->assertCount(25, $result);
+    }
 }
