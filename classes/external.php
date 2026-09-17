@@ -291,7 +291,7 @@ class external extends external_api {
                 ),
                 'limit' => new external_value(
                     PARAM_INT,
-                    'Maximum number of results (default 100, max 500)',
+                    'Maximum number of results (default 100, max 500; max 20 when including PDFs)',
                     VALUE_DEFAULT,
                     100
                 ),
@@ -312,7 +312,7 @@ class external extends external_api {
      * @param ?int $userid User id. Returns items for this user.
      * @param ?int $customcertid Customcert id. Returns items for this customcert.
      * @param bool $includepdf Whether to include PDF contents
-     * @param int $limit Max results
+     * @param int $limit Maximum results (500 normally, 20 when including PDFs)
      * @param int $offset Offset for paging
      * @return array
      */
@@ -344,7 +344,10 @@ class external extends external_api {
         $userid = $params['userid'];
         $customcertid = $params['customcertid'];
         $includepdf = !empty($params['includepdf']);
-        $limit = max(1, min(500, $params['limit']));
+
+        // When including PDFs, we limit the number of issues to avoid resource exhaustion.
+        $maxlimit = $includepdf ? 20 : 500;
+        $limit = max(1, min($maxlimit, $params['limit']));
         $offset = max(0, $params['offset']);
 
         // Capability check.
