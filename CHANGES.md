@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.0.9] - Unreleased
+
+### Added
+
+- Site-wide certificate downloads are now processed asynchronously. Requesting a download queues a background task that generates the zip archive and notifies the user when it is ready (#692).
+
 ## [5.0.8] - 2026-09-15
 
 ### Security
