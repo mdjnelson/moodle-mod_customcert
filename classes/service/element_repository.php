@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
+use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_layout;
@@ -220,6 +221,60 @@ final class element_repository {
     }
 
     /**
+     * Copy an element to a new page.
+     *
+     * The $strict flag preserves two intentionally different historical behaviours for an
+     * element type that cannot be resolved/constructed:
+     * - Strict (used by copy_page()): the failure is not swallowed; the factory exception
+     *   propagates to the caller, matching the pre-refactor behaviour of copy_page().
+     * - Tolerant (used by copy_to_template()): the failure is swallowed, the inserted row is
+     *   left in place and null is returned, matching the pre-refactor behaviour of
+     *   copy_to_template().
+     *
+     * @param stdClass $sourceelement The raw element record to copy
+     * @param int $topageid The ID of the page to copy it to
+     * @param bool $strict Whether an unresolved element type should throw instead of being
+     *                      tolerated. See method description for details.
+     * @return element_interface|null The new element instance, or null if copy failed
+     */
+    public function copy_element(stdClass $sourceelement, int $topageid, bool $strict = false): ?element_interface {
+        global $DB;
+
+        $now = time();
+        $newrecord = clone($sourceelement);
+        unset($newrecord->id);
+        $newrecord->pageid = $topageid;
+        $newrecord->timecreated = $now;
+        $newrecord->timemodified = $now;
+
+        $newid = $DB->insert_record('customcert_elements', $newrecord);
+        $newrecord->id = $newid;
+
+        if ($strict) {
+            // Let an unresolved/broken element type throw, matching copy_page()'s historical
+            // behaviour. Any transaction started by the caller is responsible for rollback.
+            $instance = $this->factory->create((string)$newrecord->element, $newrecord);
+        } else {
+            // Tolerate an unresolved element type, matching copy_to_template()'s historical
+            // behaviour: leave the row as-is and report failure without raising an error.
+            $instance = $this->factory->create_from_record($newrecord);
+            if (!$instance) {
+                return null;
+            }
+        }
+
+        // Give the element a chance to handle any unique data copying.
+        if ($instance instanceof copyable_element_interface) {
+            if (!$instance->copy_from($sourceelement)) {
+                $this->delete($instance);
+                return null;
+            }
+        }
+
+        return $instance;
+    }
+
+    /**
      * Copy all elements from one page to another, preserving sequence.
      *
      * @param int $frompageid
@@ -241,28 +296,10 @@ final class element_repository {
             $transaction = $DB->start_delegated_transaction();
         }
 
-        $now = time();
         foreach ($elements as $e) {
-            $newelement = clone($e);
-            unset($newelement->id);
-            $newelement->pageid = $topageid;
-            $newelement->timecreated = $now;
-            $newelement->timemodified = $now;
-
-            $newid = $DB->insert_record('customcert_elements', $newelement);
-
-            // Give the element a chance to handle any unique data copying.
-            $newelement->id = $newid;
-            $instance = $this->factory->create($e->element, $newelement);
-
-            // If the element implements copyable_element_interface, delegate to copy_from().
-            if ($instance instanceof \mod_customcert\element\copyable_element_interface) {
-                if (!$instance->copy_from($e)) {
-                    $this->delete($instance);
-                    continue;
-                }
+            if ($this->copy_element($e, $topageid, true)) {
+                $count++;
             }
-            $count++;
         }
 
         if ($transaction) {
