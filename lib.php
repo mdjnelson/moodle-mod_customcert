@@ -220,8 +220,10 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
 /**
  * Serves certificate issues and other files.
  *
- * @param stdClass $course
- * @param stdClass $cm
+ * $course and $cm may be null for system-context requests.
+ *
+ * @param stdClass|null $course
+ * @param stdClass|null $cm
  * @param context $context
  * @param string $filearea
  * @param array $args
@@ -229,7 +231,7 @@ function customcert_user_complete($course, $user, $mod, $customcert) {
  * @return bool|null false if file not found, does not return anything if found - just send the file
  */
 function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
-    global $CFG;
+    global $CFG, $USER;
 
     require_once($CFG->libdir . '/filelib.php');
 
@@ -251,6 +253,34 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
         }
 
         send_stored_file($file, 0, 0, $forcedownload);
+    } else if ($filearea === \mod_customcert\certificate::SITE_DOWNLOAD_FILEAREA) {
+        // The generated site-wide "download all certificates" archive, only ever served to the
+        // user it was generated for.
+        if ($context->contextlevel != CONTEXT_SYSTEM) {
+            return false;
+        }
+
+        require_login();
+
+        if (!has_capability('mod/customcert:viewallcertificates', $context)) {
+            return false;
+        }
+
+        $itemid = (int) array_shift($args);
+        if ($itemid !== (int) $USER->id) {
+            return false;
+        }
+
+        $filename = array_pop($args);
+        $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
+
+        $fs = get_file_storage();
+        $file = $fs->get_file($context->id, 'mod_customcert', $filearea, $itemid, $filepath, $filename);
+        if (!$file || $file->is_directory()) {
+            return false;
+        }
+
+        send_stored_file($file, 0, 0, true);
     }
 }
 
