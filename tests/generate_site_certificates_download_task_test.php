@@ -28,9 +28,14 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\task\cleanup_site_certificates_downloads_task;
 use mod_customcert\task\generate_site_certificates_download_task;
+use mod_customcert\tests\fixtures\testable_generate_site_certificates_download_task;
 use moodle_exception;
 use stdClass;
 use zip_archive;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/testable_generate_site_certificates_download_task.php');
 
 /**
  * Tests for the generate_site_certificates_download_task and related site download flow.
@@ -234,20 +239,8 @@ final class generate_site_certificates_download_task_test extends advanced_testc
             static fn() => $failingzip
         );
 
-        $task = new class extends generate_site_certificates_download_task {
-            /** @var certificate_download_service The stubbed service to return for this test. */
-            public certificate_download_service $service;
-
-            /**
-             * Return the stubbed download service injected for this test.
-             *
-             * @return certificate_download_service
-             */
-            protected function create_download_service(): certificate_download_service {
-                return $this->service;
-            }
-        };
-        $task->service = $failingservice;
+        $task = new testable_generate_site_certificates_download_task();
+        $task->set_download_service($failingservice);
         $task->set_userid($manageruser->id);
 
         try {
@@ -285,20 +278,8 @@ final class generate_site_certificates_download_task_test extends advanced_testc
             static fn() => $failingzip
         );
 
-        $task = new class extends generate_site_certificates_download_task {
-            /** @var certificate_download_service The stubbed service to return for this test. */
-            public certificate_download_service $service;
-
-            /**
-             * Return the stubbed download service injected for this test.
-             *
-             * @return certificate_download_service
-             */
-            protected function create_download_service(): certificate_download_service {
-                return $this->service;
-            }
-        };
-        $task->service = $failingservice;
+        $task = new testable_generate_site_certificates_download_task();
+        $task->set_download_service($failingservice);
         $task->set_userid($manageruser->id);
 
         try {
@@ -346,20 +327,8 @@ final class generate_site_certificates_download_task_test extends advanced_testc
             static fn() => $failingzip
         );
 
-        $task = new class extends generate_site_certificates_download_task {
-            /** @var certificate_download_service The stubbed service to return for this test. */
-            public certificate_download_service $service;
-
-            /**
-             * Return the stubbed download service injected for this test.
-             *
-             * @return certificate_download_service
-             */
-            protected function create_download_service(): certificate_download_service {
-                return $this->service;
-            }
-        };
-        $task->service = $failingservice;
+        $task = new testable_generate_site_certificates_download_task();
+        $task->set_download_service($failingservice);
         $task->set_userid($manageruser->id);
 
         try {
