@@ -302,6 +302,7 @@ class template {
             // Snapshot the current runtime language to restore later.
             $originallang = current_language();
 
+            $uselang = null;
             // If this template belongs to a certificate, pick language and apply it for this run.
             if ($customcert) {
                 $uselang = mod_customcert_get_language_to_use($customcert, $user);
@@ -313,113 +314,115 @@ class template {
                 }
             }
 
-            // If the template belongs to a certificate then we need to check what permissions we set for it.
-            if (!empty($customcert->protection)) {
-                $protection = explode(', ', $customcert->protection);
-                $pdf->SetProtection($protection);
-            }
-
-            if (empty($customcert->deliveryoption)) {
-                $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
-            } else {
-                $deliveryoption = $customcert->deliveryoption;
-            }
-
-            // Set up PDF document properties — no header/footer, auto page break.
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetAutoPageBreak(true, 0);
-
-            // Get filename pattern from global settings.
-            if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
-                // Use the custom cert name as the base filename (strip any trailing dot).
-                $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
-            } else {
-                // Get issue record for date (if issued); fallback to current date if not found.
-                $issue = $DB->get_record('customcert_issues', [
-                    'userid' => $user->id,
-                    'customcertid' => $customcert->id,
-                ]);
-
-                if ($issue && !empty($issue->timecreated)) {
-                    $issuedate = date('Y-m-d', $issue->timecreated);
-                } else {
-                    $issuedate = date('Y-m-d');
+            try {
+                // If the template belongs to a certificate then we need to check what permissions we set for it.
+                if (!empty($customcert->protection)) {
+                    $protection = explode(', ', $customcert->protection);
+                    $pdf->SetProtection($protection);
                 }
 
-                $course = $DB->get_record('course', ['id' => $customcert->course]);
-
-                $values = [
-                    '{FIRST_NAME}' => $user->firstname ?? '',
-                    '{LAST_NAME}' => $user->lastname ?? '',
-                    '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
-                    '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
-                    '{ISSUE_DATE}' => $issuedate,
-                ];
-
-                // Handle group if needed.
-                $groups = groups_get_all_groups($course->id, $user->id);
-                if (!empty($groups)) {
-                    $groupnames = array_map(function ($g) {
-                        return $g->name;
-                    }, $groups);
-                    $values['{GROUP_NAME}'] = implode(', ', $groupnames);
+                if (empty($customcert->deliveryoption)) {
+                    $deliveryoption = certificate::DELIVERY_OPTION_INLINE;
                 } else {
-                    $values['{GROUP_NAME}'] = '';
+                    $deliveryoption = $customcert->deliveryoption;
                 }
 
-                // Replace placeholders with actual values.
-                $filename = strtr($customcert->customfilenamepattern, $values);
+                // Set up PDF document properties — no header/footer, auto page break.
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+                $pdf->SetAutoPageBreak(true, 0);
 
-                // Remove trailing dot to avoid "..pdf" issues.
-                $filename = rtrim($filename, '.');
-            }
-
-            // This is the logic the TCPDF library uses when processing the name. This makes names
-            // such as 'الشهادة' become empty, so set a default name in these cases.
-            $filename = preg_replace('/[\s]+/', '_', $filename);
-            $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
-
-            // If filename ends up empty (e.g. after removing unsupported characters), use default string.
-            if (empty($filename)) {
-                $filename = get_string('certificate', 'customcert');
-            }
-
-            // Remove existing ".pdf" extension if present to avoid duplication.
-            $filename = preg_replace('/\.pdf$/i', '', $filename);
-
-            // Clean the final filename and append ".pdf".
-            $filename = clean_filename($filename . '.pdf');
-
-            // Set the PDF document title (for metadata, not the filename itself).
-            $pdf->SetTitle($filename);
-
-            // Loop through the pages and display their content.
-            foreach ($pages as $page) {
-                // Add the page to the PDF.
-                if ($page->width > $page->height) {
-                    $orientation = 'L';
+                // Get filename pattern from global settings.
+                if (empty($customcert->usecustomfilename) || empty($customcert->customfilenamepattern)) {
+                    // Use the custom cert name as the base filename (strip any trailing dot).
+                    $filename = rtrim(format_string($this->name, true, ['context' => $this->get_context()]), '.');
                 } else {
-                    $orientation = 'P';
+                    // Get issue record for date (if issued); fallback to current date if not found.
+                    $issue = $DB->get_record('customcert_issues', [
+                        'userid' => $user->id,
+                        'customcertid' => $customcert->id,
+                    ]);
+
+                    if ($issue && !empty($issue->timecreated)) {
+                        $issuedate = date('Y-m-d', $issue->timecreated);
+                    } else {
+                        $issuedate = date('Y-m-d');
+                    }
+
+                    $course = $DB->get_record('course', ['id' => $customcert->course]);
+
+                    $values = [
+                        '{FIRST_NAME}' => $user->firstname ?? '',
+                        '{LAST_NAME}' => $user->lastname ?? '',
+                        '{COURSE_SHORT_NAME}' => $course ? $course->shortname : '',
+                        '{COURSE_FULL_NAME}' => $course ? $course->fullname : '',
+                        '{ISSUE_DATE}' => $issuedate,
+                    ];
+
+                    // Handle group if needed.
+                    $groups = groups_get_all_groups($course->id, $user->id);
+                    if (!empty($groups)) {
+                        $groupnames = array_map(function ($g) {
+                            return $g->name;
+                        }, $groups);
+                        $values['{GROUP_NAME}'] = implode(', ', $groupnames);
+                    } else {
+                        $values['{GROUP_NAME}'] = '';
+                    }
+
+                    // Replace placeholders with actual values.
+                    $filename = strtr($customcert->customfilenamepattern, $values);
+
+                    // Remove trailing dot to avoid "..pdf" issues.
+                    $filename = rtrim($filename, '.');
                 }
-                $pdf->AddPage($orientation, [$page->width, $page->height]);
-                $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
-                // Get the elements for the page.
-                if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id], 'sequence ASC')) {
-                    // Loop through and display.
-                    foreach ($elements as $element) {
-                        // Get an instance of the element class.
-                        if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
-                            $e->render($pdf, $preview, $user);
+
+                // This is the logic the TCPDF library uses when processing the name. This makes names
+                // such as 'الشهادة' become empty, so set a default name in these cases.
+                $filename = preg_replace('/[\s]+/', '_', $filename);
+                $filename = preg_replace('/[^a-zA-Z0-9_\.-]/', '', $filename);
+
+                // If filename ends up empty (e.g. after removing unsupported characters), use default string.
+                if (empty($filename)) {
+                    $filename = get_string('certificate', 'customcert');
+                }
+
+                // Remove existing ".pdf" extension if present to avoid duplication.
+                $filename = preg_replace('/\.pdf$/i', '', $filename);
+
+                // Clean the final filename and append ".pdf".
+                $filename = clean_filename($filename . '.pdf');
+
+                // Set the PDF document title (for metadata, not the filename itself).
+                $pdf->SetTitle($filename);
+
+                // Loop through the pages and display their content.
+                foreach ($pages as $page) {
+                    // Add the page to the PDF.
+                    if ($page->width > $page->height) {
+                        $orientation = 'L';
+                    } else {
+                        $orientation = 'P';
+                    }
+                    $pdf->AddPage($orientation, [$page->width, $page->height]);
+                    $pdf->SetMargins($page->leftmargin, 0, $page->rightmargin);
+                    // Get the elements for the page.
+                    if ($elements = $DB->get_records('customcert_elements', ['pageid' => $page->id], 'sequence ASC')) {
+                        // Loop through and display.
+                        foreach ($elements as $element) {
+                            // Get an instance of the element class.
+                            if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
+                                $e->render($pdf, $preview, $user);
+                            }
                         }
                     }
                 }
-            }
-
-            // Restore original language if we changed it.
-            if ($customcert) {
-                if ($originallang !== $uselang) {
-                    mod_customcert_apply_runtime_language($originallang);
+            } finally {
+                // Restore original language if we changed it.
+                if ($customcert) {
+                    if ($originallang !== $uselang) {
+                        mod_customcert_apply_runtime_language($originallang);
+                    }
                 }
             }
 
