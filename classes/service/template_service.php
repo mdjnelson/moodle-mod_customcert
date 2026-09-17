@@ -20,7 +20,6 @@ namespace mod_customcert\service;
 
 use dml_exception;
 use invalid_parameter_exception;
-use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\page_created;
@@ -356,23 +355,7 @@ final class template_service {
             page_created::create_from_page($newpage, $target)->trigger();
 
             foreach ($this->elements->list_by_page((int)$sourcepage->id) as $templateelement) {
-                $element = clone($templateelement);
-                $element->pageid = $newpage->id;
-                $element->timecreated = $now;
-                $element->timemodified = $now;
-                unset($element->id);
-
-                $newid = $DB->insert_record('customcert_elements', $element);
-                $element->id = $newid;
-
-                if ($instance = $this->create_element_from_record($element)) {
-                    // If the element implements copyable_element_interface, delegate to copy_from().
-                    if ($instance instanceof copyable_element_interface) {
-                        if (!$instance->copy_from($templateelement)) {
-                            $this->elements->delete($instance);
-                            continue;
-                        }
-                    }
+                if ($instance = $this->elements->copy_element($templateelement, (int)$newpage->id)) {
                     element_created::create_from_element($instance)->trigger();
                 }
             }
