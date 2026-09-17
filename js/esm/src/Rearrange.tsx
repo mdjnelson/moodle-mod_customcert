@@ -176,10 +176,10 @@ export default function Rearrange(props: RearrangeProps) {
 
     return (
         <>
-            <div className="buttons">
+            <div className="buttons rearrange-actions">
                 <button
                     type="button"
-                    className="btn btn-secondary savepositionsbtn"
+                    className="btn btn-primary savepositionsbtn"
                     onClick={handleSaveAndClose}
                     disabled={saving}
                 >
@@ -195,45 +195,49 @@ export default function Rearrange(props: RearrangeProps) {
                 </button>
                 <button
                     type="button"
-                    className="btn btn-secondary cancelbtn"
+                    className="btn btn-link cancelbtn"
                     onClick={handleCancel}
                     disabled={saving}
                 >
                     {cancelLabel}
                 </button>
             </div>
-            <div
-                id="pdf"
-                className="rearrange-pdf"
-                data-templateid={templateid}
-                data-contextid={contextid}
-                style={pageStyle}
-                role="group"
-                aria-label={pageLabel}
-            >
-                {(page.leftmargin > 0) && (
+            <div className="rearrange-workspace">
+                <div className="rearrange-canvas-wrap">
                     <div
-                        className="rearrange-margin-guide rearrange-margin-guide-left"
-                        style={{left: leftGuide}}
-                        aria-hidden="true"
-                    />
-                )}
-                {(page.rightmargin > 0) && (
-                    <div
-                        className="rearrange-margin-guide rearrange-margin-guide-right"
-                        style={{left: rightGuide}}
-                        aria-hidden="true"
-                    />
-                )}
-                {elements.map((element) => (
-                    <CertificateElement
-                        key={element.id}
-                        element={element}
-                        page={page}
-                        onPositionChange={handlePositionChange}
-                        onEdit={handleEdit}
-                    />
-                ))}
+                        id="pdf"
+                        className="rearrange-pdf"
+                        data-templateid={templateid}
+                        data-contextid={contextid}
+                        style={pageStyle}
+                        role="group"
+                        aria-label={pageLabel}
+                    >
+                        {(page.leftmargin > 0) && (
+                            <div
+                                className="rearrange-margin-guide rearrange-margin-guide-left"
+                                style={{left: leftGuide}}
+                                aria-hidden="true"
+                            />
+                        )}
+                        {(page.rightmargin > 0) && (
+                            <div
+                                className="rearrange-margin-guide rearrange-margin-guide-right"
+                                style={{left: rightGuide}}
+                                aria-hidden="true"
+                            />
+                        )}
+                        {elements.map((element) => (
+                            <CertificateElement
+                                key={element.id}
+                                element={element}
+                                page={page}
+                                onPositionChange={handlePositionChange}
+                                onEdit={handleEdit}
+                            />
+                        ))}
+                    </div>
+                </div>
             </div>
             {editingElement && (
                 <EditElementModal
