@@ -9,6 +9,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Restored the runtime language when PDF generation fails (#933).
+- Limited the number of PDFs generated per request in the issues web service to prevent excessive resource use (#934).
 
 ### Added
 
