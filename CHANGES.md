@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.3.0] - Unreleased
 
+### Changed
+
+- Refreshed the certificate rearrange (reposition elements) interface: the certificate canvas is now centred in a visually distinct workspace with a subtle border/shadow, the save/cancel actions have a clearer visual hierarchy (Save and close is now primary), and hover/focus/selection affordances on certificate elements are more visible (#926).
+
 ### Developer notes
 
 - **Element authoring guide added** (#819). A new `docs/element_authoring_guide.md` explains which interfaces are required versus optional, provides a decision table, and includes examples for common element types (minimal static, text/stylable, image sketch, and copy-aware elements).
