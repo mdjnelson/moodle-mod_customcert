@@ -76,6 +76,18 @@ class certificate {
     private const ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES = 'all_certificates.zip';
 
     /**
+     * The file area used to store the generated site-wide "download all certificates" zip archives.
+     */
+    public const SITE_DOWNLOAD_FILEAREA = 'site_certificates_download';
+
+    /**
+     * How long a generated site-wide download archive is kept before being cleaned up, in seconds.
+     *
+     * Archives older than this lifetime are removed by the cleanup scheduled task.
+     */
+    public const SITE_DOWNLOAD_FILE_LIFETIME = DAYSECS;
+
+    /**
      * Handles setting the protection field for the customcert
      *
      * @param \stdClass $data
@@ -288,9 +300,39 @@ class certificate {
      * Download all certificates on the site.
      *
      * @return void
+     * @throws \moodle_exception
      */
     public static function download_all_for_site(): void {
-        global $DB;
+        $zip = self::generate_all_for_site_zip();
+        if ($zip !== null) {
+            send_file($zip['path'], $zip['filename']);
+            exit();
+        }
+    }
+
+    /**
+     * Generate a ZIP archive containing all certificates on the site.
+     *
+     * This builds the archive on disk without sending it, so it can be persisted (e.g. by an
+     * asynchronous task) rather than streamed directly to the browser.
+     *
+     * @param callable|null $zipfactory Factory returning a zip_archive instance.
+     * @param callable|null $requestdirfactory Factory returning a writable temp directory path, or false on failure.
+     * @return array{path: string, filename: string}|null null if there are no certificates to include.
+     * @throws \moodle_exception If a temporary directory or zip archive cannot be created.
+     */
+    public static function generate_all_for_site_zip(?callable $zipfactory = null, ?callable $requestdirfactory = null): ?array {
+        global $CFG, $DB;
+
+        require_once($CFG->libdir . '/filestorage/zip_archive.php');
+
+        $zipfactory = $zipfactory ?? static function (): \zip_archive {
+            return new \zip_archive();
+        };
+        // Prefer returning false over throwing so callers can raise a domain exception.
+        $requestdirfactory = $requestdirfactory ?? static function () {
+            return make_request_directory(false);
+        };
 
         [$namefields, $nameparams] = \core_user\fields::get_sql_fullname();
         $sql = "SELECT ci.*, $namefields as fullname, ct.id as templateid, ct.name as templatename, ct.contextid
@@ -301,36 +343,71 @@ class certificate {
                     ON ci.customcertid = c.id
                   JOIN {customcert_templates} ct
                     ON c.templateid = ct.id";
-        if ($issues = $DB->get_records_sql($sql, $nameparams)) {
-            $zipdir = make_request_directory();
-            if (!$zipdir) {
-                return;
+        $issues = $DB->get_recordset_sql($sql, $nameparams);
+
+        $ziparchive = null;
+        try {
+            $zipfullpath = null;
+            $zipfilename = null;
+            /** @var array<int, template> $templates */
+            $templates = [];
+            $count = 0;
+
+            foreach ($issues as $issue) {
+                if ($count === 0) {
+                    $zipdir = $requestdirfactory();
+                    if (!$zipdir) {
+                        throw new \moodle_exception('errorcreatetempdir', 'customcert');
+                    }
+
+                    $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
+                    $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
+                    $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
+
+                    $candidatezip = $zipfactory();
+                    if (!$candidatezip->open($zipfullpath)) {
+                        throw new \moodle_exception('errorcreatezip', 'customcert');
+                    }
+                    $ziparchive = $candidatezip;
+                }
+
+                $templateid = (int) $issue->templateid;
+                if (!isset($templates[$templateid])) {
+                    $templaterecord = new \stdClass();
+                    $templaterecord->id = $issue->templateid;
+                    $templaterecord->name = $issue->templatename;
+                    $templaterecord->contextid = $issue->contextid;
+                    $templates[$templateid] = new template($templaterecord);
+                }
+                $template = $templates[$templateid];
+
+                $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
+                // The SQL aliases the formatted user name as "fullname".
+                $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
+                $pdfname = $userfullname . DIRECTORY_SEPARATOR . $ctname . '_' . 'certificate.pdf';
+                $filecontents = $template->generate_pdf(false, (int) $issue->userid, true);
+                if (!$ziparchive->add_file_from_string($pdfname, $filecontents)) {
+                    throw new \moodle_exception('errorcreatezip', 'customcert');
+                }
+                $count++;
             }
 
-            $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
-            $zipfilename = $zipfilenameprefix . "_" . self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES;
-            $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
+            if ($count === 0) {
+                return null;
+            }
 
-            $ziparchive = new \zip_archive();
-            if ($ziparchive->open($zipfullpath)) {
-                foreach ($issues as $issue) {
-                    $template = new \stdClass();
-                    $template->id = $issue->templateid;
-                    $template->name = $issue->templatename;
-                    $template->contextid = $issue->contextid;
-                    $template = new \mod_customcert\template($template);
+            $closed = $ziparchive->close();
+            $ziparchive = null;
+            if (!$closed) {
+                throw new \moodle_exception('errorcreatezip', 'customcert');
+            }
 
-                    $ctname = str_replace(' ', '_', mb_strtolower($template->get_name()));
-                    $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
-                    $pdfname = $userfullname . DIRECTORY_SEPARATOR . $ctname . '_' . 'certificate.pdf';
-                    $filecontents = $template->generate_pdf(false, $issue->userid, true);
-                    $ziparchive->add_file_from_string($pdfname, $filecontents);
-                }
+            return ['path' => $zipfullpath, 'filename' => $zipfilename];
+        } finally {
+            $issues->close();
+            if ($ziparchive !== null) {
                 $ziparchive->close();
             }
-
-            send_file($zipfullpath, $zipfilename);
-            exit();
         }
     }
 
