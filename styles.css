@@ -69,6 +69,17 @@
     word-wrap: break-word;
 }
 
+/*
+    Prevents descendant preview elements, such as images, from becoming pointer targets so
+    interaction remains on the .element wrapper. The preview content is rendered directly inside
+    .element (as it was before this fix) so third-party CSS relying on that DOM relationship
+    keeps working, and the clickable/draggable area matches the element as it is visually
+    rendered.
+*/
+#page-mod-customcert-rearrange .element * {
+    pointer-events: none;
+}
+
 #page-mod-customcert-rearrange .element:before {
     background-image: url([[pix:mod_customcert|target]]);
     background-repeat: no-repeat;

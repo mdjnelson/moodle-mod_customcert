@@ -351,7 +351,12 @@ export default function CertificateElement({
             onPointerCancel={handlePointerCancel}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            // Server-rendered preview HTML from each element plugin's render_html().
+            // The server-rendered preview HTML from each element plugin's render_html() stays
+            // opaque here and is purely visual; it is kept as a direct child of this wrapper (as
+            // it was before this fix) so third-party CSS relying on that DOM relationship
+            // (e.g. ".element > img") keeps working. Pointer interaction on descendant preview
+            // content (e.g. an <img>, which browsers make natively draggable) is instead disabled
+            // via the "pointer-events: none" CSS rule on ".element *".
             dangerouslySetInnerHTML={{__html: element.html}}
         />
     );
