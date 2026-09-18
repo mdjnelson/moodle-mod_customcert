@@ -1,0 +1,126 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Anonymous function has invalid return type zip_archive\\.$#"
+			count: 1
+			path: classes/service/certificate_download_service.php
+
+		-
+			message: "#^Property mod_customcert\\\\service\\\\certificate_download_service\\:\\:\\$db has unknown class moodle_database as its type\\.$#"
+			count: 2
+			path: classes/service/certificate_download_service.php
+
+		-
+			message: "#^Call to an undefined static method mod_customcert\\\\event\\\\issue_created\\:\\:create\\(\\)\\.$#"
+			count: 1
+			path: classes/service/certificate_issue_service.php
+
+		-
+			message: "#^Property mod_customcert\\\\service\\\\certificate_issue_service\\:\\:\\$db has unknown class moodle_database as its type\\.$#"
+			count: 2
+			path: classes/service/certificate_issue_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\task\\\\email_certificate_task\\:\\:set_custom_data\\(\\)\\.$#"
+			count: 1
+			path: classes/service/certificate_issuer_service.php
+
+		-
+			message: "#^Property mod_customcert\\\\service\\\\certificate_time_service\\:\\:\\$db has unknown class moodle_database as its type\\.$#"
+			count: 2
+			path: classes/service/certificate_time_service.php
+
+		-
+			message: "#^Variable \\$coursefield might not be defined\\.$#"
+			count: 1
+			path: classes/service/certificate_time_service.php
+
+		-
+			message: "#^Variable \\$lasthit might not be defined\\.$#"
+			count: 1
+			path: classes/service/certificate_time_service.php
+
+		-
+			message: "#^Variable \\$timefield might not be defined\\.$#"
+			count: 7
+			path: classes/service/certificate_time_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\element_created\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/element_repository.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\element_deleted\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/element_repository.php
+
+		-
+			message: "#^Call to an undefined static method mod_customcert\\\\event\\\\element_updated\\:\\:create\\(\\)\\.$#"
+			count: 3
+			path: classes/service/element_repository.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\template_updated\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/item_move_service.php
+
+		-
+			message: "#^Property mod_customcert\\\\service\\\\item_move_service\\:\\:\\$db has unknown class moodle_database as its type\\.$#"
+			count: 2
+			path: classes/service/item_move_service.php
+
+		-
+			message: "#^Method mod_customcert\\\\service\\\\pdf_generation_service\\:\\:create_preview_pdf\\(\\) has invalid return type pdf\\.$#"
+			count: 2
+			path: classes/service/pdf_generation_service.php
+
+		-
+			message: "#^Property mod_customcert\\\\service\\\\pdf_renderer\\:\\:\\$pdf has unknown class pdf as its type\\.$#"
+			count: 2
+			path: classes/service/pdf_renderer.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\page_created\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_duplication_service.php
+
+		-
+			message: "#^Call to an undefined static method mod_customcert\\\\event\\\\template_duplicated\\:\\:create\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_duplication_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\template_updated\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_load_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\element_created\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\page_created\\:\\:trigger\\(\\)\\.$#"
+			count: 2
+			path: classes/service/template_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\page_deleted\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\page_updated\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\template_deleted\\:\\:trigger\\(\\)\\.$#"
+			count: 1
+			path: classes/service/template_service.php
+
+		-
+			message: "#^Call to an undefined method mod_customcert\\\\event\\\\template_updated\\:\\:trigger\\(\\)\\.$#"
+			count: 6
+			path: classes/service/template_service.php
