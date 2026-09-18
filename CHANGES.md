@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
-## [5.2.8] - Unreleased
+## [5.2.8] - 2026-09-19
+
+### Security
+
+- Hardened element identity handling when saving custom certificate elements ([GHSA-4xmv-rv36-86m8](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-4xmv-rv36-86m8)).
 
 ### Fixed
 
