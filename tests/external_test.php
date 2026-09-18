@@ -125,6 +125,74 @@ final class external_test extends advanced_testcase {
     }
 
     /**
+     * Legitimate layout fields (posx, posy, refpoint, alignment) sent alongside the
+     * element-specific payload must still be saved after the identity hardening fix.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_saves_layout_fields(): void {
+        global $DB;
+
+        $this->setAdminUser();
+
+        $template = (object) [
+            'name' => 'WS Save Layout Template',
+            'contextid' => context_system::instance()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $template->id = (int)$DB->insert_record('customcert_templates', $template, true);
+
+        $page = (object) [
+            'templateid' => $template->id,
+            'width' => 210,
+            'height' => 297,
+            'leftmargin' => 0,
+            'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $page->id = (int)$DB->insert_record('customcert_pages', $page, true);
+
+        $element = (object) [
+            'pageid' => $page->id,
+            'element' => 'text',
+            'name' => 'Text',
+            'posx' => 10,
+            'posy' => 20,
+            'refpoint' => 1,
+            'alignment' => 'L',
+            'data' => json_encode(['text' => 'old text']),
+            'sequence' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ];
+        $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
+
+        $values = [
+            ['name' => 'text', 'value' => 'new text'],
+            ['name' => 'posx', 'value' => '15'],
+            ['name' => 'posy', 'value' => '25'],
+            ['name' => 'refpoint', 'value' => '2'],
+            ['name' => 'alignment', 'value' => 'C'],
+        ];
+
+        $result = external::save_element($template->id, $element->id, $values);
+        $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
+        $this->assertSame(15, $cleaned['posx']);
+        $this->assertSame(25, $cleaned['posy']);
+        $this->assertSame(2, $cleaned['refpoint']);
+        $this->assertSame('C', $cleaned['alignment']);
+
+        $row = $DB->get_record('customcert_elements', ['id' => $element->id], '*', MUST_EXIST);
+        $this->assertSame(15, (int)$row->posx);
+        $this->assertSame(25, (int)$row->posy);
+        $this->assertSame(2, (int)$row->refpoint);
+        $this->assertSame('C', $row->alignment);
+    }
+
+    /**
      * A teacher with mod/customcert:manage in Course A must not be able to overwrite
      * an element belonging to Course B by supplying a foreign elementid.
      *
@@ -177,6 +245,194 @@ final class external_test extends advanced_testcase {
         external::save_element($templateida, $elementb->id, [
             ['name' => 'name', 'value' => 'Modified by attacker'],
         ]);
+    }
+
+    /**
+     * Create a Course A / Course B pair, each with a customcert template, page and element,
+     * plus an editing teacher enrolled only in Course A with no access to Course B.
+     *
+     * @return array{teacher: stdClass, templatea: int, elementa: stdClass, templateb: int, elementb: stdClass}
+     */
+    protected function create_two_template_scenario(): array {
+        global $DB;
+
+        $coursea = $this->getDataGenerator()->create_course();
+        $courseb = $this->getDataGenerator()->create_course();
+
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $coursea->id, 'editingteacher');
+
+        // Course A certificate — teacher has manage capability here.
+        $customcerta = $this->getDataGenerator()->create_module('customcert', ['course' => $coursea->id]);
+        $templateida = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcerta->id], MUST_EXIST);
+
+        $pagea = (object)[
+            'templateid' => $templateida,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $pagea->id = (int)$DB->insert_record('customcert_pages', $pagea, true);
+
+        $elementa = (object)[
+            'pageid' => $pagea->id,
+            'element' => 'text',
+            'name' => 'Element A',
+            'posx' => 5, 'posy' => 5,
+            'refpoint' => 0, 'alignment' => 'L',
+            'data' => json_encode(['text' => 'element a text']),
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $elementa->id = (int)$DB->insert_record('customcert_elements', $elementa, true);
+
+        // Course B certificate — teacher has no access.
+        $customcertb = $this->getDataGenerator()->create_module('customcert', ['course' => $courseb->id]);
+        $templateidb = (int)$DB->get_field('customcert', 'templateid', ['id' => $customcertb->id], MUST_EXIST);
+
+        $pageb = (object)[
+            'templateid' => $templateidb,
+            'width' => 210, 'height' => 297,
+            'leftmargin' => 0, 'rightmargin' => 0,
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $pageb->id = (int)$DB->insert_record('customcert_pages', $pageb, true);
+
+        $elementb = (object)[
+            'pageid' => $pageb->id,
+            'element' => 'text',
+            'name' => 'Element B',
+            'posx' => 0, 'posy' => 0,
+            'refpoint' => 0, 'alignment' => 'L',
+            'data' => json_encode(['text' => 'secret']),
+            'sequence' => 1,
+            'timecreated' => time(), 'timemodified' => time(),
+        ];
+        $elementb->id = (int)$DB->insert_record('customcert_elements', $elementb, true);
+
+        return [
+            'teacher' => $teacher,
+            'templatea' => $templateida,
+            'elementa' => $elementa,
+            'templateb' => $templateidb,
+            'elementb' => $elementb,
+        ];
+    }
+
+    /**
+     * A teacher who is legitimately authorised to save Element A must not be able to
+     * redirect the persisted identity to Element B by supplying a mutated 'id' value.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_id_mutation(): void {
+        global $DB;
+
+        $scenario = $this->create_two_template_scenario();
+        $this->setUser($scenario['teacher']);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        try {
+            external::save_element($scenario['templatea'], $scenario['elementa']->id, [
+                ['name' => 'id', 'value' => (string)$scenario['elementb']->id],
+                ['name' => 'text', 'value' => 'attacker controlled'],
+            ]);
+        } finally {
+            // Neither element should have been modified.
+            $rowa = $DB->get_record('customcert_elements', ['id' => $scenario['elementa']->id], '*', MUST_EXIST);
+            $rowb = $DB->get_record('customcert_elements', ['id' => $scenario['elementb']->id], '*', MUST_EXIST);
+            $this->assertSame($scenario['elementa']->data, $rowa->data);
+            $this->assertSame($scenario['elementb']->data, $rowb->data);
+            $this->assertSame($scenario['elementb']->name, $rowb->name);
+        }
+    }
+
+    /**
+     * A teacher legitimately authorised to save Element A must not be able to move it
+     * onto Course B's page by supplying a mutated 'pageid' value.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_pageid_mutation(): void {
+        global $DB;
+
+        $scenario = $this->create_two_template_scenario();
+        $this->setUser($scenario['teacher']);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        try {
+            external::save_element($scenario['templatea'], $scenario['elementa']->id, [
+                ['name' => 'pageid', 'value' => (string)$scenario['elementb']->pageid],
+            ]);
+        } finally {
+            $rowa = $DB->get_record('customcert_elements', ['id' => $scenario['elementa']->id], '*', MUST_EXIST);
+            $rowb = $DB->get_record('customcert_elements', ['id' => $scenario['elementb']->id], '*', MUST_EXIST);
+            $this->assertSame((int)$scenario['elementa']->pageid, (int)$rowa->pageid);
+            $this->assertSame((int)$scenario['elementb']->pageid, (int)$rowb->pageid);
+        }
+    }
+
+    /**
+     * A teacher legitimately authorised to save Element A must not be able to change its
+     * stored element type by supplying a mutated 'element' value.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_element_type_mutation(): void {
+        global $DB;
+
+        $scenario = $this->create_two_template_scenario();
+        $this->setUser($scenario['teacher']);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        try {
+            external::save_element($scenario['templatea'], $scenario['elementa']->id, [
+                ['name' => 'element', 'value' => 'date'],
+            ]);
+        } finally {
+            $rowa = $DB->get_record('customcert_elements', ['id' => $scenario['elementa']->id], '*', MUST_EXIST);
+            $this->assertSame('text', $rowa->element);
+        }
+    }
+
+    /**
+     * Server-managed lifecycle fields must not be settable by the client.
+     *
+     * @dataProvider protected_lifecycle_field_provider
+     * @param string $field
+     * @param string $value
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_lifecycle_field_mutation(string $field, string $value): void {
+        global $DB;
+
+        $scenario = $this->create_two_template_scenario();
+        $this->setUser($scenario['teacher']);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        try {
+            external::save_element($scenario['templatea'], $scenario['elementa']->id, [
+                ['name' => $field, 'value' => $value],
+            ]);
+        } finally {
+            $rowa = $DB->get_record('customcert_elements', ['id' => $scenario['elementa']->id], '*', MUST_EXIST);
+            $this->assertSame((string)$scenario['elementa']->{$field}, (string)$rowa->{$field});
+        }
+    }
+
+    /**
+     * Data provider for server-managed lifecycle fields.
+     *
+     * @return array
+     */
+    public static function protected_lifecycle_field_provider(): array {
+        return [
+            'sequence' => ['sequence', '999'],
+            'timecreated' => ['timecreated', '1'],
+            'timemodified' => ['timemodified', '1'],
+        ];
     }
 
     /**
