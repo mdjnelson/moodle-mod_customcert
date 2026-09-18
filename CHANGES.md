@@ -37,7 +37,11 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
-## [5.2.8] - Unreleased
+## [5.2.8] - 2026-09-19
+
+### Security
+
+- Hardened element identity handling when saving custom certificate elements ([GHSA-4xmv-rv36-86m8](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-4xmv-rv36-86m8)).
 
 ### Fixed
 
