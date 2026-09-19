@@ -33,6 +33,7 @@ namespace mod_customcert\service;
 use mod_customcert\element;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\copyable_element_interface;
+use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element_helper;
@@ -228,10 +229,15 @@ final class element_repository {
         $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
-        // Persist data exactly as provided by the element implementation.
-        // BC: legacy elements are wrapped via legacy_element_adapter, but their
-        // get_data() remains compatible with DB storage expectations.
-        $record->data = $element->get_data();
+        // Persist the raw, untouched storage representation of the data.
+        // get_data() applies a legacy compatibility transformation (unwrapping scalar
+        // values from a generic migration wrapper) that must never be written back to
+        // the database, or migrated metadata (font, colour, width, etc.) would be lost.
+        // Only elements implementing raw_data_element_interface expose that representation;
+        // fall back to get_data() for elements that do not.
+        $record->data = $element instanceof raw_data_element_interface
+            ? $element->get_raw_data()
+            : $element->get_data();
 
         $DB->update_record('customcert_elements', $record);
 
@@ -444,7 +450,10 @@ final class element_repository {
         // Width is stored inside the JSON data; no DB column write.
         $record->refpoint = $layout->refpoint;
         $record->alignment = $layout->alignment;
-        $record->data = $element->get_data();
+        // See save() for why get_raw_data() is used instead of get_data() here.
+        $record->data = $element instanceof raw_data_element_interface
+            ? $element->get_raw_data()
+            : $element->get_data();
         $record->sequence = element_helper::get_element_sequence($record->pageid);
         $now = time();
         $record->timecreated = $now;
