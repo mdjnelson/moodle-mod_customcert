@@ -49,6 +49,7 @@ use restore_customcert_activity_task;
 final class legacy_element_adapter implements
     form_element_interface,
     layout_element_interface,
+    raw_data_element_interface,
     renderable_element_interface,
     restorable_element_interface,
     stylable_element_interface {
@@ -107,6 +108,15 @@ final class legacy_element_adapter implements
      */
     public function get_data(): mixed {
         return $this->inner->get_data();
+    }
+
+    /**
+     * Get the raw, untouched persistence representation of the element data.
+     *
+     * @return mixed
+     */
+    public function get_raw_data(): mixed {
+        return $this->inner->get_raw_data();
     }
 
     /**
