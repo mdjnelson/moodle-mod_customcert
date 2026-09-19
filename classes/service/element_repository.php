@@ -32,6 +32,7 @@ namespace mod_customcert\service;
 
 use mod_customcert\element\element_interface;
 use mod_customcert\element\copyable_element_interface;
+use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_layout;
@@ -204,8 +205,15 @@ final class element_repository {
         $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
-        // Persist data exactly as provided by the element implementation.
-        $record->data = $element->get_data();
+        // Persist the raw storage representation, not the legacy compatibility view returned
+        // by get_data(): legacy elements may unwrap a migrated JSON object into a bare scalar
+        // in get_data(), which would otherwise cause additional migrated fields to be lost.
+        // Only use get_raw_data() when the element opts in via raw_data_element_interface;
+        // third-party elements implementing only the required element_interface fall back
+        // to get_data() to preserve backwards compatibility.
+        $record->data = $element instanceof raw_data_element_interface
+            ? $element->get_raw_data()
+            : $element->get_data();
 
         $DB->update_record('customcert_elements', $record);
 
@@ -422,7 +430,10 @@ final class element_repository {
         // Width is stored inside the JSON data; no DB column write.
         $record->refpoint = $layout->refpoint;
         $record->alignment = $layout->alignment;
-        $record->data = $element->get_data();
+        // See save() for why get_raw_data() is preferred over get_data() when available.
+        $record->data = $element instanceof raw_data_element_interface
+            ? $element->get_raw_data()
+            : $element->get_data();
         $record->sequence = element_helper::get_element_sequence($record->pageid);
         $now = time();
         $record->timecreated = $now;
