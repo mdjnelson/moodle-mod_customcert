@@ -1,0 +1,103 @@
+<?php
+// This file is part of the customcert module for Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Fixture: 5.2-adapter-style legacy element (typed-ish render + legacy hooks).
+ *
+ * @package    mod_customcert
+ * @category   test
+ * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace mod_customcert\tests\fixtures;
+
+/**
+ * Legacy element that uses the 5.2-era optional renderer argument plus legacy hooks.
+ */
+class legacy_52_adapter_element extends \mod_customcert\element {
+    /** @var string|null Last saved unique data (for assertions). */
+    public $lastsaved = null;
+
+    /** @var bool Whether render_form_elements was called. */
+    public $formcalled = false;
+
+    /**
+     * Render the element to PDF (5.2-shaped optional renderer).
+     *
+     * @param mixed $pdf
+     * @param mixed $preview
+     * @param mixed $user
+     * @param mixed $renderer
+     */
+    public function render($pdf, $preview, $user, $renderer = null) {
+        unset($pdf, $preview, $user, $renderer);
+    }
+
+    /**
+     * Render HTML preview for the designer.
+     *
+     * @param mixed $renderer
+     * @return string
+     */
+    public function render_html($renderer = null) {
+        unset($renderer);
+        return 'legacy52';
+    }
+
+    /**
+     * Add legacy form fields.
+     *
+     * @param mixed $mform
+     */
+    public function render_form_elements($mform) {
+        $this->formcalled = true;
+        unset($mform);
+    }
+
+    /**
+     * Persist element-specific form data.
+     *
+     * @param mixed $data
+     * @return string
+     */
+    public function save_unique_data($data) {
+        $value = isset($data->legacyvalue) ? (string) $data->legacyvalue : 'saved52';
+        $this->lastsaved = $value;
+        return $value;
+    }
+
+    /**
+     * Validate element-specific form data.
+     *
+     * @param mixed $data
+     * @param mixed $files
+     * @return array
+     */
+    public function validate_form_elements($data, $files) {
+        unset($data, $files);
+        return [];
+    }
+
+    /**
+     * Whether this element type can be added.
+     *
+     * @return bool
+     */
+    public static function can_add(): bool {
+        return true;
+    }
+}
