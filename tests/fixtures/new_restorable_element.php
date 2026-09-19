@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use mod_customcert\element\renderable_element_interface;
 use MoodleQuickForm;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_renderer;
@@ -36,7 +37,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class new_restorable_element extends element implements restorable_element_interface {
+class new_restorable_element extends element implements renderable_element_interface, restorable_element_interface {
     /**
      * Add element-specific fields to the edit form (no-op in fixture).
      *

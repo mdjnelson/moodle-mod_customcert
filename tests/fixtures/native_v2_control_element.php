@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Minimal test element fixture for upgrade/getter tests.
+ * Fixture: native v2 control element (must remain unwrapped by the factory).
  *
  * @package    mod_customcert
  * @category   test
@@ -23,56 +23,65 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-declare(strict_types=1);
-
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
+use mod_customcert\element\form_element_interface;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use MoodleQuickForm;
 use mod_customcert\service\element_renderer;
+use MoodleQuickForm;
+use pdf;
 use stdClass;
 
 /**
- * A minimal concrete element subclass used to test getter behaviour after migration.
- *
- * render() and render_html() are no-ops; all logic under test lives in the base class.
+ * Native v2 element used to prove the factory direct path.
  */
-final class minimal_test_element extends element implements renderable_element_interface {
+final class native_v2_control_element extends element implements
+    form_element_interface,
+    persistable_element_interface,
+    renderable_element_interface {
     /**
-     * Add element-specific fields to the edit form (no-op in fixture).
+     * Build the configuration form for this element.
      *
      * @param MoodleQuickForm $mform
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
+        unset($mform);
     }
 
     /**
-     * Render into TCPDF (no-op).
+     * Normalise form data for persistence.
      *
-     * @param \pdf $pdf The PDF object to render.
-     * @param bool $preview Indicates whether the render is for preview purposes.
-     * @param stdClass $user The user object that contains user-specific data for rendering.
-     * @param element_renderer|null $renderer An optional element renderer for custom rendering logic.
+     * @param stdClass $formdata
+     * @return array
+     */
+    public function normalise_data(stdClass $formdata): array {
+        return ['value' => $formdata->value ?? 'native'];
+    }
+
+    /**
+     * Render the element into a PDF context.
+     *
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
      * @return void
      */
-    public function render(
-        \pdf $pdf,
-        bool $preview,
-        stdClass $user,
-        ?element_renderer $renderer = null
-    ): void {
-        // No-op.
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+        unset($pdf, $preview, $user, $renderer);
     }
 
     /**
-     * Render HTML (no-op).
+     * Render the element in HTML for the designer.
      *
-     * @param element_renderer|null $renderer The optional renderer to render the HTML content.
+     * @param element_renderer|null $renderer
      * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
-        return '';
+        unset($renderer);
+        return 'native-v2';
     }
 }
