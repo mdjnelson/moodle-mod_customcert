@@ -114,23 +114,22 @@ final class element_registry_test extends advanced_testcase {
     }
 
     /**
-     * Registering a legacy element class (one that does not implement element_interface) must
-     * throw a coding_exception with a clear developer-facing message explaining that the legacy
-     * API was removed in Moodle 5.3.
+     * Registering a class that is neither a v2 element nor a legacy element subclass must
+     * throw a coding_exception with a clear developer-facing message.
      *
      * @covers \mod_customcert\service\element_registry::register
      */
-    public function test_registering_legacy_element_class_throws_coding_exception(): void {
+    public function test_registering_non_element_class_throws_coding_exception(): void {
         $this->resetAfterTest();
 
-        // Simulate an old-style third-party element plugin that does not implement element_interface.
+        // Neither stdClass nor other plain classes are valid element types.
         $classname = \stdClass::class;
 
         $registry = new element_registry();
 
         $this->expectException(\coding_exception::class);
-        $this->expectExceptionMessageMatches('/element_interface/');
-        $this->expectExceptionMessageMatches('/5\.3/');
+        $this->expectExceptionMessageMatches('/renderable_element_interface/');
+        $this->expectExceptionMessageMatches('/mod_customcert\\\\element/');
 
         $registry->register('legacytype', $classname);
     }

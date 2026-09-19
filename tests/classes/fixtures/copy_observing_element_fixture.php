@@ -20,6 +20,7 @@ namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
 use mod_customcert\element\copyable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
@@ -36,7 +37,9 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class copy_observing_element_fixture extends element implements copyable_element_interface {
+class copy_observing_element_fixture extends element implements
+    copyable_element_interface,
+    renderable_element_interface {
     /** @var stdClass|null The source record most recently passed to copy_from(). */
     public static ?stdClass $lastsource = null;
 
