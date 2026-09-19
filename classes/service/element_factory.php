@@ -26,12 +26,22 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element\element_interface;
+use coding_exception;
+use mod_customcert\element as legacy_base;
 use mod_customcert\element\element_bootstrap;
+use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_element_adapter;
+use mod_customcert\element\renderable_element_interface;
 use stdClass;
 
 /**
  * Registry-based factory for creating elements by type.
+ *
+ * Creation path for Moodle 5.3:
+ * - Instantiate the registered class
+ * - If it implements renderable_element_interface (native v2), return it directly
+ * - If it is a supported legacy mod_customcert\element subclass, wrap via legacy_element_adapter
+ * - Otherwise fail clearly
  */
 final class element_factory {
     /**
@@ -52,7 +62,7 @@ final class element_factory {
      * Register an element class for a given type key.
      *
      * @param string $type
-     * @param string $class Class-string implementing element_interface
+     * @param string $class Class-string of a native v2 element or legacy mod_customcert\element subclass
      * @return void
      */
     public function register(string $type, string $class): void {
@@ -73,10 +83,6 @@ final class element_factory {
     /**
      * Create an element instance from a record and type.
      *
-     * The registered class must implement element_interface. If it does not,
-     * element_registry::register() will have already thrown a coding_exception
-     * at registration time.
-     *
      * @param string $type
      * @param stdClass $record
      * @return element_interface
@@ -93,7 +99,21 @@ final class element_factory {
             );
             throw $e;
         }
-        return $instance;
+
+        // Native v2 path: already satisfies the renderable contract (and usually element_interface).
+        if ($instance instanceof renderable_element_interface && $instance instanceof element_interface) {
+            return $instance;
+        }
+
+        // Legacy path: wrap supported historical subclasses.
+        if ($instance instanceof legacy_base) {
+            return new legacy_element_adapter($instance);
+        }
+
+        throw new coding_exception(
+            "Element factory cannot use class '{$class}' for type '{$type}': "
+            . 'it must implement renderable_element_interface (native v2) or extend mod_customcert\element.'
+        );
     }
 
     /**
