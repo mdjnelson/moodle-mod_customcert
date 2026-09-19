@@ -30,6 +30,7 @@ use coding_exception;
 use InvalidArgumentException;
 use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\form_element_interface;
+use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use MoodleQuickForm;
 use stdClass;
@@ -46,6 +47,7 @@ use stdClass;
 abstract class element implements
     form_element_interface,
     layout_element_interface,
+    raw_data_element_interface,
     stylable_element_interface {
     /*
      * Note: this base class intentionally does NOT implement renderable_element_interface.
@@ -255,6 +257,25 @@ abstract class element implements
             $decoded = json_decode($this->data, true);
             return $decoded['value'];
         }
+        return $this->data;
+    }
+
+    /**
+     * Returns the raw, untouched persistence representation of the element data.
+     *
+     * Unlike {@see get_data()}, this method never unwraps a generic migration wrapper for
+     * legacy backwards-compatibility. It always returns exactly what is (or will be) stored
+     * in the `customcert_elements.data` database column, preserving any extra migrated
+     * fields (e.g. font, fontsize, colour, width, height, alphachannel) that a legacy
+     * scalar compatibility view would otherwise hide.
+     *
+     * This method is intended for use by the persistence layer (e.g. element_repository)
+     * only, and must not be used as a substitute for get_data() by element rendering or
+     * form-handling code.
+     *
+     * @return mixed
+     */
+    public function get_raw_data(): mixed {
         return $this->data;
     }
 

@@ -28,6 +28,8 @@ namespace mod_customcert\service;
 
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\persistable_element_interface;
+use mod_customcert\element\raw_data_element_interface;
+use mod_customcert\local\upgrade\row_migrator;
 use ReflectionMethod;
 use stdClass;
 
@@ -71,11 +73,116 @@ final class persistence_helper {
                 DEBUG_DEVELOPER
             );
             $legacy = $element->save_unique_data($formdata);
-            return self::to_object_json($legacy);
+            return self::to_object_json(self::merge_legacy_visuals($legacy, $element, $formdata));
         }
 
         // Absolute fallback: empty object.
         return json_encode(new stdClass());
+    }
+
+    /**
+     * Combine a legacy element's save_unique_data() result with the common visual form
+     * fields (width, font, fontsize, colour), mirroring the pre-5.x
+     * element::save_form_elements() semantics where these fields were persisted by the
+     * base class separately from the plugin-specific scalar value.
+     *
+     * When a visual field is absent from the submitted form data (which, in practice,
+     * only happens in synthetic/test scenarios since the real legacy edit form always
+     * renders these fields with defaults), the previous value already stored in the
+     * element's raw data is preserved instead of being dropped.
+     *
+     * @param mixed $legacy Result of save_unique_data(): typically a scalar, but may
+     *                       already be an associative array for plugins that return
+     *                       structured data.
+     * @param object $element Element instance being persisted.
+     * @param stdClass $formdata Submitted form data.
+     * @return mixed The value to pass to to_object_json(): an associative array when
+     *               any visual field applies, otherwise the original $legacy value.
+     */
+    private static function merge_legacy_visuals(mixed $legacy, object $element, stdClass $formdata): mixed {
+        // Look up any previously stored recognised compatibility-wrapper metadata (e.g.
+        // height, alphachannel) so it is not silently discarded on the next legacy save.
+        // Only trusted when the existing raw data is itself a recognised generic
+        // migration wrapper — arbitrary/structured third-party JSON is never blindly
+        // merged in, since that could resurrect stale plugin-specific state.
+        $existing = [];
+        if ($element instanceof raw_data_element_interface) {
+            $raw = $element->get_raw_data();
+            if (
+                is_string($raw) && $raw !== '' && json_validate($raw) &&
+                \mod_customcert\element::is_generic_migration_wrapper($raw)
+            ) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && !array_is_list($decoded)) {
+                    $existing = $decoded;
+                }
+            }
+        }
+
+        $legacystructured = self::decode_structured_legacy_value($legacy);
+        if ($legacystructured !== null) {
+            // The plugin itself returns structured data (either a PHP associative array,
+            // or, per the historical string-returning save_unique_data() API, a JSON
+            // object string). Use it as-is without merging in previously stored
+            // compatibility-wrapper metadata, so stale plugin-specific keys cannot
+            // resurrect.
+            $payload = $legacystructured;
+        } else {
+            // Scalar historical value: start from the existing recognised wrapper metadata
+            // (if any) so keys such as height/alphachannel survive, then replace the
+            // plugin-specific scalar with the latest save_unique_data() result.
+            $payload = $existing;
+            $payload['value'] = $legacy;
+        }
+
+        $width = isset($formdata->width) ? (int) $formdata->width : (isset($existing['width']) ? (int) $existing['width'] : null);
+        $font = $formdata->font ?? ($existing['font'] ?? null);
+        $fontsize = isset($formdata->fontsize)
+            ? (int) $formdata->fontsize
+            : (isset($existing['fontsize']) ? (int) $existing['fontsize'] : null);
+        $colour = $formdata->colour ?? ($existing['colour'] ?? null);
+
+        $payload = row_migrator::merge_visuals(
+            $payload,
+            $width,
+            $font !== null ? (string) $font : null,
+            $fontsize,
+            $colour !== null ? (string) $colour : null
+        );
+
+        return $payload;
+    }
+
+    /**
+     * Determine whether a legacy save_unique_data() result represents plugin-owned
+     * structured data, as opposed to a historical scalar compatibility value.
+     *
+     * Historically, save_unique_data() could return either a plain scalar (e.g. a
+     * string, teacher id, etc.) or a JSON object string for elements that persisted
+     * multiple fields (e.g. the bundled date/daterange/expiry/grade/image/qrcode/
+     * userpicture/digitalsignature elements on MOODLE_404_STABLE). Both a PHP
+     * associative array and a JSON object string are treated as structured data;
+     * plain scalars, JSON scalar strings, JSON lists, booleans and null are not.
+     *
+     * @param mixed $legacy Result of save_unique_data().
+     * @return array|null The decoded associative array when $legacy is structured, or
+     *                     null when it should be treated as a scalar compatibility value.
+     */
+    private static function decode_structured_legacy_value(mixed $legacy): ?array {
+        if (is_array($legacy) && !array_is_list($legacy)) {
+            return $legacy;
+        }
+
+        if (is_string($legacy) && $legacy !== '' && json_validate($legacy)) {
+            // Use the non-associative decode first so an empty JSON object ('{}') can be
+            // distinguished from an empty JSON list ('[]'); both decode to [] otherwise.
+            $decoded = json_decode($legacy, false);
+            if ($decoded instanceof stdClass) {
+                return (array) $decoded;
+            }
+        }
+
+        return null;
     }
 
     /**
