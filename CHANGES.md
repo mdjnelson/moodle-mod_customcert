@@ -37,6 +37,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
+## [5.2.9] - Unreleased
+
+### Fixed
+
+- Preserve migrated element data and visual settings when editing or saving legacy third-party elements (#968).
+
 ## [5.2.8] - 2026-09-19
 
 ### Security
