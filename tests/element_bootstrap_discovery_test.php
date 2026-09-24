@@ -22,13 +22,17 @@ use advanced_testcase;
 use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\provider\plugin_provider;
 use mod_customcert\service\element_registry;
+use mod_customcert\tests\fixtures\counting_plugin_provider;
 use mod_customcert\tests\fixtures\fake_element_fixture;
+use mod_customcert\tests\fixtures\incompatible_element_fixture;
 use mod_customcert\tests\fixtures\simple_plugin_provider;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/fake_element_fixture.php');
 require_once(__DIR__ . '/fixtures/simple_plugin_provider.php');
+require_once(__DIR__ . '/fixtures/counting_plugin_provider.php');
+require_once(__DIR__ . '/fixtures/incompatible_element_fixture.php');
 
 /**
  * Tests auto-discovery of third-party customcertelement_* plugins by element_bootstrap.
@@ -69,5 +73,36 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
         $this->assertTrue(class_exists($classname), 'Expected fake third-party element class to exist for the test.');
         $this->assertTrue($registry->has('fakeplugin'));
         $this->assertSame($classname, $registry->get('fakeplugin'));
+    }
+
+    /**
+     * A class outside the supported legacy/native envelope (#955) must be skipped during
+     * discovery with a warning, not crash bootstrap -- distinct from a plugin that is simply
+     * not installed (restore_missing_third_party_element_test.php), since here the class does
+     * exist but element_registry::register() refuses it. Both leave the type unregistered, so
+     * downstream behaviour (restore, rendering) ends up identical either way.
+     */
+    public function test_incompatible_class_is_skipped_during_discovery(): void {
+        $this->resetAfterTest();
+
+        if (!class_exists('\\customcertelement_incompat959\\element', false)) {
+            class_alias(incompatible_element_fixture::class, '\\customcertelement_incompat959\\element');
+        }
+
+        $registry = new element_registry();
+        $calls = 0;
+        $provider = new counting_plugin_provider($calls, 'incompat959');
+
+        $this->resetDebugging();
+        element_bootstrap::register_defaults($registry, $provider);
+
+        $this->assertDebuggingCalled(
+            "Failed to register customcertelement 'incompat959': Coding error detected, it must be fixed by "
+                . "a programmer: Cannot register element type 'incompat959': "
+                . "'\\customcertelement_incompat959\\element' must implement form_element_interface "
+                . 'and renderable_element_interface, or extend mod_customcert\\element.',
+            DEBUG_DEVELOPER
+        );
+        $this->assertFalse($registry->has('incompat959'), 'An incompatible class must never end up registered.');
     }
 }
