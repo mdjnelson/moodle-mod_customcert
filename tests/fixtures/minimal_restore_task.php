@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace mod_customcert\tests\fixtures;
 
+use mod_customcert\service\element_factory;
 use restore_customcert_activity_task;
 
 /**
@@ -46,6 +47,9 @@ final class minimal_restore_task extends restore_customcert_activity_task {
 
     /** @var array<string,array<int,int>> In-memory mapping store. */
     private array $map = [];
+
+    /** @var element_factory|null Injected factory override, used to simulate an installed third-party element. */
+    private ?element_factory $injectedfactory = null;
 
     /**
      * Constructor.
@@ -152,5 +156,25 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      */
     public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
         return $this->map[$itemname][$oldid] ?? false;
+    }
+
+    /**
+     * Inject an element factory, so tests can simulate a third-party element being installed
+     * on the restore target without relying on real plugin discovery.
+     *
+     * @param element_factory $factory
+     * @return void
+     */
+    public function set_element_factory(element_factory $factory): void {
+        $this->injectedfactory = $factory;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return element_factory
+     */
+    protected function get_element_factory(): element_factory {
+        return $this->injectedfactory ?? parent::get_element_factory();
     }
 }

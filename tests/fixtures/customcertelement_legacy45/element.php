@@ -36,6 +36,14 @@ namespace customcertelement_legacy45;
  * Does not override get_type(): the type is derived from the namespace by the base class.
  */
 class element extends \mod_customcert\element {
+    /**
+     * @var self|null The most recently constructed instance.
+     *
+     * The production factory always constructs a fresh instance internally, so callers have
+     * no other way to obtain a direct reference to the exact instance a restore dispatched to.
+     */
+    public static $lastconstructed = null;
+
     /** @var string|null Last saved unique data (for assertions). */
     public $lastsaved = null;
 
@@ -56,6 +64,16 @@ class element extends \mod_customcert\element {
 
     /** @var array|null Captured [$pdf, $preview, $user] arguments from the last render() call. */
     public $lastrenderargs = null;
+
+    /**
+     * Constructor override recording this instance as the most recently constructed one.
+     *
+     * @param \stdClass $element
+     */
+    public function __construct($element) {
+        parent::__construct($element);
+        self::$lastconstructed = $this;
+    }
 
     /**
      * Historical untyped PDF render signature.
