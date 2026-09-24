@@ -46,6 +46,7 @@ require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_activity_task.class.php');
 require_once(__DIR__ . '/fixtures/minimal_restore_task.php');
+require_once(__DIR__ . '/legacy_compatibility_diagnostic_test_trait.php');
 
 use advanced_testcase;
 use context_system;
@@ -78,6 +79,15 @@ use stdClass;
  * @covers \mod_customcert\service\persistence_helper
  */
 final class legacy_element_lifecycle_test extends advanced_testcase {
+    use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
+
+    protected function setUp(): void {
+        parent::setUp();
+        // Each test starts with a clean per-component de-duplication state for the
+        // general legacy compatibility diagnostic, independent of test execution order.
+        $this->reset_legacy_compatibility_diagnostic_state();
+    }
+
     /** Registry type key for the genuine 4.5-era fixture. */
     private const TYPE_LEGACY45 = 'legacy45';
 
@@ -208,6 +218,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Genuine 4.5 element');
 
         $loaded = $this->make_repository()->load_by_page_id($pageid);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertCount(1, $loaded);
 
         $instance = $loaded[0];
@@ -231,6 +243,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->insert_element_record($pageid, self::TYPE_LEGACY52, '5.2 adapter element');
 
         $loaded = $this->make_repository()->load_by_page_id($pageid);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertCount(1, $loaded);
 
         $instance = $loaded[0];
@@ -250,6 +264,9 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->insert_element_record($pageid, self::TYPE_NATIVE, 'Native v2 control');
 
         $loaded = $this->make_repository()->load_by_page_id($pageid);
+        // Native v2 elements are never wrapped, so no legacy compatibility diagnostic
+        // is emitted for them.
+        $this->assertDebuggingNotCalled();
         $this->assertCount(1, $loaded);
         $this->assertInstanceOf(native_v2_control_element::class, $loaded[0]);
         $this->assertNotInstanceOf(legacy_element_adapter::class, $loaded[0]);
@@ -270,6 +287,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         [, $pageid] = $this->create_template_and_page();
         $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Edit lifecycle 45');
         $instance = $this->make_factory()->create_from_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
 
         $formservice = new form_service();
@@ -303,6 +322,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         [, $pageid] = $this->create_template_and_page();
         $record = $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'Edit lifecycle 52');
         $instance = $this->make_factory()->create_from_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
 
         $formservice = new form_service();
@@ -339,9 +360,12 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $legacy45 = $factory->create_from_record(
             $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'HTML 45')
         );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $legacy52 = $factory->create_from_record(
             $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'HTML 52', [], 2)
         );
+        $this->assertDebuggingCalled();
 
         $this->assertInstanceOf(legacy_element_adapter::class, $legacy45);
         $this->assertInstanceOf(legacy_element_adapter::class, $legacy52);
@@ -372,9 +396,12 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $legacy45 = $factory->create_from_record(
             $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'PDF 45')
         );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $legacy52 = $factory->create_from_record(
             $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'PDF 52', [], 2)
         );
+        $this->assertDebuggingCalled();
 
         $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
         $user = new stdClass();
@@ -431,12 +458,16 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
 
         $repository = $this->make_repository();
         $loaded = $repository->load_by_page_id($sourcepageid);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertCount(1, $loaded);
         $this->assertInstanceOf(legacy_element_adapter::class, $loaded[0]);
         // Explicit contract: adapted legacy elements are not copyable_element_interface.
         $this->assertNotInstanceOf(copyable_element_interface::class, $loaded[0]);
 
         $copied = $repository->copy_element($source, $targetpageid);
+        // The same component was already warned about above in this request/test.
+        $this->assertDebuggingNotCalled();
         $this->assertNotNull($copied);
         $this->assertInstanceOf(legacy_element_adapter::class, $copied);
         $this->assertInstanceOf(\customcertelement_legacy45\element::class, $copied->get_inner());
@@ -472,6 +503,9 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
 
         $repository = $this->make_repository();
         $count = $repository->copy_page($sourcepageid, $targetpageid);
+        // The factory emits the general legacy-compatibility diagnostic once for the
+        // legacy component involved; the native control never triggers it.
+        $this->assertDebuggingCalled();
         $this->assertSame(2, $count);
 
         $copied = $repository->load_by_page_id($targetpageid);
@@ -506,6 +540,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
 
         $repository = $this->make_repository();
         $instance = $repository->load_by_page_id($pageid)[0];
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
         $this->assertTrue($DB->record_exists('customcert_elements', ['id' => $record->id]));
 
@@ -527,6 +563,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         [, $pageid] = $this->create_template_and_page();
         $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Restore me');
         $instance = $this->make_factory()->create_from_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
         $this->assertInstanceOf(restorable_element_interface::class, $instance);
@@ -577,6 +615,9 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
 
         // Load through the real repository path.
         $loaded = $repository->load_by_page_id($pageid);
+        // The factory emits the general legacy-compatibility diagnostic for the legacy
+        // element only; the native control never triggers it.
+        $this->assertDebuggingCalled();
         $this->assertCount(2, $loaded);
 
         $legacy = null;
@@ -674,6 +715,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Save lifecycle 45');
         $factory = $this->make_factory();
         $instance = $factory->create_from_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
 
         // Step 1: normalise a legacy form submission (new legacy value + visual metadata)
@@ -749,6 +792,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $legacy = $factory->create_from_record(
             $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'From record 52')
         );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $legacy);
         $this->assertInstanceOf(\customcertelement_legacy52\element::class, $legacy->get_inner());
 

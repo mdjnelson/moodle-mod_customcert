@@ -30,6 +30,7 @@ use coding_exception;
 use mod_customcert\element as legacy_base;
 use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\element_interface;
+use mod_customcert\element\legacy_compatibility_diagnostic;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\renderable_element_interface;
 use stdClass;
@@ -105,8 +106,11 @@ final class element_factory {
             return $instance;
         }
 
-        // Legacy path: wrap supported historical subclasses.
+        // Legacy path: wrap supported historical subclasses. Emit the single general
+        // compatibility diagnostic here, at the narrowest coherent boundary where a
+        // legacy element is detected and wrapped, deduplicated per component/type.
         if ($instance instanceof legacy_base) {
+            legacy_compatibility_diagnostic::notify($type, $class);
             return new legacy_element_adapter($instance);
         }
 

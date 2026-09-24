@@ -32,6 +32,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/fixtures/legacy_genuine_45_element.php');
 require_once(__DIR__ . '/fixtures/legacy_52_adapter_element.php');
 require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
+require_once(__DIR__ . '/legacy_compatibility_diagnostic_test_trait.php');
 
 use advanced_testcase;
 use mod_customcert\element\legacy_element_adapter;
@@ -55,6 +56,15 @@ use stdClass;
  * @covers \mod_customcert\element
  */
 final class legacy_element_adapter_test extends advanced_testcase {
+    use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
+
+    protected function setUp(): void {
+        parent::setUp();
+        // Each test starts with a clean per-component de-duplication state for the
+        // general legacy compatibility diagnostic, independent of test execution order.
+        $this->reset_legacy_compatibility_diagnostic_state();
+    }
+
     /**
      * Build a minimal element DB-shaped record.
      *
@@ -114,6 +124,9 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $factory = new element_factory($registry);
 
         $instance = $factory->create('legacy45', $this->make_record());
+        // The factory emits the single general legacy-compatibility diagnostic when
+        // wrapping the element in the adapter.
+        $this->assertDebuggingCalled();
 
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
         $this->assertInstanceOf(renderable_element_interface::class, $instance);
@@ -134,6 +147,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $factory = new element_factory($registry);
 
         $instance = $factory->create('legacy52', $this->make_record());
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertInstanceOf(legacy_element_adapter::class, $instance);
         $this->assertSame('legacy52', $instance->render_html());
 
@@ -145,6 +160,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
         // Persistence via save_unique_data through the helper.
         $formdata = (object) ['name' => 'X', 'legacyvalue' => 'payload52'];
         $json = persistence_helper::to_json_data($instance, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($json, true);
         $this->assertIsArray($decoded);
         $this->assertSame('payload52', $instance->get_inner()->lastsaved);
@@ -153,6 +170,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
 
         // Validation legacy fallback.
         $errors = (new validation_service())->validate($instance, ['name' => 'ok', 'colour' => '#ffffff']);
+        // The method-specific validate_form_elements() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $this->assertIsArray($errors);
     }
 
@@ -166,18 +185,24 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $registry->register('legacy45', legacy_genuine_45_element::class);
         $factory = new element_factory($registry);
         $instance = $factory->create('legacy45', $this->make_record());
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $mform = $this->create_stub_mform();
         (new form_service())->prepare_after_data($mform, $instance);
         $this->assertTrue($instance->get_inner()->definitioncalled);
+        // The method-specific definition_after_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
 
         $errors = (new validation_service())->validate($instance, ['name' => 'bad', 'colour' => '#ffffff']);
         $this->assertArrayHasKey('name', $errors);
+        $this->assertDebuggingCalled();
 
         $json = persistence_helper::to_json_data($instance, (object) ['legacyvalue' => 'from45']);
         $decoded = json_decode($json, true);
         $this->assertSame('from45', $instance->get_inner()->lastsaved);
         $this->assertSame('from45', $decoded['value']);
+        $this->assertDebuggingCalled();
     }
 
     /**
@@ -191,12 +216,16 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $factory = new element_factory($registry);
 
         $instance = $factory->create('nativev2', $this->make_record());
+        // Native v2 elements are never wrapped, so no legacy compatibility diagnostic
+        // is emitted for them.
+        $this->assertDebuggingNotCalled();
         $this->assertInstanceOf(native_v2_control_element::class, $instance);
         $this->assertNotInstanceOf(legacy_element_adapter::class, $instance);
         $this->assertSame('native-v2', $instance->render_html());
 
         $json = persistence_helper::to_json_data($instance, (object) ['value' => 'direct']);
         $this->assertSame(['value' => 'direct'], json_decode($json, true));
+        $this->assertDebuggingNotCalled();
     }
 
     /**
@@ -259,6 +288,8 @@ final class legacy_element_adapter_test extends advanced_testcase {
         $registry->register('legacy45', legacy_genuine_45_element::class);
         $factory = new element_factory($registry);
         $instance = $factory->create('legacy45', $this->make_record());
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
         $user = new stdClass();
