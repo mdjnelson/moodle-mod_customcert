@@ -40,6 +40,7 @@ require_once(__DIR__ . '/fixtures/dummy_element_interface_element.php');
 require_once(__DIR__ . '/fixtures/dummy_element_interface_with_id_element.php');
 require_once(__DIR__ . '/fixtures/customcertelement_legacy968/element.php');
 require_once(__DIR__ . '/fixtures/customcertelement_legacyjson968/element.php');
+require_once(__DIR__ . '/legacy_compatibility_diagnostic_test_trait.php');
 
 use advanced_testcase;
 use context_course;
@@ -60,6 +61,8 @@ use mod_customcert\tests\fixtures\native_v2_control_element;
  * representation of a legacy element, not the legacy scalar returned by get_data().
  */
 final class issue_968_raw_data_persistence_test extends advanced_testcase {
+    use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
+
     /** @var element_repository */
     private element_repository $repo;
 
@@ -75,6 +78,9 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
+        // Each test starts with a clean per-component de-duplication state for the
+        // general legacy compatibility diagnostic, independent of test execution order.
+        $this->reset_legacy_compatibility_diagnostic_state();
 
         $registry = new element_registry();
         $registry->register('legacy968', legacy_genuine_45_element::class);
@@ -184,6 +190,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
         $elementid = $this->insert_element('legacy968', $storagejson);
         $instance = $this->repo->load_by_page_id($this->pageid)[0];
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         // Sanity: get_data() returns the legacy scalar compatibility view.
         $this->assertSame('persisted45', $instance->get_data());
@@ -226,6 +234,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
         $elementid = $this->insert_element('legacy968', $storagejson);
         $instance = $this->repo->load_by_page_id($this->pageid)[0];
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $layout = new element_layout(5, 6, 0, 'L');
         $this->repo->save($instance, $layout);
@@ -279,6 +289,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
         [$factory, $repo] = $this->build_legacy968_factory_and_repo();
         $instance = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $this->assertSame('created45', $instance->get_data());
         $this->assertSame('legacy968', $instance->get_type());
@@ -327,6 +339,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $existing = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $newid = $repo->create($existing, new element_layout(5, 6, 0, 'L'));
 
         // Representative submitted form data (stdClass), as edit_element.php would build.
@@ -336,6 +350,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
         // Real production sequence: form data -> to_json_data() -> normalized JSON object.
         $normaliseddata = persistence_helper::to_json_data($existing, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
 
         $this->assertJson($normaliseddata);
         $decodedobject = json_decode($normaliseddata);
@@ -404,6 +420,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $existing = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $newid = $repo->create($existing, new element_layout(5, 6, 0, 'L'));
         $reloaded = $factory->create_from_record($DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST));
 
@@ -418,6 +436,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
         // Real production call.
         $normaliseddata = persistence_helper::to_json_data($reloaded, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
 
         $this->assertJson($normaliseddata);
         $decoded = json_decode($normaliseddata, true);
@@ -488,6 +508,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $existing = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         // Submitted form only carries a new legacyvalue and a new colour; font, fontsize
         // and width are absent from the form data.
@@ -497,6 +519,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($existing, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($normaliseddata, true);
 
         $this->assertSame('after-partial-edit', $decoded['value']);
@@ -541,6 +565,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $existing = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $newid = $repo->create($existing, new element_layout(5, 6, 0, 'L'));
         $reloaded = $factory->create_from_record($DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST));
 
@@ -553,6 +579,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($reloaded, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($normaliseddata, true);
 
         $this->assertSame('after', $decoded['value']);
@@ -626,6 +654,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $existing = $factory->create('legacy968', $record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
         $this->assertFalse(
             element::is_generic_migration_wrapper($existingjson),
             'Sanity: this payload must not be classified as a generic migration wrapper.'
@@ -637,6 +667,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($existing, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($normaliseddata, true);
 
         $this->assertSame('after', $decoded['value']);
@@ -675,12 +707,16 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $transient = $factory->create('legacy968', $transientrecord);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $formdata = (object) [
             'legacyvalue' => 'created-pipeline-value',
         ];
 
         $normaliseddata = persistence_helper::to_json_data($transient, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
 
         $this->assertJson($normaliseddata);
         $decodedobject = json_decode($normaliseddata);
@@ -736,6 +772,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $transient = $factory->create('legacy968', $transientrecord);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $formdata = (object) [
             'legacyvalue' => 'created-with-visuals',
@@ -746,6 +784,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($transient, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
 
         $this->assertJson($normaliseddata);
         $decoded = json_decode($normaliseddata, true);
@@ -813,6 +853,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacyjson968',
         ];
         $transient = $factory->create('legacyjson968', $transientrecord);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $formdata = (object) [
             'first' => 'A',
@@ -824,6 +866,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($transient, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($normaliseddata, true);
 
         // Must remain structured: "first"/"second" as top-level keys, never a
@@ -891,6 +935,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         $elementid = $this->insert_element('legacyjson968', $existingjson);
         $existingrecord = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
         $existing = $factory->create('legacyjson968', $existingrecord);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         $formdata = (object) [
             'first' => 'new-first',
@@ -902,6 +948,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         ];
 
         $normaliseddata = persistence_helper::to_json_data($existing, $formdata);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $decoded = json_decode($normaliseddata, true);
         $this->assertArrayNotHasKey('value', $decoded);
         $this->assertArrayNotHasKey('stale', $decoded, 'Stale previous plugin-specific fields must not be resurrected.');
@@ -962,22 +1010,29 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
             'element' => 'legacy968',
         ];
         $transient = $factory->create('legacy968', $transientrecord);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         // A plain string is scalar compatibility data, must be wrapped under "value".
         $formdata = (object) ['legacyvalue' => '[1,2,3]'];
         $decoded = json_decode(persistence_helper::to_json_data($transient, $formdata), true);
+        // The method-specific save_unique_data() deprecation is emitted separately.
+        $this->assertDebuggingCalled();
         $this->assertSame('[1,2,3]', $decoded['value'], 'A JSON list string must not be treated as a structured object.');
 
         $formdata = (object) ['legacyvalue' => '42'];
         $decoded = json_decode(persistence_helper::to_json_data($transient, $formdata), true);
+        $this->assertDebuggingCalled();
         $this->assertSame('42', $decoded['value'], 'A JSON scalar-number string must not be treated as a structured object.');
 
         $formdata = (object) ['legacyvalue' => 'true'];
         $decoded = json_decode(persistence_helper::to_json_data($transient, $formdata), true);
+        $this->assertDebuggingCalled();
         $this->assertSame('true', $decoded['value'], 'A JSON boolean string must not be treated as a structured object.');
 
         $formdata = (object) ['legacyvalue' => 'plain-string'];
         $decoded = json_decode(persistence_helper::to_json_data($transient, $formdata), true);
+        $this->assertDebuggingCalled();
         $this->assertSame('plain-string', $decoded['value']);
     }
 
@@ -1044,6 +1099,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
         $elementid = $this->insert_element('legacy968', $storagejson);
         $instance = $this->repo->load_by_page_id($this->pageid)[0];
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
 
         // The compatibility accessor must keep returning the legacy scalar.
         $this->assertSame('compatvalue', $instance->get_data());
