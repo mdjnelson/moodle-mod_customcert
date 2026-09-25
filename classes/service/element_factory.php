@@ -150,4 +150,16 @@ final class element_factory {
             return null;
         }
     }
+
+    /**
+     * Create an element from a legacy-shaped record.
+     *
+     * Compatibility alias retained for the Moodle 5.2 public API.
+     *
+     * @param stdClass $record
+     * @return element_interface|null
+     */
+    public function create_from_legacy_record(stdClass $record): ?element_interface {
+        return $this->create_from_record($record);
+    }
 }

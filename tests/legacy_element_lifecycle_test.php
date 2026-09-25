@@ -41,6 +41,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
 require_once(__DIR__ . '/fixtures/customcertelement_legacy52/element.php');
+require_once(__DIR__ . '/fixtures/customcertelement_legacythrows974/element.php');
 require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
 // Restore base classes must load before the minimal_restore_task fixture subclass.
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
@@ -70,6 +71,7 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\minimal_restore_task;
 use mod_customcert\tests\fixtures\native_v2_control_element;
+use mod_customcert\element\element_interface;
 use MoodleQuickForm;
 use ReflectionMethod;
 use stdClass;
@@ -1251,5 +1253,164 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $result = $instance->delete();
         $this->assertTrue($result);
         $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $record->id]));
+    }
+
+    /**
+     * Restored released-5.2 API (#985): create_from_legacy_record() must declare exactly the
+     * released contract: public, non-static, one stdClass parameter, nullable element_interface
+     * return type.
+     */
+    public function test_create_from_legacy_record_declares_the_52_contract(): void {
+        $ref = new ReflectionMethod(element_factory::class, 'create_from_legacy_record');
+        $this->assertTrue($ref->isPublic());
+        $this->assertFalse($ref->isStatic());
+
+        $params = $ref->getParameters();
+        $this->assertCount(1, $params);
+        $this->assertSame(stdClass::class, $params[0]->getType()?->getName());
+        $this->assertFalse($params[0]->getType()?->allowsNull());
+
+        $returntype = $ref->getReturnType();
+        $this->assertNotNull($returntype);
+        $this->assertTrue($returntype->allowsNull());
+        $this->assertSame(element_interface::class, $returntype->getName());
+    }
+
+    /**
+     * #985: a successful call must not emit a deprecation diagnostic of its own. The general
+     * legacy-compatibility diagnostic emitted when wrapping a legacy element (#956) is
+     * unrelated to this restored method.
+     */
+    public function test_create_from_legacy_record_does_not_emit_its_own_deprecation(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_NATIVE, 'No deprecation');
+
+        $this->make_factory()->create_from_legacy_record($record);
+
+        $this->assertDebuggingNotCalled();
+    }
+
+    /**
+     * #985: missing/empty element type must return null, never throw.
+     */
+    public function test_create_from_legacy_record_missing_or_empty_type_returns_null(): void {
+        $factory = $this->make_factory();
+
+        $this->assertNull($factory->create_from_legacy_record((object) []));
+        $this->assertNull($factory->create_from_legacy_record((object) ['element' => '']));
+    }
+
+    /**
+     * #985: an unregistered element type must return null; no arbitrary classname is constructed.
+     */
+    public function test_create_from_legacy_record_unknown_type_returns_null(): void {
+        $factory = $this->make_factory();
+
+        $this->assertNull($factory->create_from_legacy_record((object) ['element' => 'unknownxyz123']));
+    }
+
+    /**
+     * #985: a missing or empty name defaults to the element plugin's pluginname string.
+     */
+    public function test_create_from_legacy_record_defaults_missing_or_empty_name(): void {
+        $this->resetAfterTest();
+
+        $factory = element_factory::build_with_defaults();
+        $pluginname = get_string('pluginname', 'customcertelement_text');
+
+        $missingname = $factory->create_from_legacy_record((object) ['element' => 'text']);
+        $this->assertSame($pluginname, $missingname->get_name());
+
+        $emptyname = $factory->create_from_legacy_record((object) ['element' => 'text', 'name' => '']);
+        $this->assertSame($pluginname, $emptyname->get_name());
+    }
+
+    /**
+     * #985: a genuine 4.5-era legacy element is constructed through the current adapter path.
+     */
+    public function test_create_from_legacy_record_routes_genuine_45_through_adapter(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Legacy record 45');
+
+        $instance = $this->make_factory()->create_from_legacy_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+
+        $this->assertInstanceOf(legacy_element_adapter::class, $instance);
+        $this->assertInstanceOf(\customcertelement_legacy45\element::class, $instance->get_inner());
+        $this->assertSame('legacy45:Helvetica', $instance->render_html());
+    }
+
+    /**
+     * #985: a released-5.2-compatible legacy element is constructed through the current
+     * adapter path, preserving #981 renderer-argument compatibility.
+     */
+    public function test_create_from_legacy_record_routes_52_compatible_through_adapter(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'Legacy record 52');
+
+        $instance = $this->make_factory()->create_from_legacy_record($record);
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+
+        $this->assertInstanceOf(legacy_element_adapter::class, $instance);
+        $this->assertInstanceOf(\customcertelement_legacy52\element::class, $instance->get_inner());
+        $this->assertSame('legacy52', $instance->render_html());
+    }
+
+    /**
+     * #985: a native v2 element remains direct/unwrapped.
+     */
+    public function test_create_from_legacy_record_returns_native_v2_directly(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_NATIVE, 'Native record');
+
+        $instance = $this->make_factory()->create_from_legacy_record($record);
+        $this->assertDebuggingNotCalled();
+
+        $this->assertInstanceOf(native_v2_control_element::class, $instance);
+        $this->assertNotInstanceOf(legacy_element_adapter::class, $instance);
+    }
+
+    /**
+     * #985: a registered class that throws during construction returns null, with the same
+     * diagnostic behaviour as create_from_record().
+     */
+    public function test_create_from_legacy_record_construction_failure_returns_null(): void {
+        $this->resetAfterTest();
+
+        $registry = new element_registry();
+        $registry->register('legacythrows974', \customcertelement_legacythrows974\element::class);
+        $factory = new element_factory($registry);
+
+        $result = $factory->create_from_legacy_record((object) ['element' => 'legacythrows974', 'name' => 'Broken']);
+
+        $this->assertNull($result);
+        // The factory's own construction-failure diagnostic still fires; create_from_record()
+        // only suppresses its own additional diagnostic under PHPUnit/Behat.
+        $this->assertDebuggingCalledCount(1);
+    }
+
+    /**
+     * #985: create_from_record() remains unchanged by the addition of create_from_legacy_record().
+     */
+    public function test_create_from_record_remains_unchanged_control(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_NATIVE, 'Control record');
+
+        $instance = $this->make_factory()->create_from_record($record);
+        $this->assertDebuggingNotCalled();
+
+        $this->assertInstanceOf(native_v2_control_element::class, $instance);
     }
 }
