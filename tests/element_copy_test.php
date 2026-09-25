@@ -27,19 +27,28 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/legacy_compatibility_diagnostic_test_trait.php');
+
 use advanced_testcase;
 use context_system;
+use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\event\element_created;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\copy_observing_element_fixture;
+use mod_customcert\tests\fixtures\legacy_52_copyable_element_fixture;
+use mod_customcert\tests\fixtures\legacy_copy_override_fixture;
 use moodle_exception;
 
 /**
  * Tests for consolidated element copy logic.
  */
 final class element_copy_test extends advanced_testcase {
+    use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
+
     /**
      * Set up the test.
      */
@@ -47,6 +56,11 @@ final class element_copy_test extends advanced_testcase {
         parent::setUp();
         $this->resetAfterTest();
         copy_observing_element_fixture::reset();
+        legacy_copy_override_fixture::reset();
+        legacy_52_copyable_element_fixture::reset();
+        // Each test starts with a clean per-component de-duplication state for the
+        // general legacy compatibility diagnostic, independent of test execution order.
+        $this->reset_legacy_compatibility_diagnostic_state();
     }
 
     /**
@@ -57,6 +71,28 @@ final class element_copy_test extends advanced_testcase {
     private function factory_with_observing_fixture(): element_factory {
         $factory = element_factory::build_with_defaults();
         $factory->register('copyobserving', copy_observing_element_fixture::class);
+        return $factory;
+    }
+
+    /**
+     * Build a factory that also knows about the legacy_copy_override_fixture type.
+     *
+     * @return element_factory
+     */
+    private function factory_with_legacy_copy_override_fixture(): element_factory {
+        $factory = element_factory::build_with_defaults();
+        $factory->register('legacycopyoverride', legacy_copy_override_fixture::class);
+        return $factory;
+    }
+
+    /**
+     * Build a factory that also knows about the legacy_52_copyable_element_fixture type.
+     *
+     * @return element_factory
+     */
+    private function factory_with_legacy_52_copyable_fixture(): element_factory {
+        $factory = element_factory::build_with_defaults();
+        $factory->register('legacy52copyable', legacy_52_copyable_element_fixture::class);
         return $factory;
     }
 
@@ -171,6 +207,223 @@ final class element_copy_test extends advanced_testcase {
 
         $this->assertNull($result);
         $this->assertEquals(1, copy_observing_element_fixture::$calls);
+        $countafter = $DB->count_records('customcert_elements', ['pageid' => $targetpageid]);
+        $this->assertEquals($countbefore, $countafter);
+    }
+
+    /**
+     * Native v2 copyable_element_interface takes precedence over legacy copy_element()
+     * dispatch, and never triggers any legacy-copy diagnostic (#984).
+     *
+     * @covers \mod_customcert\service\element_repository::copy_element
+     */
+    public function test_copy_element_native_v2_copyable_takes_precedence_over_legacy_dispatch(): void {
+        global $DB;
+
+        $template = template::create('Source', context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $targetpageid = $service->add_page($template);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Observing element',
+            'element' => 'copyobserving',
+            'sequence' => 1,
+        ]);
+        $source = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = $this->factory_with_observing_fixture();
+        $repository = new element_repository($factory);
+
+        copy_observing_element_fixture::$result = true;
+        $copied = $repository->copy_element($source, $targetpageid);
+
+        // The fixture is never wrapped in legacy_element_adapter, so no diagnostic of any
+        // kind (general compatibility notice or legacy-copy deprecation) is emitted.
+        $this->assertDebuggingNotCalled();
+        $this->assertNotNull($copied);
+        $this->assertNotInstanceOf(legacy_element_adapter::class, $copied);
+        $this->assertEquals(1, copy_observing_element_fixture::$calls);
+    }
+
+    /**
+     * A released-5.2-compatible element that implements copyable_element_interface but not
+     * renderable_element_interface is still wrapped by legacy_element_adapter under current
+     * 5.3 (#981 removed renderable_element_interface from the legacy base). copy_from() on
+     * the wrapped inner element must still take precedence over the deprecated legacy
+     * copy_element() dispatch, and no legacy-copy diagnostic must be emitted (#984).
+     *
+     * @covers \mod_customcert\service\element_repository::copy_element
+     */
+    public function test_copy_element_adapter_wrapped_copyable_uses_copy_from(): void {
+        global $DB;
+
+        $template = template::create('Source', context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $targetpageid = $service->add_page($template);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Wrapped copyable element',
+            'element' => 'legacy52copyable',
+            'sequence' => 1,
+        ]);
+        $source = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = $this->factory_with_legacy_52_copyable_fixture();
+        $repository = new element_repository($factory);
+
+        // The factory wraps this element in legacy_element_adapter (it does not implement
+        // renderable_element_interface), and emits the general legacy-compatibility
+        // diagnostic while doing so; that is unrelated to the legacy-copy dispatch this
+        // test is verifying.
+        $loaded = $repository->load_by_page_id($pageid);
+        $this->assertDebuggingCalled();
+        $this->assertCount(1, $loaded);
+        $this->assertInstanceOf(legacy_element_adapter::class, $loaded[0]);
+        $this->assertInstanceOf(legacy_52_copyable_element_fixture::class, $loaded[0]->get_inner());
+
+        legacy_52_copyable_element_fixture::$result = true;
+        $copied = $repository->copy_element($source, $targetpageid);
+
+        // Copy_from() precedence means no legacy copy_element() deprecation is emitted.
+        $this->assertDebuggingNotCalled();
+
+        $this->assertNotNull($copied);
+        $this->assertInstanceOf(legacy_element_adapter::class, $copied);
+        $this->assertInstanceOf(legacy_52_copyable_element_fixture::class, $copied->get_inner());
+        $this->assertEquals(1, legacy_52_copyable_element_fixture::$calls);
+        $this->assertEquals($source->id, legacy_52_copyable_element_fixture::$lastsource->id);
+        $this->assertTrue($DB->record_exists('customcert_elements', ['id' => $copied->get_id()]));
+    }
+
+    /**
+     * The same adapter-wrapped copyable population removes the copied row and reports
+     * failure when copy_from() returns false, exactly like the native v2 failure path (#984).
+     *
+     * @covers \mod_customcert\service\element_repository::copy_element
+     */
+    public function test_copy_element_adapter_wrapped_copyable_cleans_up_on_copy_from_failure(): void {
+        global $DB;
+
+        $template = template::create('Source', context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $targetpageid = $service->add_page($template);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Wrapped copyable element',
+            'element' => 'legacy52copyable',
+            'sequence' => 1,
+        ]);
+        $source = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = $this->factory_with_legacy_52_copyable_fixture();
+        $repository = new element_repository($factory);
+
+        legacy_52_copyable_element_fixture::$result = false;
+        $countbefore = $DB->count_records('customcert_elements', ['pageid' => $targetpageid]);
+        $result = $repository->copy_element($source, $targetpageid);
+        // Only the general legacy-compatibility diagnostic (for the adapter wrap) is
+        // expected here, never the legacy-copy deprecation.
+        $this->resetDebugging();
+
+        $this->assertNull($result);
+        $this->assertEquals(1, legacy_52_copyable_element_fixture::$calls);
+        $countafter = $DB->count_records('customcert_elements', ['pageid' => $targetpageid]);
+        $this->assertEquals($countbefore, $countafter);
+    }
+
+    /**
+     * A genuine legacy element whose concrete class overrides the deprecated
+     * element::copy_element() hook is dispatched to it, receiving the historical source
+     * record, when the copy succeeds (#984).
+     *
+     * @covers \mod_customcert\service\element_repository::copy_element
+     */
+    public function test_copy_element_dispatches_to_legacy_copy_element_override(): void {
+        global $DB;
+
+        $template = template::create('Source', context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $targetpageid = $service->add_page($template);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Legacy copy override',
+            'element' => 'legacycopyoverride',
+            'sequence' => 1,
+        ]);
+        $source = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = $this->factory_with_legacy_copy_override_fixture();
+        $repository = new element_repository($factory);
+
+        legacy_copy_override_fixture::$result = true;
+        $copied = $repository->copy_element($source, $targetpageid);
+
+        $messages = $this->getDebuggingMessages();
+        $this->resetDebugging();
+        $found = false;
+        foreach ($messages as $message) {
+            if (str_contains($message->message, 'element::copy_element() is deprecated since Moodle 5.2')) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found, 'The legacy copy_element() deprecation must be emitted.');
+
+        $this->assertNotNull($copied);
+        $this->assertInstanceOf(legacy_element_adapter::class, $copied);
+        $this->assertEquals(1, legacy_copy_override_fixture::$calls);
+        $this->assertEquals($source->id, legacy_copy_override_fixture::$lastsource->id);
+        $this->assertTrue($DB->record_exists('customcert_elements', ['id' => $copied->get_id()]));
+    }
+
+    /**
+     * A genuine legacy copy_element() override returning strict false causes the copied row
+     * to be removed and the copy to be reported as failed (#984).
+     *
+     * @covers \mod_customcert\service\element_repository::copy_element
+     */
+    public function test_copy_element_legacy_override_returning_false_removes_copy(): void {
+        global $DB;
+
+        $template = template::create('Source', context_system::instance()->id);
+        $service = template_service::create();
+        $pageid = $service->add_page($template);
+        $targetpageid = $service->add_page($template);
+
+        $elementid = $DB->insert_record('customcert_elements', (object) [
+            'pageid' => $pageid,
+            'name' => 'Legacy copy override',
+            'element' => 'legacycopyoverride',
+            'sequence' => 1,
+        ]);
+        $source = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = $this->factory_with_legacy_copy_override_fixture();
+        $repository = new element_repository($factory);
+
+        legacy_copy_override_fixture::$result = false;
+        $countbefore = $DB->count_records('customcert_elements', ['pageid' => $targetpageid]);
+        $result = $repository->copy_element($source, $targetpageid);
+
+        $messages = $this->getDebuggingMessages();
+        $this->resetDebugging();
+        $found = false;
+        foreach ($messages as $message) {
+            if (str_contains($message->message, 'element::copy_element() is deprecated since Moodle 5.2')) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found, 'The legacy copy_element() deprecation must be emitted even on failure.');
+
+        $this->assertNull($result);
+        $this->assertEquals(1, legacy_copy_override_fixture::$calls);
         $countafter = $DB->count_records('customcert_elements', ['pageid' => $targetpageid]);
         $this->assertEquals($countbefore, $countafter);
     }

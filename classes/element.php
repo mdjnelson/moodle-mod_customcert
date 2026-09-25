@@ -32,6 +32,10 @@ use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\stylable_element_interface;
+use mod_customcert\service\element_factory;
+use mod_customcert\service\element_layout;
+use mod_customcert\service\element_repository;
+use mod_customcert\service\persistence_helper;
 use MoodleQuickForm;
 use stdClass;
 
@@ -723,5 +727,88 @@ abstract class element implements
      * @param mixed $restore the restore task
      */
     public function after_restore($restore) {
+    }
+
+    /**
+     * Handles saving the form elements created by this element.
+     * Can be overridden if more functionality is needed.
+     *
+     * @param stdClass $data the form data
+     * @return int|bool true if updated was a success, id of the new element otherwise.
+     * @deprecated since Moodle 5.2
+     */
+    public function save_form_elements($data) {
+        debugging(
+            'save_form_elements() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\persistable_element_interface::normalise_data() and '
+            . 'use element_repository for persistence.',
+            DEBUG_DEVELOPER
+        );
+
+        $repository = new element_repository(element_factory::build_with_defaults());
+        $isupdate = !empty($this->id);
+
+        // Keep the existing element identity authoritative on update.
+        if (!$isupdate) {
+            $this->pageid = (int) $data->pageid;
+        }
+
+        $this->name = (string) $data->name;
+        // Preserve the raw-compatible persistence representation.
+        $this->data = persistence_helper::to_json_data($this, $data);
+
+        if ($this->showposxy) {
+            $this->posx = isset($data->posx) && $data->posx !== '' ? (int) $data->posx : null;
+            $this->posy = isset($data->posy) && $data->posy !== '' ? (int) $data->posy : null;
+        }
+        // Match the 5.2 defaults for omitted layout fields.
+        $this->refpoint = isset($data->refpoint) && $data->refpoint !== '' ? (int) $data->refpoint : null;
+        $this->alignment = isset($data->alignment) && $data->alignment !== '' ? (string) $data->alignment : self::ALIGN_LEFT;
+
+        $layout = new element_layout($this->posx, $this->posy, $this->refpoint, $this->alignment);
+
+        if ($isupdate) {
+            $repository->save($this, $layout);
+            return true;
+        }
+
+        $newid = $repository->create($this, $layout);
+        $this->id = $newid;
+
+        return $newid;
+    }
+
+    /**
+     * This handles copying data from another element of the same type.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2 — implement mod_customcert\element\copyable_element_interface::copy_from() instead.
+     * @param mixed $data legacy form/element data
+     * @return bool returns true if the data was copied successfully, false otherwise
+     */
+    public function copy_element($data) {
+        debugging(
+            'element::copy_element() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
+            DEBUG_DEVELOPER
+        );
+        return true;
+    }
+
+    /**
+     * Handles deleting any data this element may have introduced.
+     * Can be overridden if more functionality is needed.
+     *
+     * @deprecated since Moodle 5.2
+     * @return bool success return true if deletion success, false otherwise
+     */
+    public function delete() {
+        debugging(
+            'element::delete() is deprecated since Moodle 5.2. Use element_repository::delete() instead.',
+            DEBUG_DEVELOPER
+        );
+
+        $repository = new element_repository(element_factory::build_with_defaults());
+        return $repository->delete($this);
     }
 }
