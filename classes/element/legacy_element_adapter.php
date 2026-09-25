@@ -55,13 +55,43 @@ final class legacy_element_adapter implements
     /** @var legacy_base The wrapped legacy element instance. */
     private legacy_base $inner;
 
+    /** @var bool Whether the wrapped render() declares a renderer parameter (released 5.2 shape). */
+    private bool $innerrenderacceptsrenderer;
+
+    /** @var bool Whether the wrapped render_html() declares a renderer parameter (released 5.2 shape). */
+    private bool $innerrenderhtmlacceptsrenderer;
+
     /**
      * Constructor.
+     *
+     * Caches the wrapped element's render()/render_html() declaration shape once, so the
+     * genuine 4.5-era historical call arity and the released 5.2 renderer argument can both
+     * be preserved without reflecting on every render call.
      *
      * @param legacy_base $legacy Legacy element instance to wrap.
      */
     public function __construct(legacy_base $legacy) {
         $this->inner = $legacy;
+        $this->innerrenderacceptsrenderer = self::accepts_argument_at(new \ReflectionMethod($legacy, 'render'), 3);
+        $this->innerrenderhtmlacceptsrenderer =
+            self::accepts_argument_at(new \ReflectionMethod($legacy, 'render_html'), 0);
+    }
+
+    /**
+     * Whether a method's declaration accepts a positional argument at the given index,
+     * either through enough declared parameters or a variadic parameter at or before it.
+     *
+     * @param \ReflectionMethod $method
+     * @param int $position Zero-based argument position.
+     * @return bool
+     */
+    private static function accepts_argument_at(\ReflectionMethod $method, int $position): bool {
+        $params = $method->getParameters();
+        if (count($params) > $position) {
+            return true;
+        }
+        $last = end($params);
+        return $last !== false && $last->isVariadic() && $last->getPosition() <= $position;
     }
 
     /**
@@ -245,6 +275,10 @@ final class legacy_element_adapter implements
     /**
      * Render the element into a PDF context.
      *
+     * Preserves the wrapped element's own call shape: a genuine 4.5-era historical
+     * render($pdf, $preview, $user) is called with exactly those three arguments, while a
+     * released 5.2-compatible render() that declares the renderer parameter also receives it.
+     *
      * @param \pdf $pdf
      * @param bool $preview
      * @param \stdClass $user
@@ -252,21 +286,27 @@ final class legacy_element_adapter implements
      * @return void
      */
     public function render(\pdf $pdf, bool $preview, \stdClass $user, ?element_renderer $renderer = null): void {
-        // Historical 4.5-era signature is render($pdf, $preview, $user). 5.2-era methods
-        // add an optional renderer with a default. Calling with three args works for both.
-        unset($renderer);
-        $this->inner->render($pdf, $preview, $user);
+        if ($this->innerrenderacceptsrenderer) {
+            $this->inner->render($pdf, $preview, $user, $renderer);
+        } else {
+            $this->inner->render($pdf, $preview, $user);
+        }
     }
 
     /**
      * Render the element in HTML for the drag and drop interface.
      *
+     * Preserves the wrapped element's own call shape: a genuine 4.5-era historical
+     * render_html() is called with no arguments, while a released 5.2-compatible
+     * render_html() that declares the renderer parameter also receives it.
+     *
      * @param element_renderer|null $renderer
      * @return string
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // Historical render_html() is parameterless; optional renderer has a default on 5.2.
-        unset($renderer);
+        if ($this->innerrenderhtmlacceptsrenderer) {
+            return (string) $this->inner->render_html($renderer);
+        }
         return (string) $this->inner->render_html();
     }
 

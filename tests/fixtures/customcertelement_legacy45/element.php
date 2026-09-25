@@ -65,6 +65,12 @@ class element extends \mod_customcert\element {
     /** @var array|null Captured [$pdf, $preview, $user] arguments from the last render() call. */
     public $lastrenderargs = null;
 
+    /** @var int|null Number of arguments actually received by the last render() call. */
+    public $lastrenderargcount = null;
+
+    /** @var int|null Number of arguments actually received by the last render_html() call. */
+    public $lasthtmlargcount = null;
+
     /**
      * Constructor override recording this instance as the most recently constructed one.
      *
@@ -85,6 +91,7 @@ class element extends \mod_customcert\element {
     public function render($pdf, $preview, $user) {
         $this->rendercalled = true;
         $this->lastrenderargs = [$pdf, $preview, $user];
+        $this->lastrenderargcount = func_num_args();
         // Touch legacy properties to prove they are accessible.
         $font = $this->font;
         $colour = $this->colour;
@@ -100,6 +107,7 @@ class element extends \mod_customcert\element {
      * @return string
      */
     public function render_html() {
+        $this->lasthtmlargcount = func_num_args();
         $label = $this->font ?? 'n/a';
         return 'legacy45:' . $label;
     }
