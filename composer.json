@@ -8,8 +8,12 @@
         "installer-name": "customcert"
     },
     "require-dev": {
+        "phpstan/phpstan": "^2.2",
         "squizlabs/php_codesniffer": "^3.8",
         "slevomat/coding-standard": "~8.0"
+    },
+    "scripts": {
+        "phpstan": "phpstan analyse"
     },
     "config": {
         "allow-plugins": {
