@@ -30,8 +30,12 @@
 
 namespace customcertelement_legacy52;
 
+use mod_customcert\service\element_renderer;
+use pdf;
+use stdClass;
+
 /**
- * Legacy element that uses the 5.2-era optional renderer argument plus legacy hooks.
+ * Legacy element using the released Moodle 5.2 typed render contract plus legacy hooks.
  *
  * Does not override get_type(): the type is derived from the namespace by the base class.
  */
@@ -42,21 +46,24 @@ class element extends \mod_customcert\element {
     /** @var bool Whether render_form_elements was called. */
     public $formcalled = false;
 
-    /** @var bool Whether the historical render() method was actually invoked. */
+    /** @var bool Whether the released 5.2 render() method was actually invoked. */
     public $rendercalled = false;
 
     /** @var array|null Captured [$pdf, $preview, $user, $renderer] arguments from the last render() call. */
     public $lastrenderargs = null;
 
+    /** @var element_renderer|null Renderer received by the last render_html() call. */
+    public $lasthtmlrenderer = null;
+
     /**
-     * Render the element to PDF (5.2-shaped optional renderer).
+     * Render the element to PDF (released Moodle 5.2 typed contract).
      *
-     * @param mixed $pdf
-     * @param mixed $preview
-     * @param mixed $user
-     * @param mixed $renderer
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
      */
-    public function render($pdf, $preview, $user, $renderer = null) {
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         $this->rendercalled = true;
         $this->lastrenderargs = [$pdf, $preview, $user, $renderer];
     }
@@ -64,11 +71,11 @@ class element extends \mod_customcert\element {
     /**
      * Render HTML preview for the designer.
      *
-     * @param mixed $renderer
+     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html($renderer = null) {
-        unset($renderer);
+    public function render_html(?element_renderer $renderer = null): string {
+        $this->lasthtmlrenderer = $renderer;
         return 'legacy52';
     }
 

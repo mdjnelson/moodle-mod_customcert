@@ -56,10 +56,12 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
+use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
 use mod_customcert\service\html_renderer;
 use mod_customcert\service\page_repository;
+use mod_customcert\service\pdf_renderer;
 use mod_customcert\service\persistence_helper;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\validation_service;
@@ -77,6 +79,8 @@ use stdClass;
  * @covers \mod_customcert\service\form_service
  * @covers \mod_customcert\service\validation_service
  * @covers \mod_customcert\service\persistence_helper
+ * @covers \mod_customcert\service\pdf_renderer
+ * @covers \mod_customcert\service\html_renderer
  */
 final class legacy_element_lifecycle_test extends advanced_testcase {
     use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
@@ -374,16 +378,19 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
     }
 
     /**
-     * PDF rendering through the adapter's strict v2 signature for both legacy fixtures.
+     * PDF rendering through the adapter's strict v2 signature for both legacy fixtures,
+     * called directly with no renderer supplied.
      *
      * Asserts real delegation to the wrapped historical render() method: that it is
      * actually invoked, and that the same $pdf/$preview/$user arguments the adapter
-     * received are the ones forwarded to the inner legacy element. See
-     * legacy_element_adapter::render(): it always calls the inner render() with exactly
-     * three positional arguments (pdf, preview, user); the optional v2 $renderer
-     * argument is deliberately never forwarded, since the historical 4.5-era signature
-     * is untyped/3-arg and the 5.2-era optional $renderer parameter is only meant to
-     * default when not supplied by the caller.
+     * received are the ones forwarded to the inner legacy element. The genuine 4.5
+     * fixture's render() only ever declares three parameters, so it always receives
+     * exactly those three positional arguments. The released-5.2 fixture's render()
+     * declares a fourth renderer parameter, so the adapter forwards whatever renderer
+     * it received; here that is null because none was supplied. Renderer *forwarding*
+     * itself, and exact historical call arity, are covered separately by
+     * test_pdf_renderer_forwards_itself_to_released_52_legacy_element() and
+     * test_pdf_renderer_preserves_exact_historical_45_call_arity() below.
      */
     public function test_pdf_rendering_through_adapter(): void {
         global $CFG;
@@ -421,9 +428,159 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->assertSame($pdf, $receivedpdf52);
         $this->assertFalse($receivedpreview52);
         $this->assertSame($user, $receiveduser52);
-        // The adapter never forwards an explicit renderer to the historical signature;
-        // the 5.2-era optional $renderer parameter is left to fall back to its default.
+        // Calling the adapter directly with no renderer supplied forwards none; renderer
+        // forwarding itself is covered by test_pdf_renderer_forwards_itself_to_released_52_legacy_element().
         $this->assertNull($receivedrenderer52);
+    }
+
+    /**
+     * The permanent released-5.2 fixture's render()/render_html() declarations must exactly
+     * match the contract released Moodle 5.2 required, so this regression fails if the
+     * fixture is ever weakened back to an untyped/return-typeless "5.2-ish" shape.
+     */
+    public function test_legacy52_fixture_declares_the_released_52_render_contract(): void {
+        $renderref = new \ReflectionMethod(\customcertelement_legacy52\element::class, 'render');
+        $renderparams = $renderref->getParameters();
+        $this->assertCount(4, $renderparams);
+        $this->assertSame('pdf', $renderparams[0]->getType()?->getName());
+        $this->assertFalse($renderparams[0]->getType()?->allowsNull());
+        $this->assertSame('bool', $renderparams[1]->getType()?->getName());
+        $this->assertSame('stdClass', $renderparams[2]->getType()?->getName());
+        $rendererparamtype = $renderparams[3]->getType();
+        $this->assertNotNull($rendererparamtype);
+        $this->assertTrue($rendererparamtype->allowsNull());
+        $this->assertSame(element_renderer::class, $rendererparamtype->getName());
+        $this->assertTrue($renderparams[3]->isDefaultValueAvailable());
+        $this->assertNull($renderparams[3]->getDefaultValue());
+        $this->assertTrue($renderref->hasReturnType());
+        $this->assertSame('void', $renderref->getReturnType()?->getName());
+
+        $htmlref = new \ReflectionMethod(\customcertelement_legacy52\element::class, 'render_html');
+        $htmlparams = $htmlref->getParameters();
+        $this->assertCount(1, $htmlparams);
+        $htmlparamtype = $htmlparams[0]->getType();
+        $this->assertNotNull($htmlparamtype);
+        $this->assertTrue($htmlparamtype->allowsNull());
+        $this->assertSame(element_renderer::class, $htmlparamtype->getName());
+        $this->assertTrue($htmlparams[0]->isDefaultValueAvailable());
+        $this->assertNull($htmlparams[0]->getDefaultValue());
+        $this->assertTrue($htmlref->hasReturnType());
+        $this->assertSame('string', $htmlref->getReturnType()?->getName());
+    }
+
+    /**
+     * A released-5.2-compatible legacy element's render() declares the renderer parameter,
+     * so pdf_renderer's actual rendering path must forward itself through the adapter to it.
+     */
+    public function test_pdf_renderer_forwards_itself_to_released_52_legacy_element(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        require_once($CFG->libdir . '/pdflib.php');
+
+        $factory = $this->make_factory();
+        [, $pageid] = $this->create_template_and_page();
+        $legacy52 = $factory->create_from_record(
+            $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'PDF renderer 52')
+        );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+        $this->assertInstanceOf(legacy_element_adapter::class, $legacy52);
+
+        $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
+        $user = new stdClass();
+        $renderer = new pdf_renderer();
+
+        $renderer->render_pdf($legacy52, $pdf, true, $user);
+
+        $inner = $legacy52->get_inner();
+        $this->assertTrue($inner->rendercalled);
+        [$receivedpdf, $receivedpreview, $receiveduser, $receivedrenderer] = $inner->lastrenderargs;
+        $this->assertSame($pdf, $receivedpdf);
+        $this->assertTrue($receivedpreview);
+        $this->assertSame($user, $receiveduser);
+        $this->assertSame($renderer, $receivedrenderer);
+    }
+
+    /**
+     * A released-5.2-compatible legacy element's render_html() declares the renderer
+     * parameter, so html_renderer's actual rendering path must forward itself through the
+     * adapter to it.
+     */
+    public function test_html_renderer_forwards_itself_to_released_52_legacy_element(): void {
+        $this->resetAfterTest();
+
+        $factory = $this->make_factory();
+        [, $pageid] = $this->create_template_and_page();
+        $legacy52 = $factory->create_from_record(
+            $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'HTML renderer 52')
+        );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+
+        $renderer = new html_renderer();
+        $html = $renderer->render_html($legacy52);
+
+        $this->assertSame('legacy52', $html);
+        $this->assertSame($renderer, $legacy52->get_inner()->lasthtmlrenderer);
+    }
+
+    /**
+     * A genuine 4.5-era legacy element's render() only ever declares three parameters, so
+     * pdf_renderer's actual rendering path must still call it with exactly the historical
+     * three positional arguments, never a fourth renderer argument.
+     */
+    public function test_pdf_renderer_preserves_exact_historical_45_call_arity(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        require_once($CFG->libdir . '/pdflib.php');
+
+        $factory = $this->make_factory();
+        [, $pageid] = $this->create_template_and_page();
+        $legacy45 = $factory->create_from_record(
+            $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'PDF arity 45')
+        );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+
+        $pdf = $this->getMockBuilder(\pdf::class)->disableOriginalConstructor()->getMock();
+        $user = new stdClass();
+        $renderer = new pdf_renderer();
+
+        $renderer->render_pdf($legacy45, $pdf, false, $user);
+
+        $inner = $legacy45->get_inner();
+        $this->assertTrue($inner->rendercalled);
+        $this->assertSame(3, $inner->lastrenderargcount, 'Genuine 4.5 render() must receive exactly 3 arguments.');
+        [$receivedpdf, $receivedpreview, $receiveduser] = $inner->lastrenderargs;
+        $this->assertSame($pdf, $receivedpdf);
+        $this->assertFalse($receivedpreview);
+        $this->assertSame($user, $receiveduser);
+    }
+
+    /**
+     * A genuine 4.5-era legacy element's render_html() is parameterless, so html_renderer's
+     * actual rendering path must still call it with exactly zero arguments.
+     */
+    public function test_html_renderer_preserves_exact_historical_45_call_arity(): void {
+        $this->resetAfterTest();
+
+        $factory = $this->make_factory();
+        [, $pageid] = $this->create_template_and_page();
+        $legacy45 = $factory->create_from_record(
+            $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'HTML arity 45')
+        );
+        // The factory emits the general legacy-compatibility diagnostic when wrapping.
+        $this->assertDebuggingCalled();
+
+        $renderer = new html_renderer();
+        $html = $renderer->render_html($legacy45);
+
+        $this->assertSame('legacy45:Helvetica', $html);
+        $this->assertSame(
+            0,
+            $legacy45->get_inner()->lasthtmlargcount,
+            'Genuine 4.5 render_html() must receive exactly 0 arguments.'
+        );
     }
 
     /**
