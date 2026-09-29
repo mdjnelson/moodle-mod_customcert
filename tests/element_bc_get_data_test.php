@@ -253,12 +253,12 @@ final class element_bc_get_data_test extends \advanced_testcase {
     }
 
     /**
-     * Bundled text element with value key is NOT unwrapped (regression test).
+     * A non-persistable element unwraps regardless of its assigned type name.
      */
-    public function test_get_data_does_not_unwrap_bundled_text_element(): void {
+    public function test_get_data_unwraps_non_persistable_element_regardless_of_type_name(): void {
         $json = '{"value":"legacy scalar","width":15}';
         $el = $this->make_element($json, 'text');
-        $this->assertSame($json, $el->read_data());
+        $this->assertSame('legacy scalar', $el->read_data());
     }
 
     /**
