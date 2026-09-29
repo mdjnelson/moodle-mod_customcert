@@ -3,42 +3,97 @@
 ## Overview
 
 Moodle 5.2 introduced **Element System v2** — a set of explicit PHP interfaces that replace the
-legacy hook methods that lived on the `mod_customcert\element` base class.
+legacy hook methods that lived on the `mod_customcert\element` base class — and deprecated the
+historical element runtime API.
 
-**In 5.3 the legacy compatibility layer has been removed.**  
-Third-party element plugins that still override the old hook methods must migrate to the v2
-interfaces before they will work with customcert 5.3.
+Moodle 5.3 retains a deprecated compatibility bridge so a genuine Moodle 4.5-era third-party
+element, and a plugin already migrated to the released Moodle 5.2 contract, can both continue to
+run across a direct Moodle 4.5 LTS → 5.3 LTS upgrade. Native Element System v2 elements are
+unaffected and never go through this bridge.
+
+**Moodle 5.3 is the final release supporting the legacy runtime element API.** The compatibility
+bridge — the legacy hook methods on `mod_customcert\element` and the `legacy_element_adapter`
+that wraps legacy elements — is removed in the Moodle 6.0-compatible release. Plugin authors
+should migrate to Element System v2 now rather than relying on the bridge.
+
+Historical database-upgrade and backup/restore migration logic for old persisted element data is
+a separate, independent concern from this runtime API removal, and may remain for as long as
+required to safely upgrade or restore historical data.
+
+Until `MOODLE_503_STABLE` is created, references in this guide to "Moodle 5.3" mean the current
+`main` branch.
+
+### The released Moodle 5.2 compatibility boundary
+
+The released Moodle 5.2 compatibility surface — including its requirement that third-party
+`render()`/`render_html()` overrides adopt the 5.2 typed declarations — remains the normal
+compatibility baseline, and a plugin that already migrated for 5.2 continues to work unchanged on
+5.3. Moodle 5.3 adds only narrow additional corrections needed for a genuine Moodle 4.5-era
+element (one that never ran through 5.2) to cross directly to 5.3 — for example, accepting the
+genuine 4.5-era untyped `render()`/`render_html()` shape through the compatibility bridge. This
+does not retroactively change the released 5.2 contract, and is not a general licence to recreate
+older declarations: the old one-record `mod_customcert\template` constructor, for instance, was
+not restored. `MOODLE_502_STABLE` does not automatically receive this bridge's class-loading
+changes; independent 5.2 bug fixes remain eligible for normal stable maintenance as usual.
 
 ---
 
-## What was removed in 5.3
+## Identifying legacy element usage
 
-The following methods were removed from the `mod_customcert\element` base class:
+A plugin still depends on the legacy compatibility bridge if it overrides any of the historical
+hooks listed in the table below instead of implementing the corresponding Element System v2
+interface — for example `render_form_elements()`, `definition_after_data()`,
+`validate_form_elements()`, `save_form_elements()`, `save_unique_data()`, `after_restore()`, or
+`copy_element()`.
 
-| Removed method | Replacement interface / method |
+A running site also surfaces this at runtime: with `DEBUG_DEVELOPER` enabled, a legacy element
+triggers a notice similar to:
+
+> Legacy custom certificate element `customcertelement_foo` is using the deprecated
+> mod_customcert legacy element API. Migrate the plugin to Element System v2 interfaces.
+
+You do not need to inspect `legacy_element_adapter` or any other internal implementation detail to
+answer this. The migration test is conceptually: implement the appropriate Element System v2
+interfaces directly, rather than depending on the compatibility bridge. See
+`docs/element_authoring_guide.md` for the current authoring reference.
+
+---
+
+## Legacy hooks and their Element System v2 replacements
+
+The following historical `mod_customcert\element` methods are deprecated since Moodle 5.2. They
+remain callable through Moodle 5.3 via the compatibility bridge, but new and migrated code should
+use the Element System v2 interfaces instead:
+
+| Legacy hook | Element System v2 replacement |
 |---|---|
-| `render_form_elements(MoodleQuickForm $mform)` | `form_element_interface::build_form()` |
-| `definition_after_data(MoodleQuickForm $mform)` | `preparable_form_interface::prepare_form()` |
-| `validate_form_elements(array $data, array $files, array $element)` | `validatable_element_interface::validate()` |
-| `save_form_elements(stdClass $data)` | `persistable_element_interface::normalise_data()` |
-| `save_unique_data(string $data)` | `persistable_element_interface::normalise_data()` |
-| `render(pdf $pdf, bool $preview, stdClass $user)` *(legacy untyped)* | `renderable_element_interface` — implement typed `render()` |
-| `render_html()` *(legacy untyped)* | `renderable_element_interface` — implement typed `render_html()` |
-| `after_restore(int $newitemid, stdClass $data, stdClass $task)` | `restorable_element_interface::after_restore_from_backup()` |
-| `copy_element(stdClass $oldelement)` | `copyable_element_interface::copy_from()` |
-| `get_data()` migration wrapper | Use `$this->get_data()` directly — returns raw JSON string |
-| `is_generic_migration_wrapper()` | Removed — no replacement needed |
-| `BUNDLED_ELEMENT_TYPES` constant | Removed |
-| `MIGRATION_VISUAL_KEYS` constant | Removed |
+| `render_form_elements()` | `form_element_interface::build_form()` |
+| `definition_after_data()` | `preparable_form_interface::prepare_form()` |
+| `validate_form_elements()` | `validatable_element_interface::validate()` |
+| `save_form_elements()` / `save_unique_data()` | `persistable_element_interface::normalise_data()` |
+| `render()` / `render_html()` | `renderable_element_interface` |
+| `after_restore()` | `restorable_element_interface::after_restore_from_backup()` |
+| `copy_element()` | `copyable_element_interface::copy_from()` |
+| `delete()` | `element_repository::delete()` |
 
-The `legacy_element_adapter` wrapper class has also been removed entirely.
+`legacy_element_adapter` is the internal mechanism that bridges these hooks to the Element System
+v2 interfaces at runtime. It is a deprecated implementation detail, not a public API — plugin
+authors should not instantiate it or depend on it directly, and native v2 elements never go
+through it. It is removed together with the rest of the legacy runtime bridge in the Moodle
+6.0-compatible release.
 
 ---
 
 ## Required interfaces
 
-Every registered element class **must** implement `element_interface`.  
-The registry will throw a `coding_exception` at registration time if it does not.
+For native Element System v2 elements, registered classes must implement
+`form_element_interface` and `renderable_element_interface`; `form_element_interface` already
+extends `element_interface`. The registry throws a `coding_exception` at registration time if a
+class satisfies neither that native v2 contract nor the legacy compatibility path below.
+
+Historical classes extending `mod_customcert\element` without implementing these v2 interfaces
+are not rejected — they are instead accepted through the deprecated legacy compatibility path and
+wrapped by `legacy_element_adapter`.
 
 Additional interfaces are opt-in depending on what the element does:
 
@@ -273,7 +328,7 @@ The service layer enforces these checks. Bypassing them is a security risk.
 
 ## Further reading
 
-- `CHANGES.md` — 5.3 breaking-change entry with full migration table
+- `CHANGES.md` — 5.3 deprecated/compatibility entry with full migration table
 - `classes/element/` — all v2 interface definitions
 - Bundled elements (e.g. `element/coursename`, `element/text`, `element/date`) — real-world v2
   implementations to use as reference

@@ -16,15 +16,49 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 - **`mod_customcert\element\stylable_payload` is an immutable value object** (#814, #815). `from_form()` and `from_array()` return a `stylable_payload` instance; call `->to_array()` when a plain array is needed.
 - **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class when an element has a genuine invariant or conditional-serialization rule to enforce; the database continues to store JSON, and this interface governs the PHP layer only. Elements with a real invariant ship a dedicated payload class (`customcertelement_coursename\coursename_payload`, `customcertelement_image\image_payload`, `customcertelement_bgimage\bgimage_payload`, `customcertelement_digitalsignature\digitalsignature_payload`); simple elements compose `mod_customcert\element\stylable_payload` directly in `normalise_data()` instead of wrapping it in an element-specific class. See `docs/element_payload_interface.md` for the full guide.
 
-### Breaking changes
+### Deprecated / compatibility
 
-- **Removed deprecated `mod_customcert\certificate` facade class** (#826). Use the focused certificate services and repositories instead: `form_service`, `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`, `certificate_repository`, and `certificate_issue_service`.
-- **Removed deprecated forwarding shims from `mod_customcert\template`** (#826). Use `template_service` and `pdf_generation_service` directly instead of the deprecated instance methods (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`, `copy_to_template`, `move_item`).
-- **Removed legacy customcert element API compatibility layer** (#825). Third-party element plugins must now implement the Element System v2 interfaces introduced in 5.2. Legacy hooks retained for the 5.2 transition are no longer called. Element classes that do not implement `element_interface`, `form_element_interface`, and `renderable_element_interface` will be rejected at registration time with a clear developer-facing exception.
+Moodle 5.3 is the final LTS compatibility bridge release for third-party `customcertelement_*`
+plugins upgrading directly from Moodle 4.5 LTS. Moodle 5.2 introduced Element System v2 and
+deprecated the historical `mod_customcert\element` runtime API; Moodle 5.3 keeps a deprecated
+compatibility bridge available so a genuine Moodle 4.5-era element, and a plugin already migrated
+to the released Moodle 5.2 contract, both continue to run. Native Element System v2 elements are
+unaffected and never go through the bridge. **Moodle 5.3 is the final release supporting the
+legacy runtime element API; it is removed in the Moodle 6.0-compatible release** (#953, #960,
+#980, #981). Plugin authors should migrate to Element System v2 now — see
+`docs/element_migration_v2.md` for the full lifecycle and how to identify legacy dependence.
+Historical database-upgrade and backup/restore migration logic for old persisted element data is
+an independent concern and is not tied to this runtime removal date.
 
-#### Migration guide
+- **`mod_customcert\certificate` facade** (#975). Remains available as a deprecated compatibility
+  facade with all of its historical public methods and constants. New code should use the focused
+  services/repositories instead: `form_service`, `element_helper`, `certificate_time_service`,
+  `certificate_download_service`, `issue_repository`, `certificate_repository`, and
+  `certificate_issue_service`. Removal is planned no earlier than the Moodle 6.0-compatible
+  release.
+- **`mod_customcert\template` forwarding methods** (#976). The nine deprecated instance methods
+  (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`,
+  `copy_to_template`, `move_item`) remain available as compatibility shims delegating to
+  `template_service` and `pdf_generation_service`. Removal is planned no earlier than the Moodle
+  6.0-compatible release.
+- **Historical static `mod_customcert\element_factory::get_element_instance()`** (#974). Remains
+  available, deprecated, for historical callers that need the raw plugin object. New code should
+  use `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()`. This
+  compatibility shim will be removed in the Moodle 6.0-compatible release.
+- **Legacy element lifecycle methods** (#984). `element::save_form_elements()`,
+  `element::copy_element()`, and `element::delete()` remain available, deprecated, delegating to
+  `element_repository`. New code should implement the Element System v2 interfaces and use
+  `element_repository` directly.
+- **`mod_customcert\service\element_factory::create_from_legacy_record()`** (#985). Remains
+  available as a documented Moodle 5.2 replacement API for the historical static factory shim; it
+  is not itself deprecated. New/internal code should prefer `create_from_record()`.
 
-| Legacy behavior | 5.3 replacement |
+Until `MOODLE_503_STABLE` is created, references above to "Moodle 5.3" mean the current `main`
+branch.
+
+#### Legacy hooks and their Element System v2 replacements
+
+| Legacy hook | Element System v2 replacement |
 |---|---|
 | Legacy element identity/data methods | `element_interface` |
 | Legacy edit form hooks (`render_form_elements`) | `form_element_interface` |
