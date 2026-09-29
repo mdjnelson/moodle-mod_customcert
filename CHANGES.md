@@ -9,6 +9,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Preserve migrated element data and visual settings when editing or saving legacy third-party elements (#968).
+- Preserve structured JSON payloads for migrated third-party elements instead of treating them as legacy scalar data (#999).
 
 ## [5.2.8] - 2026-09-19
 

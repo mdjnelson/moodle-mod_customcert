@@ -32,6 +32,7 @@ use mod_customcert\element\element_interface;
 use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\form_element_interface;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_element_interface;
@@ -111,11 +112,6 @@ abstract class element implements
     protected ?int $refpoint;
 
     /**
-     * @var string The element type (plugin name, e.g. 'text', 'code').
-     */
-    private string $customcertelementtype;
-
-    /**
      * @var string The alignment.
      */
     protected string $alignment;
@@ -148,9 +144,6 @@ abstract class element implements
         $this->id = isset($element->id) ? (int) $element->id : 0;
         $this->pageid = isset($element->pageid) ? (int) $element->pageid : 0;
         $this->name = isset($element->name) ? (string) $element->name : '';
-
-        // Element type (plugin name).
-        $this->customcertelementtype = isset($element->element) ? (string) $element->element : '';
 
         // Mixed data payload.
         $this->data = $element->data ?? null;
@@ -194,14 +187,9 @@ abstract class element implements
     /**
      * Returns the data.
      *
-     * For legacy backwards-compatibility: if the stored data is a generic migration wrapper
-     * (a JSON object with a 'value' key and only migration visual/layout metadata keys),
-     * AND the element type is not a known bundled element type, this method unwraps and
-     * returns the scalar value directly so that legacy third-party elements extending this
-     * class continue to receive the original scalar they stored.
-     *
-     * Bundled element types always receive the raw stored data, even if the JSON object
-     * contains a 'value' key, because their save/load code expects the full JSON payload.
+     * Elements without persistable_element_interface receive the unwrapped scalar when
+     * the stored data is a generic migration wrapper; persistable elements always
+     * receive the raw JSON.
      *
      * @return mixed
      */
@@ -237,18 +225,12 @@ abstract class element implements
     }
 
     /**
-     * Return true if this element instance should unwrap a generic migration wrapper in get_data().
-     *
-     * Unwrapping is only applied to unknown/third-party element types. Bundled element types
-     * use structured JSON payloads and must not be unwrapped.
+     * Whether this instance needs the historical scalar compatibility view.
      *
      * @return bool
      */
     private function should_unwrap_generic_migration_wrapper(): bool {
-        if ($this->customcertelementtype === '') {
-            return false;
-        }
-        return !in_array($this->customcertelementtype, self::BUNDLED_ELEMENT_TYPES, true);
+        return !($this instanceof persistable_element_interface);
     }
 
     /**
@@ -259,34 +241,6 @@ abstract class element implements
      * @var string[]
      */
     private const MIGRATION_VISUAL_KEYS = ['width', 'height', 'font', 'fontsize', 'colour', 'alphachannel'];
-
-    /**
-     * Bundled/core customcert element types that use structured JSON payloads.
-     * These element types must never have their data unwrapped by get_data(),
-     * even if the JSON object looks like a generic migration wrapper.
-     *
-     * @var string[]
-     */
-    private const BUNDLED_ELEMENT_TYPES = [
-        'bgimage',
-        'border',
-        'categoryname',
-        'code',
-        'coursefield',
-        'coursename',
-        'date',
-        'digitalsignature',
-        'expiry',
-        'grade',
-        'gradeitemname',
-        'image',
-        'qrcode',
-        'studentname',
-        'teachername',
-        'text',
-        'userfield',
-        'userpicture',
-    ];
 
     /**
      * Return true if the given JSON string is a generic migration scalar wrapper.
