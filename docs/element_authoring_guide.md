@@ -41,6 +41,11 @@ Use this table to decide which additional interfaces to add:
 | Backup / restore handling | `restorable_element_interface` | Optional |
 | Copy behaviour | `copyable_element_interface` | Optional |
 
+> **`get_data()` and structured JSON:** `get_data()` only unwraps a generic migration
+> wrapper for genuine legacy elements — those implementing neither
+> `persistable_element_interface` nor `renderable_element_interface`. Any current element,
+> including one with no custom save/normalise behaviour, always receives its raw JSON.
+
 ---
 
 ## Common element recipes
