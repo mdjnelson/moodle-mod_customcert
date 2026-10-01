@@ -71,7 +71,7 @@ branch.
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
 
-## [5.2.9] - Unreleased
+## [5.2.9] - 2026-10-01
 
 ### Fixed
 
