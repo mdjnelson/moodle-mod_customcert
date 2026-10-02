@@ -123,9 +123,7 @@ public function normalise_data(stdClass $formdata): array {
 ### Usage inside `prepare_form()` / `render()`
 
 ```php
-$raw     = $this->get_data();
-$decoded = $raw ? json_decode($raw, true) : [];
-$payload = coursename_payload::from_array($decoded ?? []);
+$payload = coursename_payload::from_array($this->get_payload());
 
 // Now use typed properties:
 $mform->setDefault('coursenamedisplay', $payload->coursenamedisplay);
@@ -165,8 +163,8 @@ For an element with no style fields at all (e.g. two plain integers):
 ```php
 public function normalise_data(stdClass $formdata): array {
     return [
-        'width' => isset($formdata->width) ? (int)$formdata->width : 0,
-        'height' => isset($formdata->height) ? (int)$formdata->height : 0,
+        'columns' => isset($formdata->columns) ? (int)$formdata->columns : 0,
+        'rows' => isset($formdata->rows) ? (int)$formdata->rows : 0,
     ];
 }
 ```

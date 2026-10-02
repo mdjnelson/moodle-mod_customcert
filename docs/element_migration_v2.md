@@ -95,18 +95,24 @@ Historical classes extending `mod_customcert\element` without implementing these
 are not rejected — they are instead accepted through the deprecated legacy compatibility path and
 wrapped by `legacy_element_adapter`.
 
-Additional interfaces are opt-in depending on what the element does:
+### Native registration requirements
+
+| Interface | What it provides |
+|---|---|
+| `form_element_interface` | Edit-form wiring (`build_form()`); extends `element_interface` |
+| `renderable_element_interface` | Rendering to PDF and/or HTML |
+
+### Optional capability interfaces
+
+Add these based on what the element actually does:
 
 | Interface | When to implement |
 |---|---|
-| `element_interface` | **Always** — core identity/payload contract |
-| `form_element_interface` | Element has an edit form (`build_form()`) |
 | `preparable_form_interface` | Element needs to pre-populate form fields from stored data |
 | `validatable_element_interface` | Element validates submitted form data |
-| `persistable_element_interface` | Element normalises form data into a JSON payload |
-| `renderable_element_interface` | Element renders to PDF and/or HTML |
-| `stylable_element_interface` | Element uses standard font/colour/width styling |
-| `layout_element_interface` | Element exposes repository-managed layout values (posx, posy, etc.) |
+| `persistable_element_interface` | Element normalises form/editable values into the JSON payload — add when form/editable values need to be stored there, including the standard style fields `font`, `fontsize`, `colour`, and `width` when exposed via `element_helper::render_common_form_elements()`. `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted separately by the repository/service layer, not via `normalise_data()`. |
+| `stylable_element_interface` | Element uses standard font/colour/width styling (already inherited by subclasses of `mod_customcert\element`) |
+| `layout_element_interface` | Element exposes repository-managed layout values (posx, posy, etc.) (already inherited by subclasses of `mod_customcert\element`) |
 | `restorable_element_interface` | Element remaps internal references after backup restore |
 | `copyable_element_interface` | Element needs custom logic when copied (e.g. file copying) |
 
@@ -116,25 +122,35 @@ All interfaces live under `mod_customcert\element\`.
 
 ## Minimal v2 element
 
-A read-only element that renders text and has no edit form:
+A native v2 element that renders a fixed string and has no element-specific configuration
+fields. It still participates in the normal edit-form lifecycle and satisfies the native
+registration contract (`form_element_interface` + `renderable_element_interface`) — it just has
+nothing of its own to add to the form:
 
 ```php
 namespace customcertelement_myelement;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\form_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
+use MoodleQuickForm;
 use pdf;
 use stdClass;
 
 class element extends base_element implements
+    form_element_interface,
     renderable_element_interface,
     stylable_element_interface,
     layout_element_interface
 {
+    public function build_form(MoodleQuickForm $mform): void {
+        // No element-specific fields to add.
+    }
+
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         element_helper::render_content($pdf, $this, get_string('pluginname', 'customcertelement_myelement'));
     }
@@ -147,7 +163,11 @@ class element extends base_element implements
 
 > `element_helper::render_content()` and `render_html_content()` require both
 > `stylable_element_interface` and `layout_element_interface`. Elements with fully custom
-> rendering may implement `renderable_element_interface` directly without these two.
+> rendering may implement `renderable_element_interface` directly without these two. A subclass of
+> `mod_customcert\element` already inherits both interfaces even when not declared explicitly;
+> this example declares them for clarity. Note that this example provides its own `build_form()`
+> rather than relying on the inherited one, which only bridges to the deprecated legacy
+> `render_form_elements()` hook.
 
 ---
 
@@ -166,6 +186,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element\layout_element_interface;
+use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -194,12 +215,9 @@ class element extends base_element implements
      * Pre-populate form fields from stored payload.
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        $raw = $this->get_data();
-        if ($raw !== null && $raw !== '') {
-            $payload = json_decode($raw, true);
-            if (is_array($payload) && isset($payload['myfield'])) {
-                $mform->getElement('myfield')->setValue($payload['myfield']);
-            }
+        $payload = $this->get_payload();
+        if (isset($payload['myfield'])) {
+            $mform->getElement('myfield')->setValue($payload['myfield']);
         }
     }
 
@@ -224,23 +242,18 @@ class element extends base_element implements
      * @return array
      */
     public function normalise_data(stdClass $formdata): array {
-        return [
-            'myfield' => (string)($formdata->myfield ?? ''),
-            'font'     => (string)($formdata->font ?? ''),
-            'fontsize' => (int)($formdata->fontsize ?? 0),
-            'colour'   => (string)($formdata->colour ?? ''),
-            'width'    => (int)($formdata->width ?? 0),
-        ];
+        return array_merge(
+            ['myfield' => (string)($formdata->myfield ?? '')],
+            stylable_payload::from_form($formdata)->to_array(),
+        );
     }
 
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        $payload = json_decode($this->get_data() ?? '{}', true);
-        element_helper::render_content($pdf, $this, (string)($payload['myfield'] ?? ''));
+        element_helper::render_content($pdf, $this, (string)($this->get_payload()['myfield'] ?? ''));
     }
 
     public function render_html(?element_renderer $renderer = null): string {
-        $payload = json_decode($this->get_data() ?? '{}', true);
-        return element_helper::render_html_content($this, (string)($payload['myfield'] ?? ''));
+        return element_helper::render_html_content($this, (string)($this->get_payload()['myfield'] ?? ''));
     }
 }
 ```
@@ -250,30 +263,36 @@ class element extends base_element implements
 ## Restore guidance
 
 If your element stores internal Moodle IDs (file itemids, course module IDs, etc.) in its JSON
-payload, implement `restorable_element_interface` to remap them after restore:
+payload, implement `restorable_element_interface` to remap them after restore. The restore task
+calls the hook as `$instance->after_restore_from_backup($this)`:
 
 ```php
 use mod_customcert\element\restorable_element_interface;
+use restore_customcert_activity_task;
 
 class element extends base_element implements restorable_element_interface, /* ... */
 {
-    public function after_restore_from_backup(int $newitemid, stdClass $data, object $task): bool {
-        $payload = json_decode($this->get_data() ?? '{}', true);
+    public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
+        global $DB;
 
-        // Remap a stored file itemid using the restore mapping.
-        $oldfileid = (int)($payload['fileid'] ?? 0);
-        if ($oldfileid) {
-            $newfileid = $task->get_mappingid('files', $oldfileid);
-            if ($newfileid) {
-                $payload['fileid'] = $newfileid;
-                // Persist the updated payload via the element repository.
-                // (Use the injected repository/service rather than direct DB calls.)
-            }
+        $payload = $this->get_payload();
+        $oldid = (int)($payload['coursemoduleid'] ?? 0);
+        if (!$oldid) {
+            return;
         }
-        return true;
+
+        // Remap the stored course module id using the restore task's mapping API.
+        $newid = $restore->get_mappingid('course_module', $oldid);
+        if ($newid) {
+            $payload['coursemoduleid'] = $newid;
+            $DB->set_field('customcert_elements', 'data', json_encode($payload), ['id' => $this->get_id()]);
+        }
     }
 }
 ```
+
+See `element/date/classes/element.php` and `element/image/classes/element.php` for the full
+production restore implementations this sketch is based on.
 
 ---
 
@@ -312,14 +331,24 @@ Implement `layout_element_interface` to expose these values for rendering helper
 ## Security: scoped element and page lookups
 
 Always use the scoped repository/service methods when loading elements or pages.  
-Never load an element by ID alone — always verify it belongs to the expected template/page:
+Never load an element by ID alone — always verify it belongs to the authorised template:
 
 ```php
-// Correct — verifies element belongs to the given page and template.
-$element = $elementrepository->get_element_for_page($elementid, $pageid, $templateid);
+// Correct — verifies the element belongs to the authorised template.
+$element = $elementrepository->get_for_template_or_fail($templateid, $elementid);
 
 // Incorrect — no ownership check.
 $element = $DB->get_record('customcert_elements', ['id' => $elementid]);
+```
+
+`element_repository::get_for_template_or_fail()` verifies the element belongs to the authorised
+template (it joins through the owning page to check this); it does not itself verify a
+caller-supplied page id. If a caller-supplied page id also needs to be verified, check it
+separately with `page_repository::get_for_template_or_fail($templateid, $pageid)`:
+
+```php
+// Also verify a caller-supplied page id belongs to the authorised template.
+$page = $pagerepository->get_for_template_or_fail($templateid, $pageid);
 ```
 
 The service layer enforces these checks. Bypassing them is a security risk.

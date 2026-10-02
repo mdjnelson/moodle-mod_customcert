@@ -63,10 +63,10 @@ branch.
 | Legacy element identity/data methods | `element_interface` |
 | Legacy edit form hooks (`render_form_elements`) | `form_element_interface` |
 | Legacy form preparation (`definition_after_data`) | `preparable_form_interface` |
-| Legacy rendering hooks (`render_html`, `render_pdf`) | `renderable_element_interface` |
+| Legacy rendering hooks (`render`, `render_html`) | `renderable_element_interface` |
 | Legacy style/font/colour handling | `stylable_element_interface` and normalized payload data |
 | Legacy layout handling | `layout_element_interface` and repository-managed layout fields |
-| Legacy save/load hooks (`save_unique_data`, `save_form_elements`) | `persistable_element_interface` |
+| Legacy persistence hooks (`save_unique_data`, `save_form_elements`) | `persistable_element_interface` plus repository/service persistence |
 | Legacy validation hooks (`validate_form_elements`) | `validatable_element_interface` |
 | Legacy restore hooks (`after_restore`) | `restorable_element_interface` |
 | Legacy copy hooks (`copy_element`) | `copyable_element_interface` |
@@ -444,7 +444,7 @@ Existing element plugins may continue using legacy hooks in 5.2, but must be upd
 #### Common pitfalls
 - Do not assume `get_data()` returns a scalar string; it may be JSON with multiple keys.
 - Do not overwrite the whole JSON payload with a single scalar; always normalise to an object payload via Element System v2 interfaces.
-- Do not store standard visual fields (`font`/`fontsize`/`colour`/`width`) in custom keys; rely on the core merge behaviour.
+- Return standard visual fields (`font`/`fontsize`/`colour`/`width`) from `normalise_data()` when your element exposes them; they are not merged centrally.
 
 ## [5.0.2] - 2025-12-18
 
