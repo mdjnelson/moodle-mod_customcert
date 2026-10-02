@@ -41,12 +41,14 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
 require_once(__DIR__ . '/fixtures/customcertelement_legacy52/element.php');
+require_once(__DIR__ . '/fixtures/customcertelement_legacy1003/element.php');
 require_once(__DIR__ . '/fixtures/customcertelement_legacythrows974/element.php');
 require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
 // Restore base classes must load before the minimal_restore_task fixture subclass.
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_activity_task.class.php');
 require_once(__DIR__ . '/fixtures/minimal_restore_task.php');
+require_once(__DIR__ . '/fixtures/value_capturing_form_element.php');
 require_once(__DIR__ . '/legacy_compatibility_diagnostic_test_trait.php');
 
 use advanced_testcase;
@@ -71,6 +73,7 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\minimal_restore_task;
 use mod_customcert\tests\fixtures\native_v2_control_element;
+use mod_customcert\tests\fixtures\value_capturing_form_element;
 use mod_customcert\element\element_interface;
 use MoodleQuickForm;
 use ReflectionMethod;
@@ -104,6 +107,9 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
     /** Registry type key for the 5.2-adapter-compatible fixture. */
     private const TYPE_LEGACY52 = 'legacy52';
 
+    /** Registry type key for the fixture overriding definition_after_data() via parent::. */
+    private const TYPE_LEGACY1003 = 'legacy1003';
+
     /** Registry type key for the native v2 control fixture. */
     private const TYPE_NATIVE = 'nativev2lifecycle';
 
@@ -116,6 +122,7 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $registry = new element_registry();
         $registry->register(self::TYPE_LEGACY45, \customcertelement_legacy45\element::class);
         $registry->register(self::TYPE_LEGACY52, \customcertelement_legacy52\element::class);
+        $registry->register(self::TYPE_LEGACY1003, \customcertelement_legacy1003\element::class);
         $registry->register(self::TYPE_NATIVE, native_v2_control_element::class);
         return new element_factory($registry);
     }
@@ -308,10 +315,14 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $formservice->build_form($mform, $instance);
         $this->assertTrue($instance->get_inner()->formcalled);
 
-        // Form preparation where applicable (definition_after_data bridge).
+        // Form preparation: override does not call parent, so the adapter's fallback
+        // notice is the only one emitted.
         $formservice->prepare_after_data($mform, $instance);
         $this->assertTrue($instance->get_inner()->definitioncalled);
-        $this->assertDebuggingCalled();
+        $this->assertDebuggingCalled(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.'
+        );
 
         // Validation through validation_service legacy fallback.
         $validator = new validation_service();
@@ -341,9 +352,13 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $formservice->build_form($mform, $instance);
         $this->assertTrue($instance->get_inner()->formcalled);
 
-        // 5.2 fixture does not override definition_after_data; preparation is a no-op path.
+        // 5.2 fixture does not override definition_after_data; the adapter delegates to the
+        // inherited base implementation, which emits its own deprecation notice.
         $formservice->prepare_after_data($mform, $instance);
-        $this->assertDebuggingNotCalled();
+        $this->assertDebuggingCalled(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.'
+        );
 
         $errors = (new validation_service())->validate($instance, ['name' => 'anything', 'colour' => '#ffffff']);
         $this->assertIsArray($errors);
@@ -355,6 +370,118 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->assertSame('persisted52', $instance->get_inner()->lastsaved);
         $this->assertSame('persisted52', $decoded['value']);
         $this->assertDebuggingCalled();
+    }
+
+    /**
+     * Regression test for #1003: a legacy element relying on the inherited base
+     * element::definition_after_data() must have its form values populated through the
+     * real lifecycle (form_service -> legacy_element_adapter -> inherited implementation),
+     * without calling non-existent element_helper::set_data_on_form_element_*() methods.
+     */
+    public function test_inherited_definition_after_data_populates_form_elements(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'Inherited definition_after_data');
+        $instance = $this->make_factory()->create_from_record($record);
+        $this->assertDebuggingCalled();
+
+        $fields = ['name', 'font', 'fontsize', 'colour', 'posx', 'posy', 'width', 'refpoint', 'alignment'];
+        $elements = [];
+        foreach ($fields as $field) {
+            $elements[$field] = new value_capturing_form_element();
+        }
+
+        $mform = $this->getMockBuilder(MoodleQuickForm::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['elementExists', 'getElement'])
+            ->getMock();
+        $mform->method('elementExists')->willReturnCallback(fn($name) => array_key_exists($name, $elements));
+        $mform->method('getElement')->willReturnCallback(fn($name) => $elements[$name]);
+
+        (new form_service())->prepare_after_data($mform, $instance);
+        $this->assertDebuggingCalled(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.'
+        );
+
+        $this->assertSame('Inherited definition_after_data', $elements['name']->get_value());
+        $this->assertSame('Helvetica', $elements['font']->get_value());
+        $this->assertSame(12, $elements['fontsize']->get_value());
+        $this->assertSame('#000000', $elements['colour']->get_value());
+        $this->assertSame(10, $elements['posx']->get_value());
+        $this->assertSame(20, $elements['posy']->get_value());
+        $this->assertSame(50, $elements['width']->get_value());
+        $this->assertSame(1, $elements['refpoint']->get_value());
+        $this->assertSame('L', $elements['alignment']->get_value());
+    }
+
+    /**
+     * Regression test for #1003: a legacy override calling parent::definition_after_data()
+     * (the real customcertelement_daterange pattern) must run both its own and the inherited
+     * base preparation, while emitting the deprecation notice exactly once.
+     */
+    public function test_legacy_override_calling_parent_emits_single_deprecation(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY1003, 'Override calling parent');
+        $instance = $this->make_factory()->create_from_record($record);
+        $this->assertDebuggingCalled();
+
+        $elements = ['name' => new value_capturing_form_element()];
+        $mform = $this->getMockBuilder(MoodleQuickForm::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['elementExists', 'getElement'])
+            ->getMock();
+        $mform->method('elementExists')->willReturnCallback(fn($name) => array_key_exists($name, $elements));
+        $mform->method('getElement')->willReturnCallback(fn($name) => $elements[$name]);
+
+        (new form_service())->prepare_after_data($mform, $instance);
+        // Exactly one debugging() call: assertDebuggingCalled() fails if it was triggered
+        // more than once.
+        $this->assertDebuggingCalled(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.'
+        );
+
+        $this->assertTrue($instance->get_inner()->customprepared);
+        $this->assertSame('Override calling parent', $elements['name']->get_value());
+    }
+
+    /**
+     * Regression test: the deprecation warning count is a per-invocation delta, not a
+     * consumable flag, so a prior direct call to definition_after_data() cannot leave stale
+     * state that suppresses the adapter's next notice.
+     */
+    public function test_definition_after_data_warning_detection_is_not_stale_across_calls(): void {
+        $this->resetAfterTest();
+
+        [, $pageid] = $this->create_template_and_page();
+        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY52, 'Repeat invocations');
+        $instance = $this->make_factory()->create_from_record($record);
+        $this->assertDebuggingCalled();
+        $inner = $instance->get_inner();
+
+        $mform = $this->getMockBuilder(MoodleQuickForm::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['elementExists', 'getElement'])
+            ->getMock();
+        $mform->method('elementExists')->willReturn(false);
+
+        // A prior direct call, bypassing the adapter entirely.
+        $inner->definition_after_data($mform);
+        $this->assertDebuggingCalled();
+        $this->assertSame(1, $inner->get_definition_after_data_warning_count());
+
+        // The adapter must still detect its own call correctly, not be confused by the
+        // earlier one.
+        (new form_service())->prepare_after_data($mform, $instance);
+        $this->assertDebuggingCalled(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.'
+        );
+        $this->assertSame(2, $inner->get_definition_after_data_warning_count());
     }
 
     /**
