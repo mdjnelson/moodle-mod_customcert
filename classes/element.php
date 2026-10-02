@@ -129,6 +129,13 @@ abstract class element implements
     private ?edit_element_form $editelementform = null;
 
     /**
+     * @var int Count of definition_after_data() deprecation notices emitted so far. Lets
+     *     legacy_element_adapter detect, via the change in this count, whether a legacy
+     *     override's call to parent::definition_after_data() already emitted the notice.
+     */
+    private int $definitionafterdatawarnings = 0;
+
+    /**
      * Clone of the raw element DB record for legacy property access.
      *
      * Historical (Moodle 4.5-era) elements often read `$this->element->...` directly.
@@ -631,15 +638,40 @@ abstract class element implements
      * @deprecated since Moodle 5.2
      */
     public function definition_after_data($mform) {
-        // Set the common form elements data.
-        element_helper::set_data_on_form_element_font($this, $mform);
-        element_helper::set_data_on_form_element_colour($this, $mform);
-        if ($this->showposxy) {
-            element_helper::set_data_on_form_element_position($this, $mform);
+        $this->definitionafterdatawarnings++;
+        debugging(
+            'definition_after_data() is deprecated since Moodle 5.2. '
+            . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
+            DEBUG_DEVELOPER
+        );
+        // Loop through the properties of the element and set the values
+        // of the corresponding form element, if it exists.
+        $properties = [
+            'name' => $this->name,
+            'font' => $this->get_font(),
+            'fontsize' => $this->get_fontsize(),
+            'colour' => $this->get_colour(),
+            'posx' => $this->posx,
+            'posy' => $this->posy,
+            'width' => $this->get_width(),
+            'refpoint' => $this->refpoint,
+            'alignment' => $this->get_alignment(),
+        ];
+        foreach ($properties as $property => $value) {
+            if (!is_null($value) && $mform->elementExists($property)) {
+                $element = $mform->getElement($property);
+                $element->setValue($value);
+            }
         }
-        element_helper::set_data_on_form_element_width($this, $mform);
-        element_helper::set_data_on_form_element_refpoint($this, $mform);
-        element_helper::set_data_on_form_element_alignment($this, $mform);
+    }
+
+    /**
+     * Count of definition_after_data() deprecation notices emitted so far on this instance.
+     *
+     * @return int
+     */
+    public function get_definition_after_data_warning_count(): int {
+        return $this->definitionafterdatawarnings;
     }
 
     /**

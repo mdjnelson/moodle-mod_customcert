@@ -349,25 +349,24 @@ final class legacy_element_adapter implements
     /**
      * Sets the data on the form when editing an element (legacy fallback).
      *
-     * Only invokes the legacy hook when the wrapped element actually overrides it;
-     * calling the inherited no-op base implementation would emit a spurious deprecation.
-     * The deprecation notice is emitted here (the compatibility bridge) rather than
-     * in the base class no-op, so it is only emitted once.
+     * Always delegates, including to the inherited mod_customcert\element implementation,
+     * which populates the common form fields. A legacy override calling
+     * parent::definition_after_data() triggers that implementation's own deprecation notice;
+     * the warning count before/after detects that, so this only emits a fallback notice when
+     * the override did not call the parent at all.
      *
      * @param \MoodleQuickForm $mform
      * @return void
      */
     public function definition_after_data(MoodleQuickForm $mform): void {
-        if (method_exists($this->inner, 'definition_after_data')) {
-            $ref = new \ReflectionMethod($this->inner, 'definition_after_data');
-            if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
-                debugging(
-                    'definition_after_data() is deprecated since Moodle 5.2. '
-                    . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
-                    DEBUG_DEVELOPER
-                );
-                $this->inner->definition_after_data($mform);
-            }
+        $warningsbefore = $this->inner->get_definition_after_data_warning_count();
+        $this->inner->definition_after_data($mform);
+        if ($this->inner->get_definition_after_data_warning_count() === $warningsbefore) {
+            debugging(
+                'definition_after_data() is deprecated since Moodle 5.2. '
+                . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
+                DEBUG_DEVELOPER
+            );
         }
     }
 
