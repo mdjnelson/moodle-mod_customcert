@@ -156,8 +156,37 @@ final class privacy_provider_test extends \core_privacy\tests\provider_testcase 
         foreach ($issues as $issue) {
             $this->assertArrayHasKey('code', $issue);
             $this->assertArrayHasKey('emailed', $issue);
+            $this->assertArrayHasKey('studentemailed', $issue);
             $this->assertArrayHasKey('timecreated', $issue);
         }
+    }
+
+    /**
+     * NULL studentemailed (legacy/unknown) must export as a distinct value, never silently
+     * collapsed into the same "No" shown for the explicit, retryable 0 state.
+     *
+     * @covers \provider::export_user_data()
+     */
+    public function test_export_for_context_studentemailed_tri_state(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+
+        // The create_certificate_issue() helper does not set studentemailed, so it is left NULL by default.
+        $this->create_certificate_issue($customcert->id, $user->id);
+        $issueid = $DB->get_field('customcert_issues', 'id', ['customcertid' => $customcert->id, 'userid' => $user->id]);
+        $this->assertNull($DB->get_field('customcert_issues', 'studentemailed', ['id' => $issueid]));
+
+        $cmcontext = context_module::instance($customcert->cmid);
+        $this->export_context_data_for_user($user->id, $cmcontext, 'mod_customcert');
+        $writer = \core_privacy\local\request\writer::with_context($cmcontext);
+
+        $issue = reset($writer->get_data()->issues);
+        $this->assertEquals(get_string('studentemailedunknown', 'customcert'), $issue['studentemailed']);
     }
 
     /**
