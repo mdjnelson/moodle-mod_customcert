@@ -248,5 +248,16 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         // Set the field so that it is emailed.
         $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+
+        // Trigger completion reevaluation if the completionemailed rule is enabled for this instance.
+        // This covers both the synchronous and adhoc email dispatch paths.
+        if (!empty($customcert->completionemailed)) {
+            $cm = get_coursemodule_from_instance('customcert', $customcertid, 0, false, MUST_EXIST);
+            $course = get_course($cm->course);
+            $completioninfo = new \completion_info($course);
+            if ($completioninfo->is_enabled($cm)) {
+                $completioninfo->update_state($cm, COMPLETION_UNKNOWN, (int)$user->id);
+            }
+        }
     }
 }
