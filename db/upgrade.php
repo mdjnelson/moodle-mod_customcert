@@ -22,9 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core\task\manager;
-use mod_customcert\task\completion_backfill_task;
-
 /**
  * Customcert module upgrade code.
  *
@@ -364,16 +361,21 @@ function xmldb_customcert_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024042225) {
-        // Add 'completionissued' field to track completion when a certificate is emailed.
+        // Add 'completionemailed' field to enable per-instance completion when a certificate is emailed.
         $table = new xmldb_table('customcert');
-        $field = new xmldb_field('completionissued', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'issueautomatically');
+        $field = new xmldb_field(
+            'completionemailed',
+            XMLDB_TYPE_INTEGER,
+            '1',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'issueautomatically'
+        );
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-
-        // Queue an adhoc task to backfill completion state for existing issued certificates.
-        $task = new completion_backfill_task();
-        manager::queue_adhoc_task($task, true);
 
         upgrade_mod_savepoint(true, 2024042225, 'customcert');
     }
