@@ -119,13 +119,17 @@ class issue_certificates_task extends \core\task\scheduled_task {
             // Get the context.
             $context = \context::instance_by_id($customcert->contextid);
 
-            // Get a list of all the issues that are already emailed (skip these users).
+            // Users who need no further email processing (skip these users): once emailstudents is
+            // enabled, only studentemailed = 0 remains a retry candidate.
             $sql = "SELECT u.id
                       FROM {customcert_issues} ci
                       JOIN {user} u
                         ON ci.userid = u.id
                      WHERE ci.customcertid = :customcertid
                            AND ci.emailed = 1";
+            if (!empty($customcert->emailstudents)) {
+                $sql .= " AND (ci.studentemailed = 1 OR ci.studentemailed IS NULL)";
+            }
             $issuedusers = $DB->get_records_sql($sql, ['customcertid' => $customcert->id]);
 
             // Now, get a list of users who can Manage the certificate.
@@ -197,21 +201,29 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 $issue = $DB->get_record(
                     'customcert_issues',
                     ['userid' => $filtereduser->id, 'customcertid' => $customcert->id],
-                    'id, emailed'
+                    'id, emailed, studentemailed'
                 );
 
                 $issueid = null;
                 $emailed = 0;
+                $studentemailed = 0;
                 if (!empty($issue)) {
                     $issueid = (int)$issue->id;
                     $emailed = (int)$issue->emailed;
+                    // Preserve NULL rather than casting to int, which would collapse it into 0.
+                    $studentemailed = $issue->studentemailed === null ? null : (int)$issue->studentemailed;
                 } else if ($autoissue) {
+                    // A newly created issue is always explicitly 0 (known, retryable), never NULL
+                    // -- see \mod_customcert\certificate::issue_certificate().
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
                     $emailed = 0;
+                    $studentemailed = 0;
                 }
 
-                // If we have an issue and it has not been emailed yet, send it now.
-                if (!empty($issueid) && $emailed === 0) {
+                // If we have an issue and it still needs email processing, send it now.
+                $needsemail = $emailed === 0
+                    || (!empty($customcert->emailstudents) && $studentemailed === 0);
+                if (!empty($issueid) && $needsemail) {
                     $task = new \mod_customcert\task\email_certificate_task();
                     $task->set_custom_data(['issueid' => $issueid, 'customcertid' => $customcert->id]);
                     $useadhoc = get_config('customcert', 'useadhoc');
@@ -233,14 +245,30 @@ class issue_certificates_task extends \core\task\scheduled_task {
      * unless we check it explicitly here, so a certificate configured with completion conditions but no
      * restrict access rule would otherwise be issued/emailed regardless of the user's completion state.
      *
+     * Automatic tracking excludes the completionemailed custom rule to avoid a circular
+     * dependency (it would need to already be emailed to become eligible to be emailed); manual
+     * tracking uses the saved completion state directly.
+     *
      * @param \completion_info $completion
      * @param object $cm
      * @param int $userid
      * @return bool
      */
     private function has_met_own_completion(\completion_info $completion, object $cm, int $userid): bool {
-        $data = $completion->get_data($cm, false, $userid);
+        if ($cm->completion == COMPLETION_TRACKING_MANUAL) {
+            $data = $completion->get_data($cm, false, $userid);
 
-        return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+            return in_array((int)$data->completionstate, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true);
+        }
+
+        $completionstate = $completion->get_core_completion_state($cm, $userid);
+
+        foreach ($completionstate as $state) {
+            if (!in_array((int)$state, [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS], true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
