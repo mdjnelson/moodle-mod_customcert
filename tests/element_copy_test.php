@@ -27,8 +27,6 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
-defined('MOODLE_INTERNAL') || die();
-
 use advanced_testcase;
 use context_system;
 use mod_customcert\event\element_created;
