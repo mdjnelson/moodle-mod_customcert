@@ -14,6 +14,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Added
 
 - Site-wide certificate downloads are now processed asynchronously. Requesting a download queues a background task that generates the zip archive and notifies the user when it is ready (#692).
+- Added an automatic activity completion condition for certificates emailed to students, allowing students to complete the activity when their certificate is sent by email without needing to view the activity (#971, #645).
 
 ## [5.0.8] - 2026-09-15
 
