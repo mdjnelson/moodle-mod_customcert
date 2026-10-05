@@ -44,6 +44,11 @@ class email_certificate_task extends \core\task\adhoc_task {
 
     /**
      * Execute.
+     *
+     * Safe to call more than once: teachers/others are only emailed on the first call, and the
+     * student is only (re)emailed while not already known to have succeeded. On an issue not yet
+     * processed, an initial student send is attempted even if studentemailed is NULL (legacy or
+     * restored data); once processed, NULL is treated as unknown, not retryable.
      */
     public function execute() {
         global $DB;
@@ -91,7 +96,8 @@ class email_certificate_task extends \core\task\adhoc_task {
 
         // Get the information about the user and the certificate issue.
         $userfields = helper::get_all_user_name_fields('u');
-        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed
+        $sql = "SELECT u.id, u.username, $userfields, u.email, u.mailformat, ci.id as issueid, ci.emailed,
+                       ci.studentemailed
                   FROM {customcert_issues} ci
                   JOIN {user} u
                     ON ci.userid = u.id
@@ -101,6 +107,9 @@ class email_certificate_task extends \core\task\adhoc_task {
         if (!$user) {
             return;
         }
+
+        // Teachers/others have no per-recipient retry tracking, so they must only be emailed once.
+        $alreadyprocessed = (bool)$user->emailed;
 
         // Create a directory to store the PDF we will be sending.
         $tempdir = make_temp_directory('certificate/attachment');
@@ -136,7 +145,14 @@ class email_certificate_task extends \core\task\adhoc_task {
         $tempfile = $tempdir . '/' . md5(microtime() . $user->id) . '.pdf';
         file_put_contents($tempfile, $filecontents);
 
-        if ($customcert->emailstudents) {
+        $senttostudent = false;
+        $attemptedstudentsend = false;
+
+        // Retry a processed issue only when studentemailed is explicitly 0.
+        $studentemailed = $user->studentemailed === null ? null : (int)$user->studentemailed;
+        $needsstudentemail = $studentemailed !== 1 && (!$alreadyprocessed || $studentemailed === 0);
+        if ($customcert->emailstudents && $needsstudentemail) {
+            $attemptedstudentsend = true;
             $recipientlang = mod_customcert_get_language_to_use($customcert, $user, $customcert->courselang ?? null);
             $switched = mod_customcert_apply_runtime_language($recipientlang);
             if ($switched) {
@@ -157,7 +173,7 @@ class email_certificate_task extends \core\task\adhoc_task {
             $subject = get_string('emailstudentsubject', 'customcert', $info);
             $message = $textrenderer->render($renderable);
             $messagehtml = $htmlrenderer->render($renderable);
-            email_to_user(
+            $senttostudent = email_to_user(
                 $user,
                 $userfrom,
                 html_entity_decode($subject, ENT_COMPAT),
@@ -172,7 +188,7 @@ class email_certificate_task extends \core\task\adhoc_task {
             }
         }
 
-        if ($customcert->emailteachers) {
+        if ($customcert->emailteachers && !$alreadyprocessed) {
             $teachers = get_enrolled_users($context, 'moodle/course:update');
 
             $renderable = new \mod_customcert\output\email_certificate(
@@ -212,7 +228,7 @@ class email_certificate_task extends \core\task\adhoc_task {
             }
         }
 
-        if (!empty($customcert->emailothers)) {
+        if (!empty($customcert->emailothers) && !$alreadyprocessed) {
             $others = explode(',', $customcert->emailothers);
             foreach ($others as $email) {
                 $email = trim($email);
@@ -246,8 +262,18 @@ class email_certificate_task extends \core\task\adhoc_task {
             }
         }
 
-        // Set the field so that it is emailed.
-        $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+        // Field 'emailed' just means "processed"; only needs setting once.
+        if (!$alreadyprocessed) {
+            $DB->set_field('customcert_issues', 'emailed', 1, ['id' => $issueid]);
+        }
+
+        // Only record success when actually confirmed; a failed attempt moves studentemailed to
+        // the explicit, retryable 0 state rather than being left NULL or unset.
+        if ($senttostudent) {
+            $DB->set_field('customcert_issues', 'studentemailed', 1, ['id' => $issueid]);
+        } else if ($attemptedstudentsend) {
+            $DB->set_field('customcert_issues', 'studentemailed', 0, ['id' => $issueid]);
+        }
 
         // Trigger completion reevaluation if the completionemailed rule is enabled for this instance.
         // This covers both the synchronous and adhoc email dispatch paths.
