@@ -33,7 +33,6 @@ namespace mod_customcert\service;
 use mod_customcert\element as legacy_base;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\copyable_element_interface;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\element\unknown_element;
 use mod_customcert\element_helper;
@@ -273,21 +272,19 @@ final class element_repository {
             }
         }
 
-        // Check copy capabilities on the wrapped element.
-        $target = $instance instanceof legacy_element_adapter ? $instance->get_inner() : $instance;
-
-        if ($target instanceof copyable_element_interface) {
-            if (!$target->copy_from($sourceelement)) {
+        // Check copy capabilities on the element.
+        if ($instance instanceof copyable_element_interface) {
+            if (!$instance->copy_from($sourceelement)) {
                 $this->delete($instance);
                 return null;
             }
-        } else if ($target instanceof legacy_base && self::has_legacy_copy_override($target)) {
+        } else if ($instance instanceof legacy_base && self::has_legacy_copy_override($instance)) {
             debugging(
                 'element::copy_element() is deprecated since Moodle 5.2. '
                 . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
                 DEBUG_DEVELOPER
             );
-            if ($target->copy_element($sourceelement) === false) {
+            if ($instance->copy_element($sourceelement) === false) {
                 $this->delete($instance);
                 return null;
             }

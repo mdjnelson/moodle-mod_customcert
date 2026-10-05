@@ -61,7 +61,8 @@ abstract class element implements
      * render()/render_html() contract. Genuine Moodle 4.5-era third-party elements
      * declare untyped historical render() signatures; keeping the strict abstract
      * methods on this base would make those subclasses unloadable (PHP fatal).
-     * The factory wraps non-renderable legacy instances with legacy_element_adapter.
+     * The legacy element runtime bridge has been removed: a subclass that does not
+     * implement renderable_element_interface directly can no longer be used at runtime.
      */
     /**
      * @var string The left alignment constant.
@@ -127,13 +128,6 @@ abstract class element implements
      * @var edit_element_form Element edit form instance.
      */
     private ?edit_element_form $editelementform = null;
-
-    /**
-     * @var int Count of definition_after_data() deprecation notices emitted so far. Lets
-     *     legacy_element_adapter detect, via the change in this count, whether a legacy
-     *     override's call to parent::definition_after_data() already emitted the notice.
-     */
-    private int $definitionafterdatawarnings = 0;
 
     /**
      * Clone of the raw element DB record for legacy property access.
@@ -638,7 +632,6 @@ abstract class element implements
      * @deprecated since Moodle 5.2
      */
     public function definition_after_data($mform) {
-        $this->definitionafterdatawarnings++;
         debugging(
             'definition_after_data() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
@@ -663,15 +656,6 @@ abstract class element implements
                 $element->setValue($value);
             }
         }
-    }
-
-    /**
-     * Count of definition_after_data() deprecation notices emitted so far on this instance.
-     *
-     * @return int
-     */
-    public function get_definition_after_data_warning_count(): int {
-        return $this->definitionafterdatawarnings;
     }
 
     /**

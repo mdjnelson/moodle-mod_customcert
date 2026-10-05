@@ -27,22 +27,18 @@ declare(strict_types=1);
 namespace mod_customcert\service;
 
 use coding_exception;
-use mod_customcert\element as legacy_base;
 use mod_customcert\element\element_bootstrap;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\legacy_compatibility_diagnostic;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\renderable_element_interface;
 use stdClass;
 
 /**
  * Registry-based factory for creating elements by type.
  *
- * Creation path for Moodle 5.3:
+ * Creation path:
  * - Instantiate the registered class
  * - If it implements renderable_element_interface (native v2), return it directly
- * - If it is a supported legacy mod_customcert\element subclass, wrap via legacy_element_adapter
- * - Otherwise fail clearly
+ * - Otherwise fail clearly; the legacy element runtime bridge has been removed
  */
 final class element_factory {
     /**
@@ -63,7 +59,7 @@ final class element_factory {
      * Register an element class for a given type key.
      *
      * @param string $type
-     * @param string $class Class-string of a native v2 element or legacy mod_customcert\element subclass
+     * @param string $class Class-string of a native Element System v2 element
      * @return void
      */
     public function register(string $type, string $class): void {
@@ -106,17 +102,10 @@ final class element_factory {
             return $instance;
         }
 
-        // Legacy path: wrap supported historical subclasses. Emit the single general
-        // compatibility diagnostic here, at the narrowest coherent boundary where a
-        // legacy element is detected and wrapped, deduplicated per component/type.
-        if ($instance instanceof legacy_base) {
-            legacy_compatibility_diagnostic::notify($type, $class);
-            return new legacy_element_adapter($instance);
-        }
-
         throw new coding_exception(
             "Element factory cannot use class '{$class}' for type '{$type}': "
-            . 'it must implement renderable_element_interface (native v2) or extend mod_customcert\element.'
+            . 'it must implement renderable_element_interface (native v2). '
+            . 'The legacy element runtime bridge has been removed.'
         );
     }
 
