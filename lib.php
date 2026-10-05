@@ -292,6 +292,7 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
  * @uses FEATURE_GROUPMEMBERSONLY
  * @uses FEATURE_MOD_INTRO
  * @uses FEATURE_COMPLETION_TRACKS_VIEWS
+ * @uses FEATURE_COMPLETION_HAS_RULES
  * @uses FEATURE_GRADE_HAS_GRADE
  * @uses FEATURE_GRADE_OUTCOMES
  * @param string $feature FEATURE_xx constant for requested feature
@@ -303,6 +304,7 @@ function customcert_supports($feature) {
         case FEATURE_MOD_INTRO:
         case FEATURE_SHOW_DESCRIPTION:
         case FEATURE_COMPLETION_TRACKS_VIEWS:
+        case FEATURE_COMPLETION_HAS_RULES:
         case FEATURE_BACKUP_MOODLE2:
         case FEATURE_GROUPS:
             return true;
@@ -311,6 +313,39 @@ function customcert_supports($feature) {
         default:
             return null;
     }
+}
+
+/**
+ * Given a course_module object, this function returns any "extra" information that may be
+ * needed when printing this activity in a course listing, and populates the custom completion
+ * rules so that core completion can evaluate them for this instance.
+ *
+ * Without this, cm_info::get_custom_data() never contains 'completionemailed', and core
+ * completion silently skips the rule instead of evaluating it.
+ *
+ * @param stdClass $coursemodule The coursemodule object (record).
+ * @return cached_cm_info|false
+ */
+function customcert_get_coursemodule_info($coursemodule) {
+    global $DB;
+
+    $customcert = $DB->get_record(
+        'customcert',
+        ['id' => $coursemodule->instance],
+        'id, name, completionemailed'
+    );
+    if (!$customcert) {
+        return false;
+    }
+
+    $info = new cached_cm_info();
+    $info->name = $customcert->name;
+
+    if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
+        $info->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
+    }
+
+    return $info;
 }
 
 /**

@@ -55,7 +55,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
         $emailotherslengthsql = $DB->sql_length('c.emailothers');
 
         $sql = "SELECT DISTINCT c.id, c.templateid, c.course, c.requiredtime, c.emailstudents, c.emailteachers, $emailothersselect,
-                       c.issueautomatically, c.completionissued,
+                       c.issueautomatically,
                        ct.id AS templateid, ct.name AS templatename, ct.contextid, co.id AS courseid,
                        co.fullname AS coursefullname, co.shortname AS courseshortname
                   FROM {customcert} c
@@ -99,7 +99,7 @@ class issue_certificates_task extends \core\task\scheduled_task {
 
         foreach ($customcerts as $customcert) {
             // Check if the certificate is hidden, quit early.
-            [$course, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
+            $cm = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course)[1];
             if (!$cm->visible) {
                 continue;
             }
@@ -208,14 +208,6 @@ class issue_certificates_task extends \core\task\scheduled_task {
                 } else if ($autoissue) {
                     $issueid = \mod_customcert\certificate::issue_certificate($customcert->id, $filtereduser->id);
                     $emailed = 0;
-                }
-
-                // Trigger activity completion when a certificate is issued, if the feature is enabled.
-                if (!empty($issueid) && !empty($customcert->completionissued)) {
-                    $completioninfo = new \completion_info($course);
-                    if ($completioninfo->is_enabled($cm)) {
-                        $completioninfo->update_state($cm, COMPLETION_COMPLETE, (int)$filtereduser->id);
-                    }
                 }
 
                 // If we have an issue and it has not been emailed yet, send it now.
