@@ -59,12 +59,11 @@ class custom_completion extends activity_custom_completion {
                 return COMPLETION_INCOMPLETE;
             }
 
-            // Completion is based solely on whether the certificate email was sent to the student.
-            // It does not depend on the current email configuration, so completion cannot regress
-            // if email settings change after the student has already satisfied the condition.
+            // Only studentemailed = 1 exactly satisfies completion; NULL (legacy/unknown) and 0
+            // (retryable) do not, and it is unaffected by later emailstudents changes.
             $emailed = $DB->record_exists(
                 'customcert_issues',
-                ['customcertid' => $customcertid, 'userid' => $userid, 'emailed' => 1]
+                ['customcertid' => $customcertid, 'userid' => $userid, 'studentemailed' => 1]
             );
 
             return $emailed ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
