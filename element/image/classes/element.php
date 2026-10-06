@@ -162,7 +162,7 @@ class element extends \mod_customcert\element {
             $arrtostore['alphachannel'] = (float) $data->alphachannel;
         }
 
-        if (!empty($data->fileid)) {
+        if (!empty($data->fileid) && array_key_exists((int)$data->fileid, self::get_images())) {
             // Array of data we will be storing in the database.
             $fs = get_file_storage();
             if ($file = $fs->get_file_by_id($data->fileid)) {

@@ -67,7 +67,7 @@ class external extends external_api {
      * @return array
      */
     public static function save_element($templateid, $elementid, $values) {
-        global $DB;
+        global $DB, $USER;
 
         $params = [
             'templateid' => $templateid,
@@ -97,14 +97,45 @@ class external extends external_api {
             throw new \moodle_exception('Invalid access');
         }
 
-        // Set the values we are going to save.
-        $data = new \stdClass();
-        $data->id = $element->id;
-        $data->name = $element->name;
+        // Submit the values through the element edit form so the same select-option filtering
+        // and validation as edit_element.php is applied.
+        $submission = self::get_form_submission($element);
         foreach ($values as $value) {
-            $field = $value['name'];
-            $data->$field = $value['value'];
+            $submission[$value['name']] = $value['value'];
         }
+        $submission['_qf__' . preg_replace('/[^a-z0-9_]/i', '_', edit_element_form::class)] = 1;
+
+        // The web service request is already authenticated, so skip the form's own sesskey check.
+        $ignoresesskey = $USER->ignoresesskey ?? null;
+        $USER->ignoresesskey = true;
+        try {
+            $mform = new edit_element_form(null, ['element' => $element], 'post', '', null, true, $submission);
+        } finally {
+            if ($ignoresesskey === null) {
+                unset($USER->ignoresesskey);
+            } else {
+                $USER->ignoresesskey = $ignoresesskey;
+            }
+        }
+        if (!$mform->is_validated() || !($data = $mform->get_data())) {
+            throw new \invalid_parameter_exception('Invalid element values');
+        }
+
+        // Reject select values the form would not offer rather than persisting a partial result.
+        foreach ($values as $value) {
+            $name = $value['name'];
+            if (
+                $mform->is_select_element($name) &&
+                (!isset($data->$name) || (string)$data->$name !== (string)$value['value'])
+            ) {
+                throw new \invalid_parameter_exception('Invalid value for field: ' . $name);
+            }
+        }
+
+        // Only the validated form data is persisted; identity always comes from the authorised element.
+        $data->id = $element->id;
+        $data->pageid = $element->pageid;
+        $data->element = $element->element;
 
         // Get an instance of the element class.
         if ($e = \mod_customcert\element_factory::get_element_instance($element)) {
@@ -112,6 +143,31 @@ class external extends external_api {
         }
 
         return false;
+    }
+
+    /**
+     * Builds the base form submission from the stored element so omitted fields keep their values.
+     *
+     * @param \stdClass $element The stored element record.
+     * @return array
+     */
+    private static function get_form_submission(\stdClass $element): array {
+        $submission = [];
+        foreach (['name', 'font', 'fontsize', 'colour', 'width', 'posx', 'posy', 'refpoint', 'alignment'] as $field) {
+            if (isset($element->$field)) {
+                $submission[$field] = (string)$element->$field;
+            }
+        }
+        $payload = json_decode((string)($element->data ?? ''), true);
+        if (is_array($payload)) {
+            foreach ($payload as $key => $value) {
+                if (is_scalar($value) && $value !== false) {
+                    $submission[$key] = (string)$value;
+                }
+            }
+        }
+
+        return $submission;
     }
 
     /**
