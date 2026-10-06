@@ -165,19 +165,19 @@ class element extends base_element implements
                 $grade = element_helper::get_grade_item_info(
                     $gradeitemid,
                     $gradeformat,
-                    (int)$user->id
+                    (int)$user->id,
+                    $courseid
                 );
             } else {
                 $grade = element_helper::get_mod_grade_info(
                     (int)$gradeitem,
                     $gradeformat,
-                    (int)$user->id
+                    (int)$user->id,
+                    $courseid
                 );
             }
 
-            if ($grade) {
-                $grade = $grade->get_displaygrade();
-            }
+            $grade = $grade ? $grade->get_displaygrade() : '';
         }
 
         if ($renderer) {
