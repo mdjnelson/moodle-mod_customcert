@@ -170,6 +170,8 @@ final class external_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
 
+        set_config('showposxy', 1, 'customcert');
+
         $values = [
             ['name' => 'text', 'value' => 'new text'],
             ['name' => 'posx', 'value' => '15'],
