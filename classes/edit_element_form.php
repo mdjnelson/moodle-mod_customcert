@@ -84,6 +84,16 @@ class edit_element_form extends \moodleform {
     }
 
     /**
+     * Returns whether the form has a select element with the given name.
+     *
+     * @param string $name The element name.
+     * @return bool
+     */
+    public function is_select_element(string $name): bool {
+        return $this->_form->elementExists($name) && $this->_form->getElementType($name) === 'select';
+    }
+
+    /**
      * Fill in the current page data for this customcert.
      */
     public function definition_after_data() {
