@@ -184,7 +184,7 @@ class element extends \customcertelement_image\element {
         // Array of data we will be storing in the database.
         $fs = get_file_storage();
 
-        if (!empty($data->fileid)) {
+        if (!empty($data->fileid) && array_key_exists((int)$data->fileid, self::get_images())) {
             if ($file = $fs->get_file_by_id($data->fileid)) {
                 $arrtostore += [
                     'contextid' => $file->get_contextid(),
@@ -196,7 +196,7 @@ class element extends \customcertelement_image\element {
             }
         }
 
-        if (!empty($data->signaturefileid)) {
+        if (!empty($data->signaturefileid) && array_key_exists((int)$data->signaturefileid, self::get_signatures())) {
             if ($signaturefile = $fs->get_file_by_id($data->signaturefileid)) {
                 $arrtostore += [
                     'signaturecontextid' => $signaturefile->get_contextid(),

@@ -224,13 +224,15 @@ class element extends \mod_customcert\element {
                     $grade = \mod_customcert\element_helper::get_grade_item_info(
                         $gradeitemid,
                         $dateitem,
-                        $user->id
+                        $user->id,
+                        $courseid
                     );
                 } else {
                     $grade = \mod_customcert\element_helper::get_mod_grade_info(
                         $dateitem,
                         GRADE_DISPLAY_TYPE_DEFAULT,
-                        $user->id
+                        $user->id,
+                        $courseid
                     );
                 }
 

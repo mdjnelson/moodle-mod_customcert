@@ -35,6 +35,14 @@ use core_user\fields;
  */
 class element extends \mod_customcert\element {
     /**
+     * Core user table fields that may be displayed.
+     */
+    private const USER_FIELDS = [
+        'firstname', 'lastname', 'username', 'email', 'city', 'country', 'url',
+        'idnumber', 'institution', 'department', 'phone1', 'phone2', 'address',
+    ];
+
+    /**
      * This function renders the form elements when adding a customcert element.
      *
      * @param \MoodleQuickForm $mform the edit_form instance
@@ -45,21 +53,10 @@ class element extends \mod_customcert\element {
         require_once($CFG->dirroot . '/user/profile/lib.php');
 
         // Get the user profile fields.
-        $userfields = [
-            'firstname' => fields::get_display_name('firstname'),
-            'lastname' => fields::get_display_name('lastname'),
-            'username' => fields::get_display_name('username'),
-            'email' => fields::get_display_name('email'),
-            'city' => fields::get_display_name('city'),
-            'country' => fields::get_display_name('country'),
-            'url' => fields::get_display_name('url'),
-            'idnumber' => fields::get_display_name('idnumber'),
-            'institution' => fields::get_display_name('institution'),
-            'department' => fields::get_display_name('department'),
-            'phone1' => fields::get_display_name('phone1'),
-            'phone2' => fields::get_display_name('phone2'),
-            'address' => fields::get_display_name('address'),
-        ];
+        $userfields = [];
+        foreach (self::USER_FIELDS as $userfield) {
+            $userfields[$userfield] = fields::get_display_name($userfield);
+        }
         // Get the user custom fields, excluding ones the configuring user isn't permitted to disclose.
         $arrcustomfields = \availability_profile\condition::get_custom_profile_fields();
         $customfields = [];
@@ -166,7 +163,7 @@ class element extends \mod_customcert\element {
                     }
                 }
             }
-        } else if (!empty($user->$field)) { // Field in the user table.
+        } else if (in_array($field, self::USER_FIELDS, true) && !empty($user->$field)) { // Field in the user table.
             $value = $user->$field;
         }
 
