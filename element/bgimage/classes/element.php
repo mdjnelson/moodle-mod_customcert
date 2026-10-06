@@ -151,7 +151,7 @@ class element extends \customcertelement_image\element implements
         $arrtostore = [];
 
         // If a file was selected in the dropdown, persist its metadata so we can resolve it later.
-        if (!empty($formdata->fileid)) {
+        if (!empty($formdata->fileid) && array_key_exists((int)$formdata->fileid, self::get_images())) {
             $fs = get_file_storage();
             if ($file = $fs->get_file_by_id($formdata->fileid)) {
                 $arrtostore += [
