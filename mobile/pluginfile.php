@@ -60,20 +60,11 @@ $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 $template = $DB->get_record('customcert_templates', ['id' => $certificate->templateid], '*', MUST_EXIST);
 
-// Capabilities check.
-require_capability('mod/customcert:view', \context_module::instance($cm->id));
-if ($userid != $USER->id) {
-    require_capability('mod/customcert:viewreport', \context_module::instance($cm->id));
-} else {
-    // Make sure the user has met the required time.
-    if ($certificate->requiredtime) {
-        if (\mod_customcert\certificate::get_course_time($certificate->course) < ($certificate->requiredtime * 60)) {
-            exit();
-        }
-    }
-}
-
 $issue = $DB->get_record('customcert_issues', ['customcertid' => $certificateid, 'userid' => $userid]);
+
+if (!\mod_customcert\mobile_access::require_access($cm, $certificate, (int)$userid, (bool)$issue)) {
+    exit();
+}
 
 // If we are doing it for the logged in user then we want to issue the certificate.
 if (!$issue) {
