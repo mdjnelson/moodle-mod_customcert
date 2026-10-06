@@ -216,7 +216,7 @@ class element extends base_element implements
             $arrtostore['alphachannel'] = (float) $formdata->alphachannel;
         }
 
-        if (!empty($formdata->fileid)) {
+        if (!empty($formdata->fileid) && array_key_exists((int)$formdata->fileid, self::get_images())) {
             // Array of data we will be storing in the database.
             $fs = get_file_storage();
             if ($file = $fs->get_file_by_id($formdata->fileid)) {

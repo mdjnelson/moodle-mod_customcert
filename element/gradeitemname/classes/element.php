@@ -204,17 +204,18 @@ class element extends base_element implements
         if (empty($data) || empty($data['gradeitem'])) {
             return '';
         }
+        $courseid = element_helper::get_courseid($this->get_id());
 
         $gradeitem = $data['gradeitem'];
         if (strpos($gradeitem, 'gradeitem:') === 0) {
             $gradeitemid = substr($gradeitem, 10);
-            $gradeitem = grade_item::fetch(['id' => $gradeitemid]);
+            $gradeitem = grade_item::fetch(['id' => $gradeitemid, 'courseid' => $courseid]);
 
             // If the gradeitem was not found, return an empty string.
             // This will effectively prevent the element from rendering.
             return $gradeitem ? $gradeitem->get_name() : '';
         } else {
-            if (!$cm = $DB->get_record('course_modules', ['id' => $gradeitem])) {
+            if (!$cm = $DB->get_record('course_modules', ['id' => $gradeitem, 'course' => $courseid])) {
                 return '';
             }
 

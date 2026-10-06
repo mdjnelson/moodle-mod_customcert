@@ -679,12 +679,22 @@ class element_helper {
      * @param int $cmid
      * @param int $gradeformat
      * @param int $userid
+     * @param int|null $courseid If set, the module must belong to this course.
      * @return grade_information|bool the grade information, or false if there is none.
      */
-    public static function get_mod_grade_info(int $cmid, int $gradeformat, int $userid): grade_information|false {
+    public static function get_mod_grade_info(
+        int $cmid,
+        int $gradeformat,
+        int $userid,
+        ?int $courseid = null
+    ): grade_information|false {
         global $DB;
 
         if (!$cm = $DB->get_record('course_modules', ['id' => $cmid])) {
+            return false;
+        }
+
+        if ($courseid !== null && (int)$cm->course !== $courseid) {
             return false;
         }
 
@@ -740,10 +750,20 @@ class element_helper {
      * @param int $gradeitemid
      * @param int $gradeformat
      * @param int $userid
+     * @param int|null $courseid If set, the grade item must belong to this course.
      * @return grade_information|bool the grade information, or false if there is none.
      */
-    public static function get_grade_item_info(int $gradeitemid, int $gradeformat, int $userid): grade_information|false {
-        if (!$gradeitem = \grade_item::fetch(['id' => $gradeitemid])) {
+    public static function get_grade_item_info(
+        int $gradeitemid,
+        int $gradeformat,
+        int $userid,
+        ?int $courseid = null
+    ): grade_information|false {
+        $params = ['id' => $gradeitemid];
+        if ($courseid !== null) {
+            $params['courseid'] = $courseid;
+        }
+        if (!$gradeitem = \grade_item::fetch($params)) {
             return false;
         }
 
