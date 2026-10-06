@@ -26,8 +26,8 @@
  * AJAX_SCRIPT - exception will be converted into JSON.
  */
 
+use mod_customcert\mobile_access;
 use mod_customcert\service\certificate_issue_service;
-use mod_customcert\service\certificate_time_service;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_repository;
 use mod_customcert\template;
@@ -67,21 +67,11 @@ $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUS
 $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $certificate = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
 
-// Capabilities check.
-require_capability('mod/customcert:view', \context_module::instance($cm->id));
-if ($userid != $USER->id) {
-    require_capability('mod/customcert:viewreport', \context_module::instance($cm->id));
-} else {
-    // Make sure the user has met the required time.
-    if ($certificate->requiredtime) {
-        $timeservice = certificate_time_service::create();
-        if ($timeservice->get_course_time((int)$certificate->course, (int)$USER->id) < ($certificate->requiredtime * 60)) {
-            exit();
-        }
-    }
-}
-
 $issue = $DB->get_record('customcert_issues', ['customcertid' => $certificateid, 'userid' => $userid]);
+
+if (!mobile_access::require_access($cm, $certificate, (int)$userid, (bool)$issue)) {
+    exit();
+}
 
 // If we are doing it for the logged in user then we want to issue the certificate.
 if (!$issue) {
