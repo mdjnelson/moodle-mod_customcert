@@ -24,6 +24,8 @@
 
 namespace customcertelement_teachername;
 
+//use mod_customcert;
+
 /**
  * The customcert element teachername's core interaction API.
  *
@@ -73,7 +75,11 @@ class element extends \mod_customcert\element {
         global $DB;
 
         $teacher = $DB->get_record('user', ['id' => $this->get_data()]);
-        $teachername = fullname($teacher);
+        if(!get_config('customcert', 'fullname')) {
+            $teachername = fullname($teacher);
+        } else {
+            $teachername = \mod_customcert\fullname_certificate::mod_customcert_get_fullname($teacher);
+        }
 
         \mod_customcert\element_helper::render_content($pdf, $this, $teachername);
     }
