@@ -99,8 +99,9 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
         $this->assertDebuggingCalled(
             "Failed to register customcertelement 'incompat959': Coding error detected, it must be fixed by "
                 . "a programmer: Cannot register element type 'incompat959': "
-                . "'\\customcertelement_incompat959\\element' must implement form_element_interface "
-                . 'and renderable_element_interface, or extend mod_customcert\\element.',
+                . "'\\customcertelement_incompat959\\element' must implement "
+                . 'mod_customcert\\element\\form_element_interface and '
+                . 'mod_customcert\\element\\renderable_element_interface directly (Element System v2).',
             DEBUG_DEVELOPER
         );
         $this->assertFalse($registry->has('incompat959'), 'An incompatible class must never end up registered.');

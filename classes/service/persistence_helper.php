@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\raw_data_element_interface;
 use mod_customcert\local\upgrade\row_migrator;
@@ -61,11 +60,9 @@ final class persistence_helper {
 
         // Legacy path: only invoke save_unique_data() when the concrete class actually overrides it,
         // not when it is merely inherited from the mod_customcert\element base class.
-        // Unwrap the adapter so we inspect the inner legacy element's declaring class.
-        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
         if (
-            method_exists($target, 'save_unique_data') &&
-            (new ReflectionMethod($target, 'save_unique_data'))->getDeclaringClass()->getName() !== \mod_customcert\element::class
+            method_exists($element, 'save_unique_data') &&
+            (new ReflectionMethod($element, 'save_unique_data'))->getDeclaringClass()->getName() !== \mod_customcert\element::class
         ) {
             debugging(
                 'save_unique_data() is deprecated since Moodle 5.2. Implement ' .

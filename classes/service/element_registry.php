@@ -28,7 +28,6 @@ namespace mod_customcert\service;
 
 use coding_exception;
 use moodle_exception;
-use mod_customcert\element as legacy_base;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\renderable_element_interface;
 
@@ -42,9 +41,8 @@ final class element_registry {
     /**
      * Register a class for a given element type key.
      *
-     * Accepted classes:
-     * - Native v2 elements implementing form_element_interface and renderable_element_interface
-     * - Supported historical subclasses of mod_customcert\element (wrapped by the factory)
+     * Accepted classes: native v2 elements implementing form_element_interface and
+     * renderable_element_interface. The legacy element runtime bridge has been removed.
      *
      * @param string $type
      * @param string $class
@@ -57,13 +55,12 @@ final class element_registry {
 
         $isnative = is_a($class, form_element_interface::class, true)
             && is_a($class, renderable_element_interface::class, true);
-        $islegacy = is_a($class, legacy_base::class, true);
 
-        if (!$isnative && !$islegacy) {
+        if (!$isnative) {
             throw new coding_exception(
                 "Cannot register element type '{$type}': '{$class}' must implement "
-                . 'form_element_interface and renderable_element_interface, '
-                . 'or extend mod_customcert\element.'
+                . 'mod_customcert\\element\\form_element_interface and '
+                . 'mod_customcert\\element\\renderable_element_interface directly (Element System v2).'
             );
         }
 
