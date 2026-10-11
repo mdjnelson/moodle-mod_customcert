@@ -22,7 +22,10 @@ use advanced_testcase;
 use context_system;
 use mod_customcert\element\restorable_element_interface;
 use mod_customcert\service\element_factory;
+use mod_customcert\service\element_registry;
+use mod_customcert\element\element_bootstrap;
 use mod_customcert\tests\fixtures\minimal_restore_task;
+use mod_customcert\tests\fixtures\new_restorable_element;
 use restore_customcert_activity_task;
 use mod_customcert\local\upgrade\row_migrator;
 
@@ -33,6 +36,7 @@ global $CFG;
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/mod/customcert/backup/moodle2/restore_customcert_activity_task.class.php');
 require_once(__DIR__ . '/fixtures/minimal_restore_task.php');
+require_once(__DIR__ . '/fixtures/new_restorable_element.php');
 
 /**
  * Tests that after_restore_from_backup() preserves JSON and updates IDs.
@@ -298,5 +302,55 @@ final class restore_hooks_json_test extends advanced_testcase {
         $dataislegacy = !$isjsonobject;
 
         $this->assertSame($expectedlegacy, $dataislegacy);
+    }
+
+    /**
+     * A third-party native v2 element implementing restorable_element_interface must be
+     * dispatched to by the production restore task: restore_customcert_activity_task::
+     * after_restore() must receive the real task instance, and the element's hook must be
+     * able to persist a remapped id resolved through it back to the element's stored payload.
+     *
+     * This exercises the production restore dispatch with a test mapping store:
+     * minimal_restore_task overrides the mapping lookup with an in-memory map instead of the
+     * production backup_controller-backed mapping tables, so the dispatch path (after_restore()
+     * -> get_element_factory() -> after_restore_from_backup()) is real, but id resolution is not.
+     */
+    public function test_third_party_restorable_element_is_dispatched_by_production_restore_task(): void {
+        global $DB;
+        $pageid = $this->create_template_and_page();
+
+        // Simulate a third-party element pointing to old course_module id 456.
+        $elementid = $this->insert_element($pageid, 'thirdpartyrestore', 'Third-party restorable', [
+            'refid' => '456',
+        ]);
+
+        $page = $DB->get_record('customcert_pages', ['id' => $pageid], '*', MUST_EXIST);
+        $customcertid = (int)$DB->get_field('customcert', 'id', ['templateid' => $page->templateid], MUST_EXIST);
+
+        // Build a factory with the third-party element registered, simulating it being
+        // installed on the restore target, and inject it into the restore task.
+        $registry = new element_registry();
+        element_bootstrap::register_defaults($registry);
+        $registry->register('thirdpartyrestore', new_restorable_element::class);
+        $factory = new element_factory($registry);
+
+        $restoreid = 'rid-' . uniqid();
+        $task = $this->make_restore_task($restoreid, 0, $customcertid);
+        $task->set_element_factory($factory);
+        // The fixture's set_mapping()/get_mappingid() use an in-memory test mapping store in
+        // place of the production mapping lookup.
+        $task->set_mapping('course_module', 456, 999);
+
+        // Exercise the real production dispatch path.
+        $task->after_restore();
+
+        $row = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $decoded = json_decode($row->data, true);
+        $this->assertIsArray($decoded);
+        $this->assertSame(
+            999,
+            (int)$decoded['refid'],
+            'The hook must map the id via the real restore task it received, using the test mapping store.'
+        );
     }
 }

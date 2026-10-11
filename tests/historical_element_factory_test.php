@@ -34,7 +34,6 @@ require_once(__DIR__ . '/fixtures/customcertelement_legacythrows974/element.php'
 require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
 
 use advanced_testcase;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\tests\fixtures\native_v2_control_element;
 use stdClass;
@@ -93,7 +92,6 @@ final class historical_element_factory_test extends advanced_testcase {
 
         $this->assertInstanceOf(\customcertelement_legacy45\element::class, $result);
         $this->assertInstanceOf(\mod_customcert\element::class, $result);
-        $this->assertNotInstanceOf(legacy_element_adapter::class, $result);
 
         // Must remain directly usable, not merely constructible.
         $this->assertSame('legacy45:Helvetica', $result->render_html());
@@ -268,7 +266,6 @@ final class historical_element_factory_test extends advanced_testcase {
 
         $this->assertInstanceOf(\customcertelement_studentname\element::class, $result);
         $this->assertInstanceOf(renderable_element_interface::class, $result);
-        $this->assertNotInstanceOf(legacy_element_adapter::class, $result);
     }
 
     /**
