@@ -88,7 +88,7 @@ final class generate_site_certificates_download_task_test extends advanced_testc
         $this->resetAfterTest();
         $sink = $this->redirectMessages();
 
-        $this->create_issued_certificate();
+        $issueid = $this->create_issued_certificate();
         $manageruser = $this->create_manager_user();
         $context = context_system::instance();
 
@@ -122,7 +122,7 @@ final class generate_site_certificates_download_task_test extends advanced_testc
         $zipfiles = $zip->list_files();
         $zip->close();
         $this->assertCount(1, $zipfiles);
-        $this->assertSame('ada_lovelace/site_template_certificate.pdf', $zipfiles[0]->pathname);
+        $this->assertSame("ada_lovelace/site_template_certificate_{$issueid}.pdf", $zipfiles[0]->pathname);
 
         $messages = $sink->get_messages();
         $this->assertNotEmpty($messages);
@@ -133,6 +133,184 @@ final class generate_site_certificates_download_task_test extends advanced_testc
             $messages[0]->subject
         );
         $sink->close();
+    }
+
+    /**
+     * Ensure multiple certificates issued to the same learner, sharing an activity/template name,
+     * are all retained with distinct paths.
+     *
+     * @covers \mod_customcert\certificate::generate_all_for_site_zip
+     */
+    public function test_site_zip_retains_all_issues_with_same_activity_name(): void {
+        $this->resetAfterTest();
+
+        $manageruser = $this->create_manager_user();
+        $context = context_system::instance();
+        $learner = $this->getDataGenerator()->create_user(['firstname' => 'Marie', 'lastname' => 'Curie']);
+
+        $issueids = [];
+        for ($i = 0; $i < 3; $i++) {
+            $issueids[] = $this->create_issued_certificate_for_user($learner, 'Duplicate Activity Name');
+        }
+
+        $task = new generate_site_certificates_download_task();
+        $task->set_userid($manageruser->id);
+        $this->setUser($manageruser);
+        $task->execute();
+
+        $files = get_file_storage()->get_area_files(
+            $context->id,
+            'mod_customcert',
+            certificate::SITE_DOWNLOAD_FILEAREA,
+            $manageruser->id,
+            'itemid',
+            false
+        );
+        $this->assertCount(1, $files);
+        $file = reset($files);
+
+        $tmpdir = make_request_directory();
+        $zippath = $tmpdir . '/check.zip';
+        $file->copy_content_to($zippath);
+        $zip = new zip_archive();
+        $zip->open($zippath, \file_archive::OPEN);
+        $zipfiles = $zip->list_files();
+        $zip->close();
+
+        $expectedpaths = array_map(
+            static fn($issueid) => "marie_curie/duplicate_activity_name_certificate_{$issueid}.pdf",
+            $issueids
+        );
+        $actualpaths = array_map(static fn($f) => $f->pathname, $zipfiles);
+        sort($expectedpaths);
+        sort($actualpaths);
+
+        $this->assertCount(3, $actualpaths);
+        $this->assertSame($expectedpaths, $actualpaths);
+    }
+
+    /**
+     * Activity names that differ only by characters stripped by clean_filename() must still
+     * produce distinct archive paths once the issue id is appended.
+     *
+     * @covers \mod_customcert\certificate::generate_all_for_site_zip
+     */
+    public function test_site_zip_retains_issues_with_sanitisation_colliding_names(): void {
+        $this->resetAfterTest();
+
+        $manageruser = $this->create_manager_user();
+        $context = context_system::instance();
+        $learner = $this->getDataGenerator()->create_user(['firstname' => 'Grace', 'lastname' => 'Hopper']);
+
+        // These two names are distinct, but clean_filename() strips the punctuation/case
+        // differences so they collide once sanitised.
+        $names = ['Report:Card', 'ReportCard'];
+        $this->assertSame(
+            clean_filename(str_replace(' ', '_', mb_strtolower($names[0]))),
+            clean_filename(str_replace(' ', '_', mb_strtolower($names[1]))),
+            'Fixture names must collide after sanitisation to exercise the regression.'
+        );
+
+        $issueids = [];
+        foreach ($names as $name) {
+            $issueids[] = $this->create_issued_certificate_for_user($learner, $name);
+        }
+
+        $task = new generate_site_certificates_download_task();
+        $task->set_userid($manageruser->id);
+        $this->setUser($manageruser);
+        $task->execute();
+
+        $files = get_file_storage()->get_area_files(
+            $context->id,
+            'mod_customcert',
+            certificate::SITE_DOWNLOAD_FILEAREA,
+            $manageruser->id,
+            'itemid',
+            false
+        );
+        $file = reset($files);
+
+        $tmpdir = make_request_directory();
+        $zippath = $tmpdir . '/check.zip';
+        $file->copy_content_to($zippath);
+        $zip = new zip_archive();
+        $zip->open($zippath, \file_archive::OPEN);
+        $zipfiles = $zip->list_files();
+        $zip->close();
+
+        $expectedcleanname = clean_filename(str_replace(' ', '_', mb_strtolower($names[0])));
+        $expectedpaths = array_map(
+            static fn($issueid) => "grace_hopper/{$expectedcleanname}_certificate_{$issueid}.pdf",
+            $issueids
+        );
+        $actualpaths = array_map(static fn($f) => $f->pathname, $zipfiles);
+        sort($expectedpaths);
+        sort($actualpaths);
+
+        $this->assertCount(2, $actualpaths);
+        $this->assertSame($expectedpaths, $actualpaths);
+        foreach ($actualpaths as $path) {
+            $this->assertStringNotContainsString('..', $path);
+        }
+    }
+
+    /**
+     * The archive path must be built from the certificate activity name, not the template name.
+     *
+     * @covers \mod_customcert\certificate::generate_all_for_site_zip
+     */
+    public function test_site_zip_uses_activity_name_not_template_name(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $manageruser = $this->create_manager_user();
+        $context = context_system::instance();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user(['firstname' => 'Ada', 'lastname' => 'Lovelace']);
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'name' => 'Completion Award',
+        ]);
+        $template = $DB->get_record('customcert_templates', ['id' => $customcert->templateid], '*', MUST_EXIST);
+        $template->name = 'Generic Shared Template';
+        $DB->update_record('customcert_templates', $template);
+
+        $page = $DB->get_record('customcert_pages', ['templateid' => $customcert->templateid], '*', MUST_EXIST);
+        $element = new stdClass();
+        $element->pageid = $page->id;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        $issueid = certificate::issue_certificate((int) $customcert->id, (int) $user->id);
+
+        $task = new generate_site_certificates_download_task();
+        $task->set_userid($manageruser->id);
+        $this->setUser($manageruser);
+        $task->execute();
+
+        $files = get_file_storage()->get_area_files(
+            $context->id,
+            'mod_customcert',
+            certificate::SITE_DOWNLOAD_FILEAREA,
+            $manageruser->id,
+            'itemid',
+            false
+        );
+        $file = reset($files);
+
+        $tmpdir = make_request_directory();
+        $zippath = $tmpdir . '/check.zip';
+        $file->copy_content_to($zippath);
+        $zip = new zip_archive();
+        $zip->open($zippath, \file_archive::OPEN);
+        $zipfiles = $zip->list_files();
+        $zip->close();
+
+        $this->assertCount(1, $zipfiles);
+        $this->assertSame("ada_lovelace/completion_award_certificate_{$issueid}.pdf", $zipfiles[0]->pathname);
     }
 
     /**
@@ -503,13 +681,13 @@ final class generate_site_certificates_download_task_test extends advanced_testc
      * @param string $firstname
      * @param string $lastname
      * @param string $templatename
-     * @return void
+     * @return int the issue id
      */
     private function create_issued_certificate(
         string $firstname = 'Ada',
         string $lastname = 'Lovelace',
         string $templatename = 'Site Template'
-    ): void {
+    ): int {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course();
@@ -529,6 +707,31 @@ final class generate_site_certificates_download_task_test extends advanced_testc
         $element->name = 'Image';
         $DB->insert_record('customcert_elements', $element);
 
-        certificate::issue_certificate((int) $customcert->id, (int) $user->id);
+        return certificate::issue_certificate((int) $customcert->id, (int) $user->id);
+    }
+
+    /**
+     * Create a new certificate activity (with its own template) and issue it to the given user.
+     *
+     * @param stdClass $user the learner to issue the certificate to
+     * @param string $activityname the certificate activity/template name
+     * @return int the issue id
+     */
+    private function create_issued_certificate_for_user(stdClass $user, string $activityname): int {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'name' => $activityname,
+        ]);
+
+        $page = $DB->get_record('customcert_pages', ['templateid' => $customcert->templateid], '*', MUST_EXIST);
+        $element = new stdClass();
+        $element->pageid = $page->id;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        return certificate::issue_certificate((int) $customcert->id, (int) $user->id);
     }
 }
