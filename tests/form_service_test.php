@@ -176,4 +176,52 @@ final class form_service_test extends advanced_testcase {
         $this->assertStringNotContainsString(form_service::PROTECTION_MODIFY, $result);
         $this->assertStringNotContainsString(form_service::PROTECTION_COPY, $result);
     }
+
+    /**
+     * upload_files() defaults to the 'image' filearea and forwards an explicit filearea.
+     *
+     * @covers \mod_customcert\service\form_service::upload_files
+     */
+    public function test_upload_files_default_and_explicit_filearea(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        global $USER;
+        $usercontext = \context_user::instance($USER->id);
+        $syscontext = \context_system::instance();
+        $fs = get_file_storage();
+
+        // Default filearea forwards to 'image'.
+        $draftitemid = file_get_unused_draft_itemid();
+        $fs->create_file_from_string([
+            'contextid' => $usercontext->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftitemid,
+            'filepath' => '/',
+            'filename' => 'default.png',
+        ], 'contents');
+
+        form_service::upload_files($draftitemid, $syscontext->id);
+
+        $files = $fs->get_area_files($syscontext->id, 'mod_customcert', 'image', 0, 'filename', false);
+        $this->assertCount(1, $files);
+        $this->assertSame('default.png', reset($files)->get_filename());
+
+        // Explicit filearea is forwarded unchanged.
+        $draftitemid = file_get_unused_draft_itemid();
+        $fs->create_file_from_string([
+            'contextid' => $usercontext->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftitemid,
+            'filepath' => '/',
+            'filename' => 'signature.png',
+        ], 'contents');
+
+        form_service::upload_files($draftitemid, $syscontext->id, 'signature');
+
+        $files = $fs->get_area_files($syscontext->id, 'mod_customcert', 'signature', 0, 'filename', false);
+        $this->assertCount(1, $files);
+        $this->assertSame('signature.png', reset($files)->get_filename());
+    }
 }
