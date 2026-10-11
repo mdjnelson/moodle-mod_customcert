@@ -231,12 +231,13 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * list_email_candidates should not include a user until completion conditions configured on the
-     * certificate itself (core Activity completion, as distinct from Restrict access) are met.
+     * list_email_candidates must not require a user to have already met the completion conditions
+     * configured on the certificate activity itself (e.g. View), since that would create a circular
+     * dependency where the certificate can never be issued automatically (#1020).
      *
      * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
-    public function test_list_email_candidates_respects_own_completion_condition_not_met(): void {
+    public function test_list_email_candidates_ignores_own_view_completion_condition(): void {
         global $CFG, $DB;
 
         $CFG->enablecompletion = true;
@@ -246,8 +247,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $student = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student->id, $course->id);
 
-        // Create a certificate that requires viewing the activity to complete it, with no
-        // Restrict access rule configured (completion tracking is the only gating in place).
+        // Create a certificate that requires viewing the activity to complete it.
         $customcert = $this->getDataGenerator()->create_module('customcert', [
             'course' => $course->id,
             'emailstudents' => 1,
@@ -265,17 +265,17 @@ final class email_certificate_task_test extends advanced_testcase {
         $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
-        // The student has not viewed the certificate yet, so its completion condition is not met.
-        $this->assertArrayNotHasKey($student->id, $candidates);
+        // The student has not viewed the certificate yet, but should still be eligible.
+        $this->assertArrayHasKey($student->id, $candidates);
     }
 
     /**
-     * list_email_candidates should include a user once completion conditions configured on the
-     * certificate itself have been met.
+     * list_email_candidates must not require a user to have already met a "Mark as done" completion
+     * condition configured on the certificate activity itself (#1020).
      *
      * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
-    public function test_list_email_candidates_respects_own_completion_condition_met(): void {
+    public function test_list_email_candidates_ignores_own_manual_completion_condition(): void {
         global $CFG, $DB;
 
         $CFG->enablecompletion = true;
@@ -285,13 +285,11 @@ final class email_certificate_task_test extends advanced_testcase {
         $student = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($student->id, $course->id);
 
-        // Create a certificate that requires viewing the activity to complete it, with no
-        // Restrict access rule configured (completion tracking is the only gating in place).
+        // Create a certificate that requires manual "Mark as done" completion.
         $customcert = $this->getDataGenerator()->create_module('customcert', [
             'course' => $course->id,
             'emailstudents' => 1,
-            'completion' => COMPLETION_TRACKING_AUTOMATIC,
-            'completionview' => 1,
+            'completion' => COMPLETION_TRACKING_MANUAL,
         ]);
 
         // Put the certificate in a valid state by adding a page + element.
@@ -301,16 +299,10 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        // Mark the certificate's own completion condition as met for the student by
-        // simulating a view, since automatic completion recalculates state from the
-        // actual criteria (a bare update_state() call would be recalculated away).
-        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
-        $completion = new completion_info($course);
-        $completion->set_module_viewed($cm, $student->id);
-
         $issuer = certificate_issuer_service::create();
         $candidates = $issuer->list_email_candidates((int)$customcert->id);
 
+        // The student has not marked the activity as done yet, but should still be eligible.
         $this->assertArrayHasKey($student->id, $candidates);
     }
 
@@ -1278,13 +1270,15 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * Completion conditions still gate issuance even with "Issue certificates automatically"
-     * enabled: eligibility is required in addition to the setting, not bypassed by it.
+     * Completion conditions configured on the certificate itself must not gate issuance when
+     * "Issue certificates automatically" is enabled, otherwise a "View" completion condition would
+     * create a circular dependency: a student could never view a certificate they are never issued
+     * (#1020).
      *
      * @covers \mod_customcert\task\issue_certificates_task
      * @covers \mod_customcert\task\email_certificate_task
      */
-    public function test_email_certificates_teachers_respects_completion_with_auto_issue_enabled(): void {
+    public function test_email_certificates_teachers_ignores_completion_with_auto_issue_enabled(): void {
         global $CFG, $DB;
 
         $CFG->enablecompletion = true;
@@ -1317,7 +1311,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
 
-        // Only user1 has viewed it, meeting the completion condition; user2 has not.
+        // Only user1 has viewed it; user2 has not.
         $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
         $completion = new completion_info($course);
         $completion->set_module_viewed($cm, $user1->id);
@@ -1329,16 +1323,18 @@ final class email_certificate_task_test extends advanced_testcase {
         $emails = $sink->get_messages();
         $sink->close();
 
-        // Only user1's certificate should exist; user2 hasn't met the completion condition, even
-        // though automatic issuance is enabled for this certificate.
+        // Both certificates should exist; the unmet "View" completion condition must not block
+        // automatic issuance for user2.
         $issues = $DB->get_records('customcert_issues');
-        $this->assertCount(1, $issues);
-        $issue = reset($issues);
-        $this->assertEquals($user1->id, (int)$issue->userid);
+        $this->assertCount(2, $issues);
+        $issueuserids = array_column($issues, 'userid');
+        $this->assertContains($user1->id, $issueuserids);
+        $this->assertContains($user2->id, $issueuserids);
 
-        // Only one email, to the teacher, about user1's certificate.
-        $this->assertCount(1, $emails);
-        $this->assertEquals($teacher->email, $emails[0]->to);
+        // Both notifications go to the teacher.
+        $this->assertCount(2, $emails);
+        $tos = array_map(fn($email) => $email->to, $emails);
+        $this->assertSame([$teacher->email, $teacher->email], $tos);
     }
 
     /**
@@ -2727,16 +2723,13 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * Regression test for manual completion tracking: has_met_own_completion() must still gate
-     * candidacy on the student's manually-ticked completion state. get_core_completion_state()
-     * (used to break the automatic-tracking circularity with completionemailed) only covers
-     * grade/passgrade/view criteria and returns an empty array under manual tracking, which would
-     * otherwise vacuously pass every student regardless of whether they'd ticked the activity
-     * complete.
+     * Regression test for #1020: the certificate's own "Mark as done" completion condition must
+     * not prevent automatic issuance, since that would create a circular dependency (the activity
+     * could require the student to already hold the certificate before it can be issued to them).
      *
      * @covers \mod_customcert\service\certificate_issuer_service
      */
-    public function test_issue_certificates_task_respects_manual_completion(): void {
+    public function test_issue_certificates_task_ignores_manual_completion(): void {
         global $CFG, $DB;
 
         set_config('useadhoc', 0, 'customcert');
@@ -2759,24 +2752,7 @@ final class email_certificate_task_test extends advanced_testcase {
         $this->assertDebuggingNotCalled();
         $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'ElementX']);
 
-        $cm = $DB->get_record('course_modules', ['id' => $customcert->cmid]);
-        $completioninfo = new completion_info($course);
-
-        // Not manually completed yet: no issue, no email.
-        $sink = $this->redirectEmails();
-        $task = new issue_certificates_task();
-        $task->execute();
-        $emails = $sink->get_messages();
-        $sink->close();
-
-        $this->assertFalse(
-            $DB->record_exists('customcert_issues', ['customcertid' => $customcert->id, 'userid' => $student->id])
-        );
-        $this->assertCount(0, $emails);
-
-        // Now the student manually marks the activity complete.
-        $completioninfo->update_state($cm, COMPLETION_COMPLETE, $student->id);
-
+        // The student has not manually marked the activity complete.
         $sink = $this->redirectEmails();
         $task = new issue_certificates_task();
         $task->execute();
