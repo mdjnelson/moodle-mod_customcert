@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Optional contract for elements that expose the raw, untouched persistence representation.
+ * Optional contract for elements that expose the raw persistence representation.
  *
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
@@ -35,19 +35,17 @@ namespace mod_customcert\element;
  * able to satisfy without modification.
  *
  * Elements implementing this optional interface allow the persistence layer (e.g.
- * element_repository) to store the untouched persistence representation of the element
- * data, instead of falling back to get_data(), which may apply legacy compatibility
- * unwrapping and lose migrated fields.
+ * element_repository) to store the exact value returned by get_raw_data() instead of
+ * falling back to get_data(), for elements whose get_data() representation differs from
+ * what should be persisted (for example, a derived or formatted view of the data).
  */
 interface raw_data_element_interface {
     /**
-     * Returns the raw, untouched persistence representation of the element data.
+     * Returns the raw persistence representation of the element data.
      *
-     * Unlike {@see element_interface::get_data()}, this must never apply legacy
-     * compatibility unwrapping. It always returns exactly what is (or will be) stored
-     * in the `customcert_elements.data` database column, so that the persistence layer
-     * (e.g. element_repository) never loses migrated fields that a legacy scalar
-     * compatibility view would otherwise hide.
+     * Unlike {@see element_interface::get_data()}, which may return a representation
+     * tailored for rendering or form handling, this must always return exactly what is
+     * (or will be) stored in the `customcert_elements.data` database column.
      *
      * This method is intended for use by the persistence/storage boundary (e.g.
      * element_repository) only, and must not be used as a substitute for get_data() by

@@ -15,7 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Fixture: realistically-namespaced genuine Moodle 4.5-era third-party element (#958).
+ * Fixture: realistically-namespaced third-party element retaining 4.5-era method
+ * signatures for boundary testing (#958).
+ *
+ * This fixture deliberately keeps the historical untyped render()/render_html()
+ * signatures and legacy hook method names to exercise the 'genuine legacy-only element'
+ * rejection path during discovery/registration. It is not an unchanged historical
+ * implementation: its body now calls the current get_font()/get_colour()/get_width()/
+ * get_id() getters instead of relying on removed legacy protected state, so it compiles
+ * and runs against the current base element class.
  *
  * Namespaced as customcertelement_legacy45 so that the inherited
  * mod_customcert\element::get_type() naturally returns 'legacy45', matching how a real
@@ -31,7 +39,8 @@
 namespace customcertelement_legacy45;
 
 /**
- * Genuine 4.5-era legacy element with untyped render()/render_html() and legacy hooks.
+ * Element retaining 4.5-era untyped render()/render_html() signatures and legacy hook
+ * names for boundary testing, but using current getters internally.
  *
  * Does not override get_type(): the type is derived from the namespace by the base class.
  */
@@ -92,11 +101,11 @@ class element extends \mod_customcert\element {
         $this->rendercalled = true;
         $this->lastrenderargs = [$pdf, $preview, $user];
         $this->lastrenderargcount = func_num_args();
-        // Touch legacy properties to prove they are accessible.
-        $font = $this->font;
-        $colour = $this->colour;
-        $width = $this->width;
-        $id = isset($this->element->id) ? $this->element->id : null;
+        // Touch current getters to prove construction populated style/layout state.
+        $font = $this->get_font();
+        $colour = $this->get_colour();
+        $width = $this->get_width();
+        $id = $this->get_id();
         // No-op render body for tests.
         unset($font, $colour, $width, $id);
     }
@@ -108,7 +117,7 @@ class element extends \mod_customcert\element {
      */
     public function render_html() {
         $this->lasthtmlargcount = func_num_args();
-        $label = $this->font ?? 'n/a';
+        $label = $this->get_font() ?? 'n/a';
         return 'legacy45:' . $label;
     }
 

@@ -15,11 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Fixture: legacy element whose constructor deliberately fails (#974).
+ * Fixture: element whose constructor deliberately fails (#974).
  *
- * Used to prove that the restored historical static factory lets a broken plugin's
- * constructor failure propagate, rather than converting it to false as if the plugin
- * were simply missing.
+ * Used to prove that a broken plugin's constructor failure propagates (or is converted
+ * to null by the tolerant factory entry points), rather than being silently swallowed.
  *
  * @package    mod_customcert
  * @category   test
@@ -29,10 +28,15 @@
 
 namespace customcertelement_legacythrows974;
 
+use mod_customcert\element\renderable_element_interface;
+use mod_customcert\service\element_renderer;
+use pdf;
+use stdClass;
+
 /**
- * Legacy element with a deliberately broken constructor.
+ * Native v2 element with a deliberately broken constructor.
  */
-class element extends \mod_customcert\element {
+class element extends \mod_customcert\element implements renderable_element_interface {
     /**
      * Constructor that always throws, simulating a broken third-party plugin.
      *
@@ -41,5 +45,29 @@ class element extends \mod_customcert\element {
     public function __construct($element) {
         unset($element);
         throw new \Exception('Deliberate constructor failure for #974 regression coverage.');
+    }
+
+    /**
+     * Render the element into a PDF context. Unreachable: the constructor always throws.
+     *
+     * @param pdf $pdf
+     * @param bool $preview
+     * @param stdClass $user
+     * @param element_renderer|null $renderer
+     * @return void
+     */
+    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+        unset($pdf, $preview, $user, $renderer);
+    }
+
+    /**
+     * Render the element in HTML. Unreachable: the constructor always throws.
+     *
+     * @param element_renderer|null $renderer
+     * @return string
+     */
+    public function render_html(?element_renderer $renderer = null): string {
+        unset($renderer);
+        return '';
     }
 }
