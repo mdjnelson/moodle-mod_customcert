@@ -1,99 +1,34 @@
-# Migrating customcert element plugins to Element System v2 (5.3)
+# Element System v2 (current API, Moodle 6.0)
 
 ## Overview
 
 Moodle 5.2 introduced **Element System v2** — a set of explicit PHP interfaces that replace the
-legacy hook methods that lived on the `mod_customcert\element` base class — and deprecated the
-historical element runtime API.
+historical hook methods that used to live on the `mod_customcert\element` base class. Moodle 5.3
+kept a deprecated compatibility bridge so a genuine Moodle 4.5-era third-party element could still
+run during the upgrade window.
 
-Moodle 5.3 retains a deprecated compatibility bridge so a genuine Moodle 4.5-era third-party
-element, and a plugin already migrated to the released Moodle 5.2 contract, can both continue to
-run across a direct Moodle 4.5 LTS → 5.3 LTS upgrade. Native Element System v2 elements are
-unaffected and never go through this bridge.
+**As of the Moodle 6.0-compatible release, that compatibility bridge has been removed** (#993,
+#994, #995, #996, #997). `legacy_element_adapter`, `legacy_compatibility_diagnostic`, the legacy
+hook methods on `mod_customcert\element` (`save_form_elements()`, `copy_element()`, `delete()`
+shims, legacy property access, legacy scalar unwrapping), the static `element_factory` shim, the
+`certificate` facade, and the `template` forwarding methods no longer exist. A third-party element
+that only implements the historical hooks and does not implement the Element System v2 interfaces
+directly **will no longer load**.
 
-**Moodle 5.3 is the final release supporting the legacy runtime element API.** The compatibility
-bridge — the legacy hook methods on `mod_customcert\element` and the `legacy_element_adapter`
-that wraps legacy elements — is removed in the Moodle 6.0-compatible release. Plugin authors
-should migrate to Element System v2 now rather than relying on the bridge.
-
-Historical database-upgrade and backup/restore migration logic for old persisted element data is
-a separate, independent concern from this runtime API removal, and may remain for as long as
-required to safely upgrade or restore historical data.
-
-Until `MOODLE_503_STABLE` is created, references in this guide to "Moodle 5.3" mean the current
-`main` branch.
-
-### The released Moodle 5.2 compatibility boundary
-
-The released Moodle 5.2 compatibility surface — including its requirement that third-party
-`render()`/`render_html()` overrides adopt the 5.2 typed declarations — remains the normal
-compatibility baseline, and a plugin that already migrated for 5.2 continues to work unchanged on
-5.3. Moodle 5.3 adds only narrow additional corrections needed for a genuine Moodle 4.5-era
-element (one that never ran through 5.2) to cross directly to 5.3 — for example, accepting the
-genuine 4.5-era untyped `render()`/`render_html()` shape through the compatibility bridge. This
-does not retroactively change the released 5.2 contract, and is not a general licence to recreate
-older declarations: the old one-record `mod_customcert\template` constructor, for instance, was
-not restored. `MOODLE_502_STABLE` does not automatically receive this bridge's class-loading
-changes; independent 5.2 bug fixes remain eligible for normal stable maintenance as usual.
-
----
-
-## Identifying legacy element usage
-
-A plugin still depends on the legacy compatibility bridge if it overrides any of the historical
-hooks listed in the table below instead of implementing the corresponding Element System v2
-interface — for example `render_form_elements()`, `definition_after_data()`,
-`validate_form_elements()`, `save_form_elements()`, `save_unique_data()`, `after_restore()`, or
-`copy_element()`.
-
-A running site also surfaces this at runtime: with `DEBUG_DEVELOPER` enabled, a legacy element
-triggers a notice similar to:
-
-> Legacy custom certificate element `customcertelement_foo` is using the deprecated
-> mod_customcert legacy element API. Migrate the plugin to Element System v2 interfaces.
-
-You do not need to inspect `legacy_element_adapter` or any other internal implementation detail to
-answer this. The migration test is conceptually: implement the appropriate Element System v2
-interfaces directly, rather than depending on the compatibility bridge. See
-`docs/element_authoring_guide.md` for the current authoring reference.
-
----
-
-## Legacy hooks and their Element System v2 replacements
-
-The following historical `mod_customcert\element` methods are deprecated since Moodle 5.2. They
-remain callable through Moodle 5.3 via the compatibility bridge, but new and migrated code should
-use the Element System v2 interfaces instead:
-
-| Legacy hook | Element System v2 replacement |
-|---|---|
-| `render_form_elements()` | `form_element_interface::build_form()` |
-| `definition_after_data()` | `preparable_form_interface::prepare_form()` |
-| `validate_form_elements()` | `validatable_element_interface::validate()` |
-| `save_form_elements()` / `save_unique_data()` | `persistable_element_interface::normalise_data()` |
-| `render()` / `render_html()` | `renderable_element_interface` |
-| `after_restore()` | `restorable_element_interface::after_restore_from_backup()` |
-| `copy_element()` | `copyable_element_interface::copy_from()` |
-| `delete()` | `element_repository::delete()` |
-
-`legacy_element_adapter` is the internal mechanism that bridges these hooks to the Element System
-v2 interfaces at runtime. It is a deprecated implementation detail, not a public API — plugin
-authors should not instantiate it or depend on it directly, and native v2 elements never go
-through it. It is removed together with the rest of the legacy runtime bridge in the Moodle
-6.0-compatible release.
+This removal is a **runtime API** change only. Historical database-upgrade (`db/upgrade.php`) and
+backup/restore migration logic for old persisted element data is a separate, independent concern
+and is retained — upgrading or restoring historical data continues to work. See
+`docs/element_authoring_guide.md` for the current authoring reference and
+`CHANGES.md` for the dated history of each deprecation and removal.
 
 ---
 
 ## Required interfaces
 
-For native Element System v2 elements, registered classes must implement
-`form_element_interface` and `renderable_element_interface`; `form_element_interface` already
-extends `element_interface`. The registry throws a `coding_exception` at registration time if a
-class satisfies neither that native v2 contract nor the legacy compatibility path below.
-
-Historical classes extending `mod_customcert\element` without implementing these v2 interfaces
-are not rejected — they are instead accepted through the deprecated legacy compatibility path and
-wrapped by `legacy_element_adapter`.
+Registered element classes must implement `form_element_interface` and
+`renderable_element_interface`; `form_element_interface` already extends `element_interface`. The
+registry throws a `coding_exception` at registration time if a class does not satisfy this native
+v2 contract — there is no fallback compatibility path.
 
 ### Native registration requirements
 
@@ -115,8 +50,34 @@ Add these based on what the element actually does:
 | `layout_element_interface` | Element exposes repository-managed layout values (posx, posy, etc.) (already inherited by subclasses of `mod_customcert\element`) |
 | `restorable_element_interface` | Element remaps internal references after backup restore |
 | `copyable_element_interface` | Element needs custom logic when copied (e.g. file copying) |
+| `raw_data_element_interface` | Element's `get_data()` representation differs from what should be persisted (e.g. a derived/formatted view); `get_raw_data()` returns the exact value to store |
 
 All interfaces live under `mod_customcert\element\`.
+
+---
+
+## Former legacy hooks and their Element System v2 replacements
+
+These historical `mod_customcert\element` hooks no longer exist. They are listed here only so
+that code or documentation still referring to them can be mapped to the current replacement:
+
+| Removed legacy hook | Element System v2 replacement |
+|---|---|
+| `render_form_elements()` | `form_element_interface::build_form()` |
+| `definition_after_data()` | `preparable_form_interface::prepare_form()` |
+| `validate_form_elements()` | `validatable_element_interface::validate()` |
+| `save_form_elements()` / `save_unique_data()` | `persistable_element_interface::normalise_data()` |
+| `render()` / `render_html()` (untyped legacy signature) | `renderable_element_interface` |
+| `after_restore()` | `restorable_element_interface::after_restore_from_backup()` |
+| `copy_element()` (instance hook) | `copyable_element_interface::copy_from()` |
+| `delete()` (instance hook) | `element_repository::delete()` |
+| static `element_factory::get_element_instance()` | `service\element_factory::build_with_defaults()->create_from_record()` |
+| `certificate` facade methods | `form_service`, `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`, `certificate_repository`, `certificate_issue_service` |
+| `template` forwarding methods | `template_service` and `pdf_generation_service` |
+
+`service\element_factory::create_from_legacy_record()` is **not** a removed hook — it remains a
+supported public API for constructing an element instance from a historical record shape; prefer
+`create_from_record()` for new/internal code.
 
 ---
 
@@ -165,9 +126,7 @@ class element extends base_element implements
 > `stylable_element_interface` and `layout_element_interface`. Elements with fully custom
 > rendering may implement `renderable_element_interface` directly without these two. A subclass of
 > `mod_customcert\element` already inherits both interfaces even when not declared explicitly;
-> this example declares them for clarity. Note that this example provides its own `build_form()`
-> rather than relying on the inherited one, which only bridges to the deprecated legacy
-> `render_form_elements()` hook.
+> this example declares them for clarity.
 
 ---
 
@@ -292,7 +251,10 @@ class element extends base_element implements restorable_element_interface, /* .
 ```
 
 See `element/date/classes/element.php` and `element/image/classes/element.php` for the full
-production restore implementations this sketch is based on.
+production restore implementations this sketch is based on. Historical database-upgrade
+(`db/upgrade.php`) logic that normalises old persisted data shapes (e.g. scalar-key mappings,
+border thickness, digital-signature normalization) is independent of this runtime interface and is
+retained for as long as needed to safely upgrade historical data.
 
 ---
 
@@ -314,23 +276,32 @@ class element extends base_element implements copyable_element_interface, /* ...
 }
 ```
 
+`element_repository::copy_element()` is the current service-layer entry point that invokes
+`copy_from()`; it is unrelated to the removed `element::copy_element()` instance hook of the same
+name.
+
 ---
 
 ## Payload vs layout
 
 **Payload** (stored in `customcert_elements.data` as JSON) is element-specific data managed by
-the element class itself via `persistable_element_interface::normalise_data()`.  
+the element class itself via `persistable_element_interface::normalise_data()`.
 Examples: text content, a selected option, a file ID, font/colour/width styling values.
 
 **Layout** (posx, posy, refpoint, alignment) is managed by the element repository and layout
-service. Element classes should **not** write layout values directly to the database.  
+service. Element classes should **not** write layout values directly to the database.
 Implement `layout_element_interface` to expose these values for rendering helpers.
+
+`raw_data_element_interface::get_raw_data()` is a separate, optional contract for the persistence
+boundary: it lets an element whose `get_data()` return value differs from what should be stored
+(for example a derived/formatted view) tell `element_repository` exactly what to persist. It has
+no connection to legacy scalar unwrapping, which no longer exists.
 
 ---
 
 ## Security: scoped element and page lookups
 
-Always use the scoped repository/service methods when loading elements or pages.  
+Always use the scoped repository/service methods when loading elements or pages.
 Never load an element by ID alone — always verify it belongs to the authorised template:
 
 ```php
@@ -357,7 +328,8 @@ The service layer enforces these checks. Bypassing them is a security risk.
 
 ## Further reading
 
-- `CHANGES.md` — 5.3 deprecated/compatibility entry with full migration table
+- `CHANGES.md` — full dated history of each deprecation and removal (#993–#997 under
+  `[Unreleased] → Removed`)
 - `classes/element/` — all v2 interface definitions
 - Bundled elements (e.g. `element/coursename`, `element/text`, `element/date`) — real-world v2
   implementations to use as reference

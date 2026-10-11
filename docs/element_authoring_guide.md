@@ -1,5 +1,4 @@
 # Element authoring guide
-> **Status**: introduced in 5.3.0 (#819)
 
 This guide is for third-party developers who want to create a custom certificate
 element plugin. It explains which interfaces are required, which are optional, and
@@ -21,20 +20,17 @@ enforces this pairing at registration time.
 | `form_element_interface` | Edit-form wiring: `build_form()`, `set_edit_element_form()`, `has_save_and_continue()` |
 | `renderable_element_interface` | Output: `render()` (PDF) and `render_html()` (drag-and-drop preview) |
 
-This is distinct from the temporary Moodle 5.3 legacy compatibility path: the registry
-also accepts historical subclasses of `mod_customcert\element` that do not implement
-`renderable_element_interface`, wrapping them via `legacy_element_adapter`. That path
-exists only to support genuine Moodle 4.5-era third-party elements during the 5.3
-compatibility bridge (see `docs/element_migration_v2.md`) — new elements should not
-rely on it.
+The historical legacy compatibility path (`legacy_element_adapter`) that used to wrap
+subclasses not implementing `renderable_element_interface` has been removed — see
+`docs/element_migration_v2.md` for the removed hooks and their current replacements. A
+class that does not satisfy the native v2 contract above is rejected at registration time.
 
 New element plugins will normally extend `mod_customcert\element`, which supplies the
 identity/form plumbing and the common style/layout getters (it already implements
 `form_element_interface`, `layout_element_interface`, and `stylable_element_interface`).
-Native v2 elements should implement `renderable_element_interface` explicitly and
-override `build_form()` with their current form definition, rather than relying on the
-inherited `build_form()`, which only bridges to the deprecated legacy
-`render_form_elements()` hook.
+Native v2 elements should implement `renderable_element_interface` explicitly. The
+inherited `build_form()` already calls `element_helper::render_common_form_elements()`
+directly; override it when the element needs its own form fields.
 
 ---
 
@@ -69,15 +65,15 @@ behaviour.
 > `colour`, and `width` when `element_helper::render_common_form_elements()` is used —
 > its `normalise_data()` must return those values. Persistence runs through
 > `persistence_helper::to_json_data()`, which calls `normalise_data()` for a
-> `persistable_element_interface` element; a current (non-legacy) element with no
-> genuine legacy `save_unique_data()` override otherwise falls back to `{}`.
+> `persistable_element_interface` element; an element that does not implement it
+> otherwise falls back to `{}`.
 > `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted
 > separately by the repository/service layer, not via `normalise_data()`.
 
-> **`get_data()` and structured JSON:** `get_data()` only unwraps a generic migration
-> wrapper for genuine legacy elements — those implementing neither
-> `persistable_element_interface` nor `renderable_element_interface`. Any current element,
-> including one with no custom save/normalise behaviour, always receives its raw JSON.
+> **`get_data()` and structured JSON:** `get_data()` always returns the raw stored value
+> unmodified (typically the JSON string from `customcert_elements.data`). Use
+> `raw_data_element_interface::get_raw_data()` instead when an element's `get_data()`
+> representation differs from what must be persisted.
 > Prefer `$this->get_payload()` for ordinary structured-data reads rather than manually
 > calling `json_decode($this->get_data(), true)`; use `get_value()` where a simple
 > scalar `value` payload is genuinely appropriate.
@@ -401,5 +397,5 @@ The plugin component name follows the pattern `customcertelement_<type>`.
 ## Further reading
 
 - `docs/element_payload_interface.md` — typed payload pattern, skeleton, and examples.
-- `docs/element_migration_v2.md` — migrating legacy (pre-5.2) elements to the v2 API.
+- `docs/element_migration_v2.md` — the current Element System v2 API and the removed legacy hooks.
 - `element/coursename/` — canonical reference implementation for a stylable text element.
