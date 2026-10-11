@@ -1243,6 +1243,136 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * Tests the email certificate task skips hidden activities even when "Issue certificates
+     * automatically" is enabled; that setting must never override the activity's hidden status (#1020).
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_skips_hidden_activity_with_issueautomatically_enabled(): void {
+        global $DB;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course();
+
+        // Create a user and enrol them.
+        $user1 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a certificate with automatic issuance enabled, then hide the activity.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'issueautomatically' => 1,
+        ]);
+        set_coursemodule_visible($customcert->cmid, 0);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // Confirm no certificate was issued or emailed for the hidden activity.
+        $this->assertCount(0, $DB->get_records('customcert_issues'));
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Reproduces the scenario reported in #1020: a restrict access condition requiring a quiz pass,
+     * combined with an unmet "View" completion condition configured on the certificate itself. The
+     * student should be eligible once the restrict access condition is met, regardless of the
+     * certificate's own unmet completion condition.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_email_certificates_quiz_restriction_with_unmet_own_completion(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+
+        // Create a user and enrol them.
+        $user1 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+
+        // Create a quiz and mark it as complete for the user.
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+        $quizmodule = $DB->get_record('course_modules', ['id' => $quiz->cmid]);
+        $quizmodule->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $quizmodule->completionview = 1;
+        $DB->update_record('course_modules', $quizmodule);
+        $completion = new completion_info($course);
+        $completion->update_state($quizmodule, COMPLETION_COMPLETE, $user1->id);
+
+        // Create a certificate restricted to users who have passed the quiz, with its own "View"
+        // completion condition unmet.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+            'availability' => json_encode([
+                'op' => '&',
+                'c' => [
+                    [
+                        'type' => 'completion',
+                        'cm' => $quiz->cmid,
+                        'e' => COMPLETION_COMPLETE,
+                    ],
+                ],
+                'showc' => [false],
+            ]),
+        ]);
+
+        // Create template object.
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $template = new template($template);
+
+        // Add a page to this template.
+        $pageid = $template->add_page();
+
+        // Add an element to the page.
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        // Run the task.
+        $sink = $this->redirectEmails();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        // The user has passed the quiz but never viewed the certificate; it should still be issued.
+        $this->assertCount(1, $DB->get_records('customcert_issues'));
+        $this->assertCount(1, $emails);
+    }
+
+    /**
      * Tests the email certificate task running adhoc.
      *
      * @covers \mod_customcert\task\email_certificate_task
