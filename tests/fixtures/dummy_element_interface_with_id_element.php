@@ -30,8 +30,11 @@ namespace mod_customcert\tests\fixtures;
 use mod_customcert\element\element_interface;
 
 /**
- * A minimal direct element_interface implementation (does not implement the optional
- * raw_data_element_interface) exposing a real, caller-supplied id.
+ * A minimal direct element_interface implementation, exposing a real, caller-supplied id.
+ *
+ * Implements only the required element_interface contract, not the optional
+ * raw_data_element_interface, so it exercises element_repository's get_data() fallback
+ * path for elements that do not opt in to the raw-data contract.
  *
  * Unlike {@see dummy_element_interface_element}, whose get_id() always returns 0, this
  * fixture accepts a real existing id so it can be used to test element_repository::save()

@@ -57,13 +57,16 @@ final class historical_element_factory_test extends advanced_testcase {
             'pageid' => 20,
             'name' => 'Legacy element',
             'element' => 'legacy45',
-            'data' => 'hello',
-            'font' => 'Helvetica',
-            'fontsize' => 12,
-            'colour' => '#000000',
+            // Current storage shape: visual fields live in the JSON data payload.
+            'data' => json_encode([
+                'value' => 'hello',
+                'font' => 'Helvetica',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 50,
+            ]),
             'posx' => 5,
             'posy' => 6,
-            'width' => 50,
             'refpoint' => 1,
             'alignment' => 'L',
         ];
@@ -98,12 +101,11 @@ final class historical_element_factory_test extends advanced_testcase {
     }
 
     /**
-     * All 13 historical constructor fields must be populated on the constructed instance.
+     * Historical constructor fields must be populated on the constructed instance.
      *
-     * font/fontsize/colour/width are asserted via the legacy protected properties: the
-     * typed getters instead read from the JSON 'data' payload (#968), out of scope here.
+     * Visual fields are asserted via the current typed getters backed by the JSON payload.
      */
-    public function test_thirteen_historical_fields_are_populated(): void {
+    public function test_historical_fields_are_populated(): void {
         $this->resetAfterTest();
 
         $result = element_factory::get_element_instance($this->make_record());
@@ -118,27 +120,10 @@ final class historical_element_factory_test extends advanced_testcase {
         $this->assertSame(1, $result->get_refpoint());
         $this->assertSame('L', $result->get_alignment());
 
-        $this->assertSame('Helvetica', $this->get_protected_property($result, 'font'));
-        $this->assertSame(12, $this->get_protected_property($result, 'fontsize'));
-        $this->assertSame('#000000', $this->get_protected_property($result, 'colour'));
-        $this->assertSame(50, $this->get_protected_property($result, 'width'));
-
-        $legacyrecord = $this->get_protected_property($result, 'element');
-        $this->assertSame(10, $legacyrecord->id);
-        $this->assertSame('legacy45', $legacyrecord->element);
-    }
-
-    /**
-     * Read a protected/private property value via reflection for assertions.
-     *
-     * @param object $object
-     * @param string $property
-     * @return mixed
-     */
-    private function get_protected_property(object $object, string $property): mixed {
-        $ref = new \ReflectionProperty($object, $property);
-        $ref->setAccessible(true);
-        return $ref->getValue($object);
+        $this->assertSame('Helvetica', $result->get_font());
+        $this->assertSame(12, $result->get_fontsize());
+        $this->assertSame('#000000', $result->get_colour());
+        $this->assertSame(50, $result->get_width());
     }
 
     /**
@@ -179,8 +164,7 @@ final class historical_element_factory_test extends advanced_testcase {
     }
 
     /**
-     * Structured JSON data must survive construction in both #968 views: raw
-     * (get_raw_data()) and the legacy compatibility scalar view (get_data()).
+     * Structured JSON data must survive construction as the current payload representation.
      */
     public function test_structured_data_survives_construction(): void {
         $this->resetAfterTest();
@@ -189,8 +173,7 @@ final class historical_element_factory_test extends advanced_testcase {
         $result = element_factory::get_element_instance($this->make_record(['data' => $json]));
         $this->assertDebuggingCalled();
 
-        $this->assertSame($json, $result->get_raw_data());
-        $this->assertSame('payload', $result->get_data());
+        $this->assertSame($json, $result->get_data());
     }
 
     /**

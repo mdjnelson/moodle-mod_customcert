@@ -30,7 +30,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
-use mod_customcert\element as legacy_base;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\raw_data_element_interface;
@@ -206,12 +205,11 @@ final class element_repository {
         $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
-        // Persist the raw storage representation, not the legacy compatibility view returned
-        // by get_data(): legacy elements may unwrap a migrated JSON object into a bare scalar
-        // in get_data(), which would otherwise cause additional migrated fields to be lost.
-        // Only use get_raw_data() when the element opts in via raw_data_element_interface;
-        // third-party elements implementing only the required element_interface fall back
-        // to get_data() to preserve backwards compatibility.
+        // Persist the exact raw representation when the element opts in via
+        // raw_data_element_interface (e.g. elements whose get_data() returns a
+        // representation tailored for rendering/form handling); otherwise fall back to
+        // get_data() to preserve backwards compatibility for third-party elements that
+        // only implement element_interface.
         $record->data = $element instanceof raw_data_element_interface
             ? $element->get_raw_data()
             : $element->get_data();
@@ -278,30 +276,9 @@ final class element_repository {
                 $this->delete($instance);
                 return null;
             }
-        } else if ($instance instanceof legacy_base && self::has_legacy_copy_override($instance)) {
-            debugging(
-                'element::copy_element() is deprecated since Moodle 5.2. '
-                . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
-                DEBUG_DEVELOPER
-            );
-            if ($instance->copy_element($sourceelement) === false) {
-                $this->delete($instance);
-                return null;
-            }
         }
 
         return $instance;
-    }
-
-    /**
-     * Whether the legacy class overrides copy_element().
-     *
-     * @param legacy_base $legacy
-     * @return bool
-     */
-    private static function has_legacy_copy_override(legacy_base $legacy): bool {
-        $ref = new \ReflectionMethod($legacy, 'copy_element');
-        return $ref->getDeclaringClass()->getName() !== legacy_base::class;
     }
 
     /**

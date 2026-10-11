@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Regression tests for issue #968: preserve JSON object storage when persisting element
- * data, instead of persisting the legacy scalar compatibility view returned by get_data().
+ * Regression tests for issue #968/#994: preserve JSON object storage when persisting
+ * element data through the current get_data() payload representation.
  *
  * @package    mod_customcert
  * @category   test
@@ -32,8 +32,8 @@ namespace mod_customcert;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/native_v2_control_element.php');
-require_once(__DIR__ . '/fixtures/dummy_element_interface_element.php');
 require_once(__DIR__ . '/fixtures/dummy_element_interface_with_id_element.php');
+require_once(__DIR__ . '/fixtures/raw_data_native_v2_element.php');
 
 use advanced_testcase;
 use context_course;
@@ -43,13 +43,13 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
-use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use mod_customcert\tests\fixtures\dummy_element_interface_with_id_element;
 use mod_customcert\tests\fixtures\native_v2_control_element;
+use mod_customcert\tests\fixtures\raw_data_native_v2_element;
 
 /**
- * Tests proving that element_repository::save()/create() persist the raw JSON storage
- * representation of an element, not the legacy scalar returned by get_data().
+ * Tests proving that element_repository::save()/create() persist the current JSON
+ * payload representation returned by get_data().
  */
 final class issue_968_raw_data_persistence_test extends advanced_testcase {
     /** @var element_repository */
@@ -130,8 +130,8 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
         $instance = $this->repo->load_by_page_id($this->pageid)[0];
 
         $this->assertInstanceOf(native_v2_control_element::class, $instance);
-        // The raw data accessor must reflect the exact untouched storage representation.
-        $this->assertSame($data, $instance->get_raw_data());
+        // The get_data() method returns the current persistence representation.
+        $this->assertSame($data, $instance->get_data());
 
         $layout = new element_layout(5, 6, 0, 'L');
         $this->repo->save($instance, $layout);
@@ -167,45 +167,75 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
     }
 
     /**
-     * (i) Direct v2 BC control: a fixture implementing only the PRE-#968
-     * element_interface contract (not the new optional raw_data_element_interface) must
-     * still persist correctly via element_repository::save() through the get_data()
-     * fallback path.
-     *
-     * Note: element_repository::create() additionally needs the factory/registry to
-     * reconstruct the element for the creation event (element->get_type() lookup), which
-     * requires the class to implement renderable_element_interface directly — a
-     * pre-existing architectural constraint independent of this fix. save() has no such
-     * requirement, so it is the correct vehicle for this direct-element_interface control.
+     * Direct element_interface implementations still persist via get_data().
      *
      * @covers \mod_customcert\service\element_repository::save
      */
-    public function test_direct_element_interface_save_fallback_to_get_data(): void {
+    public function test_direct_element_interface_save_uses_get_data(): void {
         global $DB;
-
-        // Confirm the canonical dummy fixture remains a direct element_interface-only
-        // implementation (does not implement the new optional raw_data_element_interface).
-        $dummy = new dummy_element_interface_element($this->pageid, 'dummy968');
-        $this->assertNotInstanceOf(
-            \mod_customcert\element\raw_data_element_interface::class,
-            $dummy,
-            'This fixture must remain a direct element_interface implementation only.'
-        );
 
         // Pre-insert a real row so save()'s update targets an existing id.
         $existingid = $this->insert_element('dummy968', 'placeholder');
 
-        // A minimal direct element_interface implementation exposing that real id (the
-        // canonical dummy fixture's get_id() always returns 0, so a small dedicated
-        // fixture is used here instead, per the issue guidance to use "another minimal
-        // direct-element_interface fixture if more appropriate").
+        // A minimal direct element_interface implementation exposing that real id.
         $element = new dummy_element_interface_with_id_element($existingid, $this->pageid, 'dummy968');
-        $this->assertNotInstanceOf(\mod_customcert\element\raw_data_element_interface::class, $element);
 
         $layout = new element_layout(5, 6, 0, 'L');
         $this->repo->save($element, $layout);
 
         $updated = $DB->get_record('customcert_elements', ['id' => $existingid], '*', MUST_EXIST);
         $this->assertSame('Dummy data', $updated->data);
+    }
+
+    /**
+     * A native v2 element opting in to raw_data_element_interface must be persisted using
+     * get_raw_data(), not get_data(), by both save() and create(): get_data() here
+     * deliberately returns a different (uppercased) representation, so persisting it
+     * instead of the raw payload would be immediately observable.
+     *
+     * @covers \mod_customcert\service\element_repository::save
+     * @covers \mod_customcert\service\element_repository::create
+     */
+    public function test_raw_data_element_interface_is_preferred_over_get_data_on_save_and_create(): void {
+        global $DB;
+
+        $registry = new element_registry();
+        $registry->register('rawdata968', raw_data_native_v2_element::class);
+        $factory = new element_factory($registry);
+        $repo = new element_repository($factory);
+
+        // Now save(): pre-insert a row, then load and re-save it unchanged. get_data() would
+        // return the uppercased view; get_raw_data() returns the exact stored payload.
+        $rawpayload = json_encode(['value' => 'raw-save-value']);
+        $elementid = $this->insert_element('rawdata968', $rawpayload);
+        $instance = $repo->load_by_page_id($this->pageid)[0];
+
+        $this->assertInstanceOf(raw_data_native_v2_element::class, $instance);
+        $this->assertNotSame($rawpayload, $instance->get_data(), 'get_data() must differ from the raw payload.');
+        $this->assertSame($rawpayload, $instance->get_raw_data());
+
+        $layout = new element_layout(5, 6, 0, 'L');
+        $repo->save($instance, $layout);
+
+        $saved = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $this->assertSame($rawpayload, $saved->data, 'save() must persist get_raw_data(), not get_data().');
+
+        // Now create(): build a fresh unsaved instance and persist it.
+        $unsaved = (object) [
+            'element' => 'rawdata968',
+            'name' => 'Raw data created element',
+            'pageid' => $this->pageid,
+            'data' => json_encode(['value' => 'raw-create-value']),
+        ];
+        $newinstance = $factory->create('rawdata968', $unsaved);
+        $this->assertNotSame($newinstance->get_data(), $newinstance->get_raw_data());
+
+        $newid = $repo->create($newinstance, $layout);
+        $created = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
+        $this->assertSame(
+            $unsaved->data,
+            $created->data,
+            'create() must persist get_raw_data(), not get_data().'
+        );
     }
 }

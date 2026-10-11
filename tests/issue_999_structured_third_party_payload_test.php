@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Regression tests for issue #999: structured third-party payloads must not be unwrapped
+ * Regression tests for issue #999/#994: structured payloads use current semantics and are not unwrapped
  * into a legacy scalar based on plugin identity or an unrelated optional capability.
  *
  * @package    mod_customcert
@@ -168,12 +168,12 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     }
 
     /**
-     * Genuine legacy scalar consumers must keep unwrapping.
+     * Historical-shaped base subclasses also receive the current payload representation:
+     * get_data() no longer unwraps generic migration wrappers (#994).
      *
      * @covers \mod_customcert\element::get_data
-     * @covers \mod_customcert\element::get_raw_data
      */
-    public function test_genuine_legacy_scalar_consumer_still_unwraps(): void {
+    public function test_historical_base_subclass_receives_current_payload_not_unwrapped_scalar(): void {
         $data = json_encode([
             'value' => 'legacy-value',
             'font' => 'Helvetica',
@@ -184,9 +184,9 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
         $instance = new \customcertelement_legacy968\element($this->make_record('legacy968', $data));
 
         $this->assertNotInstanceOf(persistable_element_interface::class, $instance);
-        $this->assertSame('legacy-value', $instance->get_data());
-        // The raw persistence representation must remain the full JSON object.
-        $this->assertSame(json_decode($data, true), json_decode($instance->get_raw_data(), true));
+        $raw = $instance->get_data();
+        $this->assertIsString($raw);
+        $this->assertSame(json_decode($data, true), json_decode($raw, true));
     }
 
     /**
@@ -194,7 +194,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
      * structured JSON: the render contract alone is also a valid "current" signal.
      *
      * @covers \mod_customcert\element::get_data
-     * @covers \mod_customcert\element::get_raw_data
      */
     public function test_native_v2_element_without_persistable_is_not_unwrapped(): void {
         $registry = new element_registry();
