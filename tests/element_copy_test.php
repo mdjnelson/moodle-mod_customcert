@@ -176,12 +176,11 @@ final class element_copy_test extends advanced_testcase {
     }
 
     /**
-     * Native v2 copyable_element_interface takes precedence, and never triggers any
-     * legacy-copy diagnostic (#984).
+     * Native v2 copyable_element_interface is invoked on copy, without legacy diagnostics.
      *
      * @covers \mod_customcert\service\element_repository::copy_element
      */
-    public function test_copy_element_native_v2_copyable_takes_precedence_over_legacy_dispatch(): void {
+    public function test_copy_element_native_v2_copyable_is_invoked(): void {
         global $DB;
 
         $template = template::create('Source', context_system::instance()->id);
