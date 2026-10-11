@@ -63,10 +63,10 @@ an independent concern and is not tied to this runtime removal date.
   `copy_to_template`, `move_item`) remain available as compatibility shims delegating to
   `template_service` and `pdf_generation_service`. Removal is planned no earlier than the Moodle
   6.0-compatible release.
-- **Historical static `mod_customcert\element_factory::get_element_instance()`** (#974). Remains
-  available, deprecated, for historical callers that need the raw plugin object. New code should
-  use `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()`. This
-  compatibility shim will be removed in the Moodle 6.0-compatible release.
+- **Historical static `mod_customcert\element_factory::get_element_instance()`** (#974). Was
+  available, deprecated, for historical callers that needed the raw plugin object. **Removed in
+  the Moodle 6.0-compatible release (#995).** Use
+  `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()` instead.
 - **Legacy element lifecycle methods** (#984). `element::save_form_elements()`,
   `element::copy_element()`, and `element::delete()` remain available, deprecated, delegating to
   `element_repository`. New code should implement the Element System v2 interfaces and use
