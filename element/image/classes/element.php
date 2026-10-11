@@ -496,22 +496,6 @@ class element extends base_element implements
     }
 
     /**
-     * This handles copying data from another element of the same type.
-     *
-     * @deprecated since Moodle 5.2 — implement copyable_element_interface::copy_from() instead.
-     * @param stdClass $data the form data
-     * @return bool returns true if the data was copied successfully, false otherwise
-     */
-    public function copy_element($data) {
-        debugging(
-            'element::copy_element() is deprecated since Moodle 5.2. '
-            . 'Implement mod_customcert\\element\\copyable_element_interface::copy_from() instead.',
-            DEBUG_DEVELOPER
-        );
-        return $this->do_copy($data);
-    }
-
-    /**
      * Internal helper: copy associated files to the current course context.
      *
      * @param stdClass $data element DB record to copy from
