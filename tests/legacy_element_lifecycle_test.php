@@ -15,13 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Lifecycle regression coverage for the restored Moodle 5.2 element lifecycle shims (#984)
- * and the Element System v2 factory/repository paths, now that the legacy element runtime
- * bridge has been removed for the Moodle 6.0-compatible release (#993).
+ * Lifecycle regression coverage for Element System v2 factory/repository paths after the
+ * legacy element runtime compatibility surface was removed (#994).
  *
  * Uses dedicated realistic fixtures:
- * - customcertelement_legacy45\element: genuine Moodle 4.5-era element, exercised directly
- *   (not through the factory, since the legacy runtime bridge no longer wraps it)
+ * - customcertelement_legacy45\element: genuine Moodle 4.5-era element retained for
+ *   boundary fixtures where still relevant
  * - native_v2_control_element: native v2 control that must remain the factory's direct path
  *
  * @package    mod_customcert
@@ -54,7 +53,7 @@ use ReflectionMethod;
 use stdClass;
 
 /**
- * Lifecycle regression tests for the restored Moodle 5.2 shims and the v2 factory/repository.
+ * Lifecycle regression tests for the v2 factory/repository after legacy runtime removal.
  *
  * @covers \mod_customcert\element
  * @covers \mod_customcert\service\element_factory
@@ -175,42 +174,17 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
     }
 
     /**
-     * Declaration regression (#984): the three restored legacy lifecycle shims must keep
-     * their released-5.2 untyped compatibility signatures on the base class.
+     * Native v2 repository save path: exercises an actual update through the supported v2
+     * path (a changed name, plugin data and visual fields, plus a layout change), preserves
+     * element identity (id, page, type), persists exactly the complete new JSON payload,
+     * creates/modifies no other row, fires element_updated exactly once, and emits no
+     * legacy diagnostic.
      */
-    public function test_restored_lifecycle_shims_declare_the_52_compatibility_surface(): void {
-        $saveref = new ReflectionMethod(\mod_customcert\element::class, 'save_form_elements');
-        $saveparams = $saveref->getParameters();
-        $this->assertCount(1, $saveparams);
-        $this->assertNull($saveparams[0]->getType());
-        $this->assertFalse($saveref->hasReturnType());
-
-        $copyref = new ReflectionMethod(\mod_customcert\element::class, 'copy_element');
-        $copyparams = $copyref->getParameters();
-        $this->assertCount(1, $copyparams);
-        $this->assertNull($copyparams[0]->getType());
-        $this->assertFalse($copyref->hasReturnType());
-
-        $deleteref = new ReflectionMethod(\mod_customcert\element::class, 'delete');
-        $this->assertCount(0, $deleteref->getParameters());
-        $this->assertFalse($deleteref->hasReturnType());
-    }
-
-    /**
-     * Restored save_form_elements() update path (#984): persists via the current
-     * repository/persistence machinery, preserves #968 visual/raw-data fields, fires
-     * element_updated exactly once, and cannot be redirected to another
-     * id/pageid/element type by the submitted form data.
-     *
-     * Exercises the genuine 4.5-era fixture directly: the legacy runtime bridge no longer
-     * wraps it, so the historical shim is called on the instance itself.
-     */
-    public function test_save_form_elements_update_preserves_identity_and_persists_changes(): void {
+    public function test_native_repository_save_preserves_identity_and_persists_changes(): void {
         global $DB;
         $this->resetAfterTest();
 
         [$templateid, $pageid] = $this->create_template_and_page();
-        // A second page/element exists so an identity-redirect attack has somewhere to land.
         $prepo = new page_repository();
         $otherpageid = $prepo->create((object) [
             'templateid' => $templateid,
@@ -221,44 +195,34 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
             'sequence' => 2,
         ]);
 
-        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Original name', [
+        $record = $this->insert_element_record($pageid, self::TYPE_NATIVE, 'Original name', [
+            'value' => 'original',
             'font' => 'Helvetica',
             'fontsize' => 12,
             'colour' => '#000000',
             'width' => 50,
-            'value' => 'original',
         ]);
-        $legacy = new \customcertelement_legacy45\element($record);
+
+        // Build the post-edit instance the same way the supported v2 edit path would:
+        // a record with the same id/pageid/type, but a changed name and a changed JSON
+        // payload (plugin data plus visual/layout fields).
+        $updatedpayload = [
+            'value' => 'updated',
+            'font' => 'Arial',
+            'fontsize' => 18,
+            'colour' => '#ff0000',
+            'width' => 75,
+        ];
+        $updatedrecord = (object) array_merge((array) $record, [
+            'name' => 'Updated name',
+            'data' => json_encode($updatedpayload),
+        ]);
+        $instance = $this->make_factory()->create(self::TYPE_NATIVE, $updatedrecord);
 
         $sink = $this->redirectEvents();
-
-        // Attempt an identity attack: try to redirect this element to a different
-        // id/page/element type via the submitted form data.
-        $formdata = (object) [
-            'id' => $record->id + 999,
-            'pageid' => $otherpageid,
-            'element' => 'somethingelse',
-            'name' => 'Updated name',
-            'legacyvalue' => 'updated-value',
-            'font' => 'Courier',
-            'fontsize' => 18,
-            'colour' => '#123456',
-            'width' => 75,
-            'refpoint' => 1,
-            'alignment' => 'C',
-        ];
-
-        $result = $legacy->save_form_elements($formdata);
-
-        // Two deprecations are expected: save_form_elements() itself, and save_unique_data()
-        // via persistence_helper (the legacy45 fixture overrides it).
-        $messages = $this->getDebuggingMessages();
-        $this->resetDebugging();
-        $this->assertCount(2, $messages);
-        $this->assertStringContainsString('save_form_elements() is deprecated', $messages[0]->message);
-        $this->assertStringContainsString('save_unique_data() is deprecated', $messages[1]->message);
-
-        $this->assertTrue($result);
+        $layout = new \mod_customcert\service\element_layout(15, 25, 1, 'C');
+        $this->make_repository()->save($instance, $layout);
+        $this->assertDebuggingNotCalled();
 
         $updatedevents = array_values(array_filter(
             $sink->get_events(),
@@ -267,118 +231,59 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->assertCount(1, $updatedevents);
         $this->assertSame($record->id, $updatedevents[0]->objectid);
 
-        // Only the original row exists: identity was not redirected, and no extra row
-        // was created by the submitted id/pageid/element attack fields.
         $this->assertSame(1, $DB->count_records('customcert_elements'));
         $stored = $DB->get_record('customcert_elements', ['id' => $record->id], '*', MUST_EXIST);
+
+        // Identity: the original element, page and type remain correct.
         $this->assertSame($record->id, (int) $stored->id);
         $this->assertSame($pageid, (int) $stored->pageid);
-        $this->assertSame(self::TYPE_LEGACY45, $stored->element);
+        $this->assertSame(self::TYPE_NATIVE, $stored->element);
         $this->assertFalse($DB->record_exists('customcert_elements', ['pageid' => $otherpageid]));
 
-        // Name and #968 visual/raw-data fields were persisted correctly.
+        // The changed name, layout and complete JSON payload are stored.
         $this->assertSame('Updated name', $stored->name);
-        $this->assertSame('C', $stored->alignment);
+        $this->assertSame(15, (int) $stored->posx);
+        $this->assertSame(25, (int) $stored->posy);
         $this->assertSame(1, (int) $stored->refpoint);
-        $decoded = json_decode($stored->data, true);
-        $this->assertSame('updated-value', $decoded['value']);
-        $this->assertSame('Courier', $decoded['font']);
-        $this->assertSame(18, $decoded['fontsize']);
-        $this->assertSame('#123456', $decoded['colour']);
-        $this->assertSame(75, $decoded['width']);
-
-        // Reload directly (#968): the legacy scalar compatibility view must still resolve
-        // correctly after the restored save.
-        $reloaded = new \customcertelement_legacy45\element($stored);
-        $this->assertSame('updated-value', $reloaded->get_data());
+        $this->assertSame('C', $stored->alignment);
+        $this->assertSame($updatedpayload, json_decode($stored->data, true));
     }
 
     /**
-     * Restored save_form_elements() update path (#984): matches the released-5.2
-     * compatibility contract for omitted refpoint/alignment — they reset to their
-     * released-5.2 defaults (null / element::ALIGN_LEFT) rather than preserving the
-     * previously stored non-default values.
+     * Native v2 repository create path: persists a new row and fires element_created once.
+     *
+     * Uses a real bundled native type so create()'s post-insert factory reload resolves
+     * through get_type() (namespace-derived type keys).
      */
-    public function test_save_form_elements_update_resets_omitted_refpoint_and_alignment_to_52_defaults(): void {
+    public function test_native_repository_create_persists_new_element_and_returns_id(): void {
         global $DB;
         $this->resetAfterTest();
 
         [, $pageid] = $this->create_template_and_page();
-        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Has non-default layout', [], 1, [
-            'refpoint' => 2,
-            'alignment' => \mod_customcert\element::ALIGN_RIGHT,
-        ]);
-        $legacy = new \customcertelement_legacy45\element($record);
-        $this->assertSame(2, $legacy->get_refpoint());
-        $this->assertSame(\mod_customcert\element::ALIGN_RIGHT, $legacy->get_alignment());
 
-        // Submitted form data omits refpoint/alignment entirely.
-        $formdata = (object) [
-            'name' => 'Reset layout',
-            'legacyvalue' => 'reset-value',
+        $unsaved = (object) [
+            'element' => 'text',
+            'name' => 'New text element',
+            'pageid' => $pageid,
+            'data' => json_encode([
+                'text' => 'created-value',
+                'font' => 'Helvetica',
+                'fontsize' => 12,
+                'colour' => '#000000',
+                'width' => 50,
+            ]),
         ];
-
-        $result = $legacy->save_form_elements($formdata);
-
-        // Two deprecations are expected: save_form_elements() itself, and save_unique_data()
-        // via persistence_helper (the legacy45 fixture overrides it).
-        $messages = $this->getDebuggingMessages();
-        $this->resetDebugging();
-        $this->assertCount(2, $messages);
-        $this->assertTrue($result);
-
-        $stored = $DB->get_record('customcert_elements', ['id' => $record->id], '*', MUST_EXIST);
-        $this->assertNull($stored->refpoint);
-        $this->assertSame(\mod_customcert\element::ALIGN_LEFT, $stored->alignment);
-    }
-
-    /**
-     * Restored save_form_elements() create path (#984): persists a new row via the current
-     * repository/persistence machinery, returns the new integer id, keeps the instance id
-     * coherent, and fires element_created exactly once.
-     */
-    public function test_save_form_elements_create_persists_new_element_and_returns_id(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        [, $pageid] = $this->create_template_and_page();
-
-        // Element_repository::create() resolves the element type through the real default
-        // factory to fire element_created, so this uses a real bundled type ('text') that
-        // still extends the deprecated mod_customcert\element base and does not override
-        // save_form_elements(). A brand-new, unsaved instance as historical callers
-        // constructed one: only the element type is known up-front (see edit_element.php's
-        // 'add' action).
-        $unsaved = (object) ['element' => 'text', 'name' => 'Unsaved text element'];
-        $instance = element_factory::build_with_defaults()->create_from_record($unsaved);
+        $factory = element_factory::build_with_defaults();
+        $instance = $factory->create('text', $unsaved);
         $this->assertSame(0, $instance->get_id());
 
         $sink = $this->redirectEvents();
+        $layout = new \mod_customcert\service\element_layout(null, null, 0, 'L');
+        $newid = (new element_repository($factory))->create($instance, $layout);
 
-        $formdata = (object) [
-            'pageid' => $pageid,
-            'name' => 'New text element',
-            'text' => 'created-value',
-            'font' => 'Arial',
-            'fontsize' => 14,
-            'colour' => '#abcdef',
-            'width' => 60,
-            'refpoint' => 0,
-            'alignment' => 'L',
-        ];
-
-        $newid = $instance->save_form_elements($formdata);
-        $this->assertDebuggingCalled(
-            'save_form_elements() is deprecated since Moodle 5.2. Implement '
-            . 'mod_customcert\\element\\persistable_element_interface::normalise_data() and '
-            . 'use element_repository for persistence.',
-            DEBUG_DEVELOPER
-        );
-
+        $this->assertDebuggingNotCalled();
         $this->assertIsInt($newid);
         $this->assertGreaterThan(0, $newid);
-        // The instance's own id is kept coherent after creation.
-        $this->assertSame($newid, $instance->get_id());
 
         $createdevents = array_values(array_filter(
             $sink->get_events(),
@@ -388,44 +293,25 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         $this->assertSame($newid, $createdevents[0]->objectid);
 
         $stored = $DB->get_record('customcert_elements', ['id' => $newid], '*', MUST_EXIST);
-        $this->assertSame($pageid, (int) $stored->pageid);
         $this->assertSame('text', $stored->element);
         $this->assertSame('New text element', $stored->name);
-        $this->assertSame(1, (int) $stored->sequence);
-        $this->assertSame('L', $stored->alignment);
-        $this->assertGreaterThan(0, (int) $stored->timecreated);
-        $this->assertSame((int) $stored->timecreated, (int) $stored->timemodified);
-
-        // Issue #968: font/fontsize/colour/width visual metadata survives the restored shim.
-        $decoded = json_decode($stored->data, true);
-        $this->assertSame('created-value', $decoded['text']);
-        $this->assertSame('Arial', $decoded['font']);
-        $this->assertSame(14, $decoded['fontsize']);
-        $this->assertSame('#abcdef', $decoded['colour']);
-        $this->assertSame(60, $decoded['width']);
+        $this->assertSame('created-value', json_decode($stored->data, true)['text']);
     }
 
     /**
-     * Restored delete() shim (#984): delegates to element_repository::delete(), removing the
-     * row and firing element_deleted exactly once.
+     * Repository deletion still fires element_deleted and removes the row.
      */
-    public function test_delete_shim_removes_record_and_fires_event(): void {
+    public function test_repository_delete_removes_element_and_fires_event(): void {
         global $DB;
         $this->resetAfterTest();
 
         [, $pageid] = $this->create_template_and_page();
-        $record = $this->insert_element_record($pageid, self::TYPE_LEGACY45, 'Delete via shim');
-        $legacy = new \customcertelement_legacy45\element($record);
+        $record = $this->insert_element_record($pageid, self::TYPE_NATIVE, 'To delete');
+        $instance = $this->make_factory()->create(self::TYPE_NATIVE, $record);
 
         $sink = $this->redirectEvents();
-        $result = $legacy->delete();
-        $this->assertDebuggingCalled(
-            'element::delete() is deprecated since Moodle 5.2. Use element_repository::delete() instead.',
-            DEBUG_DEVELOPER
-        );
-        $this->assertTrue($result);
-
-        $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $record->id]));
+        $this->make_repository()->delete($instance);
+        $this->assertDebuggingNotCalled();
 
         $deletedevents = array_values(array_filter(
             $sink->get_events(),
@@ -433,6 +319,7 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
         ));
         $this->assertCount(1, $deletedevents);
         $this->assertSame($record->id, $deletedevents[0]->objectid);
+        $this->assertFalse($DB->record_exists('customcert_elements', ['id' => $record->id]));
     }
 
     /**
