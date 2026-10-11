@@ -8,6 +8,22 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Removed
 
+- Removed the internal `legacy_element_adapter` and `legacy_compatibility_diagnostic` compatibility
+  layer that wrapped legacy `mod_customcert\element` subclasses for routing through Element System
+  v2 interfaces (#993). Native elements already implement the v2 interfaces directly and are
+  unaffected.
+- Removed the deprecated legacy element lifecycle/runtime compatibility surface from
+  `mod_customcert\element` (`save_form_elements()`, `copy_element()`, `delete()` shims, legacy
+  property access, and legacy scalar unwrapping in `get_data()`) (#994). Implement the Element
+  System v2 interfaces (`persistable_element_interface`, `copyable_element_interface`, etc.) and
+  use `element_repository` directly.
+- Removed the historical static `mod_customcert\element_factory::get_element_instance()` (#995).
+  Use `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()`
+  instead.
+- Removed the `mod_customcert\certificate` facade and all of its historical public methods and
+  constants (#996). Use the focused services/repositories instead: `form_service`,
+  `element_helper`, `certificate_time_service`, `certificate_download_service`,
+  `issue_repository`, `certificate_repository`, and `certificate_issue_service`.
 - Removed the nine deprecated `mod_customcert\template` forwarding methods (`save`, `add_page`,
   `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`, `copy_to_template`,
   `move_item`) (#997). Call `template_service` (`update`, `add_page`, `save_pages`, `delete`,
@@ -62,20 +78,21 @@ legacy runtime element API; it is removed in the Moodle 6.0-compatible release**
 Historical database-upgrade and backup/restore migration logic for old persisted element data is
 an independent concern and is not tied to this runtime removal date.
 
-- **`mod_customcert\certificate` facade** (#975). Was available as a deprecated compatibility
-  facade with all of its historical public methods and constants. **Removed in the Moodle
-  6.0-compatible release (#996).** Use the focused services/repositories instead: `form_service`,
-  `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`,
-  `certificate_repository`, and `certificate_issue_service`.
-- **`mod_customcert\template` forwarding methods** (#976). Were available as deprecated
-  compatibility shims (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`,
-  `generate_pdf`, `copy_to_template`, `move_item`) delegating to `template_service` and
-  `pdf_generation_service`. **Removed in the Moodle 6.0-compatible release (#997).** Use
-  `template_service` and `pdf_generation_service` instead.
-- **Historical static `mod_customcert\element_factory::get_element_instance()`** (#974). Was
-  available, deprecated, for historical callers that needed the raw plugin object. **Removed in
-  the Moodle 6.0-compatible release (#995).** Use
-  `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()` instead.
+- **`mod_customcert\certificate` facade** (#975). Remains available as a deprecated compatibility
+  facade with all of its historical public methods and constants. New code should use the focused
+  services/repositories instead: `form_service`, `element_helper`, `certificate_time_service`,
+  `certificate_download_service`, `issue_repository`, `certificate_repository`, and
+  `certificate_issue_service`. Removal is planned no earlier than the Moodle 6.0-compatible
+  release.
+- **`mod_customcert\template` forwarding methods** (#976). The nine deprecated instance methods
+  (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`,
+  `copy_to_template`, `move_item`) remain available as compatibility shims delegating to
+  `template_service` and `pdf_generation_service`. Removal is planned no earlier than the Moodle
+  6.0-compatible release.
+- **Historical static `mod_customcert\element_factory::get_element_instance()`** (#974). Remains
+  available, deprecated, for historical callers that need the raw plugin object. New code should
+  use `mod_customcert\service\element_factory::build_with_defaults()->create_from_record()`. This
+  compatibility shim will be removed in the Moodle 6.0-compatible release.
 - **Legacy element lifecycle methods** (#984). `element::save_form_elements()`,
   `element::copy_element()`, and `element::delete()` remain available, deprecated, delegating to
   `element_repository`. New code should implement the Element System v2 interfaces and use
