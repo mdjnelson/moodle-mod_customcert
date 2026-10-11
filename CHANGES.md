@@ -8,6 +8,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Fixed
 
+- Fixed missing certificates in site-wide downloads when certificates share a template name (#1019).
 - Fixed automatic certificate issuance being blocked by the certificate activity's own completion conditions (#1020).
 
 ## [4.4.15] - 2026-10-06
