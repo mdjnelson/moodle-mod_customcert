@@ -52,12 +52,11 @@ legacy runtime element API; it is removed in the Moodle 6.0-compatible release**
 Historical database-upgrade and backup/restore migration logic for old persisted element data is
 an independent concern and is not tied to this runtime removal date.
 
-- **`mod_customcert\certificate` facade** (#975). Remains available as a deprecated compatibility
-  facade with all of its historical public methods and constants. New code should use the focused
-  services/repositories instead: `form_service`, `element_helper`, `certificate_time_service`,
-  `certificate_download_service`, `issue_repository`, `certificate_repository`, and
-  `certificate_issue_service`. Removal is planned no earlier than the Moodle 6.0-compatible
-  release.
+- **`mod_customcert\certificate` facade** (#975). Was available as a deprecated compatibility
+  facade with all of its historical public methods and constants. **Removed in the Moodle
+  6.0-compatible release (#996).** Use the focused services/repositories instead: `form_service`,
+  `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`,
+  `certificate_repository`, and `certificate_issue_service`.
 - **`mod_customcert\template` forwarding methods** (#976). The nine deprecated instance methods
   (`save`, `add_page`, `save_page`, `delete`, `delete_page`, `delete_element`, `generate_pdf`,
   `copy_to_template`, `move_item`) remain available as compatibility shims delegating to
