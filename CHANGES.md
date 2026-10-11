@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed automatic certificate issuance being blocked by the certificate activity's own completion conditions (#1020).
+
 ## [4.4.15] - 2026-10-06
 
 ### Fixed
