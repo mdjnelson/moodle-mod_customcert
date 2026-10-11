@@ -502,4 +502,75 @@ final class element_helper_test extends advanced_testcase {
             $this->assertNotEmpty($fromstring);
         }
     }
+
+    /**
+     * Regression test for the "Add element" dropdown exposing a genuine legacy-only element
+     * (one whose class exists on disk and returns true from can_add(), but which does not
+     * implement the native Element System v2 contract). Such an element must never be offered
+     * because selecting it leads to an invalid_parameter_exception/invalid record when the
+     * element registry is asked to create it.
+     *
+     * @covers \mod_customcert\element_helper::get_available_element_types
+     */
+    public function test_get_available_element_types_excludes_legacy_only_element(): void {
+        global $CFG;
+
+        $foldername = 'zzzjunielegacytest';
+        $elementdir = "$CFG->dirroot/mod/customcert/element/$foldername";
+        $this->assertFalse(is_dir($elementdir), 'Test fixture folder must not already exist.');
+
+        mkdir($elementdir);
+        try {
+            file_put_contents($elementdir . '/element.php', $this->get_legacy_only_element_fixture_source($foldername));
+            require_once($elementdir . '/element.php');
+
+            $options = element_helper::get_available_element_types();
+
+            // The legacy-only element must be filtered out even though its class exists
+            // and can_add() returns true, because it does not satisfy the supported
+            // registry contract (it does not implement renderable_element_interface).
+            $this->assertArrayNotHasKey($foldername, $options);
+
+            // Sanity check: genuinely supported, bundled element types are still offered.
+            $this->assertArrayHasKey('text', $options);
+        } finally {
+            @unlink($elementdir . '/element.php');
+            @rmdir($elementdir);
+        }
+    }
+
+    /**
+     * Builds the source code for a genuine legacy-only element fixture: it extends the base
+     * element class and overrides can_add(), but never implements renderable_element_interface,
+     * matching the shape rejected by mod_customcert\service\element_registry::register().
+     *
+     * @param string $foldername
+     * @return string
+     */
+    private function get_legacy_only_element_fixture_source(string $foldername): string {
+        return <<<PHP
+<?php
+namespace customcertelement_{$foldername};
+
+class element extends \\mod_customcert\\element {
+    public function render(\$pdf, \$preview, \$user) {
+    }
+
+    public function render_html() {
+        return '';
+    }
+
+    public function render_form_elements(\$mform) {
+    }
+
+    public function save_unique_data(\$data) {
+        return '';
+    }
+
+    public static function can_add(): bool {
+        return true;
+    }
+}
+PHP;
+    }
 }

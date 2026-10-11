@@ -27,10 +27,8 @@ use restore_customcert_activity_task;
 use stdClass;
 
 /**
- * Test fixture: element that implements restorable_element_interface directly.
- *
- * Used to verify the adapter delegates to after_restore_from_backup() without
- * emitting a deprecation notice when the inner element uses the new interface.
+ * Test fixture: third-party native v2 element that implements restorable_element_interface
+ * directly, used to exercise the production restore task's dispatch of after_restore_from_backup().
  *
  * @package    mod_customcert
  * @category   test
@@ -57,11 +55,28 @@ class new_restorable_element extends element implements renderable_element_inter
     /**
      * New-style restore hook.
      *
+     * Mirrors the real bundled elements (e.g. customcertelement_date): remaps the stored
+     * 'refid' course_module id via the restore task's mapping API and persists the updated
+     * JSON payload back to the element record.
+     *
      * @param restore_customcert_activity_task $restore
      * @return void
      */
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
+        global $DB;
+
         $this->called = true;
+
+        $data = $this->get_payload();
+        if (empty($data) || empty($data['refid'])) {
+            return;
+        }
+
+        $newid = $restore->get_mappingid('course_module', (int)$data['refid']);
+        if ($newid) {
+            $data['refid'] = $newid;
+            $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
+        }
     }
 
     /**

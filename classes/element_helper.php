@@ -574,6 +574,12 @@ class element_helper {
         // Array to store the element types.
         $options = [];
 
+        // Build the same registry used for element creation/rendering so that only
+        // element types satisfying the supported registry contract (Element System v2)
+        // are offered, matching the rules enforced by element_registry::register().
+        $registry = new \mod_customcert\service\element_registry();
+        \mod_customcert\element\element_bootstrap::register_defaults($registry);
+
         // Check that the directory exists.
         $elementdir = "$CFG->dirroot/mod/customcert/element";
         if (file_exists($elementdir)) {
@@ -585,18 +591,18 @@ class element_helper {
                 if (!$elementfolder->isDir() || $elementfolder->isDot()) {
                     continue;
                 }
-                // Check that the standard class exists, if not we do
-                // not want to display it as an option as it will not work.
                 $foldername = $elementfolder->getFilename();
-                // Get the class name.
-                $classname = '\\customcertelement_' . $foldername . '\\element';
-                // Ensure the necessary class exists.
-                if (class_exists($classname)) {
-                    // Additionally, check if the user is allowed to add the element at all.
-                    if ($classname::can_add()) {
-                        $component = "customcertelement_{$foldername}";
-                        $options[$foldername] = get_string('pluginname', $component);
-                    }
+                // Only offer element types that are actually registered, i.e. they
+                // satisfy the supported registry contract. This excludes legacy-only
+                // elements that would otherwise fail when added via the edit form.
+                if (!$registry->has($foldername)) {
+                    continue;
+                }
+                // Additionally, check if the user is allowed to add the element at all.
+                $classname = $registry->get($foldername);
+                if ($classname::can_add()) {
+                    $component = "customcertelement_{$foldername}";
+                    $options[$foldername] = get_string('pluginname', $component);
                 }
             }
         }

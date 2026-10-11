@@ -30,7 +30,6 @@ use context_course;
 use context_system;
 use stdClass;
 use mod_customcert\element\element_interface;
-use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use MoodleQuickForm;
@@ -73,8 +72,8 @@ final class form_service {
      * Run element-specific form preparation at the definition_after_data() lifecycle point.
      *
      * This must be called from the form's definition_after_data() method, after
-     * common fields have been populated. It handles both v2 elements (via
-     * preparable_form_interface) and legacy elements (via definition_after_data()).
+     * common fields have been populated. It handles v2 elements via
+     * preparable_form_interface.
      *
      * @param MoodleQuickForm $mform
      * @param element_interface $element
@@ -82,9 +81,6 @@ final class form_service {
     public function prepare_after_data(MoodleQuickForm $mform, element_interface $element): void {
         if ($element instanceof preparable_form_interface) {
             $element->prepare_form($mform);
-        } else if ($element instanceof legacy_element_adapter) {
-            // Legacy fallback: delegate to the wrapped legacy element's definition_after_data().
-            $element->definition_after_data($mform);
         }
     }
 
