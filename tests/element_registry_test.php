@@ -27,6 +27,10 @@ declare(strict_types=1);
 
 namespace mod_customcert;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
+
 use advanced_testcase;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_factory;
@@ -132,5 +136,24 @@ final class element_registry_test extends advanced_testcase {
         $this->expectExceptionMessageMatches('/mod_customcert\\\\element/');
 
         $registry->register('legacytype', $classname);
+    }
+
+    /**
+     * The legacy element runtime bridge has been removed: a class that only extends
+     * mod_customcert\element, without implementing the Element System v2 interfaces
+     * directly, must be rejected at registration with a clear coding_exception rather
+     * than being silently accepted and failing later (or being wrapped, as before).
+     *
+     * @covers \mod_customcert\service\element_registry::register
+     */
+    public function test_registering_legacy_only_element_throws_coding_exception(): void {
+        $this->resetAfterTest();
+
+        $registry = new element_registry();
+
+        $this->expectException(\coding_exception::class);
+        $this->expectExceptionMessageMatches('/renderable_element_interface/');
+
+        $registry->register('legacy45', \customcertelement_legacy45\element::class);
     }
 }
