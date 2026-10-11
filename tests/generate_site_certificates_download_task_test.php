@@ -106,7 +106,7 @@ final class generate_site_certificates_download_task_test extends advanced_testc
 
         $manageruser = $this->create_manager_user();
         $context = context_system::instance();
-        $this->create_issued_certificate('Ada', 'Lovelace', 'Site Template');
+        $issue = $this->create_issued_certificate('Ada', 'Lovelace', 'Site Template');
 
         $task = new generate_site_certificates_download_task();
         $task->set_userid($manageruser->id);
@@ -137,8 +137,12 @@ final class generate_site_certificates_download_task_test extends advanced_testc
         $zip->open($zippath, file_archive::OPEN);
         $zipfiles = $zip->list_files();
         $zip->close();
+        $expectedactivityname = str_replace(' ', '_', mb_strtolower($issue['customcertname']));
         $this->assertCount(1, $zipfiles);
-        $this->assertSame('ada_lovelace/site_template_certificate.pdf', $zipfiles[0]->pathname);
+        $this->assertSame(
+            "ada_lovelace/{$expectedactivityname}_certificate_{$issue['issueid']}.pdf",
+            $zipfiles[0]->pathname
+        );
 
         $messages = $sink->get_messages();
         $this->assertNotEmpty($messages);
@@ -512,13 +516,13 @@ final class generate_site_certificates_download_task_test extends advanced_testc
      * @param string $firstname
      * @param string $lastname
      * @param string $templatename
-     * @return void
+     * @return array{issueid: int, customcertname: string}
      */
     private function create_issued_certificate(
         string $firstname = 'Ada',
         string $lastname = 'Lovelace',
         string $templatename = 'Site Template'
-    ): void {
+    ): array {
         global $DB;
 
         $course = $this->getDataGenerator()->create_course();
@@ -538,6 +542,8 @@ final class generate_site_certificates_download_task_test extends advanced_testc
         $DB->insert_record('customcert_elements', $element);
 
         $issuer = new certificate_issue_service($DB, static fn(): int => time());
-        $issuer->issue_certificate((int) $customcert->id, (int) $user->id);
+        $issueid = $issuer->issue_certificate((int) $customcert->id, (int) $user->id);
+
+        return ['issueid' => $issueid, 'customcertname' => $customcert->name];
     }
 }
