@@ -464,6 +464,70 @@ final class repository_test extends advanced_testcase {
     }
 
     /**
+     * In separate groups mode, a viewer without accessallgroups and no selected current group
+     * sees no issues, and get_conditional_issues_sql() reflects the same restriction.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_issues
+     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
+     * @covers \mod_customcert\service\issue_repository::get_conditional_issues_sql
+     */
+    public function test_group_restrictions_hide_issues_without_accessallgroups(): void {
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode' => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('customcert', $customcert->id, $course->id);
+
+        $student = $this->getDataGenerator()->create_user();
+        $other = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($other->id, $course->id, 'student');
+
+        $repo = new issue_repository();
+        $repo->create((int) $customcert->id, (int) $student->id);
+        $repo->create((int) $customcert->id, (int) $other->id);
+
+        $this->setUser($student);
+
+        $this->assertSame(0, $repo->get_number_of_issues((int) $customcert->id, $cm));
+        $this->assertCount(0, $repo->get_issues((int) $customcert->id, $cm, 0, 0));
+
+        // No current group selected and no accessallgroups: restriction collapses to empty.
+        [$sql, $params] = $repo->get_conditional_issues_sql($cm);
+        $this->assertSame('', $sql);
+        $this->assertSame([], $params);
+    }
+
+    /**
+     * A viewer who can access all groups (e.g. an admin) sees every issue regardless of the
+     * course's separate-groups configuration.
+     *
+     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
+     */
+    public function test_group_restrictions_do_not_apply_with_accessallgroups(): void {
+        $course = $this->getDataGenerator()->create_course([
+            'groupmode' => SEPARATEGROUPS,
+            'groupmodeforce' => 1,
+        ]);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $cm = get_coursemodule_from_instance('customcert', $customcert->id, $course->id);
+
+        $student = $this->getDataGenerator()->create_user();
+        $other = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->getDataGenerator()->enrol_user($other->id, $course->id, 'student');
+
+        $repo = new issue_repository();
+        $repo->create((int) $customcert->id, (int) $student->id);
+        $repo->create((int) $customcert->id, (int) $other->id);
+
+        $this->setAdminUser();
+
+        $this->assertSame(2, $repo->get_number_of_issues((int) $customcert->id, $cm));
+    }
+
+    /**
      * get_certificates_for_user returns the certificates issued to a user.
      *
      * @covers \mod_customcert\service\certificate_repository::get_certificates_for_user
