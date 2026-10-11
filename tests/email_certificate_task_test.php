@@ -413,6 +413,101 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
+     * list_email_candidates should skip hidden activities even when "Issue certificates automatically" is
+     * enabled; that setting must never override the activity's hidden status (#1020).
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_skips_hidden_activity_with_issueautomatically_enabled(): void {
+        global $DB;
+
+        // Create a course and enrol a student.
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a certificate with automatic issuance enabled, then hide the activity.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'issueautomatically' => 1,
+        ]);
+        set_coursemodule_visible($customcert->cmid, 0);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issuer = certificate_issuer_service::create();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        $this->assertEmpty($candidates);
+    }
+
+    /**
+     * Reproduces the scenario reported in #1020: a restrict access condition requiring a quiz pass,
+     * combined with an unmet "View" completion condition configured on the certificate itself. The
+     * student should be eligible once the restrict access condition is met, regardless of the
+     * certificate's own unmet completion condition.
+     *
+     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
+     */
+    public function test_list_email_candidates_quiz_restriction_with_unmet_own_completion(): void {
+        global $CFG, $DB;
+
+        $CFG->enablecompletion = true;
+
+        // Create a course with completion enabled and enrol a student.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+
+        // Create a quiz and mark it as complete for the student.
+        $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $course->id]);
+        $quizmodule = $DB->get_record('course_modules', ['id' => $quiz->cmid]);
+        $quizmodule->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $quizmodule->completionview = 1;
+        $DB->update_record('course_modules', $quizmodule);
+        $completion = new completion_info($course);
+        $completion->update_state($quizmodule, COMPLETION_COMPLETE, $student->id);
+
+        // Create a certificate restricted to users who have passed the quiz, with its own "View"
+        // completion condition unmet.
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'completion' => COMPLETION_TRACKING_AUTOMATIC,
+            'completionview' => 1,
+            'availability' => json_encode([
+                'op' => '&',
+                'c' => [
+                    [
+                        'type' => 'completion',
+                        'cm' => $quiz->cmid,
+                        'e' => COMPLETION_COMPLETE,
+                    ],
+                ],
+                'showc' => [false],
+            ]),
+        ]);
+
+        // Put the certificate in a valid state by adding a page + element.
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pageid = $templateservice->add_page($template);
+        $this->assertDebuggingNotCalled();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        $issuer = certificate_issuer_service::create();
+        $candidates = $issuer->list_email_candidates((int)$customcert->id);
+
+        // The student has passed the quiz but never viewed the certificate; it should still be issued.
+        $this->assertArrayHasKey($student->id, $candidates);
+    }
+
+    /**
      * list_email_candidates should respect hidden category visibility when includeinnotvisiblecourses is disabled.
      *
      * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
