@@ -25,6 +25,7 @@ use mod_customcert\service\element_registry;
 use mod_customcert\tests\fixtures\counting_plugin_provider;
 use mod_customcert\tests\fixtures\fake_element_fixture;
 use mod_customcert\tests\fixtures\incompatible_element_fixture;
+use mod_customcert\tests\fixtures\legacy_and_native_plugin_provider;
 use mod_customcert\tests\fixtures\simple_plugin_provider;
 
 defined('MOODLE_INTERNAL') || die();
@@ -33,6 +34,8 @@ require_once(__DIR__ . '/fixtures/fake_element_fixture.php');
 require_once(__DIR__ . '/fixtures/simple_plugin_provider.php');
 require_once(__DIR__ . '/fixtures/counting_plugin_provider.php');
 require_once(__DIR__ . '/fixtures/incompatible_element_fixture.php');
+require_once(__DIR__ . '/fixtures/legacy_and_native_plugin_provider.php');
+require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
 
 /**
  * Tests auto-discovery of third-party customcertelement_* plugins by element_bootstrap.
@@ -99,10 +102,49 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
         $this->assertDebuggingCalled(
             "Failed to register customcertelement 'incompat959': Coding error detected, it must be fixed by "
                 . "a programmer: Cannot register element type 'incompat959': "
-                . "'\\customcertelement_incompat959\\element' must implement form_element_interface "
-                . 'and renderable_element_interface, or extend mod_customcert\\element.',
+                . "'\\customcertelement_incompat959\\element' must implement "
+                . 'mod_customcert\\element\\form_element_interface and '
+                . 'mod_customcert\\element\\renderable_element_interface directly (Element System v2).',
             DEBUG_DEVELOPER
         );
         $this->assertFalse($registry->has('incompat959'), 'An incompatible class must never end up registered.');
+    }
+
+    /**
+     * A genuine legacy-only element (extends mod_customcert\element, does not implement
+     * renderable_element_interface directly) must be rejected with a clear diagnostic when
+     * encountered via the real plugin-discovery path, discovery must continue regardless,
+     * and a supported native v2 plugin discovered alongside it must still register.
+     *
+     * Distinct from test_incompatible_class_is_skipped_during_discovery(): that fixture does
+     * not extend mod_customcert\element at all, whereas this one is the genuine legacy
+     * envelope the removed legacy_element_adapter used to wrap.
+     */
+    public function test_genuine_legacy_element_is_rejected_during_discovery_and_native_plugin_still_registers(): void {
+        $this->resetAfterTest();
+
+        if (!class_exists('\\customcertelement_fakeplugin\\element', false)) {
+            class_alias(fake_element_fixture::class, '\\customcertelement_fakeplugin\\element');
+        }
+
+        $registry = new element_registry();
+        $provider = new legacy_and_native_plugin_provider();
+
+        $this->resetDebugging();
+        element_bootstrap::register_defaults($registry, $provider);
+
+        $this->assertDebuggingCalled(
+            "Failed to register customcertelement 'legacy45': Coding error detected, it must be fixed by "
+                . "a programmer: Cannot register element type 'legacy45': "
+                . "'\\customcertelement_legacy45\\element' must implement "
+                . 'mod_customcert\\element\\form_element_interface and '
+                . 'mod_customcert\\element\\renderable_element_interface directly (Element System v2).',
+            DEBUG_DEVELOPER
+        );
+        $this->assertFalse($registry->has('legacy45'), 'A genuine legacy-only element must never end up registered.');
+        $this->assertTrue(
+            $registry->has('fakeplugin'),
+            'Discovery must continue past the rejected legacy element and register the native v2 plugin.'
+        );
     }
 }

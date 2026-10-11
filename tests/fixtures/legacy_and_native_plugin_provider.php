@@ -14,34 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace mod_customcert\tests\fixtures;
-
 /**
- * Minimal stub MoodleQuickForm element that records the value passed to setValue().
+ * Legacy and native plugin provider fixture for tests.
  *
  * @package    mod_customcert
+ * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class value_capturing_form_element {
-    /** @var mixed The value captured via setValue(). */
-    private mixed $value = null;
 
-    /**
-     * Record the value set on this form element.
-     *
-     * @param mixed $value
-     */
-    public function setValue($value): void { // phpcs:ignore moodle.NamingConventions.ValidFunctionName.LowercaseMethod
-        $this->value = $value;
-    }
+declare(strict_types=1);
 
+namespace mod_customcert\tests\fixtures;
+
+use mod_customcert\element\provider\plugin_provider;
+
+/**
+ * A plugin provider that returns a genuine legacy-only element alongside a supported
+ * native v2 element, to exercise discovery continuing past a rejected registration.
+ *
+ * Used by its own fixture class so that element_bootstrap's per-provider-class discovery
+ * cache does not collide with other discovery tests.
+ */
+final class legacy_and_native_plugin_provider implements plugin_provider {
     /**
-     * Return the captured value.
+     * Returns a fixed list of plugins for testing.
      *
-     * @return mixed
+     * @return array<string,string>
      */
-    public function get_value(): mixed {
-        return $this->value;
+    public function get_plugins(): array {
+        return [
+            'legacy45' => '/virtual/path',
+            'fakeplugin' => '/virtual/path',
+        ];
     }
 }
