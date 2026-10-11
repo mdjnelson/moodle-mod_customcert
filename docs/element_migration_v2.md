@@ -13,7 +13,10 @@ hook methods on `mod_customcert\element` (`save_form_elements()`, `copy_element(
 shims, legacy property access, legacy scalar unwrapping), the static `element_factory` shim, the
 `certificate` facade, and the `template` forwarding methods no longer exist. A third-party element
 that only implements the historical hooks and does not implement the Element System v2 interfaces
-directly **will no longer load**.
+directly **will no longer be accepted for runtime use**: the element registry rejects it with a
+`coding_exception` at registration time because it fails the native v2 contract. This does not
+imply the class necessarily fails PHP class loading — loading is distinct from registry
+acceptance.
 
 This removal is a **runtime API** change only. Historical database-upgrade (`db/upgrade.php`) and
 backup/restore migration logic for old persisted element data is a separate, independent concern

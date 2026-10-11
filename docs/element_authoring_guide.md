@@ -70,10 +70,11 @@ behaviour.
 > `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted
 > separately by the repository/service layer, not via `normalise_data()`.
 
-> **`get_data()` and structured JSON:** `get_data()` always returns the raw stored value
-> unmodified (typically the JSON string from `customcert_elements.data`). Use
-> `raw_data_element_interface::get_raw_data()` instead when an element's `get_data()`
-> representation differs from what must be persisted.
+> **`get_data()` and structured JSON:** The base `get_data()` implementation returns the
+> stored value unchanged (typically the JSON string from `customcert_elements.data`).
+> Plugins may override `get_data()` to return a different representation; when they do,
+> implement `raw_data_element_interface::get_raw_data()` so `element_repository` still
+> knows the exact value to persist.
 > Prefer `$this->get_payload()` for ordinary structured-data reads rather than manually
 > calling `json_decode($this->get_data(), true)`; use `get_value()` where a simple
 > scalar `value` payload is genuinely appropriate.
