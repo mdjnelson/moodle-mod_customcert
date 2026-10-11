@@ -135,7 +135,7 @@ final class certificate_download_service_test extends advanced_testcase {
         $DB->insert_record('customcert_elements', $element);
 
         $issuer = new certificate_issue_service($DB, static fn(): int => 1_700_000_000);
-        $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
+        $issueid = $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
 
         $sent = [];
         $service = new certificate_download_service(
@@ -158,8 +158,216 @@ final class certificate_download_service_test extends advanced_testcase {
         $files = $zip->list_files();
         $zip->close();
 
+        $expectedactivityname = str_replace(' ', '_', mb_strtolower($customcert->name));
         $this->assertCount(1, $files);
-        $this->assertSame('grace_hopper/site_template_certificate.pdf', $files[0]->pathname);
+        $this->assertSame("grace_hopper/{$expectedactivityname}_certificate_{$issueid}.pdf", $files[0]->pathname);
+    }
+
+    /**
+     * Ensure multiple certificates sharing a template name are all retained with distinct paths.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_site_zip_retains_all_issues_with_same_template_name(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user([
+            'firstname' => 'Marie',
+            'lastname' => 'Curie',
+        ]);
+
+        $templateservice = template_service::create();
+        $pdfservice = pdf_generation_service::create();
+        $issuer = new certificate_issue_service($DB, static fn(): int => 1_700_000_000);
+
+        $expectedpaths = [];
+        for ($i = 0; $i < 3; $i++) {
+            $customcert = $this->getDataGenerator()->create_module('customcert', [
+                'course' => $course->id,
+                'name' => 'Duplicate Activity Name',
+            ]);
+            $template = template::from_record(
+                (new template_repository())->get_by_id_or_fail((int)$customcert->templateid)
+            );
+            // All templates share the same name to reproduce the collision.
+            $templateservice->update($template, (object) ['name' => 'Shared Template']);
+            $pageid = $templateservice->add_page($template);
+            $element = new stdClass();
+            $element->pageid = $pageid;
+            $element->name = 'Image';
+            $DB->insert_record('customcert_elements', $element);
+
+            $issueid = $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
+            $expectedpaths[] = "marie_curie/duplicate_activity_name_certificate_{$issueid}.pdf";
+        }
+
+        $sent = [];
+        $service = new certificate_download_service(
+            new template_repository(),
+            $pdfservice,
+            $DB,
+            null,
+            static function (string $path, string $name) use (&$sent): void {
+                $sent = ['path' => $path, 'name' => $name];
+            }
+        );
+
+        $service->download_all_for_site();
+
+        $this->assertNotEmpty($sent);
+        $this->assertFileExists($sent['path']);
+
+        $zip = new zip_archive();
+        $zip->open($sent['path'], file_archive::OPEN);
+        $files = $zip->list_files();
+        $zip->close();
+
+        $actualpaths = array_map(static fn($file) => $file->pathname, $files);
+        sort($actualpaths);
+        sort($expectedpaths);
+
+        $this->assertCount(3, $actualpaths);
+        $this->assertSame($expectedpaths, $actualpaths);
+    }
+
+    /**
+     * Activity names that differ only by characters stripped by clean_filename() must still
+     * produce distinct archive paths once the issue id is appended.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_site_zip_retains_issues_with_sanitisation_colliding_names(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user([
+            'firstname' => 'Katherine',
+            'lastname' => 'Johnson',
+        ]);
+
+        // These two names are distinct, but clean_filename() strips the colon so they
+        // collide once sanitised.
+        $names = ['Report:Card', 'ReportCard'];
+        $this->assertSame(
+            clean_filename(str_replace(' ', '_', mb_strtolower($names[0]))),
+            clean_filename(str_replace(' ', '_', mb_strtolower($names[1]))),
+            'Fixture names must collide after sanitisation to exercise the regression.'
+        );
+
+        $templateservice = template_service::create();
+        $pdfservice = pdf_generation_service::create();
+        $issuer = new certificate_issue_service($DB, static fn(): int => 1_700_000_000);
+
+        $issueids = [];
+        foreach ($names as $name) {
+            $customcert = $this->getDataGenerator()->create_module('customcert', [
+                'course' => $course->id,
+                'name' => $name,
+            ]);
+            $template = template::from_record(
+                (new template_repository())->get_by_id_or_fail((int)$customcert->templateid)
+            );
+            $pageid = $templateservice->add_page($template);
+            $element = new stdClass();
+            $element->pageid = $pageid;
+            $element->name = 'Image';
+            $DB->insert_record('customcert_elements', $element);
+
+            $issueids[] = $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
+        }
+
+        $sent = [];
+        $service = new certificate_download_service(
+            new template_repository(),
+            $pdfservice,
+            $DB,
+            null,
+            static function (string $path, string $name) use (&$sent): void {
+                $sent = ['path' => $path, 'name' => $name];
+            }
+        );
+
+        $service->download_all_for_site();
+
+        $zip = new zip_archive();
+        $zip->open($sent['path'], file_archive::OPEN);
+        $files = $zip->list_files();
+        $zip->close();
+
+        $expectedcleanname = clean_filename(str_replace(' ', '_', mb_strtolower($names[0])));
+        $expectedpaths = array_map(
+            static fn($issueid) => "katherine_johnson/{$expectedcleanname}_certificate_{$issueid}.pdf",
+            $issueids
+        );
+        $actualpaths = array_map(static fn($file) => $file->pathname, $files);
+        sort($expectedpaths);
+        sort($actualpaths);
+
+        $this->assertCount(2, $actualpaths);
+        $this->assertSame($expectedpaths, $actualpaths);
+        foreach ($actualpaths as $path) {
+            $this->assertStringNotContainsString('..', $path);
+        }
+    }
+
+    /**
+     * The archive path must be built from the certificate activity name, not the template name.
+     *
+     * @covers ::generate_all_for_site_zip
+     */
+    public function test_site_zip_uses_activity_name_not_template_name(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user([
+            'firstname' => 'Ada',
+            'lastname' => 'Lovelace',
+        ]);
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'name' => 'Completion Award',
+        ]);
+
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $templateservice = template_service::create();
+        $pdfservice = pdf_generation_service::create();
+        $templateservice->update($template, (object) ['name' => 'Generic Shared Template']);
+        $pageid = $templateservice->add_page($template);
+        $element = new stdClass();
+        $element->pageid = $pageid;
+        $element->name = 'Image';
+        $DB->insert_record('customcert_elements', $element);
+
+        $issuer = new certificate_issue_service($DB, static fn(): int => 1_700_000_000);
+        $issueid = $issuer->issue_certificate((int)$customcert->id, (int)$user->id);
+
+        $sent = [];
+        $service = new certificate_download_service(
+            new template_repository(),
+            $pdfservice,
+            $DB,
+            null,
+            static function (string $path, string $name) use (&$sent): void {
+                $sent = ['path' => $path, 'name' => $name];
+            }
+        );
+
+        $service->download_all_for_site();
+
+        $zip = new zip_archive();
+        $zip->open($sent['path'], file_archive::OPEN);
+        $files = $zip->list_files();
+        $zip->close();
+
+        $this->assertCount(1, $files);
+        $this->assertSame("ada_lovelace/completion_award_certificate_{$issueid}.pdf", $files[0]->pathname);
     }
 
     /**
