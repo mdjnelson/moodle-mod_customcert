@@ -171,7 +171,6 @@ final class certificate_issuer_service {
      * @return void
      */
     public function process_email_issuance_run(): void {
-        // Get the certificatesperrun, includeinnotvisiblecourses, and certificateexecutionperiod configurations.
         $certificatesperrun = (int)get_config('customcert', 'certificatesperrun');
         $includeinnotvisiblecourses = (bool)get_config('customcert', 'includeinnotvisiblecourses');
         $certificateexecutionperiod = (int)get_config('customcert', 'certificateexecutionperiod');
@@ -191,7 +190,6 @@ final class certificate_issuer_service {
         }
 
         foreach ($customcerts as $customcert) {
-            // Check if the certificate is hidden, quit early.
             [, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
             if (!$cm->visible) {
                 continue;
@@ -290,14 +288,10 @@ final class certificate_issuer_service {
         // enabled, only studentemailed = 0 remains a retry candidate.
         $issuedusers = $this->issues->list_emailed_users((int)$customcert->id, !empty($customcert->emailstudents));
 
-        // Get the context of the Custom Certificate module.
         $cmcontext = context_module::instance($cm->id);
 
-        // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
         $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
-        // Get users with mod/customcert:view capability.
         $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
-        // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
         $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
         // Filter remaining users by availability conditions.

@@ -73,7 +73,6 @@ class element extends base_element implements
     public function build_form(MoodleQuickForm $mform): void {
         global $PAGE;
 
-        // Get the user profile fields.
         $userfields = [];
         foreach (self::USER_FIELDS as $userfield) {
             $userfields[$userfield] = fields::get_display_name($userfield);
@@ -89,7 +88,6 @@ class element extends base_element implements
             }
             $customfields[$customfield->id] = $customfield->name;
         }
-        // Combine the two.
         $fields = $userfields + $customfields;
         core_collator::asort($fields);
 
@@ -176,7 +174,6 @@ class element extends base_element implements
 
         $context = element_helper::get_context($this->get_id());
 
-        // The user field to display.
         $payload = $this->get_payload();
         $field = isset($payload['userfield']) ? $payload['userfield'] : '';
         // The value to display - we always want to show a value here so it can be repositioned.
@@ -187,7 +184,6 @@ class element extends base_element implements
         }
         if (is_number($field)) { // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', ['id' => $field])) {
-                // Found the field name, let's update the value to display.
                 $value = $field->name;
                 $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
                 if (file_exists($file)) {

@@ -37,14 +37,12 @@ $qrcode = optional_param('qrcode', false, PARAM_BOOL);
 
 $context = context::instance_by_id($contextid);
 
-// Set up the page.
 $pageurl = new moodle_url('/mod/customcert/verify_certificate.php', ['contextid' => $contextid]);
 
 if ($code) {
     $pageurl->param('code', $code);
 }
 
-// Ok, a certificate was specified.
 if ($context->contextlevel != CONTEXT_SYSTEM) {
     $cm = get_coursemodule_from_id('customcert', $context->instanceid, 0, false, MUST_EXIST);
     $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
@@ -71,7 +69,6 @@ page_helper::page_setup($pageurl, $context, $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
-// Additional page setup.
 if ($context->contextlevel == CONTEXT_SYSTEM) {
     $PAGE->navbar->add(get_string('verifycertificate', 'customcert'));
 }
@@ -89,14 +86,12 @@ if ($checkallofsite) {
     }
 }
 
-// The form we are using to verify these codes.
 $form = new verify_certificate_form($pageurl);
 
 if ($code) {
     $result = new stdClass();
     $result->issues = [];
 
-    // Ok, now check if the code is valid.
     $userfields = helper::get_all_user_name_fields('u');
     $sql = "SELECT ci.id, u.id as userid, $userfields, co.id as courseid,
                    co.fullname as coursefullname, c.id as certificateid,

@@ -60,7 +60,6 @@ $canreceive = has_capability('mod/customcert:receiveissue', $context);
 $canmanage = has_capability('mod/customcert:manage', $context);
 $canviewreport = has_capability('mod/customcert:viewreport', $context);
 
-// Initialise $PAGE.
 $pageurl = new moodle_url('/mod/customcert/view.php', ['id' => $cm->id]);
 \mod_customcert\page_helper::page_setup($pageurl, $context, format_string($customcert->name));
 
@@ -76,7 +75,6 @@ if ($customcert->requiredtime && !$canmanage) {
     }
 }
 
-// Check if we are deleting an issue.
 if ($deleteissue && $canmanage && confirm_sesskey()) {
     if (!$confirm) {
         $nourl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
@@ -90,7 +88,6 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
             ]
         );
 
-        // Show a confirmation page.
         $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
         $message = get_string('deleteissueconfirm', 'customcert');
         echo $OUTPUT->header();
@@ -100,12 +97,10 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
         exit();
     }
 
-    // Delete the issue.
     $issuerepo = new issue_repository();
     $issue = $issuerepo->get_by_id_or_fail((int)$deleteissue);
     $issuerepo->delete_for_certificate((int)$deleteissue, (int)$customcert->id);
 
-    // Trigger event.
     $cm = get_coursemodule_from_instance('customcert', $customcert->id, 0, false, MUST_EXIST);
     $context = \context_module::instance($cm->id);
     $event = \mod_customcert\event\issue_deleted::create([
@@ -115,18 +110,15 @@ if ($deleteissue && $canmanage && confirm_sesskey()) {
     ]);
     $event->trigger();
 
-    // Redirect back to the manage templates page.
     redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
 }
 
-// Get the current groups mode.
 if ($groupmode = groups_get_activity_groupmode($cm)) {
     groups_get_activity_group($cm, true);
 }
 
 $issuerepo = new issue_repository();
 
-// Check if we are downloading all certificates.
 if ($downloadall && $canviewreport && confirm_sesskey()) {
     $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
     $issues = $issuerepo->get_issues($customcert->id, $cm, 0, 0);
@@ -149,11 +141,8 @@ $event->add_record_snapshot('course', $course);
 $event->add_record_snapshot('customcert', $customcert);
 $event->trigger();
 
-// Check that we are not downloading a certificate PDF.
 if (!$downloadown && !$downloadissue) {
-    // Generate the table to the report if there are issues to display.
     if ($canviewreport) {
-        // Get the total number of issues.
         $reporttable = new report_table($customcert->id, $cm, $downloadtable);
         $reporttable->define_baseurl($pageurl);
 
@@ -208,7 +197,6 @@ if (!$downloadown && !$downloadissue) {
         $downloadallbutton = $OUTPUT->render($downloadallbutton);
     }
 
-    // Output all the page data.
     echo $OUTPUT->header();
     echo $issuehtml;
     echo $downloadbutton;
@@ -224,7 +212,6 @@ if (!$downloadown && !$downloadissue) {
     echo $OUTPUT->footer($course);
     exit();
 } else if ($canreceive || $canviewreport) { // Output to pdf.
-    // Set the userid value of who we are downloading the certificate for.
     $userid = $USER->id;
     if ($downloadown) {
         if (!data_submitted()) {
@@ -234,13 +221,11 @@ if (!$downloadown && !$downloadissue) {
         require_capability('mod/customcert:receiveissue', $context);
         require_sesskey();
 
-        // Create new customcert issue record if one does not already exist.
         if (!(new issue_repository())->exists_for_user((int)$customcert->id, (int)$USER->id)) {
             $issueservice = certificate_issue_service::create();
             $issueservice->issue_certificate((int)$customcert->id, (int)$USER->id);
         }
 
-        // Set the custom certificate as viewed.
         $completion = new completion_info($course);
         $completion->set_module_viewed($cm);
     } else if ($downloadissue && $canviewreport) {
@@ -258,7 +243,6 @@ if (!$downloadown && !$downloadissue) {
 
     manager::write_close();
 
-    // Now we want to generate the PDF.
     $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
     $pdfservice = pdf_generation_service::create();
     $pdfservice->generate_pdf($template, false, (int)$userid);

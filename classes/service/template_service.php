@@ -143,7 +143,7 @@ final class template_service {
         $pages = $this->pages->list_by_template($template->get_id());
         $nextsequence = 1;
         if (!empty($pages)) {
-            $last = end($pages); // The method list_by_template returns sequence ASC, id ASC.
+            $last = end($pages);
             $nextsequence = ((int)$last->sequence) + 1;
         }
         $pageid = $this->pages->create((object) [
@@ -281,7 +281,6 @@ final class template_service {
 
         page_deleted::create_from_page($page, $template)->trigger();
 
-        // Resequence remaining pages.
         $this->pages->resequence($template->get_id());
 
         if ($triggertemplateupdatedevent) {

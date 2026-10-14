@@ -38,9 +38,7 @@ $tid = required_param('tid', PARAM_INT);
 $values = required_param('values', PARAM_RAW);
 $values = json_decode($values);
 
-// Load the template.
 $template = template::from_record((new template_repository())->get_by_id_or_fail($tid));
-// Perform checks.
 if ($cm = $template->get_cm()) {
     $courseid = $cm->course;
     require_login($courseid, false, $cm);
@@ -55,7 +53,6 @@ require_sesskey();
 $factory = element_factory::build_with_defaults();
 $elementrepo = new element_repository($factory);
 
-// Loop through the data.
 $contextid = $template->get_contextid();
 foreach ($values as $value) {
     // Verify the element belongs to this template before updating — prevents cross-template

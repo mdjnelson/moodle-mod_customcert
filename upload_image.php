@@ -35,11 +35,9 @@ require_capability('moodle/site:config', $context);
 
 $struploadimage = get_string('uploadimage', 'customcert');
 
-// Set the page variables.
 $pageurl = new moodle_url('/mod/customcert/upload_image.php');
 page_helper::page_setup($pageurl, $context, $SITE->fullname);
 
-// Additional page setup.
 $PAGE->navbar->add($struploadimage);
 
 $uploadform = new upload_image_form();
@@ -47,7 +45,6 @@ $uploadform = new upload_image_form();
 if ($uploadform->is_cancelled()) {
     redirect(new moodle_url('/admin/settings.php?section=modsettingcustomcert'));
 } else if ($data = $uploadform->get_data()) {
-    // Handle file uploads.
     form_service::upload_files($data->customcertimage, $context->id);
 
     redirect(new moodle_url('/mod/customcert/upload_image.php'), get_string('changessaved'));

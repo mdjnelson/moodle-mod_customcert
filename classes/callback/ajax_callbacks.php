@@ -50,7 +50,6 @@ class ajax_callbacks {
         $factory = element_factory::build_with_defaults();
         $elementrepo = new element_repository($factory);
 
-        // Require both elementid and templateid to be supplied.
         if (empty($args['elementid']) || empty($args['templateid'])) {
             throw new \moodle_exception('nopermissions', 'error', '', 'editelement');
         }
@@ -95,9 +94,7 @@ class ajax_callbacks {
             $element = $elementrepo->get_by_id_or_fail((int)$itemid); // @codingStandardsIgnoreLine
             $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
-            // Set the template object.
             $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
-            // Perform checks.
             if ($cm = $template->get_cm()) {
                 require_login($cm->course, false, $cm);
             } else {
@@ -107,7 +104,6 @@ class ajax_callbacks {
             // Make sure the user has the required capabilities.
             $template->require_manage();
 
-            // Clean input and update the record.
             $newname = clean_param($newvalue, PARAM_TEXT);
             $elementrepo->update_name((int)$element->id, $newname, (int)$template->get_contextid());
 
