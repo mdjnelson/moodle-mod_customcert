@@ -49,18 +49,12 @@ if ($action) {
 }
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
-// Edit an existing template.
 if ($tid) {
-    // Create the template object.
     $template = template::from_record($templaterepo->get_by_id_or_fail((int)$tid));
-    // Set the context.
     $contextid = $template->get_contextid();
-    // Set the page url.
     $pageurl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
 } else { // Adding a new template.
-    // Need to supply the contextid.
     $contextid = required_param('contextid', PARAM_INT);
-    // Set the page url.
     $pageurl = new moodle_url('/mod/customcert/edit.php', ['contextid' => $contextid]);
 }
 
@@ -78,13 +72,11 @@ if ($context->contextlevel == CONTEXT_MODULE) {
 
 require_capability('mod/customcert:manage', $context);
 
-// Set up the page.
 page_helper::page_setup($pageurl, $context, $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
 if ($context->contextlevel == CONTEXT_SYSTEM) {
-    // We are managing a template - add some navigation.
     $PAGE->navbar->add(
         get_string('managetemplates', 'customcert'),
         new moodle_url('/mod/customcert/manage_templates.php')
@@ -99,7 +91,6 @@ if ($context->contextlevel == CONTEXT_SYSTEM) {
     }
 }
 
-// Flag to determine if we are deleting anything.
 $deleting = false;
 
 if ($tid) {
@@ -143,16 +134,13 @@ if ($tid) {
                 redirect($url);
                 break;
             case 'deletepage':
-                if (!empty($confirm)) { // Check they have confirmed the deletion.
+                if (!empty($confirm)) {
                     $templateservice->delete_page($template, $actionid);
                     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     redirect($url);
                 } else {
-                    // Set deletion flag to true.
                     $deleting = true;
-                    // Create the message.
                     $message = get_string('deletepageconfirm', 'customcert');
-                    // Create the link options.
                     $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     $yesurl = new moodle_url(
                         '/mod/customcert/edit.php',
@@ -167,14 +155,11 @@ if ($tid) {
                 }
                 break;
             case 'deleteelement':
-                if (!empty($confirm)) { // Check they have confirmed the deletion.
+                if (!empty($confirm)) {
                     $templateservice->delete_element($template, $actionid);
                 } else {
-                    // Set deletion flag to true.
                     $deleting = true;
-                    // Create the message.
                     $message = get_string('deleteelementconfirm', 'customcert');
-                    // Create the link options.
                     $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
                     $yesurl = new moodle_url(
                         '/mod/customcert/edit.php',
@@ -192,9 +177,7 @@ if ($tid) {
     }
 }
 
-// Check if we are deleting either a page or an element.
 if ($deleting) {
-    // Show a confirmation page.
     $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
     echo $OUTPUT->header();
     echo $OUTPUT->confirm($message, $yesurl, $nourl);
@@ -204,21 +187,17 @@ if ($deleting) {
 
 if ($tid) {
     $mform = new edit_form($pageurl, ['tid' => $tid]);
-    // Set the name for the form.
     $mform->set_data(['name' => $template->get_name()]);
 } else {
     $mform = new edit_form($pageurl);
 }
 
 if ($data = $mform->get_data()) {
-    // If there is no id, then we are creating a template.
     if (!$tid) {
         $template = template::create($data->name, $contextid);
 
-        // Create a page for this template.
         $pageid = $templateservice->add_page($template, false);
 
-        // Associate all the data from the form to the newly created page.
         $width = 'pagewidth_' . $pageid;
         $height = 'pageheight_' . $pageid;
         $leftmargin = 'pageleftmargin_' . $pageid;
@@ -245,23 +224,17 @@ if ($data = $mform->get_data()) {
     }
 
     if ($tid) {
-        // Save any data for the template.
         $templateservice->update($template, $data);
     }
 
     // Save any page data and emit template_updated when changes occur.
     $templateservice->save_pages($template, $data, true);
 
-    // Loop through the data.
     foreach ($data as $key => $value) {
-        // Check if they chose to add an element to a page.
         if (strpos($key, 'addelement_') !== false) {
-            // Get the page id.
             $pageid = str_replace('addelement_', '', $key);
-            // Get the element.
             $element = "element_" . $pageid;
             $element = $data->$element;
-            // Create the URL to redirect to to add this element.
             $params = [];
             $params['tid'] = $template->get_id();
             $params['action'] = 'add';
@@ -272,12 +245,10 @@ if ($data = $mform->get_data()) {
         }
     }
 
-    // Check if we want to preview this custom certificate.
     if (!empty($data->previewbtn)) {
         $preview = preview_renderer::create();
         $pdf = $pdfservice->create_preview_pdf($template, $USER);
 
-        // Render each page of this template in sequence.
         $pages = $pagerepo->list_by_template($template->get_id());
         foreach ($pages as $page) {
             $preview->render_pdf_page((int)$page->id, $pdf, $USER);
@@ -290,7 +261,6 @@ if ($data = $mform->get_data()) {
         exit();
     }
 
-    // Redirect to the editing page to show form with recent updates.
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()]);
     redirect($url);
 }

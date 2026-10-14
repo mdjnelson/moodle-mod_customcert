@@ -66,12 +66,10 @@ class mod_customcert_mod_form extends moodleform_mod {
         $mform->addElement('select', 'deliveryoption', get_string('deliveryoptions', 'customcert'), $deliveryoptions);
         $mform->setDefault('deliveryoption', pdf_generation_service::DELIVERY_OPTION_INLINE);
 
-        // Checkbox to enable custom file name pattern.
         $mform->addElement('advcheckbox', 'usecustomfilename', get_string('usecustomfilename', 'customcert'));
         $mform->addHelpButton('usecustomfilename', 'usecustomfilename', 'customcert');
         $mform->setDefault('usecustomfilename', 0);
 
-        // Text field for custom file name pattern.
         $mform->addElement('text', 'customfilenamepattern', get_string('customfilenamepattern', 'customcert'), ['size' => '50']);
         $mform->setType('customfilenamepattern', PARAM_TEXT);
         $mform->addHelpButton('customfilenamepattern', 'customfilenamepattern', 'customcert');
@@ -134,7 +132,6 @@ class mod_customcert_mod_form extends moodleform_mod {
             $mform->setType('protection_copy', PARAM_BOOL);
         }
 
-        // Create an element for language selector.
         if (has_capability('mod/customcert:managelanguages', $this->get_context())) {
             $languages = get_string_manager()->get_list_of_translations();
             $languages = ['' => get_string('forceno')] + $languages;

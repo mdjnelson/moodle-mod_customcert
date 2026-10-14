@@ -226,7 +226,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 throw new import_exception("file not found: files/$contenthash");
             }
 
-            // Using mod_customcert/image/itemid=0 is compatible with your element runtime code.
+            // Store under itemid=0, matching how the element rendering code looks up images.
             $filerecord = [
                 'contextid' => $contextid,
                 'component' => 'mod_customcert',

@@ -295,7 +295,6 @@ class element_helper {
      */
     public static function validate_form_element_colour(array $data): array {
         $errors = [];
-        // Validate the colour.
         if (!self::validate_colour($data['colour'])) {
             $errors['colour'] = get_string('invalidcolour', 'customcert');
         }
@@ -311,11 +310,9 @@ class element_helper {
     public static function validate_form_element_position(array $data): array {
         $errors = [];
 
-        // Check if posx is not set, or not numeric or less than 0.
         if ((!isset($data['posx'])) || (!is_numeric($data['posx'])) || ($data['posx'] < 0)) {
             $errors['posx'] = get_string('invalidposition', 'customcert', 'X');
         }
-        // Check if posy is not set, or not numeric or less than 0.
         if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
             $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
         }
@@ -333,12 +330,10 @@ class element_helper {
     public static function validate_form_element_width(array $data, bool $allowzero = true): array {
         $errors = [];
 
-        // If there is no width element no validation is needed.
         if (!isset($data['width'])) {
             return [];
         }
 
-        // Check if width is less than 0.
         if (!is_numeric($data['width'])) {
             $errors['width'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
@@ -366,12 +361,10 @@ class element_helper {
     public static function validate_form_element_height(array $data, bool $allowzero = true): array {
         $errors = [];
 
-        // If there is no height element no validation is needed.
         if (!isset($data['height'])) {
             return [];
         }
 
-        // Check if height is less than 0.
         if (!is_numeric($data['height'])) {
             $errors['height'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
@@ -411,31 +404,24 @@ class element_helper {
      * @return array the font and font attributes
      */
     public static function get_font(stylable_element_interface $element): array {
-        // Variable for the font.
         $font = $element->get_font();
-        // If there is no font, then we have nothing to do.
         if (empty($font)) {
             return ['', ''];
         }
-        // Get the last two characters of the font name.
+        // Font names encode bold/italic as trailing 'b'/'i'/'bi' suffixes, which need
+        // to be split out into separate PDF style attributes.
         $fontlength = strlen($font);
         $lastchar = $font[$fontlength - 1];
         $secondlastchar = ($fontlength > 1) ? $font[$fontlength - 2] : '';
-        // The attributes of the font.
         $attr = '';
-        // Check if the last character is 'i'.
         if ($lastchar == 'i') {
-            // Remove the 'i' from the font name.
             $font = substr($font, 0, -1);
-            // Check if the second last char is b.
             if ($secondlastchar == 'b') {
-                // Remove the 'b' from the font name.
                 $font = substr($font, 0, -1);
                 $attr .= 'B';
             }
             $attr .= 'I';
         } else if ($lastchar == 'b') {
-            // Remove the 'b' from the font name.
             $font = substr($font, 0, -1);
             $attr .= 'B';
         }
@@ -503,13 +489,10 @@ class element_helper {
     public static function get_element_sequence(int $pageid): int {
         global $DB;
 
-        // Set the sequence of the element we are creating.
         $sequence = 1;
-        // Check if there already elements that exist, if so, overwrite value.
         $sql = "SELECT MAX(sequence) as maxsequence
                   FROM {customcert_elements}
                  WHERE pageid = :id";
-        // Get the current max sequence on this page and add 1 to get the new sequence.
         if ($maxseq = $DB->get_record_sql($sql, ['id' => $pageid])) {
             $sequence = $maxseq->maxsequence + 1;
         }
@@ -534,7 +517,6 @@ class element_helper {
                     ON cp.id = ce.pageid
                  WHERE ce.id = :elementid";
 
-        // Check if there is a course associated with this element.
         if ($course = $DB->get_record_sql($sql, ['elementid' => $elementid])) {
             return $course->course;
         } else { // Must be in a site template.
@@ -571,28 +553,20 @@ class element_helper {
     public static function get_available_element_types(): array {
         global $CFG;
 
-        // Array to store the element types.
         $options = [];
 
-        // Check that the directory exists.
         $elementdir = "$CFG->dirroot/mod/customcert/element";
         if (file_exists($elementdir)) {
-            // Get directory contents.
             $elementfolders = new DirectoryIterator($elementdir);
-            // Loop through the elements folder.
             foreach ($elementfolders as $elementfolder) {
-                // If it is not a directory or it is '.' or '..', skip it.
                 if (!$elementfolder->isDir() || $elementfolder->isDot()) {
                     continue;
                 }
-                // Check that the standard class exists, if not we do
-                // not want to display it as an option as it will not work.
+                // Only offer the element if its plugin class actually exists, otherwise it would
+                // not work if selected.
                 $foldername = $elementfolder->getFilename();
-                // Get the class name.
                 $classname = '\\customcertelement_' . $foldername . '\\element';
-                // Ensure the necessary class exists.
                 if (class_exists($classname)) {
-                    // Additionally, check if the user is allowed to add the element at all.
                     if ($classname::can_add()) {
                         $component = "customcertelement_{$foldername}";
                         $options[$foldername] = get_string('pluginname', $component);
@@ -612,10 +586,8 @@ class element_helper {
      * @return array the array of gradeable items in the course
      */
     public static function get_grade_items(stdClass $course): array {
-        // Array to store the grade items.
         $arrgradeitems = [];
 
-        // Get other non-module related grade items.
         if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id])) {
             foreach ($gradeitems as $gi) {
                 if ($gi->is_course_item()) {
@@ -633,7 +605,6 @@ class element_helper {
                     // If we were to change we would need to provide upgrade steps to convert cm->id to gi->id.
                     $arrgradeitems[$cm->id] = get_string('activity', 'mod_customcert') . ' : ' . $gi->get_name();
                 } else if ($gi->is_external_item() && $gi->is_outcome_item()) {
-                    // Get the name of the activity.
                     $optionname = get_string('gradeoutcome', 'mod_customcert') . ' : '  . $modname . " - " . $gi->get_name();
                     $arrgradeitems['gradeitem:' . $gi->id] = $optionname;
                 } else {
@@ -641,7 +612,6 @@ class element_helper {
                 }
             }
 
-            // Alphabetise this.
             asort($arrgradeitems);
         }
 

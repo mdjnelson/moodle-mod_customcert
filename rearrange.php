@@ -50,9 +50,7 @@ foreach ($elementrepo->load_by_page_id($pid) as $instance) {
     $elementinstances[$instance->get_id()] = $instance;
 }
 
-// Set the template.
 $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
-// Perform checks.
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);
 } else {
@@ -70,13 +68,11 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
     $heading = $title;
 }
 
-// Set the $PAGE settings.
 $pageurl = new moodle_url('/mod/customcert/rearrange.php', ['pid' => $pid]);
 page_helper::page_setup($pageurl, $template->get_context(), $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
-// Add more links to the navigation.
 if (!$cm = $template->get_cm()) {
     $str = get_string('managetemplates', 'customcert');
     $link = new moodle_url('/mod/customcert/manage_templates.php');

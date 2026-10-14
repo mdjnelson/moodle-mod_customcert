@@ -38,27 +38,20 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
      * @return array the restore paths
      */
     protected function define_structure() {
-        // The array used to store the path to the items we want to restore.
         $paths = [];
 
-        // The customcert instance.
         $paths[] = new restore_path_element('customcert', '/activity/customcert');
 
-        // The templates.
         $paths[] = new restore_path_element('customcert_template', '/activity/customcert/template');
 
-        // The pages.
         $paths[] = new restore_path_element('customcert_page', '/activity/customcert/template/pages/page');
 
-        // The elements.
         $paths[] = new restore_path_element('customcert_element', '/activity/customcert/template/pages/page/element');
 
-        // Check if we want the issues as well.
         if ($this->get_setting_value('userinfo')) {
             $paths[] = new restore_path_element('customcert_issue', '/activity/customcert/issues/issue');
         }
 
-        // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
 
@@ -75,7 +68,6 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 
-        // Insert the customcert record.
         $newitemid = $DB->insert_record('customcert', $data);
 
         // Immediately after inserting record call this.
@@ -100,7 +92,6 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $newitemid = $DB->insert_record('customcert_templates', $data);
         $this->set_mapping('customcert_template', $oldid, $newitemid);
 
-        // Update the template id for the customcert.
         $customcert = new stdClass();
         $customcert->id = $this->get_new_parentid('customcert');
         $customcert->templateid = $newitemid;
@@ -245,7 +236,6 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     protected function after_execute() {
         parent::after_execute();
 
-        // Add the files.
         $this->add_related_files('mod_customcert', 'intro', null);
 
         // Note - we can't use get_old_contextid() as it refers to the module context.

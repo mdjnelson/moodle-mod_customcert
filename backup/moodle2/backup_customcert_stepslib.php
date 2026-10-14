@@ -37,18 +37,15 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
      */
     protected function define_structure() {
 
-        // The instance.
         $customcert = new backup_nested_element('customcert', ['id'], [
             'templateid', 'name', 'intro', 'introformat', 'requiredtime', 'verifyany',
             'deliveryoption', 'usecustomfilename', 'customfilenamepattern', 'emailstudents',
             'emailteachers', 'emailothers', 'issueautomatically', 'completionemailed', 'protection',
             'language', 'timecreated', 'timemodified']);
 
-        // The template.
         $template = new backup_nested_element('template', ['id'], [
             'name', 'contextid', 'timecreated', 'timemodified']);
 
-        // The pages.
         $pages = new backup_nested_element('pages');
         $page = new backup_nested_element('page', ['id'], [
             'templateid', 'width', 'height', 'leftmargin', 'rightmargin',
@@ -60,12 +57,10 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
             'pageid', 'name', 'element', 'data', 'posx', 'posy', 'refpoint', 'sequence',
             'alignment', 'timecreated', 'timemodified']);
 
-        // The issues.
         $issues = new backup_nested_element('issues');
         $issue = new backup_nested_element('issue', ['id'], [
             'customcertid', 'userid', 'timecreated', 'emailed', 'studentemailed', 'code']);
 
-        // Build the tree.
         $customcert->add_child($issues);
         $issues->add_child($issue);
         $customcert->add_child($template);
@@ -73,31 +68,23 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
         $pages->add_child($page);
         $page->add_child($element);
 
-        // Define sources.
         $customcert->set_source_table('customcert', ['id' => backup::VAR_ACTIVITYID]);
 
-        // Define template source.
         $template->set_source_table('customcert_templates', ['contextid' => backup::VAR_CONTEXTID]);
 
-        // Define page source.
         $page->set_source_table('customcert_pages', ['templateid' => backup::VAR_PARENTID]);
 
-        // Define element source, each element belongs to a page.
         $element->set_source_table('customcert_elements', ['pageid' => backup::VAR_PARENTID]);
 
-        // If we are including user info then save the issues.
         if ($this->get_setting_value('userinfo')) {
             $issue->set_source_table('customcert_issues', ['customcertid' => backup::VAR_ACTIVITYID]);
         }
 
-        // Annotate the user id's where required.
         $issue->annotate_ids('user', 'userid');
 
-        // Define file annotations.
         $customcert->annotate_files('mod_customcert', 'intro', null);
         $customcert->annotate_files('mod_customcert', 'image', null, context_course::instance($this->get_courseid())->id);
 
-        // Return the root element (customcert), wrapped into standard activity structure.
         return $this->prepare_activity_structure($customcert);
     }
 }

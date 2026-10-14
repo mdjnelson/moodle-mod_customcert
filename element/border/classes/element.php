@@ -60,9 +60,7 @@ class element extends base_element implements
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
-        // We want to define the width of the border.
         element_helper::render_form_element_width($mform);
-        // The only other thing to define is the colour we want the border to be.
         element_helper::render_form_element_colour($mform);
     }
 
@@ -73,7 +71,6 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Populate width from JSON via the getter.
         $width = $this->get_width();
         if ($width !== null) {
             $mform->getElement('width')->setValue($width);

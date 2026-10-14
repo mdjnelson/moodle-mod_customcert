@@ -175,7 +175,6 @@ class element extends base_element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
@@ -185,7 +184,6 @@ class element extends base_element implements
         $dateitem = $payload['dateitem'] ?? '';
         $date = $this->expiry((int) $user->id, $preview);
 
-        // Ensure that a date has been set.
         if (!empty($date)) {
             $content = '';
             if ($dateformat == 'validfor') {
@@ -224,12 +222,10 @@ class element extends base_element implements
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
-        // Read the information stored in the database.
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
         $dateitem = $payload['dateitem'] ?? '';
@@ -332,7 +328,6 @@ class element extends base_element implements
             $starttime = time();
         } else if ($startfrom == 'coursecomplete') {
             $courseid = element_helper::get_courseid($this->id);
-            // Get the last completion date.
             $sql = "SELECT MAX(c.timecompleted) as timecompleted
                       FROM {course_completions} c
                      WHERE c.userid = :userid
@@ -343,11 +338,8 @@ class element extends base_element implements
                 }
             }
         } else { // Expiry date calculated from certificate award date.
-            // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
-            // Get the customcert this page belongs to.
             $customcert = (new certificate_repository())->get_by_template_id_or_fail((int)$page->templateid);
-            // Now we can get the issue for this user.
             $issue = $DB->get_record(
                 'customcert_issues',
                 ['userid' => $userid, 'customcertid' => $customcert->id],

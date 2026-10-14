@@ -59,11 +59,9 @@ if ($tid) {
 
 $title = $SITE->fullname;
 
-// Set up the page.
 $pageurl = new moodle_url('/mod/customcert/manage_templates.php');
 page_helper::page_setup($pageurl, $context, $title);
 
-// Additional page setup.
 if ($tid && $action && confirm_sesskey()) {
     $PAGE->navbar->add(
         get_string('managetemplates', 'customcert'),
@@ -86,10 +84,8 @@ if ($tid) {
             ]
         );
 
-        // Check if we are deleting a template.
         if ($action == 'delete') {
             if (!$confirm) {
-                // Show a confirmation page.
                 $PAGE->navbar->add(get_string('deleteconfirm', 'customcert'));
                 $message = get_string('deletetemplateconfirm', 'customcert');
                 echo $OUTPUT->header();
@@ -98,15 +94,12 @@ if ($tid) {
                 exit();
             }
 
-            // Delete the template.
             $templateservice = template_service::create();
             $templateservice->delete($template);
 
-            // Redirect back to the manage templates page.
             redirect(new moodle_url('/mod/customcert/manage_templates.php'));
         } else if ($action == 'duplicate') {
             if (!$confirm) {
-                // Show a confirmation page.
                 $PAGE->navbar->add(get_string('duplicateconfirm', 'customcert'));
                 $message = get_string('duplicatetemplateconfirm', 'customcert');
                 echo $OUTPUT->header();
@@ -120,7 +113,6 @@ if ($tid) {
             $name = $template->get_name() . ' (' . strtolower(get_string('duplicate', 'customcert')) . ')';
             $service->duplicate($template->get_id(), $name);
 
-            // Redirect back to the manage templates page.
             redirect(new moodle_url('/mod/customcert/manage_templates.php'));
         }
     }
