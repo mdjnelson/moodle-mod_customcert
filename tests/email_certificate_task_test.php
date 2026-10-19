@@ -26,6 +26,7 @@
 namespace mod_customcert;
 
 use completion_info;
+use core\cron;
 use context_module;
 use stdClass;
 use context_course;
@@ -2338,5 +2339,207 @@ final class email_certificate_task_test extends advanced_testcase {
 
         $data = $completioninfo->get_data($cm, false, $student->id);
         $this->assertEquals(COMPLETION_INCOMPLETE, $data->completionstate);
+    }
+
+    /**
+     * Issues created by a CLI issuance run are attributed to the cron user, never to a previously emailed student.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task
+     * @covers \mod_customcert\task\email_certificate_task
+     */
+    public function test_cli_issuance_run_does_not_attribute_issues_to_students(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        for ($i = 0; $i < 3; $i++) {
+            $student = $this->getDataGenerator()->create_user();
+            $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        }
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $template = new template((object)[
+            'id' => $customcert->templateid,
+            'name' => 'A template',
+            'contextid' => context_course::instance($course->id)->id,
+        ]);
+        $pageid = $template->add_page();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'Image']);
+
+        cron::setup_user();
+        $admin = get_admin();
+
+        $emailsink = $this->redirectEmails();
+        $eventsink = $this->redirectEvents();
+        $task = new issue_certificates_task();
+        $task->execute();
+        $events = array_filter(
+            $eventsink->get_events(),
+            static fn($event) => $event instanceof \mod_customcert\event\issue_created
+        );
+        $eventsink->close();
+        $this->assertCount(3, $emailsink->get_messages());
+        $emailsink->close();
+
+        $this->assertCount(3, $events);
+        foreach ($events as $event) {
+            $this->assertEquals($admin->id, $event->userid);
+        }
+        $this->assertEquals($admin->id, $GLOBALS['USER']->id);
+        $this->assertSame('', $GLOBALS['USER']->lang);
+    }
+
+    /**
+     * Sending an issue restores the previously active user.
+     *
+     * @dataProvider initial_user_provider
+     * @covers \mod_customcert\task\email_certificate_task
+     * @param string $usertype
+     */
+    public function test_email_task_restores_current_user(string $usertype): void {
+        global $DB, $USER;
+
+        [$customcert, $issueid] = $this->create_emailable_issue();
+        $initial = $this->set_initial_user($usertype);
+
+        $sink = $this->redirectEmails();
+        $this->execute_email_task($customcert, $issueid);
+        $this->assertCount(1, $sink->get_messages());
+        $sink->close();
+
+        $this->assertEquals(1, (int)$DB->get_field('customcert_issues', 'emailed', ['id' => $issueid]));
+        $this->assertEquals($initial->id, $USER->id);
+        $this->assertSame($initial->lang, $USER->lang);
+    }
+
+    /**
+     * An exception after switching to the recipient still restores the previously active user.
+     *
+     * @dataProvider initial_user_provider
+     * @covers \mod_customcert\task\email_certificate_task
+     * @param string $usertype
+     */
+    public function test_email_task_restores_current_user_on_exception(string $usertype): void {
+        global $DB, $USER;
+
+        [$customcert, $issueid, $pageid] = $this->create_emailable_issue();
+        // The element is only rendered after the recipient has become the current user.
+        $DB->insert_record('customcert_elements', (object)[
+            'pageid' => $pageid,
+            'name' => 'Category',
+            'element' => 'categoryname',
+        ]);
+        $DB->set_field('course', 'category', 999999, ['id' => $customcert->course]);
+        $initial = $this->set_initial_user($usertype);
+
+        $sink = $this->redirectEmails();
+        try {
+            $this->execute_email_task($customcert, $issueid);
+            $this->fail('Expected exception was not thrown');
+        } catch (\dml_missing_record_exception $e) {
+            $this->assertEquals($initial->id, $USER->id);
+            $this->assertSame($initial->lang, $USER->lang);
+        }
+        $this->assertCount(0, $sink->get_messages());
+        $sink->close();
+    }
+
+    /**
+     * Initial user types for the context restoration tests.
+     *
+     * @return array
+     */
+    public static function initial_user_provider(): array {
+        return [
+            'admin' => ['admin'],
+            'regular user' => ['regular'],
+            'cron user' => ['cron'],
+        ];
+    }
+
+    /**
+     * Web issuance keeps attributing the issue event to the logged-in user.
+     *
+     * @covers \mod_customcert\certificate::issue_certificate
+     */
+    public function test_web_issuance_attributes_event_to_current_user(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+
+        $this->setUser($student);
+        $sink = $this->redirectEvents();
+        \mod_customcert\certificate::issue_certificate($customcert->id, $student->id);
+        $events = $sink->get_events();
+        $sink->close();
+
+        $this->assertCount(1, $events);
+        $this->assertEquals($student->id, $events[0]->userid);
+        $this->assertEquals($student->id, $events[0]->relateduserid);
+    }
+
+    /**
+     * Create a certificate with an issue for a student, ready to be emailed.
+     *
+     * @return array [customcert record, issue id, page id]
+     */
+    private function create_emailable_issue(): array {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id);
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+        ]);
+        $template = new template((object)[
+            'id' => $customcert->templateid,
+            'name' => 'A template',
+            'contextid' => context_course::instance($course->id)->id,
+        ]);
+        $pageid = $template->add_page();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'Image']);
+
+        return [$customcert, \mod_customcert\certificate::issue_certificate($customcert->id, $student->id), $pageid];
+    }
+
+    /**
+     * Run the email task for an issue.
+     *
+     * @param stdClass $customcert
+     * @param int $issueid
+     */
+    private function execute_email_task(stdClass $customcert, int $issueid): void {
+        $task = new email_certificate_task();
+        $task->set_custom_data(['issueid' => $issueid, 'customcertid' => $customcert->id]);
+        $task->execute();
+    }
+
+    /**
+     * Make the given type of user the current user, as the caller of the email task.
+     *
+     * @param string $usertype admin, regular or cron.
+     * @return stdClass The current user.
+     */
+    private function set_initial_user(string $usertype): stdClass {
+        global $USER;
+
+        switch ($usertype) {
+            case 'admin':
+                $this->setAdminUser();
+                break;
+            case 'cron':
+                cron::setup_user();
+                break;
+            default:
+                $this->setUser($this->getDataGenerator()->create_user(['lang' => 'en']));
+        }
+
+        return $USER;
     }
 }
