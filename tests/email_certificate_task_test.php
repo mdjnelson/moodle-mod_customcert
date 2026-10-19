@@ -2542,4 +2542,203 @@ final class email_certificate_task_test extends advanced_testcase {
 
         return $USER;
     }
+
+    /**
+     * Create a certificate with a date restriction (met or unmet) and notifications enabled.
+     *
+     * @param stdClass $course
+     * @param bool $met Whether the availability restriction is satisfied.
+     * @return stdClass
+     */
+    private function create_restricted_certificate(stdClass $course, bool $met): stdClass {
+        global $DB;
+
+        $customcert = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'emailstudents' => 1,
+            'emailteachers' => 1,
+            'emailothers' => 'others@example.com',
+            'availability' => json_encode([
+                'op' => '&',
+                'c' => [
+                    [
+                        'type' => 'date',
+                        'd' => '>=',
+                        't' => $met ? time() - DAYSECS : time() + DAYSECS,
+                    ],
+                ],
+                'showc' => [false],
+            ]),
+        ]);
+
+        $template = new stdClass();
+        $template->id = $customcert->templateid;
+        $template->name = 'A template';
+        $template->contextid = context_course::instance($course->id)->id;
+        $pageid = (new template($template))->add_page();
+        $DB->insert_record('customcert_elements', (object)['pageid' => $pageid, 'name' => 'E']);
+
+        return $customcert;
+    }
+
+    /**
+     * Run the issuance process and return the emails sent.
+     *
+     * @return array
+     */
+    private function run_issuance(): array {
+        $sink = $this->redirectEmails();
+        (new issue_certificates_task())->execute();
+        $emails = $sink->get_messages();
+        $sink->close();
+
+        return $emails;
+    }
+
+    /**
+     * Admins and managers who can ignore availability restrictions must not be issued or emailed
+     * certificates while the restriction is unmet (#1039).
+     *
+     * @covers \mod_customcert\task\issue_certificates_task::execute
+     */
+    public function test_process_run_skips_admin_and_manager_with_unmet_restriction(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        $manager = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($manager->id, $course->id, 'student');
+        $managerroleid = $DB->get_field('role', 'id', ['shortname' => 'manager']);
+        role_assign($managerroleid, $manager->id, context_course::instance($course->id)->id);
+        $admin = get_admin();
+        $this->getDataGenerator()->enrol_user($admin->id, $course->id, 'student');
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $customcert = $this->create_restricted_certificate($course, false);
+        $cmcontext = context_module::instance($customcert->cmid);
+
+        // Both bypass the restriction, which is what made uservisible true.
+        $this->assertTrue(has_capability('mod/customcert:receiveissue', $cmcontext, $admin));
+        $this->assertTrue(has_capability('moodle/course:ignoreavailabilityrestrictions', $cmcontext, $manager));
+        foreach ([$admin, $manager] as $user) {
+            $usercm = get_fast_modinfo($course, $user->id)->get_cm($customcert->cmid);
+            $this->assertTrue($usercm->uservisible);
+            $this->assertFalse($usercm->available);
+        }
+
+        $emails = $this->run_issuance();
+
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+        $this->assertCount(0, $emails);
+    }
+
+    /**
+     * Users who satisfy the restriction are issued once, even when they could ignore it, and only
+     * users who are enrolled, not suspended and hold the capability are eligible.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task::execute
+     */
+    public function test_process_run_issues_eligible_users_once_with_met_restriction(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $manager = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($manager->id, $course->id, 'student');
+        $managerroleid = $DB->get_field('role', 'id', ['shortname' => 'manager']);
+        role_assign($managerroleid, $manager->id, context_course::instance($course->id)->id);
+        $admin = get_admin();
+        $this->getDataGenerator()->enrol_user($admin->id, $course->id, 'student');
+
+        // Users who must remain ineligible.
+        $suspended = $this->getDataGenerator()->create_user(['suspended' => 1]);
+        $this->getDataGenerator()->enrol_user($suspended->id, $course->id, 'student');
+        $nocapability = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($nocapability->id, $course->id, 'teacher');
+        $unenrolled = $this->getDataGenerator()->create_user();
+
+        $this->create_restricted_certificate($course, true);
+
+        $this->run_issuance();
+        $issuedusers = $DB->get_fieldset_select('customcert_issues', 'userid', '1=1');
+        $this->assertEqualsCanonicalizing([$student->id, $manager->id, $admin->id], $issuedusers);
+        $this->assertNotContains($unenrolled->id, $issuedusers);
+
+        // A second run creates no duplicate issues.
+        $this->run_issuance();
+        $this->assertCount(3, $DB->get_records('customcert_issues'));
+    }
+
+    /**
+     * A normal student is not issued a certificate while the restriction is unmet.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task::execute
+     */
+    public function test_process_run_skips_student_with_unmet_restriction(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+        $this->create_restricted_certificate($course, false);
+
+        $this->assertCount(0, $this->run_issuance());
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+    }
+
+    /**
+     * Site home certificates are not issued to an admin or student while the restriction is unmet.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task::execute
+     */
+    public function test_process_run_site_home_skips_unmet_restriction(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $sitecontext = context_course::instance(SITEID);
+        $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
+        $student = $this->getDataGenerator()->create_user();
+        role_assign($studentroleid, $student->id, $sitecontext->id);
+        $admin = get_admin();
+        role_assign($studentroleid, $admin->id, $sitecontext->id);
+
+        $this->create_restricted_certificate(get_course(SITEID), false);
+        $this->assertCount(0, $this->run_issuance());
+        $this->assertEmpty($DB->get_records('customcert_issues'));
+    }
+
+    /**
+     * Site home certificates are issued to eligible users, including an admin, when the restriction is met.
+     *
+     * @covers \mod_customcert\task\issue_certificates_task::execute
+     */
+    public function test_process_run_site_home_issues_with_met_restriction(): void {
+        global $DB;
+
+        set_config('useadhoc', 0, 'customcert');
+
+        $sitecontext = context_course::instance(SITEID);
+        $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
+        $student = $this->getDataGenerator()->create_user();
+        role_assign($studentroleid, $student->id, $sitecontext->id);
+        $admin = get_admin();
+        role_assign($studentroleid, $admin->id, $sitecontext->id);
+
+        $this->create_restricted_certificate(get_course(SITEID), true);
+        $this->run_issuance();
+        $this->assertEqualsCanonicalizing(
+            [$student->id, $admin->id],
+            $DB->get_fieldset_select('customcert_issues', 'userid', '1=1')
+        );
+    }
 }

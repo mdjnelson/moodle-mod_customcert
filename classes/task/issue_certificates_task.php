@@ -181,9 +181,10 @@ class issue_certificates_task extends \core\task\scheduled_task {
                     continue;
                 }
 
-                // Check whether the CM is visible to this user.
+                // Check the CM is visible and genuinely available, as uservisible alone is true for users
+                // who can ignore availability restrictions (e.g. admins and managers).
                 $usercm = get_fast_modinfo($customcert->courseid, $filtereduser->id)->instances['customcert'][$customcert->id];
-                if (!$usercm->uservisible) {
+                if (!$usercm->uservisible || !$usercm->available) {
                     continue;
                 }
 
