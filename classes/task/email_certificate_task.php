@@ -51,6 +51,23 @@ class email_certificate_task extends \core\task\adhoc_task {
      * restored data); once processed, NULL is treated as unknown, not retryable.
      */
     public function execute() {
+        global $USER;
+
+        $previoususer = $USER;
+        try {
+            $this->send_issue_as_recipient();
+        } finally {
+            // Sending switches to the recipient; restore the caller so it is not recorded as the actor afterwards.
+            if ((int)$USER->id !== (int)$previoususer->id) {
+                \core\cron::setup_user($previoususer);
+            }
+        }
+    }
+
+    /**
+     * Send the issued certificate, switching the current user to the recipient.
+     */
+    private function send_issue_as_recipient() {
         global $DB;
 
         $customdata = $this->get_custom_data();
