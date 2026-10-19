@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.2.12] - Unreleased
+
+### Fixed
+
+- Fixed incorrect issuer attribution for certificates issued via CLI (#757).
+
 ## [5.2.11] - 2026-10-11
 
 ### Fixed
