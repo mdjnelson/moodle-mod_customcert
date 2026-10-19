@@ -9,6 +9,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Fixed incorrect issuer attribution for certificates issued via CLI (#757).
+- Fixed automatic certificate issuance for users not enrolled in a course (#773).
 
 ## [4.4.16] - 2026-10-11
 
