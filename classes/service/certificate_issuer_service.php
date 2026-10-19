@@ -287,7 +287,13 @@ final class certificate_issuer_service {
         $cmcontext = context_module::instance($cm->id);
 
         // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
-        $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
+        // Outside the site home, only actively enrolled users are eligible, so a capability granted
+        // at system level does not issue certificates to users who are not in the course.
+        if ((int)$customcert->courseid === SITEID) {
+            $userswithissue = get_users_by_capability($cmcontext, 'mod/customcert:receiveissue');
+        } else {
+            $userswithissue = get_enrolled_users($cmcontext, 'mod/customcert:receiveissue', 0, 'u.*', null, 0, 0, true);
+        }
         // Get users with mod/customcert:view capability.
         $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
         // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
