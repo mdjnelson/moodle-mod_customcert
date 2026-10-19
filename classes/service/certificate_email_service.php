@@ -106,6 +106,27 @@ final class certificate_email_service {
      * @return void
      */
     public function send_issue(int $customcertid, int $issueid): void {
+        global $USER;
+
+        $previoususer = $USER;
+        try {
+            $this->send_issue_as_recipient($customcertid, $issueid);
+        } finally {
+            // Sending switches to the recipient; restore the caller so it is not recorded as the actor afterwards.
+            if ((int)$USER->id !== (int)$previoususer->id) {
+                cron::setup_user($previoususer);
+            }
+        }
+    }
+
+    /**
+     * Send an issued certificate, switching the current user to the recipient.
+     *
+     * @param int $customcertid
+     * @param int $issueid
+     * @return void
+     */
+    private function send_issue_as_recipient(int $customcertid, int $issueid): void {
         $customcert = $this->emailrepository->get_customcert_for_email($customcertid);
         if (!$customcert) {
             return;
