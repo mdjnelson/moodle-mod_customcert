@@ -18,7 +18,7 @@
  * Strings for component 'customcertelement_bgimage', language 'en'.
  *
  * @package    customcertelement_bgimage
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

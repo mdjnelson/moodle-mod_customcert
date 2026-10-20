@@ -18,7 +18,7 @@
  * Strings for component 'customcertelement_border', language 'en'.
  *
  * @package    customcertelement_border
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
