@@ -18,7 +18,7 @@
  * Customcert image element upgrade code.
  *
  * @package    customcertelement_image
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
