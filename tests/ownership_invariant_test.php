@@ -23,7 +23,7 @@
  *
  * @package    mod_customcert
  * @category   test
- * @copyright  2025 Mark Nelson <markn@moodle.com>
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,7 +36,7 @@ use stdClass;
  *
  * @package    mod_customcert
  * @category   test
- * @copyright  2025 Mark Nelson <markn@moodle.com>
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class ownership_invariant_test extends \advanced_testcase {

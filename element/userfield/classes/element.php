@@ -18,7 +18,7 @@
  * This file contains the customcert element userfield's core interaction API.
  *
  * @package    customcertelement_userfield
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +30,7 @@ use core_user\fields;
  * The customcert element userfield's core interaction API.
  *
  * @package    customcertelement_userfield
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \mod_customcert\element {

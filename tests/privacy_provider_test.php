@@ -18,7 +18,7 @@
  * Privacy provider tests.
  *
  * @package    mod_customcert
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +33,7 @@ use mod_customcert\privacy\provider;
  * Privacy provider tests class.
  *
  * @package    mod_customcert
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class privacy_provider_test extends \core_privacy\tests\provider_testcase {
