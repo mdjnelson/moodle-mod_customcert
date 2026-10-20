@@ -18,7 +18,7 @@
  * Contains class used to prepare verification results for display.
  *
  * @package   mod_customcert
- * @copyright 2017 Mark Nelson <markn@moodle.com>
+ * @copyright 2017 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +33,7 @@ use templatable;
  * Class to prepare verification results for display.
  *
  * @package   mod_customcert
- * @copyright 2017 Mark Nelson <markn@moodle.com>
+ * @copyright 2017 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class verify_certificate_results implements renderable, templatable {

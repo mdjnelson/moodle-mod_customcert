@@ -41,7 +41,7 @@
  *   // customcert-allow-raw-element-lookup: <reason why scoped helper cannot be used>
  *
  * @package    mod_customcert
- * @copyright  2025 Mark Nelson <markn@moodle.com>
+ * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

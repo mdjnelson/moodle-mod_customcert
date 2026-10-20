@@ -18,7 +18,7 @@
  * Privacy Subsystem implementation for mod_customcert.
  *
  * @package    mod_customcert
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_customcert\privacy;
@@ -41,7 +41,7 @@ use moodle_recordset;
 /**
  * Privacy Subsystem implementation for mod_customcert.
  *
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements core_userlist_provider, metadata_provider, plugin_provider {

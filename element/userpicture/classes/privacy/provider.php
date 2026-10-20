@@ -18,7 +18,7 @@
  * Privacy Subsystem implementation for customcertelement_userpicture.
  *
  * @package    customcertelement_userpicture
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,7 @@ namespace customcertelement_userpicture\privacy;
 /**
  * Privacy Subsystem for customcertelement_userpicture implementing null_provider.
  *
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\null_provider {
