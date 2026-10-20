@@ -18,7 +18,7 @@
  * This file contains the customcert element QR code's core interaction API.
  *
  * @package    customcertelement_qrcode
- * @copyright  2019 Mark Nelson <markn@moodle.com>
+ * @copyright  2019 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -52,7 +52,7 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  * The customcert element QR code's core interaction API.
  *
  * @package    customcertelement_qrcode
- * @copyright  2019 Mark Nelson <markn@moodle.com>
+ * @copyright  2019 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
