@@ -18,7 +18,7 @@
  * Privacy Subsystem implementation for customcertelement_qrcode.
  *
  * @package    customcertelement_qrcode
- * @copyright  2019 Mark Nelson <markn@moodle.com>
+ * @copyright  2019 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,7 @@ namespace customcertelement_qrcode\privacy;
 /**
  * Privacy Subsystem for customcertelement_qrcode implementing null_provider.
  *
- * @copyright  2019 Mark Nelson <markn@moodle.com>
+ * @copyright  2019 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\null_provider {

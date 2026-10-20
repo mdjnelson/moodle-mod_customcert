@@ -18,7 +18,7 @@
  * Define all the restore steps that will be used by the restore_customcert_activity_task.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,7 @@ use mod_customcert\local\upgrade\row_migrator;
  * Define the complete customcert structure for restore, with file and id annotations.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_customcert_activity_structure_step extends restore_activity_structure_step {

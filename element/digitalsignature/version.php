@@ -18,7 +18,7 @@
  * This file contains the version information for the digital signature plugin.
  *
  * @package    customcertelement_digitalsignature
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
