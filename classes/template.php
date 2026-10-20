@@ -18,7 +18,7 @@
  * Class represents a customcert template.
  *
  * @package    mod_customcert
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -38,7 +38,7 @@ use stdClass;
  * Class represents a customcert template.
  *
  * @package    mod_customcert
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template {

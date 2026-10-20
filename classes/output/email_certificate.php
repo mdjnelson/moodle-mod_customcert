@@ -18,7 +18,7 @@
  * Email certificate renderable.
  *
  * @package    mod_customcert
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,7 +33,7 @@ use templatable;
 /**
  * Email certificate renderable.
  *
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class email_certificate implements renderable, templatable {

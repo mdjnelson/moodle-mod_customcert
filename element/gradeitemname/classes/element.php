@@ -18,7 +18,7 @@
  * This file contains the customcert element gradeitemname's core interaction API.
  *
  * @package    customcertelement_gradeitemname
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -46,7 +46,7 @@ use mod_customcert\element\restorable_element_interface;
  * The customcert element gradeitemname's core interaction API.
  *
  * @package    customcertelement_gradeitemname
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
