@@ -18,7 +18,7 @@
  * Contains the class that provides a grade object to be used by elements for display purposes.
  *
  * @package    mod_customcert
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,7 @@ namespace mod_customcert;
  * The class that provides a grade object to be used by elements for display purposes.
  *
  * @package    mod_customcert
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade_information {

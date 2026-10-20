@@ -18,7 +18,7 @@
  * Provides useful functions related to setting up the page.
  *
  * @package    mod_customcert
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +30,7 @@ namespace mod_customcert;
  * Provides useful functions.
  *
  * @package    mod_customcert
- * @copyright  2016 Mark Nelson <markn@moodle.com>
+ * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_helper {

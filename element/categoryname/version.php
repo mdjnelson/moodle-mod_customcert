@@ -18,7 +18,7 @@
  * This file contains the version information for the categoryname plugin.
  *
  * @package    customcertelement_categoryname
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

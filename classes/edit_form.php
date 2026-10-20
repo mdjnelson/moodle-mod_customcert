@@ -18,7 +18,7 @@
  * This file contains the form for handling the layout of the customcert instance.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -39,7 +39,7 @@ require_once($CFG->dirroot . '/mod/customcert/includes/colourpicker.php');
  * The form for handling the layout of the customcert instance.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class edit_form extends \moodleform {
