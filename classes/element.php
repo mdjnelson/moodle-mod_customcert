@@ -18,7 +18,7 @@
  * The base class for the customcert elements.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,7 +47,7 @@ use stdClass;
  * All customcert element plugins are based on this class.
  *
  * @package    mod_customcert
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class element implements

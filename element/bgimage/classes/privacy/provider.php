@@ -18,7 +18,7 @@
  * Privacy Subsystem implementation for customcertelement_bgimage.
  *
  * @package    customcertelement_bgimage
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -27,7 +27,7 @@ namespace customcertelement_bgimage\privacy;
 /**
  * Privacy Subsystem for customcertelement_bgimage implementing null_provider.
  *
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements \core_privacy\local\metadata\null_provider {
