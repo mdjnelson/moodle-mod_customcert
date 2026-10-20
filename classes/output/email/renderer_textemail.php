@@ -18,7 +18,7 @@
  * Email certificate as text renderer.
  *
  * @package    mod_customcert
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -30,7 +30,7 @@ use mod_customcert\output\renderer as customcert_renderer;
  * Email certificate as text renderer.
  *
  * @package    mod_customcert
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer_textemail extends customcert_renderer {

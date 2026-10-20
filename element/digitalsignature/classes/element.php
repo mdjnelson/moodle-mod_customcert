@@ -18,7 +18,7 @@
  * This file contains the customcert element digitial signature's core interaction API.
  *
  * @package    customcertelement_digitalsignature
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,7 +47,7 @@ use stored_file;
  * The customcert element digital signature's core interaction API.
  *
  * @package    customcertelement_digitalsignature
- * @copyright  2017 Mark Nelson <markn@moodle.com>
+ * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \customcertelement_image\element implements

@@ -19,7 +19,7 @@
  *
  * @package    mod_customcert
  * @category   test
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -39,7 +39,7 @@ use moodle_exception;
  *
  * @package    mod_customcert
  * @category   test
- * @copyright  2018 Mark Nelson <markn@moodle.com>
+ * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class external_test extends advanced_testcase {

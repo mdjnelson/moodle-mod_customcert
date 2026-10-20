@@ -18,7 +18,7 @@
  * This file contains the customcert element image's core interaction API.
  *
  * @package    customcertelement_image
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -52,7 +52,7 @@ use stored_file;
  * The customcert element image's core interaction API.
  *
  * @package    customcertelement_image
- * @copyright  2013 Mark Nelson <markn@moodle.com>
+ * @copyright  2013 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
