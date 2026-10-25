@@ -198,10 +198,7 @@ final class pdf_generation_service_test extends advanced_testcase {
     }
 
     /**
-     * image, qrcode and userpicture elements must render on a real PDF without error or debugging.
-     *
-     * This is a regression test for the PDF rendering bug where a $renderer branch in render()
-     * caused these elements to fall back to HTML rendering instead of using the pdf object directly.
+     * Image, QR code and user picture elements must render directly to PDF without errors or diagnostics.
      *
      * @covers \customcertelement_image\element::render
      * @covers \customcertelement_qrcode\element::render

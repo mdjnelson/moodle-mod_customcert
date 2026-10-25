@@ -39,10 +39,7 @@ final class element_registry {
     private array $map = [];
 
     /**
-     * Register a class for a given element type key.
-     *
-     * Accepted classes: native v2 elements implementing form_element_interface and
-     * renderable_element_interface. The legacy element runtime bridge has been removed.
+     * Register an element implementing both form_element_interface and renderable_element_interface.
      *
      * @param string $type
      * @param string $class

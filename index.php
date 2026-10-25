@@ -32,10 +32,8 @@ $id = required_param('id', PARAM_INT); // Course ID.
 
 $course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 
-// Requires a login.
 require_login($course);
 
-// Set up the page variables.
 $pageurl = new moodle_url('/mod/customcert/index.php', ['id' => $course->id]);
 page_helper::page_setup(
     $pageurl,
@@ -43,18 +41,15 @@ page_helper::page_setup(
     get_string('modulenameplural', 'customcert')
 );
 
-// Additional page setup needed.
 $PAGE->set_pagelayout('incourse');
 $PAGE->navbar->add(get_string('modulenameplural', 'customcert'));
 
-// Add the page view to the Moodle log.
 $event = course_module_instance_list_viewed::create([
     'context' => context_course::instance($course->id),
 ]);
 $event->add_record_snapshot('course', $course);
 $event->trigger();
 
-// Get the customcerts, if there are none display a notice.
 if (!$customcerts = get_all_instances_in_course('customcert', $course)) {
     echo $OUTPUT->header();
     notice(get_string('nocustomcerts', 'customcert'), new moodle_url('/course/view.php', ['id' => $course->id]));
@@ -62,7 +57,6 @@ if (!$customcerts = get_all_instances_in_course('customcert', $course)) {
     exit();
 }
 
-// Create the table to display the different custom certificates.
 $table = new html_table();
 
 if ($usesections = course_format_uses_sections($course->format)) {
@@ -74,7 +68,6 @@ if ($usesections = course_format_uses_sections($course->format)) {
 
 $currentsection = '';
 foreach ($customcerts as $customcert) {
-    // Check if the customcert is visible, if so show text as normal, else show it as dimmed.
     if ($customcert->visible) {
         $link = html_writer::tag('a', $customcert->name, ['href' => new moodle_url(
             '/mod/customcert/view.php',
@@ -84,20 +77,17 @@ foreach ($customcerts as $customcert) {
         $link = html_writer::tag('a', $customcert->name, ['class' => 'dimmed',
             'href' => new moodle_url('/mod/customcert/view.php', ['id' => $customcert->coursemodule])]);
     }
-    // If we are at a different section then print a horizontal rule.
     if ($customcert->section !== $currentsection) {
         if ($currentsection !== '') {
             $table->data[] = 'hr';
         }
         $currentsection = $customcert->section;
     }
-    // Check if there is was an issue provided for this user.
     if ($certrecord = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$USER->id)) {
         $issued = userdate($certrecord->timecreated);
     } else {
         $issued = get_string('notissued', 'customcert');
     }
-    // Only display the section column if the course format uses sections.
     if ($usesections) {
         $table->data[] = [$customcert->section, $link, $issued];
     } else {

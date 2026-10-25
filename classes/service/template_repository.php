@@ -159,10 +159,7 @@ final class template_repository {
     }
 
     /**
-     * Duplicate a template record (no pages/elements yet).
-     *
-     * This method intentionally only duplicates the template row. Copying pages
-     * and elements will be handled by a higher-level service in later commits.
+     * Duplicate the template row; template_duplication_service copies pages and elements.
      *
      * @param int $sourceid
      * @param string|null $newname Optional explicit new name.
@@ -176,7 +173,6 @@ final class template_repository {
 
         $source = $this->get_by_id_or_fail($sourceid);
 
-        // If you intend full-row duplication.
         $copy = clone $source;
         unset($copy->id);
 

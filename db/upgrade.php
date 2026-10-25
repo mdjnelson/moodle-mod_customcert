@@ -93,10 +93,8 @@ function xmldb_customcert_upgrade($oldversion) {
                         AND ci.customcertid = minid.customcertid
                         AND ci.id > minid.minid";
 
-        // Get the records themselves.
         $getduplicatessql = "SELECT ci.id $fromclause ORDER BY minid";
         if ($records = $DB->get_records_sql($getduplicatessql)) {
-            // Delete them.
             $ids = implode(',', array_keys($records));
             $DB->delete_records_select('customcert_issues', "id IN ($ids)");
         }
@@ -275,7 +273,6 @@ function xmldb_customcert_upgrade($oldversion) {
             $defaultdata->last_processed = 0;
             $defaultdata->total_certificate_to_process = 0;
 
-            // Insert the default data into the table.
             $DB->insert_record('customcert_email_task_prgrs', $defaultdata);
         }
 
@@ -328,7 +325,6 @@ function xmldb_customcert_upgrade($oldversion) {
             $dbman->add_index($table, $index);
         }
 
-        // Update the plugin version in the database.
         upgrade_plugin_savepoint(true, 2024042210, 'mod', 'customcert');
     }
 

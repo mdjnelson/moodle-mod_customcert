@@ -32,13 +32,11 @@ function xmldb_customcertelement_bgimage_upgrade($oldversion) {
     global $DB;
 
     if ($oldversion < 2016120501) {
-        // Go through each 'image' element and update the file stored information.
+        // Legacy bgimage elements identified files by pathnamehash; replace it with explicit file location
+        // fields while preserving width and height.
         if ($images = $DB->get_records_select('customcert_elements', $DB->sql_compare_text('element') . ' = \'bgimage\'')) {
-            // Create a file storage instance we are going to use to create pathname hashes.
             $fs = get_file_storage();
-            // Go through and update the details.
             foreach ($images as $image) {
-                // Get the current data we have stored for this element.
                 $elementinfo = json_decode($image->data);
                 if ($file = $fs->get_file_by_hash($elementinfo->pathnamehash)) {
                     $arrtostore = [

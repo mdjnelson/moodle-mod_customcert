@@ -54,7 +54,6 @@ final class html_renderer implements element_renderer {
      * @return void
      */
     public function render_pdf(renderable_element_interface $element, pdf $pdf, bool $preview, stdClass $user): void {
-        // No-op in HTML renderer.
     }
 
     /**

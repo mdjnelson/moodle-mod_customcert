@@ -97,17 +97,14 @@ class external extends external_api {
         ];
         self::validate_parameters(self::save_element_parameters(), $params);
 
-        // Set the template.
         $templaterepo = new template_repository();
         $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
 
-        // Perform checks.
         if ($cm = $template->get_cm()) {
             self::validate_context(context_module::instance($cm->id));
         } else {
             self::validate_context(context_system::instance());
         }
-        // Make sure the user has the required capabilities.
         $template->require_manage();
 
         // Load the element, verifying it belongs to the authorised template.
@@ -295,11 +292,9 @@ class external extends external_api {
         ];
         self::validate_parameters(self::get_element_html_parameters(), $params);
 
-        // Set the template.
         $templaterepo = new template_repository();
         $template = template::from_record($templaterepo->get_by_id_or_fail((int)$templateid));
 
-        // Perform checks.
         if ($cm = $template->get_cm()) {
             self::validate_context(context_module::instance($cm->id));
         } else {
@@ -313,7 +308,6 @@ class external extends external_api {
         $elementrepo = new element_repository(element_factory::build_with_defaults());
         $element = $elementrepo->get_for_template_or_fail((int)$templateid, (int)$elementid);
 
-        // Get an instance of the element class.
         $factory = element_factory::build_with_defaults();
         if ($e = $factory->create_from_record($element)) {
             return $e->render_html();
@@ -371,12 +365,10 @@ class external extends external_api {
 
         $cm = get_coursemodule_from_instance('customcert', $certificate->id, 0, false, MUST_EXIST);
 
-        // Make sure the user has the required capabilities.
         $context = context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/customcert:manage', $context);
 
-        // Delete the issue.
         $deleted = $issuerepo->delete((int)$issue->id);
 
         // Trigger event if deletion succeeded.

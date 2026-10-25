@@ -123,7 +123,6 @@ class element extends base_element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // Check that the grade item is not empty.
         if (!empty($this->get_data())) {
             $name = $this->get_grade_item_name();
             if ($renderer) {
@@ -144,7 +143,6 @@ class element extends base_element implements
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // Check that the grade item is not empty.
         if (!empty($this->get_data())) {
             $name = $this->get_grade_item_name();
             if ($renderer) {

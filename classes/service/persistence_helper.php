@@ -30,11 +30,8 @@ use mod_customcert\element\persistable_element_interface;
 use stdClass;
 
 /**
- * Helper to convert form data to the JSON payload stored in customcert_elements.data.
- *
- * Invariant: the returned string is always a JSON object (i.e. decodes to an associative
- * array, never a list, scalar, or null). This guarantees that customcert_elements.data
- * is always a JSON object.
+ * Convert form data to JSON object payloads for customcert_elements.data.
+ * Invariant: the result is always a JSON object (including {}), never a JSON array, scalar or null.
  */
 final class persistence_helper {
     /**

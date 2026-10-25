@@ -2748,13 +2748,8 @@ final class email_certificate_task_test extends advanced_testcase {
     }
 
     /**
-     * End-to-end regression test for a circular dependency between completionemailed and
-     * automatic issuance: get_email_candidates_for_customcert() used to require the certificate's
-     * own *aggregate* completion state to already be complete before considering a user a
-     * candidate for auto-issuance/emailing -- but that aggregate includes completionemailed
-     * itself, so a student who had never visited the certificate (completionview not required
-     * here, reproducing #645's reported case) could never become a candidate, could therefore
-     * never be emailed, and so completionemailed could never become complete either.
+     * Automatic issuance must not depend on the certificate's own completionemailed state.
+     * Otherwise, students who have never visited cannot receive the email needed for completion (#645).
      *
      * @covers \mod_customcert\service\certificate_issuer_service
      * @covers \mod_customcert\service\certificate_email_service

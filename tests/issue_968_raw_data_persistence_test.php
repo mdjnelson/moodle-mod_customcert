@@ -188,10 +188,7 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
     }
 
     /**
-     * A native v2 element opting in to raw_data_element_interface must be persisted using
-     * get_raw_data(), not get_data(), by both save() and create(): get_data() here
-     * deliberately returns a different (uppercased) representation, so persisting it
-     * instead of the raw payload would be immediately observable.
+     * Both save() and create() must prefer raw storage over the derived get_data() view.
      *
      * @covers \mod_customcert\service\element_repository::save
      * @covers \mod_customcert\service\element_repository::create

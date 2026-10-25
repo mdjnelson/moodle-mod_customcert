@@ -504,11 +504,7 @@ final class element_helper_test extends advanced_testcase {
     }
 
     /**
-     * Regression test for the "Add element" dropdown exposing a genuine legacy-only element
-     * (one whose class exists on disk and returns true from can_add(), but which does not
-     * implement the native Element System v2 contract). Such an element must never be offered
-     * because selecting it leads to an invalid_parameter_exception/invalid record when the
-     * element registry is asked to create it.
+     * Legacy-only elements must not appear in the Add element dropdown.
      *
      * @covers \mod_customcert\element_helper::get_available_element_types
      */
@@ -526,12 +522,8 @@ final class element_helper_test extends advanced_testcase {
 
             $options = element_helper::get_available_element_types();
 
-            // The legacy-only element must be filtered out even though its class exists
-            // and can_add() returns true, because it does not satisfy the supported
-            // registry contract (it does not implement renderable_element_interface).
             $this->assertArrayNotHasKey($foldername, $options);
 
-            // Sanity check: genuinely supported, bundled element types are still offered.
             $this->assertArrayHasKey('text', $options);
         } finally {
             @unlink($elementdir . '/element.php');
@@ -540,9 +532,7 @@ final class element_helper_test extends advanced_testcase {
     }
 
     /**
-     * Builds the source code for a genuine legacy-only element fixture: it extends the base
-     * element class and overrides can_add(), but never implements renderable_element_interface,
-     * matching the shape rejected by mod_customcert\service\element_registry::register().
+     * Build a legacy-only element fixture without the v2 rendering interface.
      *
      * @param string $foldername
      * @return string

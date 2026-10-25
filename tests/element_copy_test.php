@@ -361,9 +361,7 @@ final class element_copy_test extends advanced_testcase {
     }
 
     /**
-     * Characterization test: copy_to_template() historically tolerated an unresolvable element
-     * type by leaving the inserted row in place and skipping without emitting element_created
-     * or raising an error. Verify this is preserved.
+     * Unresolvable elements must retain their copied row without emitting element_created or throwing.
      *
      * @covers \mod_customcert\service\template_service::copy_to_template
      */

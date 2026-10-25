@@ -305,15 +305,8 @@ final class restore_hooks_json_test extends advanced_testcase {
     }
 
     /**
-     * A third-party native v2 element implementing restorable_element_interface must be
-     * dispatched to by the production restore task: restore_customcert_activity_task::
-     * after_restore() must receive the real task instance, and the element's hook must be
-     * able to persist a remapped id resolved through it back to the element's stored payload.
-     *
-     * This exercises the production restore dispatch with a test mapping store:
-     * minimal_restore_task overrides the mapping lookup with an in-memory map instead of the
-     * production backup_controller-backed mapping tables, so the dispatch path (after_restore()
-     * -> get_element_factory() -> after_restore_from_backup()) is real, but id resolution is not.
+     * The production restore task must dispatch native v2 hooks and persist remapped IDs.
+     * Dispatch is real; mapping lookups use an in-memory fixture.
      */
     public function test_third_party_restorable_element_is_dispatched_by_production_restore_task(): void {
         global $DB;

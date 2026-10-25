@@ -69,11 +69,8 @@ final class form_service {
     }
 
     /**
-     * Run element-specific form preparation at the definition_after_data() lifecycle point.
-     *
-     * This must be called from the form's definition_after_data() method, after
-     * common fields have been populated. It handles v2 elements via
-     * preparable_form_interface.
+     * Prepare element-specific fields via preparable_form_interface.
+     * Call from definition_after_data(), after common fields have been populated.
      *
      * @param MoodleQuickForm $mform
      * @param element_interface $element

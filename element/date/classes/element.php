@@ -95,7 +95,6 @@ class element extends base_element implements
     public function build_form(MoodleQuickForm $mform): void {
         global $CFG, $COURSE;
 
-        // Get the possible date options.
         $dateoptions = [];
         $dateoptions[self::DATE_ISSUE] = get_string('issueddate', 'customcertelement_date');
         $dateoptions[self::DATE_CURRENT_DATE] = get_string('currentdate', 'customcertelement_date');
@@ -163,14 +162,12 @@ class element extends base_element implements
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
 
         $courseid = element_helper::get_courseid($this->id);
 
-        // Decode the information stored in the database.
         $dateinfo = json_decode($this->get_data());
         $dateitem = $dateinfo->dateitem;
         $dateformat = $dateinfo->dateformat;
@@ -179,11 +176,8 @@ class element extends base_element implements
         if ($preview) {
             $date = time();
         } else {
-            // Get the page.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
-            // Get the customcert this page belongs to.
             $customcert = (new certificate_repository())->get_by_template_id_or_fail((int)$page->templateid);
-            // Now we can get the issue for this user.
             $issue = $DB->get_record(
                 'customcert_issues',
                 ['userid' => $user->id, 'customcertid' => $customcert->id],
@@ -196,7 +190,6 @@ class element extends base_element implements
             } else if ($dateitem == self::DATE_CURRENT_DATE) {
                 $date = time();
             } else if ($dateitem == self::DATE_COMPLETION) {
-                // Get the last completion date.
                 $sql = "SELECT MAX(c.timecompleted) as timecompleted
                           FROM {course_completions} c
                          WHERE c.userid = :userid
@@ -207,7 +200,6 @@ class element extends base_element implements
                     }
                 }
             } else if ($dateitem == self::DATE_ENROLMENT_START) {
-                // Get the enrolment start date.
                 $sql = "SELECT ue.timestart FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
                            AND ue.userid = :userid";
@@ -219,7 +211,6 @@ class element extends base_element implements
                     }
                 }
             } else if ($dateitem == self::DATE_ENROLMENT_END) {
-                // Get the enrolment end date.
                 $sql = "SELECT ue.timeend FROM {enrol} e JOIN {user_enrolments} ue ON ue.enrolid = e.id
                          WHERE e.courseid = :courseid
                            AND ue.userid = :userid";
@@ -262,7 +253,6 @@ class element extends base_element implements
             }
         }
 
-        // Ensure that a date has been set.
         if (!empty($date)) {
             $content = element_helper::get_date_format_string((int)$date, (string)$dateformat);
             if ($renderer) {
@@ -283,12 +273,10 @@ class element extends base_element implements
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
-        // Read the information stored in the database.
         $payload = $this->get_payload();
         $dateformat = $payload['dateformat'] ?? '';
 
@@ -307,7 +295,6 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Set the item and format for this element.
         if (!empty($this->get_data())) {
             $payload = $this->get_payload();
 

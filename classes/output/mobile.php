@@ -59,7 +59,6 @@ class mobile {
         $context = context_module::instance($cm->id);
         self::require_capability($cm, $context, 'mod/customcert:view');
 
-        // Set some variables we are going to be using.
         $certificate = $DB->get_record('customcert', ['id' => $cm->instance], '*', MUST_EXIST);
         $certificate->name = format_string($certificate->name);
         [$certificate->intro, $certificate->introformat] = util::format_text(

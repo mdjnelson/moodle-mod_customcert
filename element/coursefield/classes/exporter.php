@@ -54,7 +54,6 @@ class exporter extends subplugin_text_exportable {
     private function get_course_fields(): array {
         $fields = ['fullname', 'shortname', 'idnumber'];
 
-        // Get the course custom fields.
         $handler = course_handler::create();
         $customfields = $handler->get_fields();
         $arrcustomfields = array_map(fn ($field) => $field->get('id'), $customfields);

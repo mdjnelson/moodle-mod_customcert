@@ -97,11 +97,9 @@ class manage_templates_table extends table_sql {
     public function col_actions($template) {
         global $OUTPUT;
 
-        // Link to edit the template.
         $editlink = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->id]);
         $editicon = $OUTPUT->action_icon($editlink, new pix_icon('t/edit', get_string('edit')));
 
-        // Link to export the template.
         $exportlink = new moodle_url('/mod/customcert/export_template.php', ['tid' => $template->id]);
         $exporticon = $OUTPUT->action_icon(
             $exportlink,
@@ -110,7 +108,6 @@ class manage_templates_table extends table_sql {
             ['class' => 'action-icon export-icon']
         );
 
-        // Link to duplicate the template.
         $duplicatelink = new moodle_url(
             '/mod/customcert/manage_templates.php',
             [
@@ -126,7 +123,6 @@ class manage_templates_table extends table_sql {
             ['class' => 'action-icon duplicate-icon']
         );
 
-        // Link to delete the template.
         $deletelink = new moodle_url(
             '/mod/customcert/manage_templates.php',
             [
@@ -155,7 +151,6 @@ class manage_templates_table extends table_sql {
         // Use repository to fetch data with consistent ordering/paging.
         $repo = new template_repository();
 
-        // Total rows for pagination.
         $total = $repo->count_by_context((int)$this->context->id);
         $this->pagesize($pagesize, $total);
 
@@ -170,7 +165,6 @@ class manage_templates_table extends table_sql {
 
         $this->rawdata = $repo->list_by_context((int)$this->context->id, $order, $paging);
 
-        // Set initial bars.
         if ($useinitialsbar) {
             $this->initialbars($total > $pagesize);
         }

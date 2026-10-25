@@ -159,9 +159,7 @@ class element extends base_element implements
         $course = get_course($courseid);
         $context = element_helper::get_context($this->get_id());
 
-        // The name field to display.
         $field = $this->get_selected_display_field() ?? self::COURSE_FULL_NAME;
-        // The name value to display.
         $value = $course->fullname;
         if ($field == self::COURSE_SHORT_NAME) {
             $value = $course->shortname;

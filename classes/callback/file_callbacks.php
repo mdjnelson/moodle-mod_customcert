@@ -60,7 +60,6 @@ class file_callbacks {
 
         require_once($CFG->libdir . '/filelib.php');
 
-        // We are positioning the elements.
         if ($filearea === 'image') {
             if ($context->contextlevel == CONTEXT_MODULE) {
                 require_login($course, false, $cm);

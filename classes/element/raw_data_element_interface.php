@@ -27,29 +27,15 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 /**
- * Interface raw_data_element_interface
- *
- * This is deliberately kept separate from {@see element_interface} so that third-party
- * plugins implementing element_interface directly are not broken by a new required method:
- * element_interface is a stable, minimal contract that any third-party element must be
- * able to satisfy without modification.
- *
- * Elements implementing this optional interface allow the persistence layer (e.g.
- * element_repository) to store the exact value returned by get_raw_data() instead of
- * falling back to get_data(), for elements whose get_data() representation differs from
- * what should be persisted (for example, a derived or formatted view of the data).
+ * Optional storage contract for elements whose get_data() exposes a derived view.
+ * Kept separate from element_interface so that third-party plugins implementing that stable
+ * contract directly are not broken by a new required method. The persistence layer falls back
+ * to get_data() for elements that do not implement this interface.
  */
 interface raw_data_element_interface {
     /**
-     * Returns the raw persistence representation of the element data.
-     *
-     * Unlike {@see element_interface::get_data()}, which may return a representation
-     * tailored for rendering or form handling, this must always return exactly what is
-     * (or will be) stored in the `customcert_elements.data` database column.
-     *
-     * This method is intended for use by the persistence/storage boundary (e.g.
-     * element_repository) only, and must not be used as a substitute for get_data() by
-     * element rendering or form-handling code.
+     * Return the exact value to store in customcert_elements.data.
+     * For persistence only; rendering and forms should use get_data().
      *
      * @return mixed
      */
