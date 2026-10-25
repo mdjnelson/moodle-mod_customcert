@@ -30,7 +30,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   `delete_page`, `delete_element`, `copy_to_template`, `move_item`) or
   `pdf_generation_service::generate_pdf()` instead.
 
-## [5.3.3] - Unreleased
+## [5.3.3] - 2026-10-25
 
 ### Security
 
