@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\helper;
 use mod_customcert\local\pagination;
 use mod_customcert\my_certificates_table;
 use mod_customcert\service\certificate_repository;
@@ -45,6 +46,8 @@ if ($courseid) {
     require_login();
 }
 
+helper::require_view_user_certificates($userid);
+
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $certrepo = new certificate_repository();
@@ -60,11 +63,6 @@ $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid
     'page' => $page, 'perpage' => $perpage]);
 
 $user = core_user::get_user($userid, '*', MUST_EXIST);
-
-// If we are viewing certificates that are not for the currently logged in user then do a capability check.
-if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
-    throw new moodle_exception('You are not allowed to view these certificates');
-}
 
 $PAGE->set_url($pageurl);
 $PAGE->set_context(context_user::instance($userid));
