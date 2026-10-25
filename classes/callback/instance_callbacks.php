@@ -49,18 +49,15 @@ class instance_callbacks {
     public static function add_instance(\stdClass $data, $mform): int {
         global $DB;
 
-        // Create a template for this customcert to use.
         $context = \context_module::instance($data->coursemodule);
         $template = template::create($data->name, $context->id);
 
-        // Add the data to the DB.
         $data->templateid = $template->get_id();
         $data->protection = form_service::set_protection($data);
         $data->timecreated = time();
         $data->timemodified = $data->timecreated;
         $data->id = $DB->insert_record('customcert', $data);
 
-        // Add a page to this customcert.
         $service = template_service::create();
         $service->add_page($template, false);
 
@@ -95,7 +92,6 @@ class instance_callbacks {
     public static function delete_instance(int $id): bool {
         global $DB;
 
-        // Ensure the customcert exists.
         if (!$customcert = $DB->get_record('customcert', ['id' => $id])) {
             return false;
         }
@@ -107,7 +103,6 @@ class instance_callbacks {
 
         $context = \context_module::instance($cm->id);
 
-        // Trigger issue_deleted events for each issue.
         $issuerepo = new issue_repository();
         $issues = $issuerepo->list_by_certificate($id);
         foreach ($issues as $issue) {
@@ -118,21 +113,17 @@ class instance_callbacks {
             ]);
             $event->trigger();
         }
-        // Delete the customcert issues.
         $issuerepo->delete_by_certificate($id);
 
-        // Now, delete the template associated with this certificate.
         if (($templaterecord = (new template_repository())->get_by_id((int)$customcert->templateid)) !== null) {
             $templateservice = template_service::create();
             $templateservice->delete(template::from_record($templaterecord));
         }
 
-        // Delete the customcert instance.
         if (!$DB->delete_records('customcert', ['id' => $id])) {
             return false;
         }
 
-        // Delete any files associated with the customcert.
         $fs = get_file_storage();
         $fs->delete_area_files($context->id);
 

@@ -205,11 +205,8 @@ final class element_repository {
         $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
-        // Persist the exact raw representation when the element opts in via
-        // raw_data_element_interface (e.g. elements whose get_data() returns a
-        // representation tailored for rendering/form handling); otherwise fall back to
-        // get_data() to preserve backwards compatibility for third-party elements that
-        // only implement element_interface.
+        // Prefer raw storage when available; get_data() may expose a derived view. Elements that only
+        // implement element_interface (e.g. third-party plugins) continue to persist get_data().
         $record->data = $element instanceof raw_data_element_interface
             ? $element->get_raw_data()
             : $element->get_data();
@@ -229,14 +226,9 @@ final class element_repository {
 
     /**
      * Copy an element to a new page.
-     *
-     * The $strict flag preserves two intentionally different historical behaviours for an
-     * element type that cannot be resolved/constructed:
-     * - Strict (used by copy_page()): the failure is not swallowed; the factory exception
-     *   propagates to the caller, matching the pre-refactor behaviour of copy_page().
-     * - Tolerant (used by copy_to_template()): the failure is swallowed, the inserted row is
-     *   left in place and null is returned, matching the pre-refactor behaviour of
-     *   copy_to_template().
+     * If the element cannot be constructed, behaviour depends on $strict:
+     * - Strict (copy_page()): the factory exception propagates.
+     * - Tolerant (copy_to_template()): the inserted row is kept and null is returned.
      *
      * @param stdClass $sourceelement The raw element record to copy
      * @param int $topageid The ID of the page to copy it to

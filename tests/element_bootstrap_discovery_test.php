@@ -79,11 +79,7 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
     }
 
     /**
-     * A class outside the supported legacy/native envelope (#955) must be skipped during
-     * discovery with a warning, not crash bootstrap -- distinct from a plugin that is simply
-     * not installed (restore_missing_third_party_element_test.php), since here the class does
-     * exist but element_registry::register() refuses it. Both leave the type unregistered, so
-     * downstream behaviour (restore, rendering) ends up identical either way.
+     * Discovery must warn and skip an installed class that fails the registration contract.
      */
     public function test_incompatible_class_is_skipped_during_discovery(): void {
         $this->resetAfterTest();
@@ -111,14 +107,7 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
     }
 
     /**
-     * A genuine legacy-only element (extends mod_customcert\element, does not implement
-     * renderable_element_interface directly) must be rejected with a clear diagnostic when
-     * encountered via the real plugin-discovery path, discovery must continue regardless,
-     * and a supported native v2 plugin discovered alongside it must still register.
-     *
-     * Distinct from test_incompatible_class_is_skipped_during_discovery(): that fixture does
-     * not extend mod_customcert\element at all, whereas this one is the genuine legacy
-     * envelope the removed legacy_element_adapter used to wrap.
+     * Discovery must reject legacy-only elements with a diagnostic and still register native v2 plugins.
      */
     public function test_genuine_legacy_element_is_rejected_during_discovery_and_native_plugin_still_registers(): void {
         $this->resetAfterTest();

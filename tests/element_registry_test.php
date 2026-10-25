@@ -139,10 +139,7 @@ final class element_registry_test extends advanced_testcase {
     }
 
     /**
-     * The legacy element runtime bridge has been removed: a class that only extends
-     * mod_customcert\element, without implementing the Element System v2 interfaces
-     * directly, must be rejected at registration with a clear coding_exception rather
-     * than being silently accepted and failing later (or being wrapped, as before).
+     * Registration must reject legacy-only subclasses that lack the v2 interfaces.
      *
      * @covers \mod_customcert\service\element_registry::register
      */

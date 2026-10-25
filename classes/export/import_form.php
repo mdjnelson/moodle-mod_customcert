@@ -42,10 +42,7 @@ use moodleform;
  */
 class import_form extends moodleform {
     /**
-     * Builds the import form UI elements.
-     *
-     * Adds a file picker for uploading a .zip backup file and a hidden field for
-     * passing the context ID where the import will occur.
+     * Build the template ZIP upload form.
      */
     protected function definition(): void {
         $mform = $this->_form;

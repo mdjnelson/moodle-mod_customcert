@@ -33,12 +33,7 @@ use mod_customcert\element\renderable_element_interface;
 use stdClass;
 
 /**
- * Registry-based factory for creating elements by type.
- *
- * Creation path:
- * - Instantiate the registered class
- * - If it implements renderable_element_interface (native v2), return it directly
- * - Otherwise fail clearly; the legacy element runtime bridge has been removed
+ * Create registered native v2 elements.
  */
 final class element_factory {
     /**

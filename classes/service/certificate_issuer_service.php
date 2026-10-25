@@ -76,11 +76,7 @@ final class certificate_issuer_service {
     }
 
     /**
-     * List eligible users for emailing for a single certificate.
-     *
-     * A single-certificate entry point to the same candidate-eligibility rules used by the batch
-     * cron path (process_email_issuance_run()); not called by it, since batch processing loads
-     * its certificate list via certificate_repository::list_for_issuance_run() instead.
+     * List email candidates for one certificate using the same eligibility rules as batch issuance.
      *
      * @param int $customcertid
      * @return array keyed by userid
@@ -170,7 +166,6 @@ final class certificate_issuer_service {
      * @return void
      */
     public function process_email_issuance_run(): void {
-        // Get the certificatesperrun, includeinnotvisiblecourses, and certificateexecutionperiod configurations.
         $certificatesperrun = (int)get_config('customcert', 'certificatesperrun');
         $includeinnotvisiblecourses = (bool)get_config('customcert', 'includeinnotvisiblecourses');
         $certificateexecutionperiod = (int)get_config('customcert', 'certificateexecutionperiod');
@@ -190,7 +185,6 @@ final class certificate_issuer_service {
         }
 
         foreach ($customcerts as $customcert) {
-            // Check if the certificate is hidden, quit early.
             [, $cm] = get_course_and_cm_from_instance($customcert->id, 'customcert', $customcert->course);
             if (!$cm->visible) {
                 continue;
@@ -271,14 +265,8 @@ final class certificate_issuer_service {
     }
 
     /**
-     * Build the list of eligible users for a certificate within a CM context.
-     *
-     * This decides who a *new* certificate should be issued/emailed to, based on capability,
-     * availability, suspension, completion and required-time rules. It is unrelated to
-     * issue_repository::get_conditional_issues_sql(), which scopes the already-issued-certificates
-     * *report* to what the current viewer is permitted to see (excluding managers/admins,
-     * restricting by the viewer's group). Despite both filtering a list of users, they answer
-     * different questions and must not be merged into one another.
+     * Find issuance candidates using capability, availability, suspension, completion and required time.
+     * Report visibility rules in issue_repository do not determine issuance eligibility.
      *
      * @param object $customcert
      * @param object $cm
@@ -289,10 +277,8 @@ final class certificate_issuer_service {
         // enabled, only studentemailed = 0 remains a retry candidate.
         $issuedusers = $this->issues->list_emailed_users((int)$customcert->id, !empty($customcert->emailstudents));
 
-        // Get the context of the Custom Certificate module.
         $cmcontext = context_module::instance($cm->id);
 
-        // Get users with the mod/customcert:receiveissue capability in the Custom Certificate module context.
         // Outside the site home, only actively enrolled users are eligible, so a capability granted
         // at system level does not issue certificates to users who are not in the course.
         if ((int)$customcert->courseid === SITEID) {
@@ -300,9 +286,7 @@ final class certificate_issuer_service {
         } else {
             $userswithissue = get_enrolled_users($cmcontext, 'mod/customcert:receiveissue', 0, 'u.*', null, 0, 0, true);
         }
-        // Get users with mod/customcert:view capability.
         $userswithview = get_users_by_capability($cmcontext, 'mod/customcert:view');
-        // Users with both mod/customcert:view and mod/customcert:receiveissue capabilities.
         $userswithissueview = array_intersect_key($userswithissue, $userswithview);
 
         // Filter remaining users by availability conditions.

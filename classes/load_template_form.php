@@ -49,7 +49,6 @@ class load_template_form extends moodleform {
     public function definition() {
         $mform =& $this->_form;
 
-        // Get the context.
         $context = $this->_customdata['context'];
         $syscontext = context_system::instance();
 

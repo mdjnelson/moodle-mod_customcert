@@ -76,7 +76,6 @@ class element extends base_element implements
     public function build_form(MoodleQuickForm $mform): void {
         global $COURSE;
 
-        // Get the grade items we can display.
         $gradeitems = [];
         $gradeitems[self::GRADE_COURSE] = get_string('coursegrade', 'customcertelement_grade');
         $gradeitems = $gradeitems + element_helper::get_grade_items($COURSE);
@@ -134,14 +133,12 @@ class element extends base_element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
 
         $courseid = element_helper::get_courseid($this->id);
 
-        // Read the information stored in the database.
         $payload = $this->get_payload();
         if (empty($payload) || !isset($payload['gradeitem'])) {
             return; // Nothing to render if not configured.
@@ -199,12 +196,10 @@ class element extends base_element implements
     public function render_html(?element_renderer $renderer = null): string {
         global $COURSE;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
-        // Read the information stored in the database.
         $payload = $this->get_payload();
         $gradeformat = isset($payload['gradeformat']) ? (int)$payload['gradeformat'] : GRADE_DISPLAY_TYPE_REAL;
 
@@ -226,7 +221,6 @@ class element extends base_element implements
      * @return void
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Set the item and format for this element from stored data.
         $payload = $this->get_payload();
         if (isset($payload['gradeitem'])) {
             $mform->getElement('gradeitem')->setValue((string)$payload['gradeitem']);

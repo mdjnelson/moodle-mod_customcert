@@ -176,9 +176,7 @@ final class template_load_service_test extends advanced_testcase {
     }
 
     /**
-     * replace() must enforce authorization itself, not merely rely on callers such as
-     * load_template.php, so that any future caller of this service is protected against
-     * copying the contents of a template the user cannot access.
+     * The service must enforce source-template access independently of its callers.
      *
      * @covers ::replace
      */

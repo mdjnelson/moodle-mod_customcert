@@ -95,10 +95,8 @@ final class preview_renderer {
      * @throws coding_exception
      */
     public function render_pdf_page(int $pageid, pdf $pdf, stdClass $user, bool $preview = true): void {
-        // Load the page record.
         $page = $this->pages->get_by_id_or_fail($pageid);
 
-        // Determine orientation.
         $orientation = ($page->width > $page->height) ? 'L' : 'P';
 
         // IMPORTANT: add page BEFORE rendering elements. TCPDF requires a page to exist
@@ -110,7 +108,6 @@ final class preview_renderer {
         // Reset cursor to top-left after adding the page and setting margins.
         $pdf->SetXY(0, 0);
 
-        // Load elements via repository and render.
         $elements = $this->repository->load_by_page_id($pageid);
         if ($this->pdfrenderer instanceof pdf_renderer) {
             $this->pdfrenderer->set_pdf($pdf);

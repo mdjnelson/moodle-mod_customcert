@@ -69,15 +69,8 @@ final class row_migrator {
     }
 
     /**
-     * Encode payload to JSON using safe flags and controlled fallback.
-     *
-     * Flags:
-     * - JSON_THROW_ON_ERROR to avoid silently returning false
-     * - JSON_INVALID_UTF8_SUBSTITUTE to handle legacy bytes
-     * - JSON_UNESCAPED_UNICODE for readability
-     *
-     * If encoding still fails (very rare), we fall back to a minimal payload
-     * using the original raw string when provided.
+     * Encode a payload, substituting invalid UTF-8 bytes.
+     * On failure, encode a minimal payload containing the original raw value when supplied.
      *
      * @param array $payload The associative array to encode.
      * @param string|null $fallbackraw The original raw string to use on failure.
@@ -124,11 +117,7 @@ final class row_migrator {
     }
 
     /**
-     * Return the canonical JSON key for a legacy scalar data value for the given element type.
-     *
-     * Some elements store their primary value under an element-specific key rather than
-     * the generic 'value' key. This mapping ensures that scalar legacy data is migrated
-     * into the correct key so that element save/load code continues to work after upgrade.
+     * Return the element-specific key required when migrating a legacy scalar payload.
      *
      * @param string|null $element Element type name (e.g. 'coursefield', 'text').
      * @return string The canonical key name to use for the scalar value.
@@ -146,12 +135,8 @@ final class row_migrator {
     }
 
     /**
-     * Migrate a legacy border element row.
-     *
-     * Legacy border elements stored their line thickness as a plain integer scalar in the
-     * 'data' column (e.g. "3") and may never have had the 'width' column populated. This
-     * method promotes such a scalar to the 'width' key in the JSON envelope so that
-     * element::get_width() returns the correct value after upgrade.
+     * Migrate legacy border thickness from scalar data to the JSON width key
+     * when the old width column is unset.
      *
      * @param string|null $rawdata Original data field value.
      * @param int|null $width Value of the old 'width' column (may be null).

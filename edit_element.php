@@ -47,16 +47,13 @@ $elementrepo = new element_repository($factory);
 $tid = required_param('tid', PARAM_INT);
 $action = required_param('action', PARAM_ALPHA);
 
-// Set the template object.
 $template = template::from_record($templaterepo->get_by_id_or_fail((int)$tid));
 
-// Perform checks.
 if ($cm = $template->get_cm()) {
     require_login($cm->course, false, $cm);
 } else {
     require_login();
 }
-// Make sure the user has the required capabilities.
 $template->require_manage();
 
 if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
@@ -85,12 +82,10 @@ if ($action == 'edit') {
         'pageid' => $pageid, 'action' => $action]);
 }
 
-// Set up the page.
 page_helper::page_setup($pageurl, $template->get_context(), $title);
 $PAGE->activityheader->set_attrs(['hidecompletion' => true,
             'description' => '']);
 
-// Additional page setup.
 if ($template->get_context()->contextlevel == CONTEXT_SYSTEM) {
     $PAGE->navbar->add(
         get_string('managetemplates', 'customcert'),
@@ -105,21 +100,18 @@ $PAGE->navbar->add(get_string('editelement', 'customcert'));
 
 $mform = new edit_element_form($pageurl, ['element' => $element, 'factory' => $factory]);
 
-// Check if they cancelled.
 if ($mform->is_cancelled()) {
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
     redirect($url);
 }
 
 if ($data = $mform->get_data()) {
-    // Set the id, or page id depending on if we are editing an element, or adding a new one.
     if ($action == 'edit') {
         $data->id = $id;
         $data->pageid = $element->pageid;
     } else {
         $data->pageid = $pageid;
     }
-    // Set the element variable.
     $data->element = $element->element;
 
     // Normalise submission: process file uploads from draft areas before saving.
@@ -131,7 +123,6 @@ if ($data = $mform->get_data()) {
         $data->$key = $value;
     }
 
-    // Get an instance of the element class.
     $elementinstance = $factory->create_from_record($data);
     if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
@@ -148,9 +139,7 @@ if ($data = $mform->get_data()) {
             $record->refpoint = $element->refpoint ?? null;
             $record->alignment = $element->alignment ?? element::ALIGN_LEFT;
         }
-        // Persist JSON using helper (supports persistable and legacy elements).
-        // Visual fields (font, fontsize, colour, width) are expected to be returned
-        // explicitly by the element's normalise_data() implementation.
+        // The method normalise_data() must include visual fields in the stored JSON payload.
         $record->data = persistence_helper::to_json_data($elementinstance, $data);
         if (!empty(get_config('customcert', 'showposxy'))) {
             $record->posx = $data->posx ?? null;

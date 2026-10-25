@@ -35,17 +35,8 @@ require_once(__DIR__ . '/fixtures/fake_element_fixture.php');
 require_once(__DIR__ . '/fixtures/legacy_and_native_plugin_provider.php');
 
 /**
- * Tests that an existing database record for a rejected genuine legacy-only element type
- * loads through the repository as an unknown_element placeholder, without changing or
- * losing its stored payload.
- *
- * The 'legacy45' class exists on disk (unlike a simply-missing plugin) but is never
- * registered because it only extends mod_customcert\element and does not implement
- * renderable_element_interface directly: the legacy element runtime bridge has been
- * removed, so element_registry::register() refuses it. This test registers the defaults
- * through the real plugin-discovery path (via legacy_and_native_plugin_provider) so the
- * rejection diagnostic it asserts is the one actually produced during discovery, connecting
- * this placeholder behaviour to element_bootstrap_discovery_test's rejection coverage.
+ * Rejected legacy elements must load as placeholders without changing stored data.
+ * The fixture exercises rejection through plugin discovery.
  *
  * @package    mod_customcert
  * @category   test
@@ -105,10 +96,7 @@ final class legacy_type_repository_placeholder_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
 
-        // Register defaults through the real plugin-discovery path: the provider offers both
-        // the genuine legacy-only 'legacy45' type and a native v2 'fakeplugin' type, so the
-        // rejection asserted below is the actual discovery-time diagnostic, not a precondition
-        // assumed in isolation.
+        // Exercise discovery with both legacy-only and native v2 plugins.
         $registry = new element_registry();
         $provider = new legacy_and_native_plugin_provider();
 

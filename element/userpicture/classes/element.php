@@ -110,7 +110,6 @@ class element extends base_element implements
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $CFG;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
@@ -119,11 +118,9 @@ class element extends base_element implements
 
         $context = context_user::instance($user->id);
 
-        // Get files in the user icon area.
         $fs = get_file_storage();
         $files = $fs->get_area_files($context->id, 'user', 'icon', 0);
 
-        // Get the file we want to display.
         $file = null;
         foreach ($files as $filefound) {
             if (!$filefound->is_directory()) {
@@ -132,7 +129,6 @@ class element extends base_element implements
             }
         }
 
-        // Show image if we found one.
         if ($file) {
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
@@ -155,19 +151,16 @@ class element extends base_element implements
     public function render_html(?element_renderer $renderer = null): string {
         global $PAGE, $USER;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
         $payload = $this->get_payload();
 
-        // Get the image.
         $userpicture = new user_picture($USER);
         $userpicture->size = 1;
         $url = $userpicture->get_url($PAGE)->out(false);
 
-        // The size of the images to use in the CSS style.
         $style = '';
         if ((int)($payload['width'] ?? 0) === 0 && (int)($payload['height'] ?? 0) === 0) {
             // Put this in so code checker doesn't complain.

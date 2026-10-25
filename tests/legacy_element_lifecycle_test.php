@@ -174,11 +174,8 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
     }
 
     /**
-     * Native v2 repository save path: exercises an actual update through the supported v2
-     * path (a changed name, plugin data and visual fields, plus a layout change), preserves
-     * element identity (id, page, type), persists exactly the complete new JSON payload,
-     * creates/modifies no other row, fires element_updated exactly once, and emits no
-     * legacy diagnostic.
+     * Native v2 updates must preserve identity, persist data and layout, and emit one update event
+     * without changing other rows or emitting legacy diagnostics.
      */
     public function test_native_repository_save_preserves_identity_and_persists_changes(): void {
         global $DB;
@@ -203,9 +200,7 @@ final class legacy_element_lifecycle_test extends advanced_testcase {
             'width' => 50,
         ]);
 
-        // Build the post-edit instance the same way the supported v2 edit path would:
-        // a record with the same id/pageid/type, but a changed name and a changed JSON
-        // payload (plugin data plus visual/layout fields).
+        // Model an edit with unchanged identity and updated data and layout.
         $updatedpayload = [
             'value' => 'updated',
             'font' => 'Arial',

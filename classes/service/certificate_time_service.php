@@ -110,7 +110,6 @@ final class certificate_time_service {
             }
         }
 
-        // If we didn't find a reader then return 0.
         if (!isset($logtable)) {
             return 0;
         }

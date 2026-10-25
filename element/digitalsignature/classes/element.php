@@ -286,19 +286,16 @@ class element extends \customcertelement_image\element implements
     public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
-        // Set the context.
         if ($COURSE->id == $SITE->id) {
             $context = \context_system::instance();
         } else {
             $context = \context_course::instance($COURSE->id);
         }
 
-        // Handle file uploads.
         if (isset($formdata->customcertimage)) {
             form_service::upload_files($formdata->customcertimage, $context->id);
         }
 
-        // Handle file certificate uploads.
         if (isset($formdata->digitalsignature)) {
             form_service::upload_files($formdata->digitalsignature, $context->id, 'signature');
         }
@@ -313,7 +310,6 @@ class element extends \customcertelement_image\element implements
             'height' => !empty($formdata->height) ? (int) $formdata->height : 0,
         ];
 
-        // Array of data we will be storing in the database.
         $fs = get_file_storage();
 
         if (!empty($formdata->fileid) && array_key_exists((int)$formdata->fileid, self::get_images())) {
@@ -352,7 +348,6 @@ class element extends \customcertelement_image\element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
@@ -403,12 +398,9 @@ class element extends \customcertelement_image\element implements
     public static function get_signatures() {
         global $COURSE;
 
-        // Create file storage object.
         $fs = get_file_storage();
 
-        // The array used to store the digital signatures.
         $arrfiles = [];
-        // Loop through the files uploaded in the system context.
         if (
             $files = $fs->get_area_files(
                 context_system::instance()->id,
@@ -423,7 +415,6 @@ class element extends \customcertelement_image\element implements
                 $arrfiles[$file->get_id()] = $file->get_filename();
             }
         }
-        // Loop through the files uploaded in the course context.
         if (
             $files = $fs->get_area_files(
                 context_course::instance($COURSE->id)->id,
@@ -446,16 +437,9 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * Normalises a signaturepassword value recovered from a backup for safe storage.
-     *
-     * Three cases are handled:
-     *  - Empty/missing password: returned as-is (empty string).
-     *  - Recognisable Moodle ciphertext (starts with the Sodium method prefix) that decrypts
-     *    successfully on this site: preserved as-is (already encrypted with this site's key).
-     *  - Recognisable Moodle ciphertext that cannot be decrypted on this site (foreign-site
-     *    key): cleared to empty string so the administrator must re-enter it.
-     *  - Anything else (legacy plaintext, including plaintext containing a colon such as
-     *    "secret:1234"): encrypted with this site's key and returned.
+     * Normalise a restored signature password for this site.
+     * Preserve empty values and decryptable Moodle ciphertext; clear undecryptable ciphertext
+     * so the administrator can re-enter it. Encrypt legacy plaintext, including values containing colons.
      *
      * @param string $value The raw signaturepassword value from the backup.
      * @return string The normalised value safe to store in customcert_elements.data.

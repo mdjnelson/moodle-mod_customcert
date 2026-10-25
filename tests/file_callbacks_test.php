@@ -105,14 +105,8 @@ final class file_callbacks_test extends advanced_testcase {
     }
 
     /**
-     * A CONTEXT_MODULE request from a user who isn't logged in to the course must be rejected
-     * by require_login(), not silently allowed through.
-     *
-     * pluginfile() calls require_login($course, false, $cm) without $preventredirect, so for an
-     * anonymous user require_login() takes the "redirect to the login page" branch rather than
-     * throwing require_login_exception (that's only thrown when $preventredirect is true). Under
-     * PHPUnit an actual HTTP redirect can't happen, so Moodle raises a generic moodle_exception
-     * ("Unsupported redirect detected") instead — that's the real, observable rejection here.
+     * Anonymous module-context file requests must be rejected by require_login().
+     * PHPUnit reports the login redirect as a moodle_exception, not a require_login_exception.
      *
      * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */

@@ -63,13 +63,11 @@ class element extends base_element implements
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
-        // Get the course fields.
         $coursefields = [
             'fullname' => get_string('fullnamecourse'),
             'shortname' => get_string('shortnamecourse'),
             'idnumber' => get_string('idnumbercourse'),
         ];
-        // Get the course custom fields.
         $handler = course_handler::create();
         $customfields = $handler->get_fields();
         $arrcustomfields = [];
@@ -77,7 +75,6 @@ class element extends base_element implements
             $arrcustomfields[$field->get('id')] = $field->get_formatted_name();
         }
 
-        // Combine the two.
         $fields = $coursefields + $arrcustomfields;
         core_collator::asort($fields);
 
@@ -173,7 +170,6 @@ class element extends base_element implements
      * @return string
      */
     protected function get_course_field_value(stdClass $course, bool $preview): string {
-        // The user field to display.
         $payload = $this->get_payload();
         $field = isset($payload['coursefield']) ? $payload['coursefield'] : '';
         // The value to display - we always want to show a value here so it can be repositioned.

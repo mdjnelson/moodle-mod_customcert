@@ -185,14 +185,12 @@ class element extends \customcertelement_image\element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
 
         $payload = $this->get_payload();
 
-        // If there is no file, we have nothing to display.
         if (empty($payload['filename'])) {
             return;
         }
@@ -201,7 +199,6 @@ class element extends \customcertelement_image\element implements
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
-            // Set the image to the size of the PDF page.
             $mimetype = $file->get_mimetype();
             if ($mimetype == 'image/svg+xml') {
                 $pdf->ImageSVG($location, 0, 0, $pdf->getPageWidth(), $pdf->getPageHeight());
@@ -223,14 +220,12 @@ class element extends \customcertelement_image\element implements
     public function render_html(?element_renderer $renderer = null): string {
         global $DB;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
         $imageinfo = json_decode($this->get_data());
 
-        // If there is no file, we have nothing to display.
         if (empty($imageinfo->filename)) {
             return '';
         }
@@ -244,10 +239,8 @@ class element extends \customcertelement_image\element implements
                 $file->get_filepath(),
                 $file->get_filename()
             );
-            // Get the page we are rendering this on.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
 
-            // Set the image to the size of the page.
             $style = 'width: ' . $page->width . 'mm; height: ' . $page->height . 'mm';
             return html_writer::tag('img', '', ['src' => $url, 'style' => $style]);
         }

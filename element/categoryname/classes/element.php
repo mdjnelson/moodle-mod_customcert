@@ -104,7 +104,6 @@ class element extends base_element implements
         $course = get_course($courseid);
         $context = element_helper::get_context($this->get_id());
 
-        // Check that there is a course category available.
         if (!empty($course->category)) {
             $categoryname = $DB->get_field('course_categories', 'name', ['id' => $course->category], MUST_EXIST);
         } else { // Must be in a site template.

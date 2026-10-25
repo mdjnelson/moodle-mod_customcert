@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Direct Moodle 4.5 → 5.3 (main) upgrade regression coverage for schema/data.
+ * Direct Moodle 4.5 → current main (6.0 development) upgrade regression coverage for schema/data.
  *
  * Models a genuine LTS-to-current upgrade from the last MOODLE_404_STABLE plugin
  * state (version 2024042224), NOT a 5.2-era starting state mislabelled as 4.5.
@@ -36,14 +36,9 @@ use xmldb_field;
 use xmldb_table;
 
 /**
- * Regression tests for the direct Moodle 4.5 → 5.3 customcert upgrade path.
- *
- * Baseline reference: MOODLE_404_STABLE tip (plugin version 2024042224). That
- * branch already included usecustomfilename, customfilenamepattern and
- * issueautomatically, and still stored element visuals as discrete columns
- * (font, fontsize, colour, width) alongside the data field. Columns introduced
- * after that baseline on main are completionemailed and studentemailed, plus
- * the 2025122800 visual→JSON migration that drops the discrete visual columns.
+ * Tests the direct Moodle 4.5 upgrade to current main (6.0 development) from MOODLE_404_STABLE version 2024042224.
+ * The baseline has usecustomfilename, customfilenamepattern and issueautomatically;
+ * upgrades add completionemailed/studentemailed and migrate visual columns to JSON.
  *
  * @covers ::xmldb_customcert_upgrade
  */
@@ -74,7 +69,7 @@ final class upgrade_lts_path_test extends advanced_testcase {
      * xmldb_customcert_upgrade() from that version through current main, and
      * assert the supported final schema/data shape.
      *
-     * This is intentionally distinct from any 5.2 → 5.3 incremental coverage.
+     * This is intentionally distinct from any 5.2 → current main incremental coverage.
      *
      * @covers ::xmldb_customcert_upgrade
      */
@@ -97,14 +92,8 @@ final class upgrade_lts_path_test extends advanced_testcase {
     }
 
     /**
-     * Proves the direct 4.5 → main path reaches the same final schema/data as
-     * the incremental path that is already on a 5.2-era state (visuals already
-     * migrated to JSON; completionemailed/studentemailed already present) and
-     * then upgrades through the remaining main savepoints.
-     *
-     * Both paths start from the same logical 4.5-era fixture values; the 5.2
-     * path pre-applies the migrations that MOODLE_502_STABLE already contained,
-     * then runs only the residual main upgrade steps.
+     * Direct 4.5 and incremental 5.2 upgrades must produce identical schema and data.
+     * Both use the same fixture values; the 5.2 path starts with its migrations already applied.
      *
      * @covers ::xmldb_customcert_upgrade
      */
@@ -158,10 +147,8 @@ final class upgrade_lts_path_test extends advanced_testcase {
     }
 
     /**
-     * Invoke xmldb_customcert_upgrade() while absorbing incidental CLI progress
-     * output (e.g. uninstall_plugin() when the removed daterange subplugin is
-     * cleaned up at savepoint 2025122600). That output is not part of the
-     * schema/data contract under test and would otherwise mark the test risky.
+     * Run the upgrade while suppressing incidental CLI output from subplugin removal,
+     * which would otherwise mark the test risky.
      *
      * @param int $oldversion The version to upgrade from.
      */

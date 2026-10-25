@@ -181,10 +181,7 @@ abstract class element implements
     }
 
     /**
-     * Returns the data payload as stored for the current element runtime.
-     *
-     * This is the current persistence representation (typically a JSON object string).
-     * It does not unwrap historical scalar migration wrappers.
+     * Return the stored payload without unwrapping historical scalar migration wrappers.
      *
      * @return mixed
      */
@@ -193,12 +190,9 @@ abstract class element implements
     }
 
     /**
-     * Returns the raw persistence representation of the element data.
-     *
-     * For this base class, get_data() already returns the exact persistence
-     * representation, so this simply mirrors it. Subclasses whose get_data() returns a
-     * representation tailored for rendering or form handling should override this method
-     * to return the untouched value that must actually be persisted.
+     * Return the stored payload, independently of any derived get_data() view.
+     * This returns $this->data directly, regardless of get_data(). Subclasses only need to override it
+     * when their intended persistence representation differs from $this->data (see raw_data_element_interface).
      *
      * @return mixed
      */
