@@ -24,7 +24,9 @@
 
 namespace mod_customcert;
 
+use context_system;
 use core_user\fields;
+use moodle_exception;
 
 /**
  * Class helper.
@@ -57,5 +59,19 @@ class helper {
         }
 
         return implode(',', $alternatenames);
+    }
+
+    /**
+     * Requires that the current user may view the certificates of the given user.
+     *
+     * @param int $userid The user whose certificates are being viewed.
+     * @throws moodle_exception If the current user is not allowed to view them.
+     */
+    public static function require_view_user_certificates(int $userid): void {
+        global $USER;
+
+        if ($userid != $USER->id && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
+            throw new moodle_exception('You are not allowed to view these certificates');
+        }
     }
 }
