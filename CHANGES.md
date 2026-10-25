@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.3.3] - Unreleased
 
+### Security
+
+- Fixed information disclosure of certificate issuance to users who are not permitted to view another user's certificates ([GHSA-xrf9-973c-472v](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-xrf9-973c-472v)).
+
 ### Fixed
 
 - Fixed incorrect issuer attribution for certificates issued via CLI (#757).
