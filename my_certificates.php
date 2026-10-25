@@ -37,6 +37,8 @@ if ($courseid) {
     require_login();
 }
 
+\mod_customcert\helper::require_view_user_certificates($userid);
+
 if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $customcert = $DB->get_record('customcert', ['id' => $certificateid], '*', MUST_EXIST);
@@ -53,11 +55,6 @@ $pageurl = $url = new moodle_url('/mod/customcert/my_certificates.php', ['userid
 
 // Check that we have a valid user.
 $user = \core_user::get_user($userid, '*', MUST_EXIST);
-
-// If we are viewing certificates that are not for the currently logged in user then do a capability check.
-if (($userid != $USER->id) && !has_capability('mod/customcert:viewallcertificates', context_system::instance())) {
-    throw new moodle_exception('You are not allowed to view these certificates');
-}
 
 $PAGE->set_url($pageurl);
 $PAGE->set_context(context_user::instance($userid));
