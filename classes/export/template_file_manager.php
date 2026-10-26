@@ -69,10 +69,7 @@ class template_file_manager implements template_file_manager_interface {
     }
 
     /**
-     * Exports a template and its files into a ZIP archive and initiates download.
-     *
-     * Encodes the template data as JSON, saves it to a temporary directory,
-     * includes appendix files, and archives everything into a downloadable ZIP file.
+     * Export a template and its files as a downloadable ZIP archive.
      *
      * @param int $templateid The ID of the template to export.
      * @return string The exported file path
@@ -117,18 +114,10 @@ class template_file_manager implements template_file_manager_interface {
     }
 
     /**
-     * Imports a template and its files from a ZIP archive located in a temporary directory.
-     *
-     * Extracts the archive, validates its contents, loads the JSON structure,
-     * and invokes the import logic for both template data and appendix files.
-     *
-     * The import is atomic: if template data import fails after files have already been
-     * stored, all stored files are deleted before the exception is re-thrown.
-     *
-     * Note: all imported files are normalised to component=mod_customcert, filearea=image,
-     * itemid=0, filepath=/ regardless of the metadata recorded in the export manifest.
-     * This matches the runtime storage model used by customcert image elements and is
-     * intentional. Round-trips for other file-backed element types are not supported.
+     * Import a template and its files from a ZIP archive.
+     * On template import failure, roll back newly stored files before rethrowing.
+     * Files use mod_customcert/image, itemid=0 and filepath=/ regardless of manifest metadata;
+     * round-trips for other file-backed element types are unsupported.
      *
      * @param int $contextid The context ID into which the template will be imported.
      * @param string $tempdir The directory containing the uploaded ZIP archive.
@@ -183,9 +172,7 @@ class template_file_manager implements template_file_manager_interface {
      * @throws import_exception If any validation check fails.
      */
     private function validate_zip(string $zippath): void {
-        // Use ZipArchive directly to read raw (unsanitised) entry names so that
-        // path-traversal entries such as ../foo or /foo are detected before the
-        // Moodle packer silently normalises them away.
+        // Inspect raw ZIP paths before Moodle normalisation can hide traversal entries.
         if (!class_exists(\ZipArchive::class)) {
             throw new import_exception('ZIP extension is not available');
         }
@@ -210,9 +197,7 @@ class template_file_manager implements template_file_manager_interface {
                 throw new import_exception('ZIP archive contains an unsafe filename: ' . $stat['name']);
             }
 
-            // Validate every path segment individually: reject empty, dot, and dot-dot segments.
-            // This catches traversal in any position (e.g. files/../../evil, ./, ../) and is
-            // more robust than substring pattern matching.
+            // Reject empty, dot and dot-dot segments anywhere in the path.
             foreach (explode('/', trim($name, '/')) as $segment) {
                 if ($segment === '' || $segment === '.' || $segment === '..') {
                     $zip->close();

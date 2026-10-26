@@ -96,7 +96,6 @@ final class form_service {
     public function normalise_submission(array &$data): void {
         global $COURSE, $SITE;
 
-        // Determine context for file operations.
         if (isset($COURSE) && isset($SITE) && $COURSE->id == $SITE->id) {
             $context = context_system::instance();
         } else if (isset($COURSE)) {

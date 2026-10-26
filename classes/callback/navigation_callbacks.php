@@ -58,7 +58,6 @@ class navigation_callbacks {
         }
 
         if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
-            // Get the template id.
             $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
             $node = \navigation_node::create(
                 get_string('editcustomcert', 'customcert'),

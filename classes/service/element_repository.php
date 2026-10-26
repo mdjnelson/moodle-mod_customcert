@@ -116,8 +116,6 @@ final class element_repository {
     /**
      * Load a single element record by id, verifying it belongs to the given template.
      *
-     * Throws if the element does not exist or belongs to a different template.
-     *
      * @param int $templateid
      * @param int $elementid
      * @return stdClass
@@ -207,19 +205,15 @@ final class element_repository {
         $record->alignment = $layout->alignment;
         $record->timemodified = time();
 
-        // Persist the raw storage representation, not the legacy compatibility view returned
-        // by get_data(): legacy elements may unwrap a migrated JSON object into a bare scalar
-        // in get_data(), which would otherwise cause additional migrated fields to be lost.
-        // Only use get_raw_data() when the element opts in via raw_data_element_interface;
-        // third-party elements implementing only the required element_interface fall back
-        // to get_data() to preserve backwards compatibility.
+        // Persist the raw payload, not get_data(): legacy elements may unwrap a migrated JSON
+        // object into a bare scalar there, which would drop the other migrated fields.
+        // Third-party elements without raw_data_element_interface fall back to get_data().
         $record->data = $element instanceof raw_data_element_interface
             ? $element->get_raw_data()
             : $element->get_data();
 
         $DB->update_record('customcert_elements', $record);
 
-        // Fire updated event for this element in the template context.
         $page = $DB->get_record('customcert_pages', ['id' => $record->pageid], '*', MUST_EXIST);
         $template = $DB->get_record('customcert_templates', ['id' => $page->templateid], '*', MUST_EXIST);
 
@@ -234,17 +228,13 @@ final class element_repository {
      * Copy an element to a new page.
      *
      * The $strict flag preserves two intentionally different historical behaviours for an
-     * element type that cannot be resolved/constructed:
-     * - Strict (used by copy_page()): the failure is not swallowed; the factory exception
-     *   propagates to the caller, matching the pre-refactor behaviour of copy_page().
-     * - Tolerant (used by copy_to_template()): the failure is swallowed, the inserted row is
-     *   left in place and null is returned, matching the pre-refactor behaviour of
-     *   copy_to_template().
+     * element type that cannot be constructed:
+     * - Strict (copy_page()): the factory exception propagates to the caller.
+     * - Tolerant (copy_to_template()): the inserted row is left in place and null is returned.
      *
      * @param stdClass $sourceelement The raw element record to copy
      * @param int $topageid The ID of the page to copy it to
-     * @param bool $strict Whether an unresolved element type should throw instead of being
-     *                      tolerated. See method description for details.
+     * @param bool $strict Whether an unresolved element type should throw instead of being tolerated.
      * @return element_interface|null The new element instance, or null if copy failed
      */
     public function copy_element(stdClass $sourceelement, int $topageid, bool $strict = false): ?element_interface {
@@ -261,12 +251,9 @@ final class element_repository {
         $newrecord->id = $newid;
 
         if ($strict) {
-            // Let an unresolved/broken element type throw, matching copy_page()'s historical
-            // behaviour. Any transaction started by the caller is responsible for rollback.
+            // The caller's transaction is responsible for rollback.
             $instance = $this->factory->create((string)$newrecord->element, $newrecord);
         } else {
-            // Tolerate an unresolved element type, matching copy_to_template()'s historical
-            // behaviour: leave the row as-is and report failure without raising an error.
             $instance = $this->factory->create_from_record($newrecord);
             if (!$instance) {
                 return null;
@@ -466,7 +453,6 @@ final class element_repository {
 
         $record->id = (int)$DB->insert_record('customcert_elements', $record, true);
 
-        // Fire created event for this element in the template context.
         $created = $this->factory->create($element->get_type(), $record);
         element_created::create_from_element($created)->trigger();
 

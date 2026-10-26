@@ -274,14 +274,9 @@ final class issue_repository {
     }
 
     /**
-     * Returns an array of the conditional variables to use in the get_issues SQL query.
-     *
-     * This scopes the issues *report* to what the current viewer ($USER) is permitted to see:
-     * it excludes cert managers/admins from the listing and, in separate groups mode, restricts
-     * results to the viewer's own group. It is unrelated to certificate_issuer_service's
-     * candidate-eligibility logic (completion, availability, suspension, required time), which
-     * decides who a *new* certificate should be issued/emailed to. Despite both filtering a list
-     * of users, they answer different questions and must not be merged into one another.
+     * Build issue-report filters for the current viewer, excluding managers/admins
+     * and restricting separate-group results to the viewer's group.
+     * These are visibility rules, not the issuance eligibility rules in certificate_issuer_service.
      *
      * @param stdClass $cm the course module
      * @return array the conditional variables

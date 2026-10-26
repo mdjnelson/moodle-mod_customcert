@@ -65,7 +65,7 @@ class element_helper {
     public const int CUSTOMCERT_REF_POINT_TOPCENTER = 1;
 
     /**
-     * @var int the top-left of element
+     * @var int the top-right of element
      */
     public const int CUSTOMCERT_REF_POINT_TOPRIGHT = 2;
 
@@ -269,9 +269,7 @@ class element_helper {
     /**
      * Renders all common form elements (font, colour, position, width, refpoint, alignment).
      *
-     * This is a convenience method that adds all standard visual property fields
-     * to the form. Elements should call this method in their build_form() implementation
-     * after adding their element-specific fields.
+     * Elements should call this from build_form() after adding their own fields.
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      * @param bool $showposxy whether to show position fields (default: true).
@@ -288,14 +286,13 @@ class element_helper {
     }
 
     /**
-     * Helper function to performs validation on the colour element.
+     * Helper function to perform validation on the colour element.
      *
      * @param array $data the submitted data
      * @return array the validation errors
      */
     public static function validate_form_element_colour(array $data): array {
         $errors = [];
-        // Validate the colour.
         if (!self::validate_colour($data['colour'])) {
             $errors['colour'] = get_string('invalidcolour', 'customcert');
         }
@@ -303,7 +300,7 @@ class element_helper {
     }
 
     /**
-     * Helper function to performs validation on the position elements.
+     * Helper function to perform validation on the position elements.
      *
      * @param array $data the submitted data
      * @return array the validation errors
@@ -311,11 +308,9 @@ class element_helper {
     public static function validate_form_element_position(array $data): array {
         $errors = [];
 
-        // Check if posx is not set, or not numeric or less than 0.
         if ((!isset($data['posx'])) || (!is_numeric($data['posx'])) || ($data['posx'] < 0)) {
             $errors['posx'] = get_string('invalidposition', 'customcert', 'X');
         }
-        // Check if posy is not set, or not numeric or less than 0.
         if ((!isset($data['posy'])) || (!is_numeric($data['posy'])) || ($data['posy'] < 0)) {
             $errors['posy'] = get_string('invalidposition', 'customcert', 'Y');
         }
@@ -338,7 +333,6 @@ class element_helper {
             return [];
         }
 
-        // Check if width is less than 0.
         if (!is_numeric($data['width'])) {
             $errors['width'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
@@ -371,7 +365,6 @@ class element_helper {
             return [];
         }
 
-        // Check if height is less than 0.
         if (!is_numeric($data['height'])) {
             $errors['height'] = get_string('invalidelementwidthorheightnotnumber', 'customcert');
         } else {
@@ -411,31 +404,23 @@ class element_helper {
      * @return array the font and font attributes
      */
     public static function get_font(stylable_element_interface $element): array {
-        // Variable for the font.
         $font = $element->get_font();
-        // If there is no font, then we have nothing to do.
         if (empty($font)) {
             return ['', ''];
         }
-        // Get the last two characters of the font name.
+        // TCPDF core font names encode style as a suffix: 'b', 'i' or 'bi'. Split it into attributes.
         $fontlength = strlen($font);
         $lastchar = $font[$fontlength - 1];
         $secondlastchar = ($fontlength > 1) ? $font[$fontlength - 2] : '';
-        // The attributes of the font.
         $attr = '';
-        // Check if the last character is 'i'.
         if ($lastchar == 'i') {
-            // Remove the 'i' from the font name.
             $font = substr($font, 0, -1);
-            // Check if the second last char is b.
             if ($secondlastchar == 'b') {
-                // Remove the 'b' from the font name.
                 $font = substr($font, 0, -1);
                 $attr .= 'B';
             }
             $attr .= 'I';
         } else if ($lastchar == 'b') {
-            // Remove the 'b' from the font name.
             $font = substr($font, 0, -1);
             $attr .= 'B';
         }
@@ -503,13 +488,10 @@ class element_helper {
     public static function get_element_sequence(int $pageid): int {
         global $DB;
 
-        // Set the sequence of the element we are creating.
         $sequence = 1;
-        // Check if there already elements that exist, if so, overwrite value.
         $sql = "SELECT MAX(sequence) as maxsequence
                   FROM {customcert_elements}
                  WHERE pageid = :id";
-        // Get the current max sequence on this page and add 1 to get the new sequence.
         if ($maxseq = $DB->get_record_sql($sql, ['id' => $pageid])) {
             $sequence = $maxseq->maxsequence + 1;
         }
@@ -534,7 +516,6 @@ class element_helper {
                     ON cp.id = ce.pageid
                  WHERE ce.id = :elementid";
 
-        // Check if there is a course associated with this element.
         if ($course = $DB->get_record_sql($sql, ['elementid' => $elementid])) {
             return $course->course;
         } else { // Must be in a site template.
@@ -571,28 +552,19 @@ class element_helper {
     public static function get_available_element_types(): array {
         global $CFG;
 
-        // Array to store the element types.
         $options = [];
 
-        // Check that the directory exists.
         $elementdir = "$CFG->dirroot/mod/customcert/element";
         if (file_exists($elementdir)) {
-            // Get directory contents.
             $elementfolders = new DirectoryIterator($elementdir);
-            // Loop through the elements folder.
             foreach ($elementfolders as $elementfolder) {
-                // If it is not a directory or it is '.' or '..', skip it.
                 if (!$elementfolder->isDir() || $elementfolder->isDot()) {
                     continue;
                 }
-                // Check that the standard class exists, if not we do
-                // not want to display it as an option as it will not work.
                 $foldername = $elementfolder->getFilename();
-                // Get the class name.
                 $classname = '\\customcertelement_' . $foldername . '\\element';
-                // Ensure the necessary class exists.
+                // Skip folders without the standard element class, as they would not work.
                 if (class_exists($classname)) {
-                    // Additionally, check if the user is allowed to add the element at all.
                     if ($classname::can_add()) {
                         $component = "customcertelement_{$foldername}";
                         $options[$foldername] = get_string('pluginname', $component);
@@ -612,10 +584,8 @@ class element_helper {
      * @return array the array of gradeable items in the course
      */
     public static function get_grade_items(stdClass $course): array {
-        // Array to store the grade items.
         $arrgradeitems = [];
 
-        // Get other non-module related grade items.
         if ($gradeitems = \grade_item::fetch_all(['courseid' => $course->id])) {
             foreach ($gradeitems as $gi) {
                 if ($gi->is_course_item()) {
@@ -633,7 +603,6 @@ class element_helper {
                     // If we were to change we would need to provide upgrade steps to convert cm->id to gi->id.
                     $arrgradeitems[$cm->id] = get_string('activity', 'mod_customcert') . ' : ' . $gi->get_name();
                 } else if ($gi->is_external_item() && $gi->is_outcome_item()) {
-                    // Get the name of the activity.
                     $optionname = get_string('gradeoutcome', 'mod_customcert') . ' : '  . $modname . " - " . $gi->get_name();
                     $arrgradeitems['gradeitem:' . $gi->id] = $optionname;
                 } else {
@@ -641,7 +610,6 @@ class element_helper {
                 }
             }
 
-            // Alphabetise this.
             asort($arrgradeitems);
         }
 
@@ -654,7 +622,7 @@ class element_helper {
      * @param int $courseid
      * @param int $gradeformat
      * @param int $userid
-     * @return grade_information|bool the grade information, or false if there is none.
+     * @return grade_information|false the grade information, or false if there is none.
      */
     public static function get_course_grade_info(int $courseid, int $gradeformat, int $userid): grade_information|false {
         $courseitem = \grade_item::fetch_course_item($courseid);
@@ -680,7 +648,7 @@ class element_helper {
      * @param int $gradeformat
      * @param int $userid
      * @param int|null $courseid If set, the module must belong to this course.
-     * @return grade_information|bool the grade information, or false if there is none.
+     * @return grade_information|false the grade information, or false if there is none.
      */
     public static function get_mod_grade_info(
         int $cmid,
@@ -751,7 +719,7 @@ class element_helper {
      * @param int $gradeformat
      * @param int $userid
      * @param int|null $courseid If set, the grade item must belong to this course.
-     * @return grade_information|bool the grade information, or false if there is none.
+     * @return grade_information|false the grade information, or false if there is none.
      */
     public static function get_grade_item_info(
         int $gradeitemid,
@@ -895,20 +863,14 @@ class element_helper {
                     $filenamewoextension = $fontfamily . $fontstyle;
                 }
                 $fullpath = TCPDF_FONTS::_getfontpath() . $filenamewoextension;
-                // Set the name of the font to null, the include next should then set this
-                // value, if it is not set then the file does not include the necessary data.
+                // The included font definition file sets $name and, for some fonts, $displayname.
                 $name = null;
-                // Some files include a display name, the include next should then set this
-                // value if it is present, if not then $name is used to create the display name.
                 $displayname = null;
-                // Some of the TCPDF files include files that are not present, so we have to
-                // suppress warnings, this is the TCPDF libraries fault, grrr.
+                // Some TCPDF font files include files that are not present, so warnings must be suppressed.
                 @include($fullpath . '.php');
-                // If no $name variable in file, skip it.
                 if (is_null($name)) {
                     continue;
                 }
-                // Check if there is no display name to use.
                 if (is_null($displayname)) {
                     // Format the font name, so "FontName-Style" becomes "Font Name - Style".
                     $displayname = preg_replace("/([a-z])([A-Z])/", "$1 $2", $name);

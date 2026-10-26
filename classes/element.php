@@ -186,21 +186,16 @@ abstract class element implements
     public function __construct(stdClass $element) {
         $showposxy = get_config('customcert', 'showposxy');
 
-        // Normalise types defensively — DB/fixtures may provide strings for numeric fields.
-        // Helper: return null if unset or empty string, otherwise cast.
+        // DB rows and fixtures may supply numeric fields as strings; empty values stay null.
         $optional = static function ($value, callable $cast) {
             return (isset($value) && $value !== '') ? $cast($value) : null;
         };
 
-        // Required scalars.
         $this->id = isset($element->id) ? (int) $element->id : 0;
         $this->pageid = isset($element->pageid) ? (int) $element->pageid : 0;
         $this->name = isset($element->name) ? (string) $element->name : '';
 
-        // Mixed data payload.
         $this->data = $element->data ?? null;
-
-        // Optional fields (preserve NULL when unset or empty string).
         $this->posx = $optional($element->posx ?? null, 'intval');
         $this->posy = $optional($element->posy ?? null, 'intval');
         $this->refpoint = $optional($element->refpoint ?? null, 'intval');
@@ -233,7 +228,7 @@ abstract class element implements
     /**
      * Returns the name.
      *
-     * @return int
+     * @return string
      */
     public function get_name(): string {
         return $this->name;
@@ -260,17 +255,12 @@ abstract class element implements
     }
 
     /**
-     * Returns the raw, untouched persistence representation of the element data.
+     * Return the unmodified element data intended for persistence.
      *
-     * Unlike {@see get_data()}, this method never unwraps a generic migration wrapper for
-     * legacy backwards-compatibility. It always returns exactly what is (or will be) stored
-     * in the `customcert_elements.data` database column, preserving any extra migrated
-     * fields (e.g. font, fontsize, colour, width, height, alphachannel) that a legacy
-     * scalar compatibility view would otherwise hide.
-     *
-     * This method is intended for use by the persistence layer (e.g. element_repository)
-     * only, and must not be used as a substitute for get_data() by element rendering or
-     * form-handling code.
+     * Unlike {@see get_data()}, this never unwraps a generic migration wrapper, so migrated
+     * fields (font, fontsize, colour, width, height, alphachannel) that the legacy scalar view
+     * hides are preserved. For the persistence layer (e.g. element_repository) only; rendering
+     * and form code should use get_data().
      *
      * @return mixed
      */
@@ -300,13 +290,9 @@ abstract class element implements
     /**
      * Return true if the given JSON string is a generic migration scalar wrapper.
      *
-     * A generic migration wrapper is a JSON object that:
-     *  - Has a 'value' key.
-     *  - Has no keys other than 'value' and the known migration visual/layout metadata keys
-     *    (width, height, font, fontsize, colour, alphachannel).
-     *
-     * This is used by get_data() to provide backwards-compatibility for legacy third-party
-     * elements that call get_data() and expect the original scalar value.
+     * That is a JSON object with a 'value' key and no keys other than 'value' and
+     * MIGRATION_VISUAL_KEYS. get_data() uses it to give legacy third-party elements the
+     * original scalar value.
      *
      * @param string $data The raw JSON string from the data column.
      * @return bool
@@ -361,10 +347,7 @@ abstract class element implements
     }
 
     /**
-     * Return the decoded JSON payload stored in 'data' or an empty array when not valid JSON.
-     *
-     * This helper is intended for element implementations that store structured data
-     * in the JSON 'data' column. It never throws; invalid or non-JSON values produce [].
+     * Return the decoded JSON array, or [] for invalid or non-array JSON.
      *
      * @return array<string,mixed>
      */
@@ -428,7 +411,7 @@ abstract class element implements
     /**
      * Returns the refpoint.
      *
-     * @return int
+     * @return int|null
      */
     public function get_refpoint(): ?int {
         return $this->refpoint ?? null;
@@ -437,7 +420,7 @@ abstract class element implements
     /**
      * Returns the alignment.
      *
-     * @return string The current alignment value.
+     * @return string|null
      */
     public function get_alignment(): ?string {
         return $this->alignment ?? self::ALIGN_LEFT;
@@ -619,7 +602,6 @@ abstract class element implements
             . 'Use element_helper::render_common_form_elements() instead.',
             DEBUG_DEVELOPER
         );
-        // Render the common elements.
         element_helper::render_form_element_font($mform);
         element_helper::render_form_element_colour($mform);
         if ($this->showposxy) {
@@ -644,8 +626,6 @@ abstract class element implements
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
             DEBUG_DEVELOPER
         );
-        // Loop through the properties of the element and set the values
-        // of the corresponding form element, if it exists.
         $properties = [
             'name' => $this->name,
             'font' => $this->get_font(),
@@ -684,7 +664,6 @@ abstract class element implements
      * @deprecated since Moodle 5.2
      */
     public function validate_form_elements($data, $files) {
-        // Validate the common form elements.
         $errors = [];
         $errors += element_helper::validate_form_element_colour($data);
         if ($this->showposxy) {

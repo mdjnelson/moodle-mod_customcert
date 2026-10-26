@@ -32,11 +32,8 @@ use mod_customcert\element\stylable_payload;
 /**
  * Typed payload for the coursename element.
  *
- * Encapsulates all data stored in the `customcert_elements.data` JSON column for
- * a coursename element. Using this class instead of raw arrays makes the valid
- * keys, their types, and their constraints explicit and statically analysable.
- *
- * The database still stores plain JSON; this class is the PHP-side contract only.
+ * Defines the keys, types and constraints of a coursename element's `customcert_elements.data`
+ * JSON. The database still stores plain JSON; this class is the PHP-side contract only.
  *
  * @package    customcertelement_coursename
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>

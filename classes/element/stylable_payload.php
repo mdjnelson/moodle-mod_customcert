@@ -23,18 +23,15 @@ use stdClass;
 /**
  * Immutable value object for the standard visual style fields shared by text-like elements.
  *
- * Text-like elements (text, code, date, grade, studentname, teachername, coursename,
- * categoryname, userfield, coursefield, gradeitemname, expiry, etc.) all store the same
- * four visual fields in their JSON payload:
+ * Text-like elements store the same four visual fields in their JSON payload:
  *
  *   font     - font family name (string)
  *   fontsize - point size (int)
  *   colour   - hex colour string (string)
  *   width    - text-box width in mm (int)
  *
- * Use {@see stylable_payload::from_form()} inside `normalise_data()` and compose it
- * into a typed payload class, or call `->to_array()` to merge with element-specific
- * fields for direct array return.
+ * Use {@see stylable_payload::from_form()} in `normalise_data()`, either composed into a typed
+ * payload class or merged with element-specific fields via `->to_array()`.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>

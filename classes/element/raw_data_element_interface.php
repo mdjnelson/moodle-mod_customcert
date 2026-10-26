@@ -29,29 +29,21 @@ namespace mod_customcert\element;
 /**
  * Interface raw_data_element_interface
  *
- * This is deliberately kept separate from {@see element_interface} so that third-party
- * plugins implementing element_interface directly are not broken by a new required method:
- * element_interface is a stable, minimal contract that any third-party element must be
- * able to satisfy without modification.
+ * Optional interface letting the persistence layer store an element's untouched data instead of
+ * get_data(), which may apply legacy compatibility unwrapping and lose migrated fields.
  *
- * Elements implementing this optional interface allow the persistence layer (e.g.
- * element_repository) to store the untouched persistence representation of the element
- * data, instead of falling back to get_data(), which may apply legacy compatibility
- * unwrapping and lose migrated fields.
+ * Kept separate from {@see element_interface} so third-party plugins implementing that stable,
+ * minimal contract are not broken by a new required method.
  */
 interface raw_data_element_interface {
     /**
      * Returns the raw, untouched persistence representation of the element data.
      *
-     * Unlike {@see element_interface::get_data()}, this must never apply legacy
-     * compatibility unwrapping. It always returns exactly what is (or will be) stored
-     * in the `customcert_elements.data` database column, so that the persistence layer
-     * (e.g. element_repository) never loses migrated fields that a legacy scalar
-     * compatibility view would otherwise hide.
+     * Unlike {@see element_interface::get_data()}, this never applies legacy compatibility
+     * unwrapping: it returns exactly what is stored in `customcert_elements.data`, so migrated
+     * fields hidden by a legacy scalar view are not lost.
      *
-     * This method is intended for use by the persistence/storage boundary (e.g.
-     * element_repository) only, and must not be used as a substitute for get_data() by
-     * element rendering or form-handling code.
+     * For the persistence layer only; rendering and form code must use get_data().
      *
      * @return mixed
      */
