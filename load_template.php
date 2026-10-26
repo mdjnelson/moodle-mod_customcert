@@ -52,17 +52,14 @@ if ($template->get_context()->contextlevel == CONTEXT_MODULE) {
     $title = $SITE->fullname;
 }
 
-// Check that they have confirmed they wish to load the template.
 if ($confirm && confirm_sesskey()) {
     $service = template_load_service::create();
     $service->replace($template->get_id(), $loadtemplate->get_id());
 
-    // Redirect.
     $url = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
     redirect($url);
 }
 
-// Create the link options.
 $nourl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
 $yesurl = new moodle_url('/mod/customcert/load_template.php', ['tid' => $tid,
                                                                     'ltid' => $ltid,
@@ -79,7 +76,6 @@ $link = new moodle_url('/mod/customcert/edit.php', ['tid' => $template->get_id()
 $PAGE->navbar->add($str, new action_link($link, $str));
 $PAGE->navbar->add(get_string('loadtemplate', 'customcert'));
 
-// Show a confirmation page.
 echo $OUTPUT->header();
 echo $OUTPUT->confirm(get_string('loadtemplatemsg', 'customcert'), $yesurl, $nourl);
 echo $OUTPUT->footer();

@@ -57,7 +57,6 @@ $userid = required_param('userid', PARAM_INT);
 $webservicelib = new webservice();
 $authenticationinfo = $webservicelib->authenticate_user($token);
 
-// Check the service allows file download.
 $enabledfiledownload = (int) ($authenticationinfo['service']->downloadfiles);
 if (empty($enabledfiledownload)) {
     throw new webservice_access_exception('Web service file downloading must be enabled in external service settings');
@@ -83,12 +82,10 @@ if (!$issue) {
     $issueservice = certificate_issue_service::create();
     $issueservice->issue_certificate((int)$certificate->id, (int)$USER->id);
 
-    // Set the custom certificate as viewed.
     $completion = new completion_info($course);
     $completion->set_module_viewed($cm);
 }
 
-// Now we want to generate the PDF.
 $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$certificate->templateid));
 $pdfservice = pdf_generation_service::create();
 $pdfservice->generate_pdf($template, false, (int)$userid);

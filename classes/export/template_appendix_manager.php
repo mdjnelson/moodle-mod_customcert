@@ -68,7 +68,6 @@ class template_appendix_manager implements template_appendix_manager_interface {
         $files = $this->get_files_from_template($templateid);
         $files = array_filter($files, fn ($file) => $file instanceof stored_file);
 
-        // Save files.
         $targetdir = $this->get_filepath($storepath);
         check_dir_exists($targetdir);
         foreach ($files as $file) {
@@ -77,7 +76,6 @@ class template_appendix_manager implements template_appendix_manager_interface {
             $file->copy_content_to($filepath);
         }
 
-        // Create manifest.
         $manifest = [
             'version' => 1,
             'files' => [],
@@ -191,9 +189,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
             if (isset($meta['filepath']) && !is_string($meta['filepath'])) {
                 throw new import_exception("invalid file path type: files/$contenthash");
             }
-            // Validate the filename from the manifest strictly: reject any name that
-            // clean_param would mutate (e.g. path traversal sequences) rather than
-            // silently accepting a normalised version. This ensures import integrity.
+            // Reject filenames that cleaning would alter, including traversal sequences.
             $rawfilename = $meta['filename'];
             $filename = clean_param($rawfilename, PARAM_FILE);
             if ($filename === '' || $filename !== $rawfilename) {
@@ -226,7 +222,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 throw new import_exception("file not found: files/$contenthash");
             }
 
-            // Using mod_customcert/image/itemid=0 is compatible with your element runtime code.
+            // Store under itemid=0, matching how the element rendering code looks up images.
             $filerecord = [
                 'contextid' => $contextid,
                 'component' => 'mod_customcert',
@@ -236,9 +232,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 'filename'  => $filename,
             ];
 
-            // Avoid duplicates: reuse only if the existing file has the same content hash.
-            // Matching by pathname alone is not sufficient — a file with the same name but
-            // different content would silently produce the wrong result on round-trip.
+            // Reuse files only when content hashes match; equal paths may contain different data.
             $existing = $fs->get_file(
                 $filerecord['contextid'],
                 $filerecord['component'],
@@ -253,9 +247,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
                 continue;
             }
 
-            // A file with the same name but different content exists. Do not delete it —
-            // it may be referenced by another template or element and we do not own it.
-            // Instead, import under a collision-free name derived from the content hash.
+            // Preserve conflicting files that other templates may reference; import under a hash-derived name.
             if ($existing) {
                 $ext = pathinfo($filename, PATHINFO_EXTENSION);
                 $base = pathinfo($filename, PATHINFO_FILENAME);
@@ -263,9 +255,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
             }
 
             $stored = $fs->create_file_from_pathname($filerecord, $srcpath);
-            // Verify the stored file's content hash matches the manifest key.
-            // This catches truncated or corrupted archive members before they
-            // are silently used as the wrong file.
+            // Reject corrupted archive members whose stored content hash differs from the manifest.
             if ($stored->get_contenthash() !== $contenthash) {
                 $stored->delete();
                 throw new import_exception(

@@ -162,7 +162,6 @@ class element extends base_element implements
                 }
             }
 
-            // Populate size/alpha fields from stored JSON data if present.
             if (isset($payload['width'])) {
                 $mform->setDefault('width', (int)$payload['width']);
             }
@@ -186,7 +185,7 @@ class element extends base_element implements
     }
 
     /**
-     * Normalise user picture element data.
+     * Normalise image element data.
      *
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
@@ -194,14 +193,12 @@ class element extends base_element implements
     public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
-        // Set the context.
         if ($COURSE->id == $SITE->id) {
             $context = \context_system::instance();
         } else {
             $context = \context_course::instance($COURSE->id);
         }
 
-        // Handle file uploads.
         if (isset($formdata->customcertimage)) {
             form_service::upload_files($formdata->customcertimage, $context->id);
         }
@@ -216,7 +213,6 @@ class element extends base_element implements
         }
 
         if (!empty($formdata->fileid) && array_key_exists((int)$formdata->fileid, self::get_images())) {
-            // Array of data we will be storing in the database.
             $fs = get_file_storage();
             if ($file = $fs->get_file_by_id($formdata->fileid)) {
                 $arrtostore += [
@@ -279,14 +275,12 @@ class element extends base_element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
 
         $payload = $this->get_payload();
 
-        // If there is no file, we have nothing to display.
         if (empty($payload['filename'])) {
             return;
         }
@@ -295,7 +289,6 @@ class element extends base_element implements
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
 
-            // Check if the alpha channel is set, if it is, use it.
             if (isset($payload['alphachannel'])) {
                 $pdf->SetAlpha((float)$payload['alphachannel']);
             }
@@ -325,28 +318,22 @@ class element extends base_element implements
     }
 
     /**
-     * Render the element in html.
-     *
-     * This function is used to render the element when we are using the
-     * drag and drop interface to position it.
+     * Render the element in html for the drag and drop interface.
      *
      * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }
 
         $payload = $this->get_payload();
 
-        // If there is no file, we have nothing to display.
         if (empty($payload['filename'])) {
             return '';
         }
 
-        // Get the image.
         $fs = get_file_storage();
         if (
             $file = $fs->get_file(
@@ -368,7 +355,6 @@ class element extends base_element implements
             );
             $fileimageinfo = $file->get_imageinfo();
             $whratio = $fileimageinfo['width'] / $fileimageinfo['height'];
-            // The size of the images to use in the CSS style.
             $style = '';
             $w = (int)($payload['width'] ?? 0);
             $h = (int)($payload['height'] ?? 0);
@@ -401,25 +387,16 @@ class element extends base_element implements
     }
 
     /**
-     * This function is responsible for handling the restoration process of the element.
-     *
-     * We will want to update the file's pathname hash.
+     * Point the stored file reference at the restored course context.
      *
      * @param restore_customcert_activity_task $restore
      */
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
-        // Get the current data we have stored for this element.
         $payload = $this->get_payload();
-
-        // Update the context.
         $payload['contextid'] = context_course::instance($restore->get_courseid())->id;
-
-        // Encode again before saving.
         $elementinfo = json_encode($payload);
-
-        // Perform the update.
         $DB->set_field('customcert_elements', 'data', $elementinfo, ['id' => $this->get_id()]);
     }
 
@@ -451,18 +428,14 @@ class element extends base_element implements
     public static function get_images() {
         global $COURSE;
 
-        // Create file storage object.
         $fs = get_file_storage();
 
-        // The array used to store the images.
         $arrfiles = [];
-        // Loop through the files uploaded in the system context.
         if ($files = $fs->get_area_files(context_system::instance()->id, 'mod_customcert', 'image', false, 'filename', false)) {
             foreach ($files as $hash => $file) {
                 $arrfiles[$file->get_id()] = get_string('systemimage', 'customcertelement_image', $file->get_filename());
             }
         }
-        // Loop through the files uploaded in the course context.
         if (
             $files = $fs->get_area_files(
                 context_course::instance($COURSE->id)->id,
@@ -531,7 +504,6 @@ class element extends base_element implements
 
         $fs = get_file_storage();
 
-        // Check that a file has been selected.
         if (isset($imagedata->filearea)) {
             // If the course file doesn't exist, copy the system file to the course context.
             if (
@@ -553,14 +525,12 @@ class element extends base_element implements
                     $imagedata->filename
                 );
 
-                // We want to update the context of the file if it doesn't exist in the course context.
                 $fieldupdates = [
                     'contextid' => $coursecontext->id,
                 ];
                 $coursefile = $fs->create_file_from_storedfile($fieldupdates, $systemfile);
             }
 
-            // Set the image to the copied file in the course.
             $imagedata->fileid = $coursefile->get_id();
             $jsondata = json_encode($this->normalise_data($imagedata));
             $DB->set_field(

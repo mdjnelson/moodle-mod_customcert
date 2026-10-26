@@ -31,19 +31,11 @@ use advanced_testcase;
 use mod_customcert\local\preview_renderer;
 
 /**
- * Unit tests for the preview_renderer class.
- *
- * This test suite validates the functionality and expected behavior of the
- * preview_renderer class, ensuring its methods are working as intended under
- * various conditions.
+ * Tests for the preview renderer.
  */
 final class preview_renderer_test extends advanced_testcase {
     /**
-     * Tests that the render_html_page method returns a string when rendering an empty page.
-     *
-     * This test verifies that the rendering method provides a result that is of type string,
-     * even for a page with no elements or content. Additionally, it ensures the returned
-     * string is not null and adheres to expected behavior for an empty page scenario.
+     * Rendering an empty page must return a string.
      *
      * @covers \mod_customcert\local\preview_renderer::render_html_page
      * @return void

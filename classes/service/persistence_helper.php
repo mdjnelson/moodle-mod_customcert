@@ -34,11 +34,8 @@ use ReflectionMethod;
 use stdClass;
 
 /**
- * Helper to convert form data to the JSON payload stored in customcert_elements.data.
- *
- * Invariant: the returned string is always a JSON object (i.e. decodes to an associative
- * array, never a list, scalar, or null). This guarantees that customcert_elements.data
- * is always a JSON object.
+ * Convert form data to JSON object payloads for customcert_elements.data.
+ * Invariant: the result is always a JSON object (including {}), never a JSON array, scalar or null.
  */
 final class persistence_helper {
     /**
@@ -53,15 +50,13 @@ final class persistence_helper {
      * @return string JSON object string suitable for DB storage
      */
     public static function to_json_data(object $element, stdClass $formdata): string {
-        // Persistable path.
         if ($element instanceof persistable_element_interface) {
             $normalised = $element->normalise_data($formdata);
             return self::to_object_json($normalised);
         }
 
-        // Legacy path: only invoke save_unique_data() when the concrete class actually overrides it,
-        // not when it is merely inherited from the mod_customcert\element base class.
-        // Unwrap the adapter so we inspect the inner legacy element's declaring class.
+        // Only call save_unique_data() when the concrete class overrides it, not when it is merely
+        // inherited from the base class. Unwrap the adapter to inspect the inner element's class.
         $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
         if (
             method_exists($target, 'save_unique_data') &&
@@ -76,7 +71,6 @@ final class persistence_helper {
             return self::to_object_json(self::merge_legacy_visuals($legacy, $element, $formdata));
         }
 
-        // Absolute fallback: empty object.
         return json_encode(new stdClass());
     }
 
@@ -86,10 +80,8 @@ final class persistence_helper {
      * element::save_form_elements() semantics where these fields were persisted by the
      * base class separately from the plugin-specific scalar value.
      *
-     * When a visual field is absent from the submitted form data (which, in practice,
-     * only happens in synthetic/test scenarios since the real legacy edit form always
-     * renders these fields with defaults), the previous value already stored in the
-     * element's raw data is preserved instead of being dropped.
+     * When a visual field is absent from the submitted data (in practice only in synthetic/test
+     * scenarios), the previously stored value is preserved instead of dropped.
      *
      * @param mixed $legacy Result of save_unique_data(): typically a scalar, but may
      *                       already be an associative array for plugins that return
@@ -100,11 +92,9 @@ final class persistence_helper {
      *               any visual field applies, otherwise the original $legacy value.
      */
     private static function merge_legacy_visuals(mixed $legacy, object $element, stdClass $formdata): mixed {
-        // Look up any previously stored recognised compatibility-wrapper metadata (e.g.
-        // height, alphachannel) so it is not silently discarded on the next legacy save.
-        // Only trusted when the existing raw data is itself a recognised generic
-        // migration wrapper — arbitrary/structured third-party JSON is never blindly
-        // merged in, since that could resurrect stale plugin-specific state.
+        // Keep previously stored wrapper metadata (e.g. height, alphachannel) so a legacy save does
+        // not discard it. Only trusted when the raw data is a generic migration wrapper: other
+        // third-party JSON is never merged in, as that could resurrect stale plugin state.
         $existing = [];
         if ($element instanceof raw_data_element_interface) {
             $raw = $element->get_raw_data();
@@ -121,16 +111,11 @@ final class persistence_helper {
 
         $legacystructured = self::decode_structured_legacy_value($legacy);
         if ($legacystructured !== null) {
-            // The plugin itself returns structured data (either a PHP associative array,
-            // or, per the historical string-returning save_unique_data() API, a JSON
-            // object string). Use it as-is without merging in previously stored
-            // compatibility-wrapper metadata, so stale plugin-specific keys cannot
-            // resurrect.
+            // The plugin returned structured data. Use it as-is, without merging stored wrapper
+            // metadata, so stale plugin-specific keys cannot resurrect.
             $payload = $legacystructured;
         } else {
-            // Scalar historical value: start from the existing recognised wrapper metadata
-            // (if any) so keys such as height/alphachannel survive, then replace the
-            // plugin-specific scalar with the latest save_unique_data() result.
+            // Scalar value: keep existing wrapper metadata (height/alphachannel) and replace 'value'.
             $payload = $existing;
             $payload['value'] = $legacy;
         }
@@ -174,8 +159,7 @@ final class persistence_helper {
         }
 
         if (is_string($legacy) && $legacy !== '' && json_validate($legacy)) {
-            // Use the non-associative decode first so an empty JSON object ('{}') can be
-            // distinguished from an empty JSON list ('[]'); both decode to [] otherwise.
+            // Decode to objects so '{}' can be told apart from '[]'; both are [] when decoded as arrays.
             $decoded = json_decode($legacy, false);
             if ($decoded instanceof stdClass) {
                 return (array) $decoded;
@@ -197,28 +181,22 @@ final class persistence_helper {
      * @return string JSON object string
      */
     public static function to_object_json(mixed $value): string {
-        // Associative array: encode directly as a JSON object.
         if (is_array($value) && !array_is_list($value)) {
             return json_encode($value);
         }
 
-        // JSON string: only pass through if it decodes to a JSON object (including '{}').
-        // Use json_decode(..., false) so that '{}' becomes stdClass rather than [],
-        // which lets us distinguish an empty object from an empty list.
+        // Pass a JSON string through only if it is an object. Decoding to objects keeps '{}' distinct from '[]'.
         if (is_string($value) && $value !== '' && json_validate($value)) {
             $decoded = json_decode($value, false);
             if ($decoded instanceof \stdClass) {
                 return $value;
             }
-            // JSON list, scalar JSON, etc. — fall through to wrap.
         }
 
-        // Null input: return empty object.
         if ($value === null) {
             return json_encode(new stdClass());
         }
 
-        // List array, scalar (string/int/float/bool), or non-object JSON string → wrap.
         return json_encode(['value' => $value]);
     }
 }

@@ -27,23 +27,18 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 /**
- * Elements implementing this interface expose the untouched/raw persistence representation
- * of their data, as opposed to the legacy compatibility view returned by get_data().
+ * Optional interface exposing an element's untouched persistence data, as opposed to the legacy
+ * compatibility view returned by get_data().
  *
- * This is a narrow, optional interface: it is not part of the minimal element_interface
- * contract, and only exists for the repository/storage persistence boundary. Implementing
- * it is only meaningful for elements whose get_data() may apply legacy compatibility
- * unwrapping (e.g. unwrapping a generic migration wrapper) that must never be written back
- * to the database.
+ * Not part of the minimal element_interface contract. It only matters for elements whose
+ * get_data() may unwrap a generic migration wrapper that must never be written back to the database.
  */
 interface raw_data_element_interface {
     /**
      * Returns the raw, untouched persistence representation of the element data.
      *
-     * Unlike get_data(), this must never apply any legacy compatibility transformation.
-     * It is intended for use by the persistence layer (e.g. element_repository) only, and
-     * must not be used as a substitute for get_data() by element rendering or form-handling
-     * code.
+     * Unlike get_data(), this never applies a legacy compatibility transformation.
+     * For the persistence layer only; rendering and form code must use get_data().
      *
      * @return mixed
      */

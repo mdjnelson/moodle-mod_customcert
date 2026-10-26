@@ -99,10 +99,8 @@ class element extends \customcertelement_image\element implements
      * @return void
      */
     public function build_form(MoodleQuickForm $mform): void {
-        // Image selector first.
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
 
-        // Existing signature selection.
         $mform->addElement(
             'select',
             'signaturefileid',
@@ -110,7 +108,6 @@ class element extends \customcertelement_image\element implements
             self::get_signatures()
         );
 
-        // Signature metadata fields.
         $mform->addElement('text', 'signaturename', get_string('signaturename', 'customcertelement_digitalsignature'));
         $mform->setType('signaturename', PARAM_TEXT);
         $mform->setDefault('signaturename', '');
@@ -139,16 +136,13 @@ class element extends \customcertelement_image\element implements
         $mform->setType('signaturecontactinfo', PARAM_TEXT);
         $mform->setDefault('signaturecontactinfo', '');
 
-        // Width and height fields.
         element_helper::render_form_element_width($mform);
         element_helper::render_form_element_height($mform);
 
-        // Position fields (if enabled).
         if (get_config('customcert', 'showposxy')) {
             element_helper::render_form_element_position($mform);
         }
 
-        // Uploaders last.
         $mform->addElement(
             'filemanager',
             'customcertimage',
@@ -175,11 +169,9 @@ class element extends \customcertelement_image\element implements
     public function prepare_form(MoodleQuickForm $mform): void {
         global $COURSE, $SITE;
 
-        // Populate signature-related fields from stored JSON data when editing.
         if (!empty($this->get_data())) {
             $payload = $this->get_payload();
 
-            // Populate signature metadata fields.
             if (isset($payload['signaturename'])) {
                 $mform->setDefault('signaturename', (string)$payload['signaturename']);
             }
@@ -193,14 +185,12 @@ class element extends \customcertelement_image\element implements
                 $mform->setDefault('signaturecontactinfo', (string)$payload['signaturecontactinfo']);
             }
 
-            // Populate signature file select if a signature file is stored.
             if (!empty($payload['signaturefilename'])) {
                 if ($signaturefile = $this->get_signature_file()) {
                     $mform->setDefault('signaturefileid', $signaturefile->get_id());
                 }
             }
 
-            // Populate image file select if an image file is stored.
             if (
                 isset(
                     $payload['contextid'],
@@ -286,19 +276,16 @@ class element extends \customcertelement_image\element implements
     public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
-        // Set the context.
         if ($COURSE->id == $SITE->id) {
             $context = \context_system::instance();
         } else {
             $context = \context_course::instance($COURSE->id);
         }
 
-        // Handle file uploads.
         if (isset($formdata->customcertimage)) {
             form_service::upload_files($formdata->customcertimage, $context->id);
         }
 
-        // Handle file certificate uploads.
         if (isset($formdata->digitalsignature)) {
             form_service::upload_files($formdata->digitalsignature, $context->id, 'signature');
         }
@@ -313,7 +300,6 @@ class element extends \customcertelement_image\element implements
             'height' => !empty($formdata->height) ? (int) $formdata->height : 0,
         ];
 
-        // Array of data we will be storing in the database.
         $fs = get_file_storage();
 
         if (!empty($formdata->fileid) && array_key_exists((int)$formdata->fileid, self::get_images())) {
@@ -352,7 +338,6 @@ class element extends \customcertelement_image\element implements
      * @param element_renderer|null $renderer the renderer service
      */
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
@@ -396,19 +381,16 @@ class element extends \customcertelement_image\element implements
     }
 
     /**
-     * Return the list of possible images to use.
+     * Return the list of possible digital signature files to use.
      *
-     * @return array the list of images that can be used
+     * @return array the list of signature files that can be used
      */
     public static function get_signatures() {
         global $COURSE;
 
-        // Create file storage object.
         $fs = get_file_storage();
 
-        // The array used to store the digital signatures.
         $arrfiles = [];
-        // Loop through the files uploaded in the system context.
         if (
             $files = $fs->get_area_files(
                 context_system::instance()->id,
@@ -423,7 +405,6 @@ class element extends \customcertelement_image\element implements
                 $arrfiles[$file->get_id()] = $file->get_filename();
             }
         }
-        // Loop through the files uploaded in the course context.
         if (
             $files = $fs->get_area_files(
                 context_course::instance($COURSE->id)->id,
@@ -448,7 +429,7 @@ class element extends \customcertelement_image\element implements
     /**
      * Normalises a signaturepassword value recovered from a backup for safe storage.
      *
-     * Three cases are handled:
+     * Four cases are handled:
      *  - Empty/missing password: returned as-is (empty string).
      *  - Recognisable Moodle ciphertext (starts with the Sodium method prefix) that decrypts
      *    successfully on this site: preserved as-is (already encrypted with this site's key).

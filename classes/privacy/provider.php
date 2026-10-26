@@ -112,7 +112,6 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             return;
         }
 
-        // Fetch all users who have a custom certificate.
         $sql = "SELECT customcertissues.userid
                   FROM {course_modules} cm
                   JOIN {modules} m
@@ -153,7 +152,6 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
 
         $user = $contextlist->get_user();
 
-        // Get all the customcert activities associated with the above course modules.
         $customcertidstocmids = self::get_customcert_ids_to_cmids_from_cmids($cmids);
 
         [$insql, $inparams] = $DB->get_in_or_equal(array_keys($customcertidstocmids), SQL_PARAMS_NAMED);
