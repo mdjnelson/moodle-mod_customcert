@@ -295,14 +295,9 @@ class template {
     }
 
     /**
-     * Ensures the user is allowed to use this template as the source when copying its
-     * content into another template (eg. via load_template.php).
-     *
-     * System context templates are shared, reusable presets that the load-template form
-     * lists to any user regardless of their capabilities at the system context, so they can
-     * be used as a source without holding mod/customcert:manage there. Templates in any other
-     * context (course or activity) still require manage capability, otherwise a user could
-     * copy the content of a private template belonging to a course they cannot access.
+     * Check access to a source template before copying.
+     * System templates are shared presets; other contexts require mod/customcert:manage
+     * to prevent copying private templates from inaccessible courses.
      *
      * @throws \required_capability_exception if the user does not have the necessary capabilities
      */

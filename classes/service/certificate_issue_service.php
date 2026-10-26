@@ -79,14 +79,11 @@ final class certificate_issue_service {
         $issue->studentemailed = 0;
         $issue->timecreated = ($this->timeprovider)();
 
-        // Insert the record into the database.
         $issueid = $this->db->insert_record('customcert_issues', $issue);
 
-        // Get course module context for event.
         $cm = get_coursemodule_from_instance('customcert', $certificateid, 0, false, MUST_EXIST);
         $context = context_module::instance($cm->id);
 
-        // Trigger event.
         $event = issue_created::create([
             'objectid' => $issueid,
             'context' => $context,
@@ -104,7 +101,6 @@ final class certificate_issue_service {
      * @throws \moodle_exception If a unique code cannot be generated after the maximum number of attempts.
      */
     public function generate_code(): string {
-        // Get the user's selected method from settings.
         $method = get_config('customcert', 'codegenerationmethod');
 
         $maxattempts = 10;

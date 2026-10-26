@@ -49,7 +49,6 @@ class load_template_form extends moodleform {
     public function definition() {
         $mform =& $this->_form;
 
-        // Get the context.
         $context = $this->_customdata['context'];
         $syscontext = context_system::instance();
 
@@ -57,7 +56,6 @@ class load_template_form extends moodleform {
 
         $mform->addElement('header', 'loadtemplateheader', get_string('loadtemplate', 'customcert'));
 
-        // Display a link to the manage templates page.
         if ($context->contextlevel != CONTEXT_SYSTEM && has_capability('mod/customcert:manage', $syscontext)) {
             $link = html_writer::link(
                 new moodle_url('/mod/customcert/manage_templates.php'),

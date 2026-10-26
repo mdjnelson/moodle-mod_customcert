@@ -52,7 +52,6 @@ if ($downloadcert) {
     $certificateid = required_param('certificateid', PARAM_INT);
     $certrepo = new certificate_repository();
     $customcert = $certrepo->get_by_id_or_fail($certificateid);
-    // Check there exists an issued certificate for this user.
     $issuerepo = new issue_repository();
     if (!$issuerepo->find_by_user_certificate((int)$customcert->id, $userid)) {
         throw new moodle_exception('You have not been issued a certificate');
@@ -72,7 +71,6 @@ $PAGE->set_title(get_string('mycertificates', 'customcert'));
 $PAGE->set_pagelayout('standard');
 $PAGE->navigation->extend_for_user($user);
 
-// Check if we requested to download a certificate.
 if ($downloadcert) {
     $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
     $pdfservice = pdf_generation_service::create();
@@ -88,7 +86,6 @@ if ($table->is_downloading()) {
     exit();
 }
 
-// Additional page setup.
 $PAGE->navbar->add(get_string('profile'), new moodle_url('/user/profile.php', ['id' => $userid]));
 $PAGE->navbar->add(get_string('mycertificates', 'customcert'));
 

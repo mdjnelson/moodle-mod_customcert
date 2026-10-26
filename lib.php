@@ -45,18 +45,15 @@ use mod_customcert\template;
 function customcert_add_instance($data, $mform) {
     global $DB;
 
-    // Create a template for this customcert to use.
     $context = context_module::instance($data->coursemodule);
     $template = template::create($data->name, $context->id);
 
-    // Add the data to the DB.
     $data->templateid = $template->get_id();
     $data->protection = form_service::set_protection($data);
     $data->timecreated = time();
     $data->timemodified = $data->timecreated;
     $data->id = $DB->insert_record('customcert', $data);
 
-    // Add a page to this customcert.
     $service = template_service::create();
     $service->add_page($template, false);
 
@@ -91,7 +88,6 @@ function customcert_update_instance($data, $mform) {
 function customcert_delete_instance($id) {
     global $CFG, $DB;
 
-    // Ensure the customcert exists.
     if (!$customcert = $DB->get_record('customcert', ['id' => $id])) {
         return false;
     }
@@ -103,7 +99,6 @@ function customcert_delete_instance($id) {
 
     $context = context_module::instance($cm->id);
 
-    // Trigger issue_deleted events for each issue.
     $issuerepo = new issue_repository();
     $issues = $issuerepo->list_by_certificate($id);
     foreach ($issues as $issue) {
@@ -114,21 +109,17 @@ function customcert_delete_instance($id) {
         ]);
         $event->trigger();
     }
-    // Delete the customcert issues.
     $issuerepo->delete_by_certificate($id);
 
-    // Now, delete the template associated with this certificate.
     if (($templaterecord = (new template_repository())->get_by_id((int)$customcert->templateid)) !== null) {
         $templateservice = template_service::create();
         $templateservice->delete(template::from_record($templaterecord));
     }
 
-    // Delete the customcert instance.
     if (!$DB->delete_records('customcert', ['id' => $id])) {
         return false;
     }
 
-    // Delete any files associated with the customcert.
     $fs = get_file_storage();
     $fs->delete_area_files($context->id);
 
@@ -239,7 +230,6 @@ function customcert_pluginfile($course, $cm, $context, $filearea, $args, $forced
 
     require_once($CFG->libdir . '/filelib.php');
 
-    // We are positioning the elements.
     if ($filearea === 'image') {
         if ($context->contextlevel == CONTEXT_MODULE) {
             require_login($course, false, $cm);
@@ -386,7 +376,6 @@ function mod_customcert_output_fragment_editelement($args) {
     $factory = element_factory::build_with_defaults();
     $elementrepo = new element_repository($factory);
 
-    // Require both elementid and templateid to be supplied.
     if (empty($args['elementid']) || empty($args['templateid'])) {
         throw new moodle_exception('nopermissions', 'error', '', 'editelement');
     }
@@ -433,7 +422,6 @@ function customcert_extend_settings_navigation(settings_navigation $settings, na
     }
 
     if (has_capability('mod/customcert:manage', $settings->get_page()->cm->context)) {
-        // Get the template id.
         $templateid = $DB->get_field('customcert', 'templateid', ['id' => $settings->get_page()->cm->instance]);
         $node = navigation_node::create(
             get_string('editcustomcert', 'customcert'),
@@ -517,19 +505,15 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
         $element = $elementrepo->get_by_id_or_fail((int)$itemid); // @codingStandardsIgnoreLine
         $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
-        // Set the template object.
         $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));
-        // Perform checks.
         if ($cm = $template->get_cm()) {
             require_login($cm->course, false, $cm);
         } else {
             $PAGE->set_context(context_system::instance());
             require_login();
         }
-        // Make sure the user has the required capabilities.
         $template->require_manage();
 
-        // Clean input and update the record.
         $newname = clean_param($newvalue, PARAM_TEXT);
         $elementrepo->update_name((int)$element->id, $newname, (int)$template->get_contextid());
 

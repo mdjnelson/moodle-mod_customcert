@@ -79,14 +79,8 @@ final class template_load_service {
     }
 
     /**
-     * Replace the contents of a target template with a source template's pages and elements.
-     *
-     * All existing pages/elements on the target are removed, then source pages/elements are
-     * copied preserving sequence. A template_updated event is fired for non-system contexts.
-     *
-     * Authorization is enforced here (not only by callers) so that any current or future
-     * caller of this service gets the same protection against copying the contents of a
-     * template the user cannot access.
+     * Replace target pages and elements with an ordered copy of the source.
+     * Enforce source access here for all callers; emit template_updated for non-system contexts.
      *
      * @param int $targetid Existing template to overwrite
      * @param int $sourceid Template to copy from

@@ -48,7 +48,6 @@ final class validation_service {
     public function validate(element_interface $element, array $data): array {
         $errors = [];
 
-        // Validate standard fields if present.
         if (array_key_exists('colour', $data)) {
             $errors += element_helper::validate_form_element_colour($data);
         }
