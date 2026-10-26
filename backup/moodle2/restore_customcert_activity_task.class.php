@@ -120,7 +120,6 @@ class restore_customcert_activity_task extends restore_activity_task {
     public function after_restore() {
         global $DB;
 
-        // Get the customcert elements.
         $sql = "SELECT e.*
                   FROM {customcert_elements} e
             INNER JOIN {customcert_pages} p
@@ -129,10 +128,8 @@ class restore_customcert_activity_task extends restore_activity_task {
                     ON p.templateid = c.templateid
                  WHERE c.id = :customcertid";
         if ($elements = $DB->get_records_sql($sql, ['customcertid' => $this->get_activityid()])) {
-            // Go through the elements for the certificate.
             $factory = $this->get_element_factory();
             foreach ($elements as $element) {
-                // Get an instance of the element class.
                 if ($instance = $factory->create_from_record($element)) {
                     if ($instance instanceof restorable_element_interface) {
                         $instance->after_restore_from_backup($this);

@@ -42,14 +42,13 @@ final class page_update {
     public readonly int $timemodified;
 
     /**
-     * Constructor for initializing the object with specified dimensions and margins.
+     * Constructor.
      *
-     * @param int $width The width of the object.
-     * @param int $height The height of the object.
-     * @param int $leftmargin The left margin of the object.
-     * @param int $rightmargin The right margin of the object.
-     * @param int|null $timemodified Optional parameter for the last modified time; if not provided, defaults to the current time.
-     * @return void
+     * @param int $width Page width in millimetres.
+     * @param int $height Page height in millimetres.
+     * @param int $leftmargin Left margin in millimetres.
+     * @param int $rightmargin Right margin in millimetres.
+     * @param int|null $timemodified Defaults to the current time if not provided.
      */
     public function __construct(
         int $width,

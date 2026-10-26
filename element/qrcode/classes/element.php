@@ -124,7 +124,6 @@ class element extends base_element implements
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
         global $DB;
 
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return;
         }
@@ -132,11 +131,9 @@ class element extends base_element implements
         $payload = $this->get_payload();
 
         if ($preview) {
-            // Generate the URL to verify this.
             $qrcodeurl = new moodle_url('/');
             $qrcodeurl = $qrcodeurl->out(false);
         } else {
-            // Get the information we need.
             $sql = "SELECT c.id, c.verifyany, ct.contextid, ci.code
                       FROM {customcert_issues} ci
                       JOIN {customcert} c
@@ -148,7 +145,6 @@ class element extends base_element implements
                      WHERE ci.userid = :userid
                        AND cp.id = :pageid";
 
-            // Now we can get the issue for this user.
             $issue = $DB->get_record_sql(
                 $sql,
                 ['userid' => $user->id, 'pageid' => $this->get_pageid()],
@@ -199,16 +195,12 @@ class element extends base_element implements
     }
 
     /**
-     * Render the element in html.
-     *
-     * This function is used to render the element when we are using the
-     * drag and drop interface to position it.
+     * Render the element in html for the drag and drop interface.
      *
      * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
     public function render_html(?element_renderer $renderer = null): string {
-        // If there is no element data, we have nothing to display.
         if (empty($this->get_data())) {
             return '';
         }

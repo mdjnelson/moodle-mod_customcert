@@ -27,18 +27,15 @@ declare(strict_types=1);
 namespace mod_customcert\element;
 
 /**
- * Emits a single general legacy-compatibility deprecation notice per legacy
- * customcertelement_* component/type per request.
+ * Emits one general legacy-compatibility deprecation notice per legacy customcertelement_*
+ * component/type per request.
  *
- * This is deliberately the ONLY place the general "this plugin is still using the
- * legacy runtime compatibility API" notice is emitted; it complements, and does not
- * duplicate, the existing method-specific deprecation debugging() calls already
- * emitted for individual legacy hooks (save_unique_data(), validate_form_elements(),
- * definition_after_data(), after_restore()). Those remain unchanged.
+ * This is the only place the general "still using the legacy runtime compatibility API" notice
+ * is emitted. It complements the method-specific notices for individual legacy hooks
+ * (save_unique_data(), validate_form_elements(), definition_after_data(), after_restore()).
  *
- * Callers should invoke notify() at the narrowest coherent compatibility boundary:
- * where a legacy element is detected and wrapped by legacy_element_adapter (i.e. the
- * element factory), not scattered across render/form/persistence/validation/restore.
+ * Call notify() where a legacy element is wrapped by legacy_element_adapter (the element
+ * factory), not from render, form, persistence, validation or restore code.
  */
 final class legacy_compatibility_diagnostic {
     /** @var array<string, true> Components already warned about in this request. */

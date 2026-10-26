@@ -91,7 +91,6 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      */
     public function prepare_form(MoodleQuickForm $mform): void {
-        // Preselect stored teacher id if present.
         $payload = $this->get_payload();
         if (isset($payload['teacher'])) {
             $mform->getElement('teacher')->setValue((int)$payload['teacher']);
@@ -124,10 +123,7 @@ class element extends base_element implements
     }
 
     /**
-     * Render the element in html.
-     *
-     * This function is used to render the element when we are using the
-     * drag and drop interface to position it.
+     * Render the element in html for the drag and drop interface.
      *
      * @param element_renderer|null $renderer the renderer service
      * @return string the html
@@ -157,15 +153,12 @@ class element extends base_element implements
     protected function get_list_of_teachers() {
         global $PAGE;
 
-        // Return early if we are in a site template.
         if ($PAGE->context->id == context_system::instance()->id) {
             return [];
         }
 
-        // The list of teachers to return.
         $teachers = [];
 
-        // Now return all users who can manage the customcert in this context.
         if ($users = get_enrolled_users($PAGE->context, 'mod/customcert:manage')) {
             foreach ($users as $user) {
                 $teachers[$user->id] = fullname($user);

@@ -50,10 +50,7 @@ class enum_field implements field_interface {
     }
 
     /**
-     * Validates and imports an input value from the given data array.
-     *
-     * Ensures the input value is one of the allowed options. Throws an exception
-     * if the value is not valid.
+     * Import an allowed enum value.
      *
      * @param array $data Associative array containing a 'value' key.
      * @return mixed The validated input value.

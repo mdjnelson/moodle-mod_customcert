@@ -247,7 +247,6 @@ class report_table extends table_sql {
             $this->get_sql_sort()
         );
 
-        // Set initial bars.
         if ($useinitialsbar) {
             $this->initialbars($total > $pagesize);
         }

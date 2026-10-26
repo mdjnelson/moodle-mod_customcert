@@ -37,13 +37,9 @@ use mod_customcert\service\element_factory;
 use restore_customcert_activity_task;
 
 /**
- * Adapter that exposes legacy elements through the new element interfaces.
- *
- * Compatibility adapter for legacy element plugins that extend mod_customcert\element.
- *
- * Exposes the v2 element interfaces while delegating to historical hooks
- * (render_form_elements, save_unique_data, etc.). Native v2 elements should implement
- * the interfaces directly and are never wrapped.
+ * Exposes legacy element plugins (extending mod_customcert\element) through the v2 element
+ * interfaces, delegating to historical hooks such as render_form_elements() and
+ * save_unique_data(). Native v2 elements implement the interfaces directly and are never wrapped.
  */
 final class legacy_element_adapter implements
     form_element_interface,
@@ -64,9 +60,8 @@ final class legacy_element_adapter implements
     /**
      * Constructor.
      *
-     * Caches the wrapped element's render()/render_html() declaration shape once, so the
-     * genuine 4.5-era historical call arity and the released 5.2 renderer argument can both
-     * be preserved without reflecting on every render call.
+     * Reflects once on render()/render_html() so both the 4.5-era signatures and the released
+     * 5.2 renderer argument are honoured without reflecting on every render call.
      *
      * @param legacy_base $legacy Legacy element instance to wrap.
      */
@@ -233,11 +228,9 @@ final class legacy_element_adapter implements
     /**
      * Validate form elements (legacy fallback).
      *
-     * Only invokes the legacy hook when the wrapped element actually overrides it;
-     * calling the inherited no-op base implementation would emit a spurious deprecation.
-     * No deprecation notice is emitted here; validation is a read-only check and the
-     * deprecation for legacy save/persist hooks is emitted by the service layer
-     * (persistence_helper) when it actually invokes save_unique_data().
+     * Only invokes the legacy hook when the wrapped element overrides it, as calling the
+     * inherited no-op base implementation would emit a spurious deprecation. No notice is
+     * emitted here: persistence_helper reports the deprecation when it calls save_unique_data().
      *
      * @param array $data
      * @param array $files
@@ -409,7 +402,7 @@ final class legacy_element_adapter implements
      * Delegates to element_repository::delete(). New code should use the repository directly
      * rather than calling delete() on the element.
      *
-     * @return bool success return true if deletion success, false otherwise
+     * @return bool true on success
      */
     public function delete(): bool {
         $repository = new element_repository(element_factory::build_with_defaults());

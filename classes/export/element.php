@@ -95,10 +95,7 @@ class element {
     }
 
     /**
-     * Imports an element into the certificate from a provided data array.
-     *
-     * Validates the input data, converts it using a plugin-specific exporter, and inserts it
-     * into the database along with position and styling details.
+     * Validate and import an element using its subplugin exporter.
      *
      * @param int $pageid The ID of the page to which the element will be added.
      * @param array $data The element data to import.
@@ -169,10 +166,7 @@ class element {
     }
 
     /**
-     * Resolves and returns the subplugin exporter instance for a given plugin name.
-     *
-     * Returns a fallback null exporter if the specific exporter class does not exist
-     * or does not implement the expected interface.
+     * Resolve a subplugin exporter, falling back to a null exporter for missing or incompatible classes.
      *
      * @param string $pluginname The name of the subplugin.
      * @return subplugin_exportable The resolved exporter.

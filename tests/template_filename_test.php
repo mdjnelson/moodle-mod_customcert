@@ -32,10 +32,7 @@ use context_system;
 use mod_customcert\service\pdf_generation_service;
 
 /**
- * Unit test class for testing filename generation in templates.
- *
- * This class extends the advanced_testcase and focuses on verifying the logic
- * applied to determine the filename for users when generating files based on a template.
+ * Tests for certificate filename generation.
  */
 final class template_filename_test extends advanced_testcase {
     /**
