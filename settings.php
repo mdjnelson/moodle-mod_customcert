@@ -81,6 +81,25 @@ if (has_capability('mod/customcert:viewallcertificates', context_system::instanc
     ));
 }
 
+$settings->add(new admin_setting_configcheckbox('customcert/fullname',
+    get_string('fullname', 'customcert'),
+    get_string('fullname_help', 'customcert'),
+    0));
+$settings->add(new admin_setting_configtext('customcert/fullnameformat',
+    get_string('fullnameformat', 'customcert'), get_string('fullnameformat_help', 'customcert'), 'language', PARAM_TEXT));
+
+
+$settings->add(new admin_setting_configcheckbox('customcert/fullname',
+    get_string('fullname', 'customcert'),
+    get_string('fullname_help', 'customcert'),
+    0));
+//$fullnameformat = new admin_setting_configtext('customcert/fullnameformat',
+//    get_string('fullnameformat', 'customcert'), get_string('fullnameformat_help', 'customcert'), '', PARAM_TEXT);
+//$fullnameformat->t
+$settings->add(new admin_setting_configtext('customcert/fullnameformat',
+    get_string('fullnameformat', 'customcert'), get_string('fullnameformat_help', 'customcert'), '', PARAM_TEXT));
+
+
 $settings->add(new admin_setting_heading(
     'scheduledtaskconfig',
     get_string('scheduledtaskconfigheading', 'customcert'),
