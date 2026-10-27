@@ -33,12 +33,17 @@ Registered element classes must implement `form_element_interface` and
 registry throws a `coding_exception` at registration time if a class does not satisfy this native
 v2 contract — there is no fallback compatibility path.
 
+`mod_customcert\element` already implements `form_element_interface`, `stylable_element_interface`,
+`layout_element_interface` and `raw_data_element_interface`, but deliberately **not**
+`renderable_element_interface`; a concrete native element must declare it and implement `render()`
+and `render_html()`. Declare other capability interfaces only when needed.
+
 ### Native registration requirements
 
 | Interface | What it provides |
 |---|---|
 | `form_element_interface` | Edit-form wiring (`build_form()`); extends `element_interface` |
-| `renderable_element_interface` | Rendering to PDF and/or HTML |
+| `renderable_element_interface` | `render()` (PDF) and `render_html()` (designer preview); not implemented by the base class |
 
 ### Optional capability interfaces
 
@@ -47,13 +52,13 @@ Add these based on what the element actually does:
 | Interface | When to implement |
 |---|---|
 | `preparable_form_interface` | Element needs to pre-populate form fields from stored data |
-| `validatable_element_interface` | Element validates submitted form data |
+| `validatable_element_interface` | Element-specific validation rules only; `validation_service` already checks the standard `colour`, `posx`/`posy` and `width` fields |
 | `persistable_element_interface` | Element normalises form/editable values into the JSON payload — add when form/editable values need to be stored there, including the standard style fields `font`, `fontsize`, `colour`, and `width` when exposed via `element_helper::render_common_form_elements()`. `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted separately by the repository/service layer, not via `normalise_data()`. |
 | `stylable_element_interface` | Element uses standard font/colour/width styling (already inherited by subclasses of `mod_customcert\element`) |
 | `layout_element_interface` | Element exposes repository-managed layout values (posx, posy, etc.) (already inherited by subclasses of `mod_customcert\element`) |
 | `restorable_element_interface` | Element remaps internal references after backup restore |
 | `copyable_element_interface` | Element needs custom logic when copied (e.g. file copying) |
-| `raw_data_element_interface` | Element's `get_data()` representation differs from what should be persisted (e.g. a derived/formatted view); `get_raw_data()` returns the exact value to store |
+| `raw_data_element_interface` | Element's `get_data()` representation differs from what should be persisted (e.g. a derived/formatted view); `get_raw_data()` returns the value to persist (already implemented by the base class, returning `$this->data`) |
 
 All interfaces live under `mod_customcert\element\`.
 
@@ -87,32 +92,28 @@ supported public API for constructing an element instance from a historical reco
 ## Minimal v2 element
 
 A native v2 element that renders a fixed string and has no element-specific configuration
-fields. It still participates in the normal edit-form lifecycle and satisfies the native
-registration contract (`form_element_interface` + `renderable_element_interface`) — it just has
-nothing of its own to add to the form:
+fields. `build_form()` is inherited and adds the standard style/layout controls; because those
+style values live in the JSON payload, the element implements `persistable_element_interface`
+to keep them:
 
 ```php
 namespace customcertelement_myelement;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
+use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\layout_element_interface;
-use mod_customcert\element\stylable_element_interface;
+use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
-use MoodleQuickForm;
 use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
-    renderable_element_interface,
-    stylable_element_interface,
-    layout_element_interface
+    persistable_element_interface,
+    renderable_element_interface
 {
-    public function build_form(MoodleQuickForm $mform): void {
-        // No element-specific fields to add.
+    public function normalise_data(stdClass $formdata): array {
+        return stylable_payload::from_form($formdata)->to_array();
     }
 
     public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
@@ -126,10 +127,12 @@ class element extends base_element implements
 ```
 
 > `element_helper::render_content()` and `render_html_content()` require both
-> `stylable_element_interface` and `layout_element_interface`. Elements with fully custom
-> rendering may implement `renderable_element_interface` directly without these two. A subclass of
-> `mod_customcert\element` already inherits both interfaces even when not declared explicitly;
-> this example declares them for clarity.
+> `stylable_element_interface` and `layout_element_interface`, which subclasses of
+> `mod_customcert\element` inherit. Elements with fully custom rendering may implement
+> `renderable_element_interface` directly without them.
+>
+> To suppress the standard controls instead, override `build_form()` with an empty body; the
+> element then has no style fields to persist and does not need `normalise_data()` for them.
 
 ---
 
@@ -141,13 +144,10 @@ An element that adds fields to the edit form, validates them, and persists them 
 namespace customcertelement_myelement;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\stylable_element_interface;
-use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -156,13 +156,10 @@ use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
     preparable_form_interface,
     validatable_element_interface,
     persistable_element_interface,
-    renderable_element_interface,
-    stylable_element_interface,
-    layout_element_interface
+    renderable_element_interface
 {
     /**
      * Add element-specific fields to the edit form.
@@ -184,7 +181,7 @@ class element extends base_element implements
     }
 
     /**
-     * Validate submitted form data.
+     * Validate element-specific rules; standard colour/position/width fields are checked by validation_service.
      *
      * @param array $data
      * @return array<string,string> field => error message
@@ -298,7 +295,19 @@ Implement `layout_element_interface` to expose these values for rendering helper
 `raw_data_element_interface::get_raw_data()` is a separate, optional contract for the persistence
 boundary: it lets an element whose `get_data()` return value differs from what should be stored
 (for example a derived/formatted view) tell `element_repository` exactly what to persist. It has
-no connection to legacy scalar unwrapping, which no longer exists.
+no connection to legacy scalar unwrapping, which no longer exists. The base `get_data()` returns
+`$this->data` as-is and the base `get_raw_data()` does the same, so override `get_raw_data()` only
+when the intended persistence representation differs from `$this->data`.
+
+---
+
+## Renderers
+
+`service\element_renderer` exposes both `render_pdf()` and `render_html()`, but the concrete
+renderers are not interchangeable: `html_renderer::render_pdf()` intentionally does nothing and
+`pdf_renderer::render_html()` intentionally returns `''`. Callers choose the renderer for the output
+they need (`local\preview_renderer` uses `pdf_renderer` for PDF pages and `html_renderer` for the
+designer preview); the renderer is passed to the element's `render()` / `render_html()`.
 
 ---
 

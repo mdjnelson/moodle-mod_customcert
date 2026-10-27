@@ -28,9 +28,18 @@ class that does not satisfy the native v2 contract above is rejected at registra
 New element plugins will normally extend `mod_customcert\element`, which supplies the
 identity/form plumbing and the common style/layout getters (it already implements
 `form_element_interface`, `layout_element_interface`, and `stylable_element_interface`).
-Native v2 elements should implement `renderable_element_interface` explicitly. The
-inherited `build_form()` already calls `element_helper::render_common_form_elements()`
-directly; override it when the element needs its own form fields.
+The base class deliberately does **not** implement `renderable_element_interface`, so a
+concrete native element must declare it and provide `render()` and `render_html()`. Do not
+re-declare `form_element_interface`, `stylable_element_interface` or
+`layout_element_interface` on a subclass; declare only the extra capability interfaces the
+element needs.
+
+The inherited `build_form()` calls `element_helper::render_common_form_elements()` directly,
+so the standard style/layout controls appear without an override. Override it only to add
+element-specific fields (then call `render_common_form_elements()` yourself to keep the
+standard controls) or to suppress them deliberately by leaving the override empty. Any
+standard style fields that remain exposed must be returned from `normalise_data()` — see
+the persistence note below.
 
 ---
 
@@ -47,7 +56,7 @@ Use this table to decide which additional interfaces to add:
 | Font / colour / size behaviour | `stylable_element_interface` | Optional — already inherited by subclasses of `mod_customcert\element` |
 | Positioning / layout behaviour | `layout_element_interface` | Optional — already inherited by subclasses of `mod_customcert\element` |
 | Custom save / normalise behaviour | `persistable_element_interface` | Optional — add when form/editable values need to be stored in the JSON payload, including the standard style fields |
-| Custom form validation | `validatable_element_interface` | Optional |
+| Element-specific form validation | `validatable_element_interface` | Optional — see [Validation](#validation) |
 | Backup / restore handling | `restorable_element_interface` | Optional |
 | Copy behaviour | `copyable_element_interface` | Optional |
 
@@ -70,14 +79,43 @@ behaviour.
 > `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted
 > separately by the repository/service layer, not via `normalise_data()`.
 
-> **`get_data()` and structured JSON:** The base `get_data()` implementation returns the
-> stored value unchanged (typically the JSON string from `customcert_elements.data`).
-> Plugins may override `get_data()` to return a different representation; when they do,
-> implement `raw_data_element_interface::get_raw_data()` so `element_repository` still
-> knows the exact value to persist.
+> **`get_data()` and `get_raw_data()`:** The base `get_data()` returns `$this->data`
+> as-is, with no unwrapping or migration handling (for a loaded element this is typically
+> the JSON string from `customcert_elements.data`; a new, not yet persisted element may hold
+> something else). A plugin may override `get_data()` to expose a derived representation.
+> `raw_data_element_interface::get_raw_data()` supplies the value `element_repository`
+> persists when that differs; the base class implements it and returns `$this->data`, so
+> override `get_raw_data()` only when the persistence representation is not `$this->data`.
 > Prefer `$this->get_payload()` for ordinary structured-data reads rather than manually
 > calling `json_decode($this->get_data(), true)`; use `get_value()` where a simple
 > scalar `value` payload is genuinely appropriate.
+
+---
+
+## Validation
+
+`service\validation_service` already validates the standard `colour`, `posx`/`posy` (when
+position controls are enabled) and `width` fields whenever they are submitted. Implement
+`validatable_element_interface::validate()` only for additional element-specific rules, and
+return field => message errors. Do not add an empty `validate()` just because some bundled
+elements have one.
+
+---
+
+## Renderers
+
+`service\element_renderer` declares both `render_pdf()` and `render_html()`, but its
+implementations are not interchangeable:
+
+- `pdf_renderer::render_pdf()` calls the element's `render()`; its `render_html()`
+  intentionally returns `''`.
+- `html_renderer::render_html()` calls the element's `render_html()`; its `render_pdf()`
+  intentionally does nothing.
+
+The caller picks the renderer for the output it needs: `local\preview_renderer` uses
+`pdf_renderer` for PDF pages and `html_renderer` for the designer preview. Elements receive
+the active renderer as the optional `$renderer` argument of `render()` and `render_html()`,
+and should not call the other surface through it.
 
 ---
 
@@ -95,25 +133,19 @@ declare(strict_types=1);
 namespace customcertelement_staticlabel;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
-use MoodleQuickForm;
 use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
     persistable_element_interface,
     renderable_element_interface
 {
-    public function build_form(MoodleQuickForm $mform): void {
-        // Add only the standard position/style controls.
-        element_helper::render_common_form_elements($mform, $this->showposxy);
-    }
+    // build_form() is inherited and adds only the standard position/style controls.
 
     public function normalise_data(stdClass $formdata): array {
         return stylable_payload::from_form($formdata)->to_array();
@@ -129,16 +161,17 @@ class element extends base_element implements
 }
 ```
 
-The standard style controls (`font`, `fontsize`, `colour`, `width`) live in the JSON
-payload, not in dedicated DB columns, so an element that renders them via
-`render_common_form_elements()` must implement `persistable_element_interface` and
+The inherited `build_form()` exposes the standard style controls (`font`, `fontsize`,
+`colour`, `width`). They live in the JSON payload, not in dedicated DB columns, so an
+element that exposes them must implement `persistable_element_interface` and
 return those values from `normalise_data()` — otherwise they are silently dropped on
 save. `stylable_payload::from_form()` composes exactly those four fields; no
 dedicated payload class is needed here since this element has no element-specific
 payload beyond them.
 
-**Interfaces used:** `element_interface` (via `form_element_interface`),
-`form_element_interface`, `persistable_element_interface`, `renderable_element_interface`.
+**Declared interfaces:** `persistable_element_interface`, `renderable_element_interface`.
+`form_element_interface`, `stylable_element_interface` and `layout_element_interface` come
+from the base class.
 
 ---
 
@@ -154,7 +187,6 @@ declare(strict_types=1);
 namespace customcertelement_mytext;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -167,7 +199,6 @@ use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -188,6 +219,7 @@ class element extends base_element implements
     }
 
     public function validate(array $data): array {
+        // Element-specific rule only; standard colour/position/width fields are validated centrally.
         $errors = [];
         if (empty($data['myfield'])) {
             $errors['myfield'] = get_string('required');
@@ -216,8 +248,7 @@ class element extends base_element implements
 }
 ```
 
-**Interfaces used:** `element_interface` (via `form_element_interface`),
-`form_element_interface`, `persistable_element_interface`, `preparable_form_interface`,
+**Declared interfaces:** `persistable_element_interface`, `preparable_form_interface`,
 `renderable_element_interface`, `validatable_element_interface`.
 
 > **Tip:** `myfield` has no invariant worth protecting, so this recipe composes
@@ -232,7 +263,8 @@ class element extends base_element implements
 
 File-backed elements (e.g. a signature or logo) commonly combine these interfaces:
 
-- `form_element_interface`, `renderable_element_interface` — the native registration pair
+- `form_element_interface` (inherited from the base class), `renderable_element_interface` —
+  the native registration pair
 - `persistable_element_interface` — store file metadata (context, filearea, itemid,
   filepath, filename) and any size/style fields in the JSON payload
 - `preparable_form_interface` — restore the draft file area for editing
@@ -244,8 +276,7 @@ File-area lifecycle and method bodies are intentionally omitted; use the bundled
 `element/image/classes/element.php` implementation as the working reference.
 
 ```text
-Implements:
-- form_element_interface
+Implements (form_element_interface is inherited from the base class):
 - persistable_element_interface
 - preparable_form_interface
 - renderable_element_interface
@@ -269,10 +300,9 @@ full supported file lifecycle, including `prepare_form()`'s draft-area restore,
 `normalise_data()`'s file save and payload assembly, `render()`/`render_html()`'s
 stored-file lookup, and `after_restore_from_backup()`'s context remapping.
 
-**Interfaces used:** `element_interface` (via `form_element_interface`),
-`form_element_interface`, `persistable_element_interface`, `preparable_form_interface`,
+**Declared interfaces:** `persistable_element_interface`, `preparable_form_interface`,
 `renderable_element_interface`, `restorable_element_interface`,
-`copyable_element_interface`.
+`copyable_element_interface` (plus `form_element_interface` from the base class).
 
 ---
 
@@ -288,7 +318,6 @@ declare(strict_types=1);
 namespace customcertelement_myeditable;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\renderable_element_interface;
@@ -301,7 +330,6 @@ use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
@@ -342,8 +370,7 @@ class element extends base_element implements
 }
 ```
 
-**Interfaces used:** `element_interface` (via `form_element_interface`),
-`form_element_interface`, `persistable_element_interface`, `preparable_form_interface`,
+**Declared interfaces:** `persistable_element_interface`, `preparable_form_interface`,
 `renderable_element_interface`, `copyable_element_interface`.
 
 ---
@@ -363,7 +390,8 @@ Optional capability interfaces, added based on behaviour:
 preparable_form_interface  ← add when you need to pre-populate form fields on edit
 persistable_element_interface ← add when form/editable values need to be stored in
                                  the JSON payload, including the standard style fields
-validatable_element_interface ← add when you need custom form validation
+validatable_element_interface ← add only for element-specific rules; standard
+                                 colour/position/width fields are validated centrally
 stylable_element_interface ← add when your element exposes font/colour/size getters
                               (already inherited by subclasses of mod_customcert\element)
 layout_element_interface   ← add when your element exposes position/alignment getters

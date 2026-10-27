@@ -87,6 +87,8 @@ final class pdf_renderer implements element_renderer {
     /**
      * Render HTML.
      *
+     * Intentionally returns an empty string — HTML output is handled by html_renderer.
+     *
      * @param renderable_element_interface $element
      * @return string
      */
