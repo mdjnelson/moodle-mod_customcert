@@ -27,31 +27,12 @@ namespace mod_customcert\element;
 /**
  * Interface element_payload_interface
  *
- * Typed payload objects give element data a clear PHP-side contract: which keys
- * exist, which are required, what types they hold, and how they are validated.
- * The database continues to store JSON; this interface governs the PHP layer only.
+ * Typed payload objects define which keys an element's data has, their types and how they
+ * are validated. The database still stores JSON; this interface only governs the PHP layer.
  *
- * Implement this interface on a dedicated payload class for each element type,
- * then use it inside `normalise_data()`, `prepare_form()`, and `render()` instead
- * of working with raw arrays or JSON strings directly.
- *
- * Example skeleton:
- *
- * ```php
- * final class coursename_payload implements element_payload_interface {
- *     public function __construct(
- *         public readonly int    $coursenamedisplay,
- *         public readonly string $font,
- *         public readonly int    $fontsize,
- *         public readonly string $colour,
- *         public readonly int    $width,
- *     ) {}
- *
- *     public static function from_array(array $data): self { ... }
- *     public function to_array(): array { ... }
- *     public function validate(): void { ... }
- * }
- * ```
+ * A dedicated payload class is optional. It is useful when an element has invariants, validation
+ * or serialisation rules worth enforcing; simple elements can compose {@see stylable_payload}
+ * and normalise their data directly.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
@@ -72,7 +53,8 @@ interface element_payload_interface {
     /**
      * Serialize the payload back to an associative array suitable for json_encode().
      *
-     * The returned array must round-trip cleanly through {@see from_array()}.
+     * The result may omit optional fields or canonicalise input. For a valid payload, passing it
+     * back through {@see from_array()} must yield an equivalent payload.
      *
      * @return array
      */
@@ -84,6 +66,7 @@ interface element_payload_interface {
      * Throw an appropriate exception (e.g. \coding_exception or \invalid_parameter_exception)
      * when validation fails. This method is intended for developer-facing invariant checks,
      * not for user-facing form validation (which belongs in `validatable_element_interface`).
+     * It is not called by {@see from_array()} or by the framework; callers invoke it explicitly.
      *
      * @return void
      * @throws \coding_exception|\invalid_parameter_exception on invalid data.

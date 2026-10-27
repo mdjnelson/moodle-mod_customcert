@@ -28,9 +28,16 @@ interface element_payload_interface {
 
 | Method | Responsibility |
 |---|---|
-| `from_array(array $data)` | Deserialise from a decoded JSON array. Apply safe defaults; cast to canonical types. |
-| `to_array()` | Serialise back to an array suitable for `json_encode()`. Must round-trip cleanly. |
-| `validate()` | Assert internal consistency. Throw `coding_exception` or `invalid_parameter_exception` on failure. |
+| `from_array(array $data)` | Construct a typed representation from a decoded JSON array. Apply defaults, casts and any implementation-specific normalisation. |
+| `to_array()` | Produce the serialisable array for `json_encode()`. May omit optional fields or canonicalise input. |
+| `validate()` | Explicit, developer-facing invariant check. Throws `coding_exception` or `invalid_parameter_exception` on failure. Not called by `from_array()` or the framework. |
+
+For valid, canonical payloads, `from_array($p->to_array())` yields an equivalent
+payload, and `to_array()` produces a stable serialisable representation. This is
+not a promise to preserve arbitrary legacy input byte-for-byte or key-for-key:
+unknown keys and non-canonical types may be dropped or cast, and legacy input or
+directly constructed invalid payloads may be normalised, including dropping
+incomplete file-metadata groups.
 
 ---
 
@@ -107,6 +114,15 @@ final class coursename_payload implements element_payload_interface {
 }
 ```
 
+Note that `from_array()` does not reject invalid values: `from_array(['coursenamedisplay' => 99])`
+keeps `99`, and only an explicit `validate()` call throws. The `normalise_data()` below calls it
+so that invalid input fails at save time.
+
+`image_payload` treats file metadata (`contextid`, `filearea`, `itemid`, `filepath`, `filename`) as one group.
+`from_array()` discards the group unless all five keys are present, `to_array()` omits
+null optional values (`alphachannel`, the file group), and `validate()` throws if a
+payload constructed directly has only some of the file fields set.
+
 ### Usage inside `normalise_data()`
 
 ```php
@@ -182,9 +198,9 @@ conditional key omission, etc. — the way `coursename_payload`, `image_payload`
 2. Declare `namespace customcertelement_<type>;` and `implement element_payload_interface`.
 3. Add one `public readonly` constructor parameter per payload field.
 4. In `from_array()`, apply safe defaults for every key and cast to the canonical type.
-5. In `to_array()`, return exactly the same keys in a stable order.
+5. In `to_array()`, return a stable, canonical array that `from_array()` accepts back.
 6. In `validate()`, check invariants and throw `coding_exception` on failure.
-7. Use the payload class in `normalise_data()`, `prepare_form()`, and `render()`.
+7. Use the payload class where it adds value, typically in `normalise_data()` and wherever stored data is read.
 
 ### Skeleton
 
@@ -230,7 +246,7 @@ final class myelement_payload implements element_payload_interface {
 - Use `stylable_payload` for the standard visual fields: `font`, `fontsize`, `colour`, and `width`.
 - Do not load or mutate elements by raw `elementid` in request-facing code. Resolve the owning template/page first and use scoped repository helpers such as `get_for_template_or_fail()`.
 - Treat `elementid`, `pageid`, and `templateid` request parameters as untrusted. Always verify ownership before editing, moving, deleting, or rendering private/admin-only data.
-- Legacy element hooks are migration-only. New elements should implement the Element System v2 interfaces described above.
+- The legacy element hooks have been removed. Elements implement the Element System v2 interfaces described above.
 
 ---
 
@@ -240,8 +256,8 @@ final class myelement_payload implements element_payload_interface {
   designed to accept legacy arrays with missing keys by applying safe defaults.
 - The interface is **opt-in**. Existing elements that do not implement it continue to
   work unchanged.
-- Third-party elements are not required to adopt this pattern, but it is strongly
-  recommended for any new element.
+- Third-party elements are not required to adopt this pattern. Use it only where it
+  protects a real invariant (see [When to use it](#when-to-use-it)).
 
 ---
 
