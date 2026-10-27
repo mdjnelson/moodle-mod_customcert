@@ -21,6 +21,10 @@
  * - PDF rendering for runtime issuance and preview (see pdf_renderer)
  * - HTML rendering for the drag-and-drop designer preview (see html_renderer)
  *
+ * Both methods are declared on the interface, but the concrete renderers are not interchangeable:
+ * each handles only its own surface and no-ops (or returns an empty string) for the other.
+ * Callers choose the renderer matching the output they need.
+ *
  * The interface also exposes a small helper, {@see element_renderer::render_content()},
  * which element implementations can use to delegate common content rendering to
  * shared helpers without coupling to a specific renderer implementation.

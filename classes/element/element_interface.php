@@ -56,7 +56,8 @@ interface element_interface {
     public function get_name(): string;
 
     /**
-     * Returns the raw element data payload.
+     * Returns the element's data view, which may differ from the persistence representation
+     * returned by raw_data_element_interface::get_raw_data().
      *
      * @return mixed
      */
