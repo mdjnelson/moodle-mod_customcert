@@ -52,7 +52,8 @@ interface element_payload_interface {
     /**
      * Serialize the payload back to an associative array suitable for json_encode().
      *
-     * The returned array must round-trip cleanly through {@see from_array()}.
+     * The result may omit optional fields or canonicalise input. For a valid payload, passing it
+     * back through {@see from_array()} must yield an equivalent payload.
      *
      * @return array
      */
@@ -64,6 +65,7 @@ interface element_payload_interface {
      * Throw an appropriate exception (e.g. \coding_exception or \invalid_parameter_exception)
      * when validation fails. This method is intended for developer-facing invariant checks,
      * not for user-facing form validation (which belongs in `validatable_element_interface`).
+     * It is not called by {@see from_array()} or by the framework; callers invoke it explicitly.
      *
      * @return void
      * @throws \coding_exception|\invalid_parameter_exception on invalid data.
