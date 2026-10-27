@@ -30,11 +30,7 @@ use context_course;
 use context_system;
 use core_collator;
 use mod_customcert\service\form_service;
-use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\element\form_element_interface;
-use mod_customcert\element\preparable_form_interface;
-use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -51,10 +47,6 @@ use customcertelement_digitalsignature\digitalsignature_payload;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends \customcertelement_image\element implements
-    form_element_interface,
-    persistable_element_interface,
-    preparable_form_interface,
-    renderable_element_interface,
     validatable_element_interface
 {
     /**
