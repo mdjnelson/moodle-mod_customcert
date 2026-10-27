@@ -29,6 +29,10 @@ namespace mod_customcert\element;
 /**
  * Elements can implement this to contribute element-specific validation rules.
  * The central validation_service will detect this interface and invoke it.
+ *
+ * Optional. validation_service already validates the common colour, position and width fields,
+ * so only implement this for element-specific rules; do not implement it just to return an
+ * empty array.
  */
 interface validatable_element_interface {
     /**
