@@ -17,9 +17,13 @@
 /**
  * Element rendering contract used by the v2 element pipeline.
  *
- * Implementations provide two rendering surfaces for elements:
+ * The interface declares two rendering surfaces for elements:
  * - PDF rendering for runtime issuance and preview (see pdf_renderer)
  * - HTML rendering for the drag-and-drop designer preview (see html_renderer)
+ *
+ * The concrete renderers are not interchangeable: each implements only its own surface.
+ * html_renderer::render_pdf() does nothing and pdf_renderer::render_html() returns an empty
+ * string, so callers must use the renderer that matches the output they need.
  *
  * The interface also exposes a small helper, {@see element_renderer::render_content()},
  * which element implementations can use to delegate common content rendering to

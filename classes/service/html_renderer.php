@@ -45,7 +45,7 @@ final class html_renderer implements element_renderer {
     /**
      * Renders PDF.
      *
-     * No-op in the HTML renderer — PDF output is handled by pdf_renderer.
+     * Intentionally does nothing: PDF output is only produced by pdf_renderer.
      *
      * @param renderable_element_interface $element
      * @param pdf $pdf
