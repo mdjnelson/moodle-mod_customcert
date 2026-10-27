@@ -56,7 +56,11 @@ interface element_interface {
     public function get_name(): string;
 
     /**
-     * Returns the raw element data payload.
+     * Returns the element data payload.
+     *
+     * This is the view used by rendering and form code. For legacy-compatible elements it may be
+     * an unwrapped compatibility view rather than the stored value; use
+     * {@see raw_data_element_interface::get_raw_data()} for the persistence representation.
      *
      * @return mixed
      */

@@ -20,9 +20,6 @@ Historical database-upgrade and backup/restore migration logic for old persisted
 a separate, independent concern from this runtime API removal, and may remain for as long as
 required to safely upgrade or restore historical data.
 
-Until `MOODLE_503_STABLE` is created, references in this guide to "Moodle 5.3" mean the current
-`main` branch.
-
 ### The released Moodle 5.2 compatibility boundary
 
 The released Moodle 5.2 compatibility surface — including its requirement that third-party
@@ -109,43 +106,39 @@ Add these based on what the element actually does:
 | Interface | When to implement |
 |---|---|
 | `preparable_form_interface` | Element needs to pre-populate form fields from stored data |
-| `validatable_element_interface` | Element validates submitted form data |
+| `validatable_element_interface` | Element has its own validation rules. Common colour/position/width checks already run in `validation_service`; do not implement this only to return an empty array |
 | `persistable_element_interface` | Element normalises form/editable values into the JSON payload — add when form/editable values need to be stored there, including the standard style fields `font`, `fontsize`, `colour`, and `width` when exposed via `element_helper::render_common_form_elements()`. `posx`, `posy`, `refpoint`, and `alignment` are layout data and are persisted separately by the repository/service layer, not via `normalise_data()`. |
 | `stylable_element_interface` | Element uses standard font/colour/width styling (already inherited by subclasses of `mod_customcert\element`) |
 | `layout_element_interface` | Element exposes repository-managed layout values (posx, posy, etc.) (already inherited by subclasses of `mod_customcert\element`) |
 | `restorable_element_interface` | Element remaps internal references after backup restore |
 | `copyable_element_interface` | Element needs custom logic when copied (e.g. file copying) |
 
-All interfaces live under `mod_customcert\element\`.
+All interfaces live under `mod_customcert\element\`. See `docs/element_authoring_guide.md` for the
+validation, `get_data()` / `get_raw_data()` and renderer notes.
 
 ---
 
 ## Minimal v2 element
 
 A native v2 element that renders a fixed string and has no element-specific configuration
-fields. It still participates in the normal edit-form lifecycle and satisfies the native
-registration contract (`form_element_interface` + `renderable_element_interface`) — it just has
-nothing of its own to add to the form:
+fields. `mod_customcert\element` already provides `form_element_interface`, so declaring
+`renderable_element_interface` completes the native registration contract. The standard style
+controls are not added here, so nothing needs persisting; if you add them with
+`element_helper::render_common_form_elements()`, also implement
+`persistable_element_interface` (see `docs/element_authoring_guide.md`):
 
 ```php
 namespace customcertelement_myelement;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\layout_element_interface;
-use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
 
-class element extends base_element implements
-    form_element_interface,
-    renderable_element_interface,
-    stylable_element_interface,
-    layout_element_interface
+class element extends base_element implements renderable_element_interface
 {
     public function build_form(MoodleQuickForm $mform): void {
         // No element-specific fields to add.
@@ -161,13 +154,11 @@ class element extends base_element implements
 }
 ```
 
-> `element_helper::render_content()` and `render_html_content()` require both
-> `stylable_element_interface` and `layout_element_interface`. Elements with fully custom
-> rendering may implement `renderable_element_interface` directly without these two. A subclass of
-> `mod_customcert\element` already inherits both interfaces even when not declared explicitly;
-> this example declares them for clarity. Note that this example provides its own `build_form()`
-> rather than relying on the inherited one, which only bridges to the deprecated legacy
-> `render_form_elements()` hook.
+> `element_helper::render_content()` and `render_html_content()` require the element to be both
+> `stylable_element_interface` and `layout_element_interface`; subclasses of
+> `mod_customcert\element` already inherit both, so they need not be redeclared. This example
+> provides its own `build_form()` rather than relying on the inherited one, which only bridges to
+> the deprecated legacy `render_form_elements()` hook.
 
 ---
 
@@ -179,13 +170,10 @@ An element that adds fields to the edit form, validates them, and persists them 
 namespace customcertelement_myelement;
 
 use mod_customcert\element as base_element;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\stylable_element_interface;
-use mod_customcert\element\layout_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -194,13 +182,10 @@ use pdf;
 use stdClass;
 
 class element extends base_element implements
-    form_element_interface,
     preparable_form_interface,
     validatable_element_interface,
     persistable_element_interface,
-    renderable_element_interface,
-    stylable_element_interface,
-    layout_element_interface
+    renderable_element_interface
 {
     /**
      * Add element-specific fields to the edit form.
