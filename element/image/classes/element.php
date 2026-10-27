@@ -33,9 +33,7 @@ use html_writer;
 use mod_customcert\service\form_service;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
-use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\restorable_element_interface;
@@ -57,10 +55,8 @@ use stored_file;
  */
 class element extends base_element implements
     copyable_element_interface,
-    form_element_interface,
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface,
     restorable_element_interface,
     validatable_element_interface
 {

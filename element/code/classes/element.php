@@ -28,8 +28,6 @@ namespace customcertelement_code;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
-use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\form_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_repository;
@@ -47,9 +45,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
-    form_element_interface,
     persistable_element_interface,
-    renderable_element_interface,
     validatable_element_interface
 {
     /**
