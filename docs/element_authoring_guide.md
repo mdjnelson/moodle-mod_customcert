@@ -97,8 +97,8 @@ behaviour.
 `service\validation_service` already validates the standard `colour`, `posx`/`posy` (when
 position controls are enabled) and `width` fields whenever they are submitted. Implement
 `validatable_element_interface::validate()` only for additional element-specific rules, and
-return field => message errors. Do not add an empty `validate()` just because some bundled
-elements have one.
+return field => message errors. Do not add an empty `validate()`; bundled elements without
+element-specific rules do not implement `validatable_element_interface`.
 
 ---
 
