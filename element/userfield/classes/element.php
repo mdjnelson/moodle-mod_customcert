@@ -32,7 +32,6 @@ use core_user\fields;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
@@ -51,8 +50,7 @@ use stdClass;
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface,
-    validatable_element_interface
+    renderable_element_interface
 {
     /**
      * Core user table fields that may be displayed.
@@ -200,16 +198,5 @@ class element extends base_element implements
         }
 
         return format_string($value, true, ['context' => $context]);
-    }
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
     }
 }

@@ -27,7 +27,6 @@ declare(strict_types=1);
 namespace customcertelement_bgimage;
 
 use html_writer;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_renderer;
 use moodle_url;
 use MoodleQuickForm;
@@ -42,9 +41,7 @@ use customcertelement_bgimage\bgimage_payload;
  * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element implements
-    validatable_element_interface
-{
+class element extends \customcertelement_image\element {
     /**
      * Background image covers the whole page; width/height fields are ignored and
      * always treated as auto-fit. Override getters to prevent stale values.
@@ -62,17 +59,6 @@ class element extends \customcertelement_image\element implements
         return 0;
     }
 
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
-    }
 
     /**
      * Build the configuration form for this element.
