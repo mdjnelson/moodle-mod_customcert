@@ -95,7 +95,7 @@ final class element_test extends advanced_testcase {
         $this->assertInstanceOf(form_element_interface::class, $el);
         $this->assertInstanceOf(persistable_element_interface::class, $el);
         $this->assertInstanceOf(renderable_element_interface::class, $el);
-        $this->assertInstanceOf(validatable_element_interface::class, $el);
+        $this->assertNotInstanceOf(validatable_element_interface::class, $el);
     }
 
     /**
@@ -130,16 +130,6 @@ final class element_test extends advanced_testcase {
         $this->assertSame(0, $result['fontsize']);
         $this->assertSame('', $result['colour']);
         $this->assertSame(0, $result['width']);
-    }
-
-    /**
-     * Test that validate() returns an empty array.
-     *
-     * @covers \customcertelement_code\element::validate
-     */
-    public function test_validate_returns_empty_array(): void {
-        $el = new element($this->make_record());
-        $this->assertSame([], $el->validate([]));
     }
 
     /**

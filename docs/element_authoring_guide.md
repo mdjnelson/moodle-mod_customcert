@@ -86,8 +86,8 @@ Validation has three layers; a new element normally needs only the first:
 2. **Element-specific rules — `validatable_element_interface::validate()`.** Optional. Implement
    it only when the element has rules of its own, and return field => message errors. Do not
    implement it just to return an empty array: that adds nothing, because `validation_service`
-   only calls it when present. (Some bundled elements still contain empty implementations;
-   they are not a pattern to copy.)
+   only calls it when present. Bundled elements without element-specific rules do not
+   implement `validatable_element_interface`.
 3. **Deprecated `validate_form_elements()`.** Still called for historical subclasses that
    override it, with a developer-debugging notice, solely for compatibility. New code should
    not use it.

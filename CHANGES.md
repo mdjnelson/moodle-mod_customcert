@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.3.4] - Unreleased
+
+### Changed
+
+- Removed empty `validate()` methods and unnecessary `validatable_element_interface` implementations from bundled elements. Third-party subclasses requiring custom validation should explicitly implement the interface (#1091).
+
 ## [5.3.3] - 2026-10-25
 
 ### Security
