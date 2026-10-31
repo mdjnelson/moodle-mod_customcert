@@ -21,7 +21,6 @@ use mod_customcert\element;
 use mod_customcert\element\renderable_element_interface;
 use MoodleQuickForm;
 use mod_customcert\element\restorable_element_interface;
-use mod_customcert\service\element_renderer;
 use pdf;
 use restore_customcert_activity_task;
 use stdClass;
@@ -85,24 +84,21 @@ class new_restorable_element extends element implements renderable_element_inter
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
-     * @param element_renderer|null $renderer
      * @return void
      */
     public function render(
         pdf $pdf,
         bool $preview,
-        stdClass $user,
-        ?element_renderer $renderer = null
+        stdClass $user
     ): void {
     }
 
     /**
      * Render HTML (not used in this test).
      *
-     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return '';
     }
 }

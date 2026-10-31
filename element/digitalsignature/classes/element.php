@@ -31,7 +31,6 @@ use context_system;
 use core_collator;
 use mod_customcert\service\form_service;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -71,14 +70,10 @@ class element extends \customcertelement_image\element {
     /**
      * Render the element in html for preview positioning.
      *
-     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html(?element_renderer $renderer = null): string {
-        if ($renderer) {
-            return (string)$renderer->render_content($this, '');
-        }
-        return '';
+    public function render_html(): string {
+        return element_helper::render_html_content($this, '');
     }
 
     /**
@@ -323,9 +318,8 @@ class element extends \customcertelement_image\element {
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
-     * @param element_renderer|null $renderer the renderer service
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         if (empty($this->get_data())) {
             return;
         }

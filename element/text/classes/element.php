@@ -30,7 +30,6 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -93,14 +92,9 @@ class element extends base_element implements
      * @param pdf $pdf the pdf object
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
-     * @param element_renderer|null $renderer the renderer service
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        if ($renderer) {
-            $renderer->render_content($this, $this->get_text());
-        } else {
-            element_helper::render_content($pdf, $this, $this->get_text());
-        }
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
+        element_helper::render_content($pdf, $this, $this->get_text());
     }
 
     /**
@@ -109,14 +103,9 @@ class element extends base_element implements
      * This function is used to render the element when we are using the
      * drag and drop interface to position it.
      *
-     * @param element_renderer|null $renderer the renderer service
      * @return string the html
      */
-    public function render_html(?element_renderer $renderer = null): string {
-        if ($renderer) {
-            return (string) $renderer->render_content($this, $this->get_text());
-        }
-
+    public function render_html(): string {
         return element_helper::render_html_content($this, $this->get_text());
     }
 

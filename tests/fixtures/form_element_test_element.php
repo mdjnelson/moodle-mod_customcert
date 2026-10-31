@@ -22,7 +22,6 @@ use mod_customcert\element;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\form_element_interface;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -70,20 +69,18 @@ class form_element_test_element extends element implements element_interface, fo
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
-     * @param element_renderer|null $renderer
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // No-op for fixture.
     }
 
     /**
      * Render HTML (not required for this fixture).
      *
-     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return '';
     }
 }

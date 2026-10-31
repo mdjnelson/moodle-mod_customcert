@@ -127,14 +127,15 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that render_html() returns a string.
+     * Test that render_html() returns the styled designer container with no content.
      *
      * @covers \customcertelement_border\element::render_html
      */
-    public function test_render_html_returns_string(): void {
+    public function test_render_html_returns_styled_empty_container(): void {
         $el = new element($this->make_record());
         $html = $el->render_html();
-        $this->assertIsString($html);
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringEndsWith('></div>', $html);
     }
 
     /**

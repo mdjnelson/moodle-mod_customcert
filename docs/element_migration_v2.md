@@ -104,7 +104,6 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
@@ -116,11 +115,11 @@ class element extends base_element implements
         return stylable_payload::from_form($formdata)->to_array();
     }
 
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, get_string('pluginname', 'customcertelement_myelement'));
     }
 
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return element_helper::render_html_content($this, get_string('pluginname', 'customcertelement_myelement'));
     }
 }
@@ -150,7 +149,6 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -207,11 +205,11 @@ class element extends base_element implements
         );
     }
 
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, (string)($this->get_payload()['myfield'] ?? ''));
     }
 
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return element_helper::render_html_content($this, (string)($this->get_payload()['myfield'] ?? ''));
     }
 }
@@ -301,13 +299,20 @@ when the intended persistence representation differs from `$this->data`.
 
 ---
 
-## Renderers
+## Rendering
 
-`service\element_renderer` exposes both `render_pdf()` and `render_html()`, but the concrete
-renderers are not interchangeable: `html_renderer::render_pdf()` intentionally does nothing and
-`pdf_renderer::render_html()` intentionally returns `''`. Callers choose the renderer for the output
-they need (`local\preview_renderer` uses `pdf_renderer` for PDF pages and `html_renderer` for the
-designer preview); the renderer is passed to the element's `render()` / `render_html()`.
+`local\preview_renderer` calls each element's `render()` (PDF) and `render_html()` (designer) directly.
+`service\element_renderer`, `pdf_renderer` and `html_renderer` no longer exist, and `render()` /
+`render_html()` take no renderer argument. Use `element_helper::render_content()` and
+`element_helper::render_html_content()` for shared formatting.
+
+When migrating an element written for the 5.2/5.3 renderer contract, remove the
+`?element_renderer $renderer = null` parameter from both methods, remove the `element_renderer`
+import, and replace any `$renderer->render_content()` call with the matching `element_helper` method.
+This is not backward compatible with the 5.2/5.3 renderer contract. Elements that still declare the
+optional argument keep a compatible signature but are never passed a renderer. Calls on `$renderer`
+and instantiating the removed classes throw errors (a `use` import or an `instanceof` check alone does
+not), and `if ($renderer)` branches always take the no-renderer path, which can change the designer HTML.
 
 ---
 

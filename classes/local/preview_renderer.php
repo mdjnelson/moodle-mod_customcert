@@ -21,10 +21,7 @@ namespace mod_customcert\local;
 use coding_exception;
 use dml_exception;
 use mod_customcert\service\element_factory;
-use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_repository;
-use mod_customcert\service\html_renderer;
-use mod_customcert\service\pdf_renderer;
 use mod_customcert\service\page_repository;
 use pdf;
 use stdClass;
@@ -43,11 +40,6 @@ final class preview_renderer {
     /** @var element_factory */
     private element_factory $factory;
 
-    /** @var element_renderer */
-    private element_renderer $pdfrenderer;
-
-    /** @var element_renderer */
-    private element_renderer $htmlrenderer;
 
     /** @var element_repository */
     private element_repository $repository;
@@ -79,8 +71,6 @@ final class preview_renderer {
         $this->factory = $factory;
         $this->repository = $repository;
         $this->pages = $pages;
-        $this->pdfrenderer = new pdf_renderer();
-        $this->htmlrenderer = new html_renderer();
     }
 
     /**
@@ -109,11 +99,8 @@ final class preview_renderer {
         $pdf->SetXY(0, 0);
 
         $elements = $this->repository->load_by_page_id($pageid);
-        if ($this->pdfrenderer instanceof pdf_renderer) {
-            $this->pdfrenderer->set_pdf($pdf);
-        }
         foreach ($elements as $element) {
-            $this->pdfrenderer->render_pdf($element, $pdf, $preview, $user);
+            $element->render($pdf, $preview, $user);
         }
     }
 
@@ -129,7 +116,7 @@ final class preview_renderer {
         $html = '';
         $elements = $this->repository->load_by_page_id($pageid);
         foreach ($elements as $element) {
-            $html .= $this->htmlrenderer->render_html($element);
+            $html .= $element->render_html();
         }
         return $html;
     }

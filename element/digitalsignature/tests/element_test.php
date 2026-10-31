@@ -130,15 +130,15 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * Test that render_html() returns an empty string (digital signature has no HTML preview).
+     * Test that render_html() returns the styled designer container with no content.
      *
      * @covers \customcertelement_digitalsignature\element::render_html
      */
-    public function test_render_html_returns_empty_string(): void {
+    public function test_render_html_returns_styled_empty_container(): void {
         $el = new element($this->make_record());
         $html = $el->render_html();
-        $this->assertIsString($html);
-        $this->assertSame('', $html);
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringEndsWith('></div>', $html);
     }
 
     /**

@@ -33,7 +33,6 @@ use MoodleQuickForm;
 use mod_customcert\element\element_interface;
 use RuntimeException;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
@@ -98,19 +97,17 @@ final class dummy_validatable_element extends element implements
      * @param pdf $pdf The TCPDF instance.
      * @param bool $preview Whether this is a preview render.
      * @param stdClass $user The user being rendered for.
-     * @param element_renderer|null $renderer Optional element renderer service.
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // No-op for tests.
     }
 
     /**
      * Render HTML representation (not used in these tests).
      *
-     * @param element_renderer|null $renderer Optional element renderer service.
      * @return string HTML output.
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return '';
     }
 }

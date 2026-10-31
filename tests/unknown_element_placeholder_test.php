@@ -98,6 +98,8 @@ final class unknown_element_placeholder_test extends advanced_testcase {
         $html = $placeholder->render_html();
         $this->assertIsString($html);
         $this->assertStringContainsString('idontexist', $html);
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringContainsString('customcert-unknown-element', $html);
         $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
     }
 }
