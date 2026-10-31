@@ -32,14 +32,14 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
 use context_system;
 use pdf;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../../../tests/fixtures/spy_element_renderer.php');
+global $CFG;
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the image element.
@@ -177,51 +177,76 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * PDF regression: render() with no data must never call render_html() on the renderer.
+     * Test that render() draws nothing on the PDF when no data is set.
      *
      * @covers \customcertelement_image\element::render
      */
-    public function test_render_with_pdf_renderer_does_not_call_render_html(): void {
+    public function test_render_without_data_draws_nothing(): void {
         $el = new element($this->make_record());
 
-        $renderer = $this->make_spy_renderer();
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->onlyMethods(['Image', 'ImageSVG'])->getMock();
+        $pdf->expects($this->never())->method('Image');
+        $pdf->expects($this->never())->method('ImageSVG');
 
-        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
-        $el->render($pdf, false, new stdClass(), $renderer);
-
-        $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
+        $el->render($pdf, false, new stdClass());
     }
 
     /**
-     * PDF regression: render() with a real stored file must never call render_html() on the renderer.
-     *
-     * This is the critical case — the old buggy branch only triggered when a file was present.
-     * With a real stored file in place, the element reaches the $pdf->Image() call; the spy
-     * renderer must still never have render_html() invoked on it.
+     * Test that render() draws a stored image on the PDF.
      *
      * @covers \customcertelement_image\element::render
      */
-    public function test_render_with_stored_file_does_not_call_render_html(): void {
+    public function test_render_with_stored_file_draws_image_on_pdf(): void {
         $this->resetAfterTest();
+        $el = new element($this->make_record(['data' => $this->create_stored_image()]));
 
-        // Create a minimal 1x1 PNG in the system context under the image filearea.
+        $pdf = $this->getMockBuilder(pdf::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['Image', 'ImageSVG', 'SetAlpha'])
+            ->getMock();
+        $pdf->expects($this->once())->method('Image');
+        $pdf->expects($this->never())->method('ImageSVG');
+
+        $el->render($pdf, false, new stdClass());
+    }
+
+    /**
+     * Test that render_html() wraps the image in the styled designer container.
+     *
+     * @covers \customcertelement_image\element::render_html
+     */
+    public function test_render_html_wraps_image_in_styled_container(): void {
+        $this->resetAfterTest();
+        $el = new element($this->make_record(['data' => $this->create_stored_image()]));
+
+        $html = $el->render_html();
+
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringContainsString('font-size: 12pt;', $html);
+        $this->assertStringContainsString('<img src=', $html);
+        $this->assertStringEndsWith('</div>', $html);
+    }
+
+    /**
+     * Create a minimal 1x1 PNG in the system context image filearea.
+     *
+     * @return string the JSON element data referencing the stored file
+     */
+    private function create_stored_image(): string {
         $syscontextid = context_system::instance()->id;
         $fs = get_file_storage();
-        $filerecord = [
+        $fs->create_file_from_string([
             'contextid' => $syscontextid,
             'component' => 'mod_customcert',
             'filearea'  => 'image',
             'itemid'    => 0,
             'filepath'  => '/',
             'filename'  => 'test.png',
-        ];
-        // Minimal valid 1x1 PNG binary.
-        $pngdata = base64_decode(
+        ], base64_decode(
             'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-        );
-        $storedfile = $fs->create_file_from_string($filerecord, $pngdata);
+        ));
 
-        $data = json_encode([
+        return json_encode([
             'contextid' => $syscontextid,
             'filearea'  => 'image',
             'itemid'    => 0,
@@ -230,30 +255,5 @@ final class element_test extends advanced_testcase {
             'width'     => 0,
             'height'    => 0,
         ]);
-
-        $el = new element($this->make_record(['data' => $data]));
-
-        $renderer = $this->make_spy_renderer();
-
-        // The pdf mock must silently accept Image/ImageSVG/SetAlpha calls since the file exists and will be copied.
-        // These methods are inherited from TCPDF (not declared on pdf itself), so addMethods() is required
-        // to ensure PHPUnit stubs them even when TCPDF is not fully loaded during mock generation.
-        $pdf = $this->getMockBuilder(pdf::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['Image', 'ImageSVG', 'SetAlpha'])
-            ->getMock();
-
-        $el->render($pdf, false, new stdClass(), $renderer);
-
-        $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer when a file is present');
-    }
-
-    /**
-     * Build a spy renderer that records whether render_html() was called.
-     *
-     * @return object an anonymous class implementing element_renderer with a public $called flag
-     */
-    private function make_spy_renderer(): object {
-        return new spy_element_renderer();
     }
 }

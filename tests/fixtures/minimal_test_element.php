@@ -30,7 +30,6 @@ namespace mod_customcert\tests\fixtures;
 use mod_customcert\element;
 use mod_customcert\element\renderable_element_interface;
 use MoodleQuickForm;
-use mod_customcert\service\element_renderer;
 use stdClass;
 
 /**
@@ -54,14 +53,12 @@ final class minimal_test_element extends element implements renderable_element_i
      * @param \pdf $pdf The PDF object to render.
      * @param bool $preview Indicates whether the render is for preview purposes.
      * @param stdClass $user The user object that contains user-specific data for rendering.
-     * @param element_renderer|null $renderer An optional element renderer for custom rendering logic.
      * @return void
      */
     public function render(
         \pdf $pdf,
         bool $preview,
-        stdClass $user,
-        ?element_renderer $renderer = null
+        stdClass $user
     ): void {
         // No-op.
     }
@@ -69,10 +66,9 @@ final class minimal_test_element extends element implements renderable_element_i
     /**
      * Render HTML (no-op).
      *
-     * @param element_renderer|null $renderer The optional renderer to render the HTML content.
      * @return string
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return '';
     }
 }

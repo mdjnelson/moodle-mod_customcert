@@ -32,13 +32,13 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
 use pdf;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../../../tests/fixtures/spy_element_renderer.php');
+global $CFG;
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the userpicture element.
@@ -163,20 +163,53 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * PDF regression: render() must never fall back to the HTML render path when
-     * a pdf_renderer passes itself in as the renderer argument.
+     * Test that render() draws the default picture on the PDF in preview mode when the user has none.
      *
      * @covers \customcertelement_userpicture\element::render
      */
-    public function test_render_with_pdf_renderer_does_not_call_render_html(): void {
-        $el = new element($this->make_record());
+    public function test_render_preview_draws_default_picture_on_pdf(): void {
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $el = new element($this->make_record(['data' => json_encode(['width' => 30, 'height' => 30])]));
 
-        // Build a spy renderer that fails the test if render_html() is ever called.
-        $renderer = new spy_element_renderer();
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->onlyMethods(['Image'])->getMock();
+        $pdf->expects($this->once())->method('Image');
 
-        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
-        $el->render($pdf, false, new stdClass(), $renderer);
+        $el->render($pdf, true, $user);
+    }
 
-        $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
+    /**
+     * Test that render() draws nothing outside preview mode when the user has no picture.
+     *
+     * @covers \customcertelement_userpicture\element::render
+     */
+    public function test_render_without_picture_draws_nothing(): void {
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $el = new element($this->make_record(['data' => json_encode(['width' => 30, 'height' => 30])]));
+
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->onlyMethods(['Image'])->getMock();
+        $pdf->expects($this->never())->method('Image');
+
+        $el->render($pdf, false, $user);
+    }
+
+    /**
+     * Test that render_html() wraps the picture in the styled designer container.
+     *
+     * @covers \customcertelement_userpicture\element::render_html
+     */
+    public function test_render_html_wraps_picture_in_styled_container(): void {
+        $this->resetAfterTest();
+        $this->setUser($this->getDataGenerator()->create_user());
+        $el = new element($this->make_record(['data' => json_encode(['width' => 30, 'height' => 30])]));
+
+        $html = $el->render_html();
+
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringContainsString('font-size: 12pt;', $html);
+        $this->assertStringContainsString('<img src=', $html);
+        $this->assertStringContainsString('width: 30mm; height: 30mm', $html);
+        $this->assertStringEndsWith('</div>', $html);
     }
 }

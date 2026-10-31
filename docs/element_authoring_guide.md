@@ -102,20 +102,28 @@ element-specific rules do not implement `validatable_element_interface`.
 
 ---
 
-## Renderers
+## Rendering
 
-`service\element_renderer` declares both `render_pdf()` and `render_html()`, but its
-implementations are not interchangeable:
+`renderable_element_interface` declares two methods: `render(pdf $pdf, bool $preview, stdClass $user): void`
+for PDF output and `render_html(): string` for the drag-and-drop designer. Elements are called directly
+by `local\preview_renderer`; there is no renderer object or optional `$renderer` argument.
 
-- `pdf_renderer::render_pdf()` calls the element's `render()`; its `render_html()`
-  intentionally returns `''`.
-- `html_renderer::render_html()` calls the element's `render_html()`; its `render_pdf()`
-  intentionally does nothing.
+Two helpers in `element_helper` cover the common case. Both require the element to implement
+`stylable_element_interface` and `layout_element_interface`:
 
-The caller picks the renderer for the output it needs: `local\preview_renderer` uses
-`pdf_renderer` for PDF pages and `html_renderer` for the designer preview. Elements receive
-the active renderer as the optional `$renderer` argument of `render()` and `render_html()`,
-and should not call the other surface through it.
+- `element_helper::render_content($pdf, $this, $content)` writes styled content to the PDF.
+- `element_helper::render_html_content($this, $content)` returns `$content` inside a styled HTML wrapper
+  that applies the element's font, colour, font size and, if set, width. It does not apply the element's
+  position coordinates.
+
+Use `render_html_content()` when the designer should show the element with that standard styling.
+It is optional: an element with its own rendering needs may return its own HTML (the bundled `bgimage`
+element does this), or `''` if it intentionally has no designer output.
+
+> **API change in 6.0 (#1094):** `service\element_renderer`, `service\pdf_renderer` and
+> `service\html_renderer` were removed, and the optional renderer parameters were removed from
+> `render()` and `render_html()`. Third-party elements written for the 5.2/5.3 renderer API may need
+> updating. See [element_migration_v2.md](element_migration_v2.md) for migration instructions.
 
 ---
 
@@ -137,7 +145,6 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use pdf;
 use stdClass;
 
@@ -151,11 +158,11 @@ class element extends base_element implements
         return stylable_payload::from_form($formdata)->to_array();
     }
 
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, get_string('pluginname', 'customcertelement_staticlabel'));
     }
 
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return element_helper::render_html_content($this, get_string('pluginname', 'customcertelement_staticlabel'));
     }
 }
@@ -193,7 +200,6 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -234,11 +240,11 @@ class element extends base_element implements
         );
     }
 
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, $this->resolve_text());
     }
 
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return element_helper::render_html_content($this, $this->resolve_text());
     }
 
@@ -287,8 +293,8 @@ Provides:
 - build_form(MoodleQuickForm $mform): void
 - prepare_form(MoodleQuickForm $mform): void
 - normalise_data(stdClass $formdata): array
-- render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void
-- render_html(?element_renderer $renderer = null): string
+- render(pdf $pdf, bool $preview, stdClass $user): void
+- render_html(): string
 - after_restore_from_backup(restore_customcert_activity_task $restore): void
 - copy_from(stdClass $source): bool
 ```
@@ -324,7 +330,6 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\stylable_payload;
 use mod_customcert\element_helper;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -352,11 +357,11 @@ class element extends base_element implements
         );
     }
 
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, $this->get_payload()['label'] ?? '');
     }
 
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return element_helper::render_html_content($this, $this->get_payload()['label'] ?? '');
     }
 

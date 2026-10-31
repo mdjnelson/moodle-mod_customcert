@@ -21,7 +21,7 @@ namespace mod_customcert\element;
 use html_writer;
 use mod_customcert\element;
 use mod_customcert\edit_element_form;
-use mod_customcert\service\element_renderer;
+use mod_customcert\element_helper;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -83,21 +83,19 @@ final class unknown_element extends element implements element_interface, form_e
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
-     * @param element_renderer|null $renderer
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // Do not render anything to PDF to avoid altering certificate output.
     }
 
     /**
      * Renders the element to HTML.
      *
-     * @param element_renderer|null $renderer
      * @return string
      * @throws \coding_exception
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         $label = get_string('unknownelementtype', 'mod_customcert');
         $message = $label . ': ' . s($this->unknowntype);
         $content = html_writer::div(
@@ -106,10 +104,7 @@ final class unknown_element extends element implements element_interface, form_e
         );
         // Unknown_element extends mod_customcert\element which implements both
         // stylable_element_interface and layout_element_interface, so we can delegate
-        // to render_content() to preserve the element's stored position in the designer preview.
-        if ($renderer) {
-            return (string) $renderer->render_content($this, $content);
-        }
-        return \mod_customcert\element_helper::render_html_content($this, $content);
+        // to render_html_content() to preserve the element's stored position in the designer preview.
+        return element_helper::render_html_content($this, $content);
     }
 }

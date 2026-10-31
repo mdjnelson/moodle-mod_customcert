@@ -38,9 +38,6 @@ use mod_customcert\element\stylable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
-use mod_customcert\service\element_renderer;
-use mod_customcert\service\html_renderer;
-use mod_customcert\service\pdf_renderer;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\minimal_test_element;
 use ReflectionMethod;
@@ -199,13 +196,13 @@ final class element_contract_test extends advanced_testcase {
         $this->assertInstanceOf(renderable_element_interface::class, $element);
         $this->assertNotInstanceOf(validatable_element_interface::class, $element);
 
-        // Form and rendering paths work through the real renderers.
+        // Form and rendering paths work directly on the element.
         $mform = new \MoodleQuickForm('minimal', 'post', '');
         $element->build_form($mform);
-        $this->assertSame('', (new html_renderer())->render_html($element));
+        $this->assertSame('', $element->render_html());
         $pdf = new \pdf();
         $pdf->AddPage();
-        (new pdf_renderer())->render_pdf($element, $pdf, true, $USER);
+        $element->render($pdf, true, $USER);
 
         // Common fields are validated; the element contributes no extra errors and no deprecation.
         $svc = new validation_service();
@@ -229,41 +226,32 @@ final class element_contract_test extends advanced_testcase {
     }
 
     /**
-     * The published element_renderer interface keeps its exact method signatures.
+     * The renderable_element_interface exposes exactly render() and render_html(), with no renderer argument.
      *
-     * @covers \mod_customcert\service\element_renderer
+     * @covers \mod_customcert\element\renderable_element_interface
      */
-    public function test_element_renderer_interface_signatures(): void {
+    public function test_renderable_element_interface_signatures(): void {
         $expected = [
-            'render_pdf' => [
-                ['element', renderable_element_interface::class],
-                ['pdf', \pdf::class],
-                ['preview', 'bool'],
-                ['user', stdClass::class],
+            'render' => [
+                [['pdf', \pdf::class], ['preview', 'bool'], ['user', stdClass::class]],
+                'void',
             ],
-            'render_html' => [
-                ['element', renderable_element_interface::class],
-            ],
-            'render_content' => [
-                ['element', stylable_element_interface::class],
-                ['content', 'string'],
-            ],
+            'render_html' => [[], 'string'],
         ];
-        $returns = ['render_pdf' => 'void', 'render_html' => 'string', 'render_content' => null];
 
         $this->assertEqualsCanonicalizing(
             array_keys($expected),
-            array_map(static fn($m) => $m->getName(), (new \ReflectionClass(element_renderer::class))->getMethods())
+            array_map(static fn($m) => $m->getName(), (new \ReflectionClass(renderable_element_interface::class))->getMethods())
         );
 
-        foreach ($expected as $method => $params) {
-            $ref = new ReflectionMethod(element_renderer::class, $method);
+        foreach ($expected as $method => [$params, $return]) {
+            $ref = new ReflectionMethod(renderable_element_interface::class, $method);
             $actual = array_map(
                 static fn($p) => [$p->getName(), $p->getType()?->getName()],
                 $ref->getParameters()
             );
-            $this->assertSame($params, $actual, "Signature of element_renderer::{$method}() changed");
-            $this->assertSame($returns[$method], $ref->getReturnType()?->getName());
+            $this->assertSame($params, $actual, "Signature of renderable_element_interface::{$method}() changed");
+            $this->assertSame($return, $ref->getReturnType()?->getName());
         }
     }
 }

@@ -29,7 +29,6 @@
 namespace mod_customcert;
 
 use mod_customcert\local\upgrade\row_migrator;
-use mod_customcert\service\element_renderer;
 use mod_customcert\tests\fixtures\minimal_test_element;
 use advanced_testcase;
 use stdClass;

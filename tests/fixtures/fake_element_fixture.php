@@ -20,7 +20,6 @@ namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -48,19 +47,17 @@ class fake_element_fixture extends element implements renderable_element_interfa
      * @param pdf $pdf The PDF instance
      * @param bool $preview Preview mode flag
      * @param stdClass $user The user record
-     * @param element_renderer|null $renderer Optional renderer
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
     }
 
     /**
      * Render the element to HTML (empty in fixture).
      *
-     * @param element_renderer|null $renderer Optional renderer
      * @return string HTML
      */
-    public function render_html(?element_renderer $renderer = null): string {
+    public function render_html(): string {
         return '';
     }
 }

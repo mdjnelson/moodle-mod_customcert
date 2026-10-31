@@ -31,7 +31,6 @@ use mod_customcert\element as base_element;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
@@ -69,21 +68,18 @@ final class element extends base_element implements
      * @param pdf $pdf
      * @param bool $preview
      * @param stdClass $user
-     * @param element_renderer|null $renderer
      * @return void
      */
-    public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void {
-        unset($pdf, $preview, $user, $renderer);
+    public function render(pdf $pdf, bool $preview, stdClass $user): void {
+        unset($pdf, $preview, $user);
     }
 
     /**
      * Render the element in HTML for the designer.
      *
-     * @param element_renderer|null $renderer
      * @return string
      */
-    public function render_html(?element_renderer $renderer = null): string {
-        unset($renderer);
+    public function render_html(): string {
         return (string) $this->get_value();
     }
 }

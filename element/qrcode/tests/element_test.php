@@ -32,13 +32,13 @@ use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
-use mod_customcert\tests\fixtures\spy_element_renderer;
 use stdClass;
 use pdf;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../../../tests/fixtures/spy_element_renderer.php');
+global $CFG;
+require_once($CFG->libdir . '/pdflib.php');
 
 /**
  * Unit tests for the qrcode element.
@@ -165,22 +165,34 @@ final class element_test extends advanced_testcase {
     }
 
     /**
-     * PDF regression: render() must never fall back to the HTML render path when
-     * a pdf_renderer passes itself in as the renderer argument.
+     * Test that render() draws the QR code on the PDF.
      *
      * Preview mode is used so the render path does not require a DB-backed issue record.
      *
      * @covers \customcertelement_qrcode\element::render
      */
-    public function test_render_with_pdf_renderer_does_not_call_render_html(): void {
+    public function test_render_draws_qr_code_on_pdf(): void {
         $el = new element($this->make_record());
 
-        // Build a spy renderer that fails the test if render_html() is ever called.
-        $renderer = new spy_element_renderer();
+        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->onlyMethods(['Image'])->getMock();
+        $pdf->expects($this->once())->method('Image');
 
-        $pdf = $this->getMockBuilder(pdf::class)->disableOriginalConstructor()->getMock();
-        $el->render($pdf, true, new stdClass(), $renderer);
+        $el->render($pdf, true, new stdClass());
+    }
 
-        $this->assertFalse($renderer->called, 'render() must not call render_html() on the renderer');
+    /**
+     * Test that render_html() wraps the QR code in the styled designer container.
+     *
+     * @covers \customcertelement_qrcode\element::render_html
+     */
+    public function test_render_html_wraps_qr_code_in_styled_container(): void {
+        $el = new element($this->make_record());
+
+        $html = $el->render_html();
+
+        $this->assertStringStartsWith('<div style="font-family:', $html);
+        $this->assertStringContainsString('font-size: 12pt;', $html);
+        $this->assertStringContainsString('<div style="font-size:0;position:relative;', $html);
+        $this->assertStringEndsWith('</div>', $html);
     }
 }

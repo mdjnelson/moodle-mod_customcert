@@ -6,6 +6,13 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [6.0] - [Unreleased]
 
+### Changed
+
+- **Breaking change:** Removed `element_renderer`, `pdf_renderer` and `html_renderer`, along with the 
+  optional renderer arguments from `render()` and `render_html()` (#1094). Third-party elements using
+  these APIs must be updated to render directly, using `element_helper` where appropriate. See 
+  `docs/element_migration_v2.md`.
+
 ### Removed
 
 - Removed the internal `legacy_element_adapter` and `legacy_compatibility_diagnostic` compatibility
