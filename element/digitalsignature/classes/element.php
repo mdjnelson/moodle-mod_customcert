@@ -31,7 +31,6 @@ use context_system;
 use core_collator;
 use mod_customcert\certificate;
 use mod_customcert\service\form_service;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -46,9 +45,7 @@ use stored_file;
  * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element implements
-    validatable_element_interface
-{
+class element extends \customcertelement_image\element {
     /**
      * @var array The file manager options for the certificate.
      */
@@ -246,17 +243,6 @@ class element extends \customcertelement_image\element implements
             return null;
         }
         return isset($payload['height']) && $payload['height'] !== '' ? (int)$payload['height'] : null;
-    }
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
     }
 
     /**

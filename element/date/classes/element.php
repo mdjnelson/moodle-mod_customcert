@@ -28,7 +28,6 @@ namespace customcertelement_date;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
@@ -54,8 +53,7 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
-    restorable_element_interface,
-    validatable_element_interface
+    restorable_element_interface
 {
     /** @var string Course grade date identifier. */
     public const string DATE_COURSE_GRADE = '0';
@@ -133,17 +131,6 @@ class element extends base_element implements
             'colour' => (string)($formdata->colour ?? ''),
             'width' => (int)($formdata->width ?? 0),
         ];
-    }
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
     }
 
 

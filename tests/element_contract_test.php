@@ -66,7 +66,8 @@ final class element_contract_test extends advanced_testcase {
     }
 
     /**
-     * A bundled element keeps the interfaces inherited from the base class plus its own declarations.
+     * A bundled element keeps the interfaces inherited from the base class plus its own declarations,
+     * but does not declare the optional validatable_element_interface.
      *
      * @covers \mod_customcert\element
      */
@@ -87,7 +88,76 @@ final class element_contract_test extends advanced_testcase {
 
         // Also inherited from the 5.2 base class, and redeclared by the element itself.
         $this->assertArrayHasKey(renderable_element_interface::class, $implemented);
-        $this->assertArrayHasKey(validatable_element_interface::class, $implemented);
+
+        // Custom form validation is optional and bundled elements have no element-specific rules.
+        $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented);
+    }
+
+    /**
+     * No bundled element opts in to the optional validation interface, and standard colour, position and
+     * width validation still runs for each of them through the real validation service without activating
+     * the deprecated validate_form_elements() fallback.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_bundled_elements_do_not_implement_validation_but_keep_standard_validation(): void {
+        $this->resetAfterTest();
+        set_config('showposxy', 1, 'customcert');
+
+        $elements = [
+            'bgimage',
+            'border',
+            'categoryname',
+            'code',
+            'coursefield',
+            'coursename',
+            'date',
+            'digitalsignature',
+            'expiry',
+            'grade',
+            'gradeitemname',
+            'groupname',
+            'image',
+            'qrcode',
+            'studentname',
+            'teachername',
+            'text',
+            'userfield',
+            'userpicture',
+        ];
+
+        $svc = new validation_service();
+        foreach ($elements as $name) {
+            $class = "customcertelement_{$name}\\element";
+            $this->assertTrue(class_exists($class), "{$class} should exist");
+
+            $implemented = class_implements($class);
+            $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented, $class);
+            $this->assertArrayHasKey(form_element_interface::class, $implemented, $class);
+            $this->assertArrayHasKey(renderable_element_interface::class, $implemented, $class);
+            $this->assertFalse(method_exists($class, 'validate'), "{$class} should not declare validate()");
+
+            $element = new $class($this->make_record());
+            $errors = $svc->validate($element, [
+                'name' => 'Bundled',
+                'width' => -1,
+                'posx' => -1,
+                'posy' => -1,
+                'colour' => 'nope',
+            ]);
+            $this->assertEqualsCanonicalizing(['width', 'posx', 'posy', 'colour'], array_keys($errors), $class);
+
+            $this->assertSame([], $svc->validate($element, [
+                'name' => 'Bundled',
+                'width' => 0,
+                'posx' => 1,
+                'posy' => 1,
+                'colour' => '#000000',
+            ]), $class);
+        }
+
+        // The deprecated legacy fallback must not be activated for any bundled element.
+        $this->assertDebuggingNotCalled();
     }
 
     /**
