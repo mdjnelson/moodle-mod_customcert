@@ -29,7 +29,6 @@ namespace customcertelement_border;
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
@@ -48,8 +47,7 @@ use TCPDF_COLORS;
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface,
-    validatable_element_interface
+    renderable_element_interface
 {
     /**
      * Build the configuration form for this element.
@@ -117,16 +115,5 @@ class element extends base_element implements
             'colour' => isset($formdata->colour) ? (string)$formdata->colour : '',
             'width' => (int)($formdata->width ?? 0),
         ];
-    }
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
     }
 }
