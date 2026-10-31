@@ -110,7 +110,7 @@ final class element_test extends advanced_testcase {
         $this->assertInstanceOf(form_element_interface::class, $el);
         $this->assertInstanceOf(persistable_element_interface::class, $el);
         $this->assertInstanceOf(renderable_element_interface::class, $el);
-        $this->assertInstanceOf(validatable_element_interface::class, $el);
+        $this->assertNotInstanceOf(validatable_element_interface::class, $el);
     }
 
     /**
@@ -127,16 +127,6 @@ final class element_test extends advanced_testcase {
         $result = $el->normalise_data($formdata);
         $this->assertArrayHasKey('width', $result);
         $this->assertArrayHasKey('height', $result);
-    }
-
-    /**
-     * Test that validate() returns an empty array.
-     *
-     * @covers \customcertelement_digitalsignature\element::validate
-     */
-    public function test_validate_returns_empty_array(): void {
-        $el = new element($this->make_record());
-        $this->assertSame([], $el->validate([]));
     }
 
     /**

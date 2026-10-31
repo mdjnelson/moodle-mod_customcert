@@ -28,7 +28,6 @@ namespace customcertelement_expiry;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
-use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
@@ -49,8 +48,7 @@ use mod_customcert\element\restorable_element_interface;
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
-    restorable_element_interface,
-    validatable_element_interface
+    restorable_element_interface
 {
     /**
      * Date - Relative expiry date of 1 year
@@ -284,17 +282,6 @@ class element extends base_element implements
         $dateformats['validfor'] = get_string('validfor', 'customcertelement_expiry');
 
         return $dateformats;
-    }
-
-    /**
-     * Validate submitted form data for this element.
-     * Core validations are handled by validation_service; no extra rules here.
-     *
-     * @param array $data
-     * @return array<string,string>
-     */
-    public function validate(array $data): array {
-        return [];
     }
 
     /**
