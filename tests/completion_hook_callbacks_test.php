@@ -32,6 +32,7 @@ use core_completion_external;
 use core_external\external_api;
 use mod_customcert\event\issue_created;
 use mod_customcert\service\issue_repository;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -45,6 +46,7 @@ require_once($CFG->libdir . '/completionlib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\local\completion_hook_callbacks::class, 'after_cm_completion_updated')]
 final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
@@ -107,8 +109,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * Manually overriding a student's completion to complete issues them a certificate that is
      * visible through the normal repository/report data path.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_manual_override_to_complete_issues_certificate(): void {
         [, $customcert, $teacher, $student] = $this->create_course_with_customcert();
@@ -130,8 +130,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * The issue is created for the student whose completion was overridden, not the teacher who
      * performed the override.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_issue_created_for_target_student_not_actor(): void {
         [, $customcert, $teacher, $student] = $this->create_course_with_customcert();
@@ -146,8 +144,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * Repeated qualifying completion overrides must never create a duplicate issue or duplicate
      * issue_created event.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_repeated_override_does_not_duplicate_issue(): void {
         [, $customcert, $teacher, $student] = $this->create_course_with_customcert();
@@ -178,8 +174,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
 
     /**
      * Overriding completion to incomplete must not issue a certificate.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_override_to_incomplete_does_not_issue_certificate(): void {
         [$course, $customcert, $teacher, $student] = $this->create_course_with_customcert();
@@ -201,8 +195,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
 
     /**
      * An ordinary completion update with no override must not issue a certificate.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_ordinary_completion_update_without_override_does_not_issue_certificate(): void {
         [$course, $customcert, , $student] = $this->create_course_with_customcert();
@@ -219,8 +211,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
 
     /**
      * Completion overrides for non-customcert course modules must be ignored.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_completion_event_for_other_activity_type_is_ignored(): void {
         global $DB;
@@ -245,8 +235,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * An automatic-completion Custom certificate can still be manually overridden to complete, and
      * that override must issue a certificate.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_automatic_completion_activity_manually_overridden_issues_certificate(): void {
         [, $customcert, $teacher, $student] = $this->create_course_with_customcert(
@@ -265,8 +253,6 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * An existing certificate issue is left untouched and no duplicate is inserted when a
      * qualifying completion override fires again.
-     *
-     * @covers \mod_customcert\local\completion_hook_callbacks::after_cm_completion_updated
      */
     public function test_existing_issue_is_not_duplicated(): void {
         [, $customcert, $teacher, $student] = $this->create_course_with_customcert();

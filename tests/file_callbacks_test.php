@@ -23,6 +23,7 @@ use context_module;
 use context_system;
 use mod_customcert\callback\file_callbacks;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Unit tests for classes/callback/file_callbacks.php.
@@ -37,6 +38,7 @@ use moodle_exception;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\callback\file_callbacks::class, 'pluginfile')]
 final class file_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
@@ -50,8 +52,6 @@ final class file_callbacks_test extends advanced_testcase {
 
     /**
      * Only the 'image' filearea is handled; anything else must be a no-op.
-     *
-     * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */
     public function test_pluginfile_ignores_non_image_filearea(): void {
         $this->setAdminUser();
@@ -68,8 +68,6 @@ final class file_callbacks_test extends advanced_testcase {
     /**
      * A CONTEXT_SYSTEM request without mod/customcert:manage must be denied before any file
      * lookup happens.
-     *
-     * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */
     public function test_pluginfile_system_context_denies_without_manage_capability(): void {
         $student = $this->getDataGenerator()->create_user();
@@ -88,8 +86,6 @@ final class file_callbacks_test extends advanced_testcase {
      * A CONTEXT_SYSTEM request with mod/customcert:manage must pass the capability check and
      * proceed to the (here, unsuccessful) file lookup, proving the check doesn't also block
      * legitimate managers.
-     *
-     * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */
     public function test_pluginfile_system_context_allows_with_manage_capability(): void {
         $this->setAdminUser();
@@ -108,8 +104,6 @@ final class file_callbacks_test extends advanced_testcase {
     /**
      * Anonymous module-context file requests must be rejected by require_login().
      * PHPUnit reports the login redirect as a moodle_exception, not a require_login_exception.
-     *
-     * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */
     public function test_pluginfile_module_context_requires_login(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -124,8 +118,6 @@ final class file_callbacks_test extends advanced_testcase {
     /**
      * A CONTEXT_MODULE request from a user who is logged in to the course must pass the
      * login check and proceed to the (here, unsuccessful) file lookup.
-     *
-     * @covers \mod_customcert\callback\file_callbacks::pluginfile
      */
     public function test_pluginfile_module_context_allows_with_login(): void {
         $course = $this->getDataGenerator()->create_course();

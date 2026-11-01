@@ -22,6 +22,7 @@ use mod_customcert\service\certificate_time_service;
 use mod_customcert\tests\fixtures\stub_log_manager;
 use mod_customcert\tests\fixtures\stub_sql_internal_reader;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,12 +35,11 @@ require_once(__DIR__ . '/fixtures/stub_sql_internal_reader.php');
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\certificate_time_service
  */
+#[CoversClass(\mod_customcert\service\certificate_time_service::class)]
 final class certificate_time_service_test extends advanced_testcase {
     /**
      * Calculates total course time by accumulating contiguous sessions.
-     * @covers ::get_course_time
      */
     public function test_get_course_time_accumulates_sessions(): void {
         global $CFG, $DB;
@@ -69,7 +69,6 @@ final class certificate_time_service_test extends advanced_testcase {
 
     /**
      * Resets accumulated time when gaps exceed session timeout.
-     * @covers ::get_course_time
      */
     public function test_get_course_time_resets_after_timeout(): void {
         global $CFG, $DB;

@@ -27,6 +27,7 @@ use mod_customcert\tests\fixtures\fake_element_fixture;
 use mod_customcert\tests\fixtures\incompatible_element_fixture;
 use mod_customcert\tests\fixtures\legacy_and_native_plugin_provider;
 use mod_customcert\tests\fixtures\simple_plugin_provider;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -43,8 +44,8 @@ require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\element\element_bootstrap::register_defaults
  */
+#[CoversMethod(\mod_customcert\element\element_bootstrap::class, 'register_defaults')]
 final class element_bootstrap_discovery_test extends advanced_testcase {
     /**
      * Provide a fake element class for discovery (namespaced like a real plugin).

@@ -22,7 +22,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\service\element_repository
  */
 
 declare(strict_types=1);
@@ -46,11 +45,13 @@ use mod_customcert\service\template_repository;
 use mod_customcert\tests\fixtures\dummy_element_interface_with_id_element;
 use mod_customcert\tests\fixtures\native_v2_control_element;
 use mod_customcert\tests\fixtures\raw_data_native_v2_element;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests proving that element_repository::save()/create() persist the current JSON
  * payload representation returned by get_data().
  */
+#[CoversClass(\mod_customcert\service\element_repository::class)]
 final class issue_968_raw_data_persistence_test extends advanced_testcase {
     /** @var element_repository */
     private element_repository $repo;
@@ -120,8 +121,6 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
     /**
      * (d) Native-v2 control: current native Element System v2 persistence is unchanged.
-     *
-     * @covers \mod_customcert\service\element_repository::save
      */
     public function test_native_v2_save_persistence_unchanged(): void {
         global $DB;
@@ -143,8 +142,6 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
     /**
      * (e) Bundled element control: bundled/first-party structured-JSON persistence is unchanged.
-     *
-     * @covers \mod_customcert\service\element_repository::save
      */
     public function test_bundled_element_save_persistence_unchanged(): void {
         global $DB;
@@ -169,8 +166,6 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
     /**
      * Direct element_interface implementations still persist via get_data().
-     *
-     * @covers \mod_customcert\service\element_repository::save
      */
     public function test_direct_element_interface_save_uses_get_data(): void {
         global $DB;
@@ -190,9 +185,6 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
 
     /**
      * Both save() and create() must prefer raw storage over the derived get_data() view.
-     *
-     * @covers \mod_customcert\service\element_repository::save
-     * @covers \mod_customcert\service\element_repository::create
      */
     public function test_raw_data_element_interface_is_preferred_over_get_data_on_save_and_create(): void {
         global $DB;

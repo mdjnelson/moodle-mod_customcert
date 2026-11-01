@@ -51,14 +51,14 @@ use mod_customcert\service\template_repository;
 use mod_customcert\tests\fixtures\native_v2_control_element;
 use ReflectionMethod;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Lifecycle regression tests for the v2 factory/repository after legacy runtime removal.
- *
- * @covers \mod_customcert\element
- * @covers \mod_customcert\service\element_factory
- * @covers \mod_customcert\service\element_repository
  */
+#[CoversClass(\mod_customcert\element::class)]
+#[CoversClass(\mod_customcert\service\element_factory::class)]
+#[CoversClass(\mod_customcert\service\element_repository::class)]
 final class legacy_element_lifecycle_test extends advanced_testcase {
     /** Registry type key for the genuine 4.5-era fixture. */
     private const TYPE_LEGACY45 = 'legacy45';

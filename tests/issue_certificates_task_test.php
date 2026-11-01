@@ -28,6 +28,7 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\task\issue_certificates_task;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for recipient eligibility in the issue certificates scheduled task.
@@ -36,8 +37,8 @@ use stdClass;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\task\issue_certificates_task
  */
+#[CoversClass(\mod_customcert\task\issue_certificates_task::class)]
 final class issue_certificates_task_test extends advanced_testcase {
     /**
      * Test set up.

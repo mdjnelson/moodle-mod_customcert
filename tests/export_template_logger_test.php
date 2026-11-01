@@ -19,16 +19,18 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_logger;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 /**
  * Tests for template_logger.
  *
  * @package    mod_customcert
  * @category   test
- * @group      mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\export\template_logger
  */
+#[CoversClass(\mod_customcert\export\template_logger::class)]
+#[Group('mod_customcert')]
 final class export_template_logger_test extends advanced_testcase {
     /**
      * Test that template_logger implements template_import_logger_interface.

@@ -30,15 +30,15 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use mod_customcert\local\preview_renderer;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests that the preview HTML renderer produces output with a single Text element.
  */
+#[CoversMethod(\mod_customcert\local\preview_renderer::class, 'render_html_page')]
 final class preview_renderer_with_text_test extends advanced_testcase {
     /**
      * Ensure non-empty HTML is returned for a page containing a Text element.
-     *
-     * @covers \mod_customcert\local\preview_renderer::render_html_page
      */
     public function test_render_html_page_with_text_element(): void {
         global $DB;

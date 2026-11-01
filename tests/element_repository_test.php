@@ -21,7 +21,6 @@
  * @category   test
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\element_repository
  */
 
 declare(strict_types=1);
@@ -37,10 +36,12 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use advanced_testcase;
 use mod_customcert\event\element_deleted;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for element_repository list behaviour and ordering.
  */
+#[CoversClass(\mod_customcert\service\element_repository::class)]
 final class element_repository_test extends advanced_testcase {
     /**
      * Repository under test.
@@ -77,8 +78,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures list_by_page orders by sequence then id.
-     *
-     * @covers ::list_by_page
      */
     public function test_list_by_page_orders_by_sequence_then_id(): void {
         global $DB;
@@ -150,8 +149,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures list_by_page filters to the given page.
-     *
-     * @covers ::list_by_page
      */
     public function test_list_by_page_filters_by_pageid(): void {
         global $DB;
@@ -218,8 +215,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures update_position() persists the new coordinates.
-     *
-     * @covers ::update_position
      */
     public function test_update_position_persists_coordinates(): void {
         global $DB;
@@ -265,8 +260,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures update_name() persists the new name.
-     *
-     * @covers ::update_name
      */
     public function test_update_name_persists_name(): void {
         global $DB;
@@ -311,8 +304,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures delete() removes the DB record and fires element_deleted event.
-     *
-     * @covers ::delete
      */
     public function test_delete_removes_record_and_fires_event(): void {
         global $DB;
@@ -366,8 +357,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_template_id_for_element returns the owning templateid.
-     *
-     * @covers ::get_template_id_for_element
      */
     public function test_get_template_id_for_element_returns_templateid(): void {
         global $DB;
@@ -405,8 +394,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_template_id_for_element returns null for a non-existent element.
-     *
-     * @covers ::get_template_id_for_element
      */
     public function test_get_template_id_for_element_returns_null_for_missing(): void {
         $result = $this->repo->get_template_id_for_element(999999);
@@ -415,8 +402,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_for_template_or_fail returns the element when it belongs to the template.
-     *
-     * @covers ::get_for_template_or_fail
      */
     public function test_get_for_template_or_fail_returns_element_for_correct_template(): void {
         global $DB;
@@ -454,8 +439,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_for_template_or_fail throws when the element belongs to a different template.
-     *
-     * @covers ::get_for_template_or_fail
      */
     public function test_get_for_template_or_fail_throws_for_mismatched_template(): void {
         global $DB;
@@ -503,8 +486,6 @@ final class element_repository_test extends advanced_testcase {
 
     /**
      * Ensures delete_by_id removes the DB record without firing an event.
-     *
-     * @covers ::delete_by_id
      */
     public function test_delete_by_id_removes_record(): void {
         global $DB;

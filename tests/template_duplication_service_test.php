@@ -21,7 +21,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\template_duplication_service
  */
 
 declare(strict_types=1);
@@ -36,10 +35,12 @@ use mod_customcert\service\page_repository;
 use mod_customcert\service\template_duplication_service;
 use mod_customcert\service\template_repository;
 use advanced_testcase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for template_duplication_service behaviour.
  */
+#[CoversClass(\mod_customcert\service\template_duplication_service::class)]
 final class template_duplication_service_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $templates;
@@ -64,8 +65,6 @@ final class template_duplication_service_test extends advanced_testcase {
 
     /**
      * Ensures duplication copies template, pages, elements and fires the duplicated event.
-     *
-     * @covers ::duplicate
      */
     public function test_duplicate_copies_pages_elements_and_triggers_event(): void {
         global $DB;

@@ -24,20 +24,22 @@ use mod_customcert\export\datatypes\int_field;
 use mod_customcert\export\datatypes\float_field;
 use mod_customcert\export\datatypes\enum_field;
 use mod_customcert\export\datatypes\format_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for export datatype field classes.
  *
  * @package    mod_customcert
  * @category   test
- * @group      mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\export\datatypes\string_field
- * @covers     \mod_customcert\export\datatypes\int_field
- * @covers     \mod_customcert\export\datatypes\float_field
- * @covers     \mod_customcert\export\datatypes\enum_field
  */
+#[CoversClass(\mod_customcert\export\datatypes\string_field::class)]
+#[CoversClass(\mod_customcert\export\datatypes\int_field::class)]
+#[CoversClass(\mod_customcert\export\datatypes\float_field::class)]
+#[CoversClass(\mod_customcert\export\datatypes\enum_field::class)]
+#[Group('mod_customcert')]
 final class export_datatype_fields_test extends advanced_testcase {
     // String_field tests.
 

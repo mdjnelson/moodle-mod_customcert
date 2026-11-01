@@ -38,6 +38,9 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\task\email_certificate_task;
 use mod_customcert\task\issue_certificates_task;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit tests for the email certificate task.
@@ -46,8 +49,14 @@ use mod_customcert\task\issue_certificates_task;
  * @category   test
  * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\task\email_certificate_task
  */
+#[CoversClass(\mod_customcert\task\email_certificate_task::class)]
+#[CoversClass(\mod_customcert\service\certificate_issuer_service::class)]
+#[CoversClass(\mod_customcert\service\certificate_email_service::class)]
+#[CoversClass(\mod_customcert\task\issue_certificates_task::class)]
+#[CoversClass(\mod_customcert\completion\custom_completion::class)]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'list_emailed_users')]
+#[CoversMethod(\mod_customcert\service\certificate_issue_service::class, 'issue_certificate')]
 final class email_certificate_task_test extends advanced_testcase {
     /**
      * Test set up.
@@ -63,9 +72,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the issuer service end-to-end for a single student.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
-     * @covers \mod_customcert\service\certificate_email_service
      */
     public function test_certificate_issuer_service_processes_run(): void {
         global $CFG, $DB;
@@ -114,8 +120,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Ensure reusable issuer APIs expose candidates and issue creation without duplication.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
      */
     public function test_certificate_issuer_helpers_list_candidates_and_issue_if_needed(): void {
         global $DB;
@@ -171,8 +175,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should ignore certificates without elements.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_requires_elements(): void {
         // Create a course and enrol a student.
@@ -195,8 +197,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should enforce required time before listing users.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_respects_required_time(): void {
         global $DB;
@@ -236,8 +236,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * list_email_candidates must not require a user to have already met the completion conditions
      * configured on the certificate activity itself (e.g. View), since that would create a circular
      * dependency where the certificate can never be issued automatically (#1020).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_ignores_own_view_completion_condition(): void {
         global $CFG, $DB;
@@ -274,8 +272,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * list_email_candidates must not require a user to have already met a "Mark as done" completion
      * condition configured on the certificate activity itself (#1020).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_ignores_own_manual_completion_condition(): void {
         global $CFG, $DB;
@@ -310,8 +306,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should not include suspended users.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_skips_suspended_users(): void {
         global $DB;
@@ -349,8 +343,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should skip hidden courses when configuration excludes them.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_skips_hidden_course(): void {
         global $DB;
@@ -383,8 +375,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should skip hidden activities even when the course is visible.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_skips_hidden_activity(): void {
         global $DB;
@@ -417,8 +407,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * list_email_candidates should skip hidden activities even when "Issue certificates automatically" is
      * enabled; that setting must never override the activity's hidden status (#1020).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_skips_hidden_activity_with_issueautomatically_enabled(): void {
         global $DB;
@@ -453,8 +441,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * combined with an unmet "View" completion condition configured on the certificate itself. The
      * student should be eligible once the restrict access condition is met, regardless of the
      * certificate's own unmet completion condition.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_quiz_restriction_with_unmet_own_completion(): void {
         global $CFG, $DB;
@@ -511,8 +497,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should respect hidden category visibility when includeinnotvisiblecourses is disabled.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_skips_hidden_category_when_excluded(): void {
         global $DB;
@@ -548,8 +532,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * list_email_candidates should include hidden courses when configuration allows them.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::list_email_candidates
      */
     public function test_list_email_candidates_allows_hidden_course_when_configured(): void {
         global $DB;
@@ -582,8 +564,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should skip courses that ended before the execution period window.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_expired_course_outside_execution_period(): void {
         global $DB;
@@ -628,8 +608,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * queue_or_send_email should queue an adhoc task when configured.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::queue_or_send_email
      */
     public function test_queue_or_send_email_queues_adhoc_task(): void {
         global $DB;
@@ -671,8 +649,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * queue_or_send_email should send immediately and flag emailed when adhoc is disabled.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::queue_or_send_email
      */
     public function test_queue_or_send_email_sends_inline_when_adhoc_disabled(): void {
         global $CFG, $DB;
@@ -712,8 +688,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should skip courses that ended before the execution period window.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_hidden_course_when_config_disabled(): void {
         global $DB;
@@ -748,8 +722,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should process hidden courses when config allows them and the user can view them.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_allows_hidden_course_when_config_enabled(): void {
         global $CFG, $DB;
@@ -800,8 +772,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should skip courses in hidden categories when config excludes them.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_hidden_category_when_config_disabled(): void {
         global $DB;
@@ -837,8 +807,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should skip hidden activities.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_hidden_activity(): void {
         global $DB;
@@ -874,8 +842,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * process_email_issuance_run should respect certificatesperrun and advance/reset the offset.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_respects_limit_and_offset(): void {
         global $CFG, $DB;
@@ -950,9 +916,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task when there are no elements.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_no_elements(): void {
         // Create a course.
@@ -980,9 +943,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task for users without a capability to receive a certificate.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_no_cap(): void {
         global $DB;
@@ -1031,9 +991,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task for students.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students(): void {
         global $CFG, $DB;
@@ -1120,9 +1077,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task for instance on the site home course.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_sitehome(): void {
         global $CFG, $DB, $SITE;
@@ -1200,9 +1154,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task for teachers.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_teachers(): void {
         global $CFG, $DB;
@@ -1267,9 +1218,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Tests that the email certificate task does not manufacture certificates for students who
      * have never triggered issuance themselves, merely because emailteachers is enabled.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_teachers_does_not_bulk_issue_to_students(): void {
         global $DB;
@@ -1312,9 +1260,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Enabling this certificate's "Issue certificates automatically" setting restores the #904
      * workflow for emailteachers without emailstudents, without making it the default behaviour
      * (#672 is still protected for certificates that leave the setting off).
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_teachers_auto_issues_when_setting_enabled(): void {
         global $DB;
@@ -1371,9 +1316,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * "Issue certificates automatically" is enabled, otherwise a "View" completion condition would
      * create a circular dependency: a student could never view a certificate they are never issued
      * (#1020).
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_teachers_ignores_completion_with_auto_issue_enabled(): void {
         global $CFG, $DB;
@@ -1438,9 +1380,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * "Issue certificates automatically" is stored per certificate, not read from a global
      * configuration value: two certificates in the same course with different values behave
      * independently within the same task run.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_issueautomatically_is_per_certificate_not_global(): void {
         global $DB;
@@ -1490,9 +1429,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Tests that the email certificate task only notifies teachers about certificates that were
      * actually issued (e.g. by a student obtaining their certificate), and not about students who
      * were merely eligible but never triggered issuance themselves.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_teachers_only_notified_for_self_issued_certificates(): void {
         global $DB;
@@ -1545,9 +1481,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task for others.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_others(): void {
         global $CFG, $DB;
@@ -1607,9 +1540,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Tests that the email certificate task does not manufacture certificates for students who
      * have never triggered issuance themselves, merely because emailothers is enabled.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_others_does_not_bulk_issue_to_students(): void {
         global $DB;
@@ -1652,9 +1582,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Enabling this certificate's "Issue certificates automatically" setting restores the #904
      * workflow for emailothers without emailstudents, without making it the default behaviour
      * (#672 is still protected for certificates that leave the setting off).
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_others_auto_issues_when_setting_enabled(): void {
         global $DB;
@@ -1706,9 +1633,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task when the certificate is not visible.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students_not_visible(): void {
         global $DB;
@@ -1760,9 +1684,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task when the student has not met the required time for the course.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students_havent_met_required_time(): void {
         global $DB;
@@ -1815,9 +1736,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task when the student has not met the completion criteria.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students_havent_met_required_criteria(): void {
         global $CFG, $DB;
@@ -1896,9 +1814,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task when the student has met the completion criteria.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_certificates_students_have_met_required_criteria(): void {
         global $CFG, $DB;
@@ -1981,9 +1896,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests the email certificate task running adhoc.
-     *
-     * @covers \mod_customcert\task\email_certificate_task
-     * @covers \mod_customcert\task\issue_certificates_task
      */
     public function test_email_certificates_adhoc(): void {
         global $CFG, $DB;
@@ -2091,8 +2003,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Tests that we still issue a certificate if there are none when 'certificateexecutionperiod' is set.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
      */
     public function test_issue_certificates_task_creates_issue_when_none_exist(): void {
         global $CFG, $DB;
@@ -2163,8 +2073,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * The email_certificate_task should no-op (not fatal) when custom data is missing.
-     *
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_adhoc_task_ignores_missing_customdata(): void {
         // No setup; call the adhoc task with no custom data.
@@ -2182,8 +2090,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * The email_certificate_task should no-op when customcert id is invalid.
-     *
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_adhoc_task_invalid_customcertid(): void {
         $sink = $this->redirectEmails();
@@ -2201,8 +2107,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * The email_certificate_task should no-op when issue id is invalid (even if customcert exists).
-     *
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_email_adhoc_task_invalid_issueid_with_valid_customcert(): void {
         global $DB;
@@ -2237,9 +2141,6 @@ final class email_certificate_task_test extends advanced_testcase {
      *
      * This confirms that the patch allowing teachers enrolled as students to receive
      * certificates does not incorrectly allow teachers/managers who are *not* students.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_manager_only_does_not_receive_certificate(): void {
         global $DB;
@@ -2317,9 +2218,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Users who have receiveissue + view should receive a certificate and email.
      * Users who lack receiveissue should NOT receive a certificate or email,
      * even if they have the manage capability.
-     *
-     * @covers \mod_customcert\task\issue_certificates_task
-     * @covers \mod_customcert\task\email_certificate_task
      */
     public function test_receiveissue_capability_based_issuing(): void {
         global $DB, $CFG;
@@ -2398,9 +2296,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Tests that sending the certificate email to a student marks the completionemailed rule
      * complete for them once emailstudents is enabled for the instance.
-     *
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_send_issue_completes_activity_for_emailed_student(): void {
         global $CFG, $DB;
@@ -2459,9 +2354,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Tests that the completionemailed rule does not report complete for a student who was
      * never emailed, even if the issue was processed because only teachers were emailed and the
      * completionemailed flag is set directly on the instance record.
-     *
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_send_issue_does_not_complete_activity_when_student_is_not_emailed(): void {
         global $CFG, $DB;
@@ -2517,9 +2409,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * A teacher-only issue must not retroactively satisfy completionemailed just because
      * emailstudents is enabled for the instance afterwards -- studentemailed is a historical
      * fact recorded at send time, not derived from the instance's current configuration.
-     *
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_completion_stays_incomplete_after_emailstudents_enabled_later(): void {
         global $CFG, $DB;
@@ -2572,9 +2461,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Once a student really has been emailed, completion must not regress just because
      * emailstudents is later disabled for the instance.
-     *
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_completion_stays_complete_after_emailstudents_disabled_later(): void {
         global $CFG, $DB;
@@ -2622,9 +2508,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * If email_to_user() reports failure for the student, completion must not be granted even
      * though the issue was still processed (marked emailed).
-     *
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_send_issue_does_not_complete_when_email_to_user_fails(): void {
         global $CFG, $DB;
@@ -2676,8 +2559,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * send_issue() must not treat NULL studentemailed on an already-processed issue as
      * retryable, even when called directly rather than through candidate selection.
-     *
-     * @covers \mod_customcert\service\certificate_email_service::send_issue
      */
     public function test_send_issue_does_not_reemail_processed_issue_with_null_studentemailed(): void {
         global $DB;
@@ -2714,8 +2595,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * studentemailed = 1 must block a student send even if emailed is inconsistently still 0.
-     *
-     * @covers \mod_customcert\service\certificate_email_service::send_issue
      */
     public function test_send_issue_does_not_resend_when_studentemailed_already_one(): void {
         global $DB;
@@ -2751,10 +2630,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Automatic issuance must not depend on the certificate's own completionemailed state.
      * Otherwise, students who have never visited cannot receive the email needed for completion (#645).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_issue_certificates_task_completes_activity_for_student_who_never_visited(): void {
         global $CFG, $DB;
@@ -2818,8 +2693,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * Regression test for #1020: the certificate's own "Mark as done" completion condition must
      * not prevent automatic issuance, since that would create a circular dependency (the activity
      * could require the student to already hold the certificate before it can be issued to them).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
      */
     public function test_issue_certificates_task_ignores_manual_completion(): void {
         global $CFG, $DB;
@@ -2867,11 +2740,6 @@ final class email_certificate_task_test extends advanced_testcase {
      * excluded from candidacy just because their issue was processed), the retry must satisfy
      * completionemailed once it succeeds, and the retry must not re-email the teacher, who was
      * already successfully notified on the first run.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
-     * @covers \mod_customcert\service\certificate_email_service
-     * @covers \mod_customcert\service\issue_repository::list_emailed_users
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_issue_certificates_task_retries_student_after_failed_send(): void {
         global $CFG, $DB;
@@ -2958,10 +2826,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * A historical issue with emailed = 1 and studentemailed = NULL must not be automatically
      * re-emailed by the issuance cron.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service
-     * @covers \mod_customcert\service\issue_repository::list_emailed_users
-     * @covers \mod_customcert\completion\custom_completion
      */
     public function test_issue_certificates_task_does_not_reemail_historical_null_studentemailed(): void {
         global $CFG, $DB;
@@ -3010,9 +2874,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Issues created by a CLI issuance run are attributed to the cron user, never to a previously emailed student.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
-     * @covers \mod_customcert\service\certificate_email_service::send_issue
      */
     public function test_cli_issuance_run_does_not_attribute_issues_to_students(): void {
         global $DB;
@@ -3058,10 +2919,9 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Sending an issue restores the previously active user.
      *
-     * @dataProvider initial_user_provider
-     * @covers \mod_customcert\service\certificate_email_service::send_issue
      * @param string $usertype
      */
+    #[DataProvider('initial_user_provider')]
     public function test_send_issue_restores_current_user(string $usertype): void {
         global $USER;
 
@@ -3080,10 +2940,9 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * An exception after switching to the recipient still restores the previously active user.
      *
-     * @dataProvider initial_user_provider
-     * @covers \mod_customcert\service\certificate_email_service::send_issue
      * @param string $usertype
      */
+    #[DataProvider('initial_user_provider')]
     public function test_send_issue_restores_current_user_on_exception(string $usertype): void {
         global $DB, $USER;
 
@@ -3124,8 +2983,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Web issuance keeps attributing the issue event to the logged-in user.
-     *
-     * @covers \mod_customcert\service\certificate_issue_service::issue_certificate
      */
     public function test_web_issuance_attributes_event_to_current_user(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -3254,8 +3111,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Admins and managers who can ignore availability restrictions must not be issued or emailed
      * certificates while the restriction is unmet (#1039).
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_admin_and_manager_with_unmet_restriction(): void {
         global $DB;
@@ -3295,8 +3150,6 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Users who satisfy the restriction are issued once, even when they could ignore it, and only
      * users who are enrolled, not suspended and hold the capability are eligible.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_issues_eligible_users_once_with_met_restriction(): void {
         global $DB;
@@ -3334,8 +3187,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * A normal student is not issued a certificate while the restriction is unmet.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_skips_student_with_unmet_restriction(): void {
         global $DB;
@@ -3353,8 +3204,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Site home certificates are not issued to an admin or student while the restriction is unmet.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_site_home_skips_unmet_restriction(): void {
         global $DB;
@@ -3375,8 +3224,6 @@ final class email_certificate_task_test extends advanced_testcase {
 
     /**
      * Site home certificates are issued to eligible users, including an admin, when the restriction is met.
-     *
-     * @covers \mod_customcert\service\certificate_issuer_service::process_email_issuance_run
      */
     public function test_process_run_site_home_issues_with_met_restriction(): void {
         global $DB;

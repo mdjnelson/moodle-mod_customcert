@@ -26,6 +26,8 @@ use invalid_parameter_exception;
 use mod_customcert\service\element_factory;
 use ReflectionMethod;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Security regression tests for mod_customcert_save_element value validation.
@@ -35,6 +37,12 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\external::class, 'save_element')]
+#[CoversMethod(\customcertelement_userfield\element::class, 'get_user_field_value')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_grade_item_info')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_mod_grade_info')]
+#[CoversMethod(\customcertelement_gradeitemname\element::class, 'get_grade_item_name')]
+#[CoversMethod(\customcertelement_image\element::class, 'normalise_data')]
 final class save_element_security_test extends advanced_testcase {
     /** @var stdClass Course the teacher can manage. */
     private stdClass $coursea;
@@ -157,8 +165,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * An arbitrary user table field must not be saved.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_sensitive_userfield(): void {
         $element = $this->create_element('userfield', ['userfield' => 'email']);
@@ -170,8 +176,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * A field offered by the form still saves.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_saves_valid_userfield(): void {
         $element = $this->create_element('userfield', ['userfield' => 'email']);
@@ -183,8 +187,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * Stored values outside the allowed core fields are never read from the user record.
-     *
-     * @covers \customcertelement_userfield\element::get_user_field_value
      */
     public function test_userfield_render_ignores_non_allowed_field(): void {
         $element = $this->create_element('userfield', ['userfield' => 'password']);
@@ -232,12 +234,11 @@ final class save_element_security_test extends advanced_testcase {
     /**
      * Grade, date and grade item name elements must not accept other courses' items.
      *
-     * @dataProvider grade_element_provider
-     * @covers \mod_customcert\external::save_element
      * @param string $type Element type.
      * @param string $field The select field holding the grade item.
      * @param array $extra Other required values.
      */
+    #[DataProvider('grade_element_provider')]
     public function test_save_element_rejects_foreign_grade_items(string $type, string $field, array $extra): void {
         [$foreigncmid] = $this->create_graded_module($this->courseb);
         [$localcmid] = $this->create_graded_module($this->coursea);
@@ -273,9 +274,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * Grade lookups must be restricted to the certificate's course.
-     *
-     * @covers \mod_customcert\element_helper::get_grade_item_info
-     * @covers \mod_customcert\element_helper::get_mod_grade_info
      */
     public function test_grade_helpers_restrict_to_course(): void {
         $student = $this->getDataGenerator()->create_and_enrol($this->courseb, 'student');
@@ -299,8 +297,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * A stored cross-course reference does not resolve to a grade item name.
-     *
-     * @covers \customcertelement_gradeitemname\element::get_grade_item_name
      */
     public function test_gradeitemname_render_restricted_to_course(): void {
         [$foreigncmid] = $this->create_graded_module($this->courseb);
@@ -322,10 +318,9 @@ final class save_element_security_test extends advanced_testcase {
     /**
      * Image, background image and digital signature elements must not accept other courses' files.
      *
-     * @dataProvider file_element_provider
-     * @covers \mod_customcert\external::save_element
      * @param string $type Element type.
      */
+    #[DataProvider('file_element_provider')]
     public function test_save_element_rejects_foreign_image_file(string $type): void {
         $foreign = $this->create_file($this->courseb, 'image', 'foreign.png');
         $local = $this->create_file($this->coursea, 'image', 'local.png');
@@ -355,8 +350,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * Digital signature certificates from other courses must not be selectable.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_foreign_signature_file(): void {
         $foreign = $this->create_file($this->courseb, 'signature', 'foreign.p12');
@@ -372,8 +365,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * Element normalisation ignores file ids that the form would not offer.
-     *
-     * @covers \customcertelement_image\element::normalise_data
      */
     public function test_image_normalise_data_ignores_foreign_file(): void {
         global $COURSE;
@@ -389,8 +380,6 @@ final class save_element_security_test extends advanced_testcase {
 
     /**
      * Ownership and capability checks still apply.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_still_requires_template_ownership(): void {
         global $DB;

@@ -25,6 +25,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use context_system;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Ensure unknown element types do not break loading and are skipped with a developer warning.
@@ -33,8 +34,8 @@ use context_system;
  * @package    mod_customcert
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'load_by_page_id')]
 final class unknown_element_handling_test extends advanced_testcase {
     #[\Override]
     public function setUp(): void {

@@ -24,6 +24,7 @@ use customcertelement_border\element as border_element;
 use mod_customcert\local\upgrade\row_migrator;
 use stdClass;
 use context_system;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Unit tests covering the save-element refactor changes:
@@ -37,6 +38,11 @@ use context_system;
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\customcertelement_border\element::class, 'normalise_data')]
+#[CoversMethod(\mod_customcert\local\upgrade\row_migrator::class, 'migrate_row')]
+#[CoversMethod(\mod_customcert\local\upgrade\row_migrator::class, 'migrate_border_row')]
+#[CoversMethod(\mod_customcert\external::class, 'save_element')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'update_position')]
 final class save_element_changes_test extends advanced_testcase {
     // -----------------------------------------------------------------------
     // 1. border::normalise_data()
@@ -44,8 +50,6 @@ final class save_element_changes_test extends advanced_testcase {
 
     /**
      * normalise_data() must return colour and width from the submitted form data.
-     *
-     * @covers \customcertelement_border\element::normalise_data
      */
     public function test_border_normalise_data_returns_colour_and_width(): void {
         $this->resetAfterTest();
@@ -83,8 +87,6 @@ final class save_element_changes_test extends advanced_testcase {
      * The most common pre-upgrade state for elements like text/date: data holds a plain
      * integer scalar (e.g. "12") and no visual columns were set. migrate_row() must wrap
      * it as {"value":12} so the decoded integer is preserved with the correct type.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_integer_scalar_no_visuals(): void {
         $migrated = row_migrator::migrate_row('12', null, null, null, null);
@@ -99,8 +101,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * A plain string (non-JSON) in data with visual columns set must produce
      * {"value":"<original string>", "font":..., "fontsize":..., "colour":..., "width":...}.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_string_scalar_with_visuals(): void {
         $migrated = row_migrator::migrate_row('Some text', 0, 'freesans', 12, '000000');
@@ -118,8 +118,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * An integer scalar in data with visual columns set must produce
      * {"value":12, "font":..., ...} with the integer decoded natively.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_integer_scalar_with_visuals(): void {
         $migrated = row_migrator::migrate_row('12', 0, 'freesans', 12, '000000');
@@ -132,8 +130,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * An existing JSON object in data must have visuals merged in without losing
      * existing element-specific keys.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_existing_json_object_merges_visuals(): void {
         $migrated = row_migrator::migrate_row('{"dateitem":1,"dateformat":"strftimedate"}', 0, 'freesans', 12, '000000');
@@ -153,8 +149,6 @@ final class save_element_changes_test extends advanced_testcase {
      * migrate_border_row() with a plain integer scalar in data and no width column
      * must promote the scalar to the 'width' key so get_width() returns the correct
      * value after upgrade.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_border_row
      */
     public function test_migrate_border_row_promotes_scalar_to_width(): void {
         $migrated = row_migrator::migrate_border_row('4', null, null, null, null);
@@ -169,8 +163,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * When the old width column was explicitly set, migrate_border_row() must use
      * that value (not the scalar in data) for the width key.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_border_row
      */
     public function test_migrate_border_row_explicit_width_column_wins(): void {
         $migrated = row_migrator::migrate_border_row('3', 5, null, null, null);
@@ -184,8 +176,6 @@ final class save_element_changes_test extends advanced_testcase {
      * Without migrate_border_row(), a plain scalar "4" passed directly to migrate_row()
      * with no width column produces {"value":4} — 'width' key absent, get_width() returns
      * null. This documents why migrate_border_row() exists.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_border_scalar_without_promotion_loses_width(): void {
         $migrated = row_migrator::migrate_row('4', null, null, null, null);
@@ -198,8 +188,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * When a legacy border row had no data at all and a width column value,
      * migrate_row() must produce {"width":N}.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_null_data_with_width_column(): void {
         $migrated = row_migrator::migrate_row(null, 4, null, null, null);
@@ -212,8 +200,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * When a legacy border row had no data and no width column (truly empty),
      * migrate_row() must return null unchanged — nothing to migrate.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_null_data_no_visuals_returns_null(): void {
         $migrated = row_migrator::migrate_row(null, null, null, null, null);
@@ -223,8 +209,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * A whitespace-only data string must be treated as empty — not decoded as JSON null
      * and stored as {"value":null}.
-     *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      */
     public function test_row_migrator_whitespace_only_data_treated_as_empty(): void {
         $migrated = row_migrator::migrate_row('   ', null, null, null, null);
@@ -244,8 +228,6 @@ final class save_element_changes_test extends advanced_testcase {
      *
      * The text element implements persistable_element_interface and returns
      * ['value' => ...] from normalise_data().
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_persistable_normalise_preserves_existing_keys(): void {
         global $DB;
@@ -304,8 +286,6 @@ final class save_element_changes_test extends advanced_testcase {
     /**
      * The border element's normalise_data() returns colour and width, so submitting
      * those fields via the web service must persist them in the data column.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_border_saves_colour_and_width(): void {
         global $DB;
@@ -366,8 +346,6 @@ final class save_element_changes_test extends advanced_testcase {
      * ajax.php rounds fractional positions before passing them to update_position().
      * Verify the rounding expression used in ajax.php produces the correct integer
      * for sub-pixel values emitted by the JS editor.
-     *
-     * @covers \mod_customcert\service\element_repository::update_position
      */
     public function test_fractional_position_rounding(): void {
         // These mirror the expression used in ajax.php - (int)round((float)$value->posx).

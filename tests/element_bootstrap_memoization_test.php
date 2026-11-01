@@ -24,6 +24,8 @@ use mod_customcert\element\provider\plugin_provider;
 use mod_customcert\service\element_registry;
 use mod_customcert\tests\fixtures\counting_plugin_provider;
 use mod_customcert\tests\fixtures\fake_element_fixture;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 /**
  * Verifies element_bootstrap memoizes discovery results during a single request.
@@ -32,8 +34,8 @@ use mod_customcert\tests\fixtures\fake_element_fixture;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\element\element_bootstrap::register_defaults
  */
+#[CoversMethod(\mod_customcert\element\element_bootstrap::class, 'register_defaults')]
 final class element_bootstrap_memoization_test extends advanced_testcase {
     #[\Override]
     protected function setUp(): void {
@@ -43,9 +45,8 @@ final class element_bootstrap_memoization_test extends advanced_testcase {
 
     /**
      * The second registry build should not trigger another provider scan within the same request.
-     *
-     * @runInSeparateProcess
      */
+    #[RunInSeparateProcess]
     public function test_provider_called_once_per_request(): void {
         // Create a unique fake type for this run and alias the fixture class to it before discovery.
         $uniq = 'fakecache_' . bin2hex(random_bytes(4));

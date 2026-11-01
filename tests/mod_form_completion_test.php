@@ -30,6 +30,8 @@ use advanced_testcase;
 use context_system;
 use MoodleQuickForm;
 use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -50,6 +52,10 @@ require_once($CFG->libdir . '/completionlib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert_mod_form::class, 'add_completion_rules')]
+#[CoversMethod(\mod_customcert_mod_form::class, 'completion_rule_enabled')]
+#[CoversMethod(\mod_customcert_mod_form::class, 'validation')]
+#[CoversMethod(\mod_customcert_mod_form::class, 'data_postprocessing')]
 final class mod_form_completion_test extends advanced_testcase {
     /**
      * Build a mod_customcert_mod_form with the given suffix, skipping the constructor (which
@@ -86,9 +92,6 @@ final class mod_form_completion_test extends advanced_testcase {
     /**
      * add_completion_rules() must append the suffix to the checkbox element id it adds, and
      * completion_rule_enabled() must read from the correspondingly suffixed data key.
-     *
-     * @covers \mod_customcert_mod_form::add_completion_rules
-     * @covers \mod_customcert_mod_form::completion_rule_enabled
      */
     public function test_completion_elements_are_suffixed(): void {
         $this->resetAfterTest();
@@ -107,9 +110,6 @@ final class mod_form_completion_test extends advanced_testcase {
     /**
      * With no suffix set (the ordinary per-instance settings page), the element id and data key
      * must remain the plain, unsuffixed 'completionemailed'.
-     *
-     * @covers \mod_customcert_mod_form::add_completion_rules
-     * @covers \mod_customcert_mod_form::completion_rule_enabled
      */
     public function test_completion_elements_without_suffix(): void {
         $this->resetAfterTest();
@@ -127,8 +127,6 @@ final class mod_form_completion_test extends advanced_testcase {
      * When the current user can't manage emailstudents and it isn't already enabled for this
      * instance, the disabled-note static element must also carry the suffix -- otherwise it
      * would collide with another module's element of the same unsuffixed id on the same page.
-     *
-     * @covers \mod_customcert_mod_form::add_completion_rules
      */
     public function test_disabled_note_element_is_suffixed(): void {
         $this->resetAfterTest();
@@ -149,8 +147,6 @@ final class mod_form_completion_test extends advanced_testcase {
     /**
      * On a new instance, a user without manageemailstudents falls back to the site default
      * for emailstudents, not the (nonexistent) stored value.
-     *
-     * @covers \mod_customcert_mod_form::add_completion_rules
      */
     public function test_completion_checkbox_uses_site_default_on_new_instance_when_enabled(): void {
         $this->resetAfterTest();
@@ -170,8 +166,6 @@ final class mod_form_completion_test extends advanced_testcase {
 
     /**
      * Same as above, but the checkbox stays disabled when the site default is off.
-     *
-     * @covers \mod_customcert_mod_form::add_completion_rules
      */
     public function test_completion_checkbox_disabled_on_new_instance_when_site_default_off(): void {
         $this->resetAfterTest();
@@ -192,8 +186,6 @@ final class mod_form_completion_test extends advanced_testcase {
     /**
      * validation() must use the same site-default fallback as add_completion_rules() for a
      * new instance.
-     *
-     * @covers \mod_customcert_mod_form::validation
      */
     public function test_validation_uses_site_default_emailstudents_on_new_instance(): void {
         global $CFG;
@@ -222,8 +214,6 @@ final class mod_form_completion_test extends advanced_testcase {
 
     /**
      * data_postprocessing() clears completionemailed when completion tracking isn't automatic.
-     *
-     * @covers \mod_customcert_mod_form::data_postprocessing
      */
     public function test_data_postprocessing_clears_rule_when_not_automatic(): void {
         $this->resetAfterTest();
@@ -245,8 +235,6 @@ final class mod_form_completion_test extends advanced_testcase {
 
     /**
      * data_postprocessing() leaves completionemailed alone when automatic and checked.
-     *
-     * @covers \mod_customcert_mod_form::data_postprocessing
      */
     public function test_data_postprocessing_keeps_rule_when_automatic_and_checked(): void {
         $this->resetAfterTest();
@@ -284,10 +272,9 @@ final class mod_form_completion_test extends advanced_testcase {
      * Default activity completion form never adds, so the checkbox stays usable there
      * regardless of the site default.
      *
-     * @covers \mod_customcert_mod_form::add_completion_rules
-     * @dataProvider site_default_emailstudents_provider
      * @param int $sitedefault The site-wide 'emailstudents' config value.
      */
+    #[DataProvider('site_default_emailstudents_provider')]
     public function test_default_completion_form_with_manageemailstudents_capability(int $sitedefault): void {
         $this->resetAfterTest();
         set_config('emailstudents', $sitedefault, 'customcert');
@@ -314,10 +301,9 @@ final class mod_form_completion_test extends advanced_testcase {
      * Without manageemailstudents, the checkbox instead follows the site default via
      * get_effective_emailstudents().
      *
-     * @covers \mod_customcert_mod_form::add_completion_rules
-     * @dataProvider site_default_emailstudents_provider
      * @param int $sitedefault The site-wide 'emailstudents' config value.
      */
+    #[DataProvider('site_default_emailstudents_provider')]
     public function test_default_completion_form_without_manageemailstudents_capability(int $sitedefault): void {
         $this->resetAfterTest();
         set_config('emailstudents', $sitedefault, 'customcert');

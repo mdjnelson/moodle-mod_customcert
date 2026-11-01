@@ -27,6 +27,7 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\tests\fixtures\fake_element_fixture;
 use mod_customcert\tests\fixtures\legacy_and_native_plugin_provider;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,8 +43,8 @@ require_once(__DIR__ . '/fixtures/legacy_and_native_plugin_provider.php');
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'load_by_page_id')]
 final class legacy_type_repository_placeholder_test extends advanced_testcase {
     #[\Override]
     protected function setUp(): void {

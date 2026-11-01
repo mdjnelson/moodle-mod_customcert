@@ -48,6 +48,7 @@ use customcertelement_gradeitemname\element as gradeitemname_element;
 use customcertelement_studentname\element as studentname_element;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for factory behavior with migrated vs legacy elements.
@@ -55,11 +56,10 @@ use mod_customcert\service\element_registry;
  * @package    mod_customcert
  * @category   test
  */
+#[CoversMethod(\mod_customcert\service\element_factory::class, 'create')]
 final class element_factory_migration_test extends advanced_testcase {
     /**
      * Ensure the factory returns the migrated element directly for all migrated types.
-     *
-     * @covers \mod_customcert\service\element_factory::create
      */
     public function test_create_returns_concrete_for_migrated_elements(): void {
         $this->resetAfterTest();

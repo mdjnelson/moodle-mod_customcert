@@ -29,15 +29,16 @@ namespace mod_customcert;
 
 use advanced_testcase;
 use mod_customcert\local\preview_renderer;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for the preview renderer.
  */
+#[CoversMethod(\mod_customcert\local\preview_renderer::class, 'render_html_page')]
 final class preview_renderer_test extends advanced_testcase {
     /**
      * Rendering an empty page must return a string.
      *
-     * @covers \mod_customcert\local\preview_renderer::render_html_page
      * @return void
      */
     public function test_render_html_page_returns_string_for_empty_page(): void {
@@ -75,7 +76,6 @@ final class preview_renderer_test extends advanced_testcase {
     /**
      * Tests that the render_html_page method returns non-empty HTML when a Text element exists.
      *
-     * @covers \mod_customcert\local\preview_renderer::render_html_page
      * @return void
      */
     public function test_render_html_page_with_text_element(): void {

@@ -39,6 +39,7 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use customcertelement_text\element as text_element;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -47,6 +48,10 @@ require_once(__DIR__ . '/fixtures/dummy_element_interface_element.php');
 /**
  * Tests for events emitted by the new repository code path.
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'create')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'update_position')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'update_name')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'save')]
 final class element_repository_events_test extends advanced_testcase {
     /**
      * Test set up.
@@ -72,8 +77,6 @@ final class element_repository_events_test extends advanced_testcase {
 
     /**
      * Ensure element_created event is fired for repository create.
-     *
-     * @covers \mod_customcert\service\element_repository::create
      */
     public function test_create_fires_element_created_event(): void {
         // Create a template and a page to ensure a valid context for events.
@@ -105,8 +108,6 @@ final class element_repository_events_test extends advanced_testcase {
 
     /**
      * Ensure element_updated event is fired by update_position.
-     *
-     * @covers \mod_customcert\service\element_repository::update_position
      */
     public function test_update_position_fires_element_updated_event(): void {
         global $DB;
@@ -148,8 +149,6 @@ final class element_repository_events_test extends advanced_testcase {
 
     /**
      * Ensure element_updated event is fired by update_name.
-     *
-     * @covers \mod_customcert\service\element_repository::update_name
      */
     public function test_update_name_fires_element_updated_event(): void {
         global $DB;
@@ -189,8 +188,6 @@ final class element_repository_events_test extends advanced_testcase {
 
     /**
      * Ensure element_updated event is fired for repository save.
-     *
-     * @covers \mod_customcert\service\element_repository::save
      */
     public function test_save_fires_element_updated_event(): void {
         global $DB;

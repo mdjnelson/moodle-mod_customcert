@@ -40,13 +40,14 @@ use ReflectionMethod;
 use ZipArchive;
 use context_course;
 use context_system;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for export\template_file_manager.
- *
- * @group      mod_customcert
- * @covers     \mod_customcert\export\template_file_manager
  */
+#[CoversClass(\mod_customcert\export\template_file_manager::class)]
+#[Group('mod_customcert')]
 final class export_template_file_manager_test extends advanced_testcase {
     /** @var clock */
     private clock $clock;
@@ -348,8 +349,6 @@ final class export_template_file_manager_test extends advanced_testcase {
      * A well-formed ZIP that contains a safe explicit directory entry (e.g. 'files/') must
      * be accepted. Some ZIP creators include these structural markers; they are skipped after
      * all safety checks pass.
-     *
-     * @covers \mod_customcert\export\template_file_manager
      */
     public function test_import_accepts_zip_with_directory_entries(): void {
         $tempdir = $this->make_hostile_zip([

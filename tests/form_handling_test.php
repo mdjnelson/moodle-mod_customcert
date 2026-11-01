@@ -31,17 +31,17 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\service\validation_service;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for form handling.
- *
- * @group mod_customcert
  */
+#[CoversClass(\mod_customcert\service\validation_service::class)]
+#[Group('mod_customcert')]
 final class form_handling_test extends advanced_testcase {
     /**
      * Test validation service.
-     *
-     * @covers \mod_customcert\service\validation_service
      */
     public function test_validation_service(): void {
         global $DB;

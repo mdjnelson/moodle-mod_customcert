@@ -22,6 +22,8 @@ use advanced_testcase;
 use mod_customcert\service\form_service;
 use mod_customcert\tests\fixtures\form_element_test_element;
 use MoodleQuickForm;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,11 +37,11 @@ require_once(__DIR__ . '/fixtures/form_element_test_element.php');
  *
  * @package    mod_customcert
  * @category   test
- * @group      mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\service\form_service
  */
+#[CoversClass(\mod_customcert\service\form_service::class)]
+#[Group('mod_customcert')]
 final class form_service_test extends advanced_testcase {
     /**
      * Ensure elements implementing form_element_interface receive the raw mform.
@@ -139,8 +141,6 @@ final class form_service_test extends advanced_testcase {
 
     /**
      * set_protection returns empty string when no flags set.
-     *
-     * @covers \mod_customcert\service\form_service::set_protection
      */
     public function test_set_protection_returns_empty_when_no_flags(): void {
         $data = (object) [];
@@ -149,8 +149,6 @@ final class form_service_test extends advanced_testcase {
 
     /**
      * set_protection returns all flags when all are set.
-     *
-     * @covers \mod_customcert\service\form_service::set_protection
      */
     public function test_set_protection_returns_all_flags(): void {
         $data = (object) [
@@ -166,8 +164,6 @@ final class form_service_test extends advanced_testcase {
 
     /**
      * set_protection returns only the flags that are set.
-     *
-     * @covers \mod_customcert\service\form_service::set_protection
      */
     public function test_set_protection_returns_only_set_flags(): void {
         $data = (object) ['protection_print' => 1];
@@ -179,8 +175,6 @@ final class form_service_test extends advanced_testcase {
 
     /**
      * upload_files() defaults to the 'image' filearea and forwards an explicit filearea.
-     *
-     * @covers \mod_customcert\service\form_service::upload_files
      */
     public function test_upload_files_default_and_explicit_filearea(): void {
         $this->resetAfterTest();

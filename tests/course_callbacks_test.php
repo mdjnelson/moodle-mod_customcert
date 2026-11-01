@@ -22,6 +22,7 @@ use advanced_testcase;
 use mod_customcert\callback\course_callbacks;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\issue_repository;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Unit tests for classes/callback/course_callbacks.php.
@@ -35,6 +36,7 @@ use mod_customcert\service\issue_repository;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\callback\course_callbacks::class, 'reset_userdata')]
 final class course_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
@@ -49,8 +51,6 @@ final class course_callbacks_test extends advanced_testcase {
     /**
      * reset_userdata() must only delete issues for the course being reset, leaving issues in
      * other courses (even ones using the same element/template shape) untouched.
-     *
-     * @covers \mod_customcert\callback\course_callbacks::reset_userdata
      */
     public function test_reset_userdata_only_deletes_issues_for_the_given_course(): void {
         $this->setAdminUser();
@@ -85,8 +85,6 @@ final class course_callbacks_test extends advanced_testcase {
     /**
      * reset_userdata() must not touch any issues, and must return an empty status array, when
      * reset_customcert was not selected.
-     *
-     * @covers \mod_customcert\callback\course_callbacks::reset_userdata
      */
     public function test_reset_userdata_noop_when_not_selected(): void {
         $this->setAdminUser();

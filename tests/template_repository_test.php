@@ -21,9 +21,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\template_repository
- * @covers \mod_customcert\local\ordering
- * @covers \mod_customcert\local\paging
  */
 
 namespace mod_customcert;
@@ -33,10 +30,14 @@ use invalid_parameter_exception;
 use mod_customcert\local\paging;
 use mod_customcert\service\template_repository;
 use advanced_testcase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for template_repository behaviour (ordering, paging, validation, duplication naming).
  */
+#[CoversClass(\mod_customcert\service\template_repository::class)]
+#[CoversClass(\mod_customcert\local\ordering::class)]
+#[CoversClass(\mod_customcert\local\paging::class)]
 final class template_repository_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $repo;
@@ -50,8 +51,6 @@ final class template_repository_test extends advanced_testcase {
 
     /**
      * Test ordering and paging.
-     *
-     * @covers \mod_customcert\service\template_repository::list_by_context
      */
     public function test_list_by_context_orders_and_pages(): void {
         $generator = $this->getDataGenerator();
@@ -90,9 +89,6 @@ final class template_repository_test extends advanced_testcase {
 
     /**
      * Test duplicate validation and naming.
-     *
-     * @covers \mod_customcert\service\template_repository::create
-     * @covers \mod_customcert\service\template_repository::update
      */
     public function test_create_update_duplicate_validation_and_naming(): void {
         $generator = $this->getDataGenerator();
@@ -114,8 +110,6 @@ final class template_repository_test extends advanced_testcase {
 
     /**
      * Test duplicate naming policies.
-     *
-     * @covers \mod_customcert\service\template_repository::duplicate
      */
     public function test_duplicate_naming_policy_and_empty_source_name(): void {
         global $DB;

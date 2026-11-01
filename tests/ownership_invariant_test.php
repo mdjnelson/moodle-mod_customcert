@@ -52,12 +52,20 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\item_move_service;
 use mod_customcert\service\template_service;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Cross-course ownership invariant regression tests.
- *
- * @group mod_customcert
  */
+#[CoversMethod(\mod_customcert\service\item_move_service::class, 'move_item')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_element')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_page')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'get_for_template_or_fail')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'update_position')]
+#[CoversFunction('mod_customcert_inplace_editable')]
+#[Group('mod_customcert')]
 final class ownership_invariant_test extends advanced_testcase {
     /**
      * Create a course with a customcert module, one page, and one text element.
@@ -94,8 +102,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Moving a page that belongs to template B while supplying template A must be rejected.
-     *
-     * @covers \mod_customcert\service\item_move_service::move_item
      */
     public function test_move_page_rejects_foreign_pageid(): void {
         $this->resetAfterTest();
@@ -113,8 +119,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Moving a page that belongs to template A with the correct template must succeed (no exception).
-     *
-     * @covers \mod_customcert\service\item_move_service::move_item
      */
     public function test_move_page_same_template_does_not_throw(): void {
         $this->resetAfterTest();
@@ -131,8 +135,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Moving an element whose containing page belongs to template B while supplying template A must be rejected.
-     *
-     * @covers \mod_customcert\service\item_move_service::move_item
      */
     public function test_move_element_rejects_foreign_elementid(): void {
         $this->resetAfterTest();
@@ -155,8 +157,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Moving an element that belongs to template A with the correct template must succeed (no exception).
-     *
-     * @covers \mod_customcert\service\item_move_service::move_item
      */
     public function test_move_element_same_template_does_not_throw(): void {
         $this->resetAfterTest();
@@ -178,8 +178,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Deleting an element from template B while supplying template A must be rejected.
-     *
-     * @covers \mod_customcert\service\template_service::delete_element
      */
     public function test_delete_element_rejects_foreign_elementid(): void {
         $this->resetAfterTest();
@@ -197,8 +195,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Deleting an element that belongs to template A with the correct template must succeed.
-     *
-     * @covers \mod_customcert\service\template_service::delete_element
      */
     public function test_delete_element_same_template_succeeds(): void {
         global $DB;
@@ -216,8 +212,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Deleting a page from template B while supplying template A must be rejected.
-     *
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_delete_page_rejects_foreign_pageid(): void {
         $this->resetAfterTest();
@@ -235,8 +229,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * Deleting a page that belongs to template A with the correct template must succeed.
-     *
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_delete_page_same_template_succeeds(): void {
         global $DB;
@@ -260,8 +252,6 @@ final class ownership_invariant_test extends advanced_testcase {
      * performed against the template that actually owns the element. A user who only has
      * manage capability in Course A will fail the require_manage() check when the element
      * belongs to Course B.
-     *
-     * @covers \mod_customcert_inplace_editable
      */
     public function test_inplace_editable_rename_foreign_element_denied(): void {
         $this->resetAfterTest();
@@ -285,8 +275,6 @@ final class ownership_invariant_test extends advanced_testcase {
     /**
      * Renaming an element via inplace_editable succeeds when the user has manage capability
      * for the template that owns the element.
-     *
-     * @covers \mod_customcert_inplace_editable
      */
     public function test_inplace_editable_rename_own_element_succeeds(): void {
         global $DB;
@@ -329,8 +317,6 @@ final class ownership_invariant_test extends advanced_testcase {
      * added to ajax.php (get_for_template_or_fail called before update_position).
      *
      * This test exercises the repository method directly to confirm the guard throws.
-     *
-     * @covers \mod_customcert\service\element_repository::get_for_template_or_fail
      */
     public function test_update_position_guard_rejects_foreign_elementid(): void {
         $this->resetAfterTest();
@@ -350,8 +336,6 @@ final class ownership_invariant_test extends advanced_testcase {
 
     /**
      * update_position with a matching templateid and elementid must succeed.
-     *
-     * @covers \mod_customcert\service\element_repository::update_position
      */
     public function test_update_position_same_template_succeeds(): void {
         global $DB;

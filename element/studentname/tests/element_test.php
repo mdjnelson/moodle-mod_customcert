@@ -33,6 +33,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the studentname element.
@@ -42,6 +43,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_studentname\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -77,8 +79,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_studentname\element::__construct
      */
     public function test_constructor_returns_instance(): void {
         $el = new element($this->make_record());
@@ -87,8 +87,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_studentname\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -100,8 +98,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys.
-     *
-     * @covers \customcertelement_studentname\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -124,8 +120,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_studentname\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -138,8 +132,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a string containing the current user's full name.
-     *
-     * @covers \customcertelement_studentname\element::render_html
      */
     public function test_render_html_contains_user_fullname(): void {
         $this->resetAfterTest();
@@ -154,8 +146,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'studentname'.
-     *
-     * @covers \customcertelement_studentname\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());

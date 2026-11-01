@@ -25,6 +25,7 @@ use mod_customcert\event\issue_deleted;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\template_repository;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Unit tests for classes/callback/instance_callbacks.php.
@@ -34,6 +35,9 @@ use mod_customcert\service\template_repository;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\callback\instance_callbacks::class, 'add_instance')]
+#[CoversMethod(\mod_customcert\callback\instance_callbacks::class, 'update_instance')]
+#[CoversMethod(\mod_customcert\callback\instance_callbacks::class, 'delete_instance')]
 final class instance_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
@@ -53,8 +57,6 @@ final class instance_callbacks_test extends advanced_testcase {
      * flow, which first creates the course_modules row before invoking it), so this test
      * asserts on add_instance()'s specific outcomes rather than re-implementing that
      * bootstrapping by hand.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::add_instance
      */
     public function test_add_instance_creates_linked_template_and_page(): void {
         global $DB;
@@ -83,8 +85,6 @@ final class instance_callbacks_test extends advanced_testcase {
 
     /**
      * update_instance() must persist changes and re-encode the protection checkboxes.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::update_instance
      */
     public function test_update_instance_updates_record_and_protection(): void {
         global $DB;
@@ -117,8 +117,6 @@ final class instance_callbacks_test extends advanced_testcase {
      * delete_instance() must remove the customcert, its issues and its template, and must
      * fire an issue_deleted event for every issue before deleting it — this is the ordering
      * a silent regression could break without any test noticing.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::delete_instance
      */
     public function test_delete_instance_removes_everything_and_fires_events(): void {
         global $DB;
@@ -152,8 +150,6 @@ final class instance_callbacks_test extends advanced_testcase {
 
     /**
      * delete_instance() must return false, not throw, for an id that doesn't exist.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::delete_instance
      */
     public function test_delete_instance_returns_false_for_unknown_id(): void {
         $this->assertFalse(instance_callbacks::delete_instance(-1));

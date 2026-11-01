@@ -35,13 +35,14 @@ use mod_customcert\export\page;
 use mod_customcert\export\template as export_template;
 use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_appendix_manager_interface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for export\template.
- *
- * @group      mod_customcert
- * @covers     \mod_customcert\export\template
  */
+#[CoversClass(\mod_customcert\export\template::class)]
+#[Group('mod_customcert')]
 final class export_template_test extends advanced_testcase {
     /** @var clock */
     private clock $clock;

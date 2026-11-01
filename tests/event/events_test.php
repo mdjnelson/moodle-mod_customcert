@@ -49,6 +49,8 @@ use context_system;
 use mod_customcert\event\issue_created;
 use mod_customcert\event\issue_deleted;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Event behavior test coverage for customcert.
@@ -56,6 +58,20 @@ use stdClass;
  * @package   mod_customcert
  * @category  test
  */
+#[CoversClass(\mod_customcert\event\issue_created::class)]
+#[CoversClass(\mod_customcert\event\issue_deleted::class)]
+#[CoversMethod(\mod_customcert\template::class, 'create')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'update')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'add_page')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'move_item')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_page')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'save_pages')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'save')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'update_name')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'copy_to_template')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_element')]
+#[CoversMethod(\mod_customcert\service\certificate_issue_service::class, 'issue_certificate')]
 final class events_test extends advanced_testcase {
     #[\Override]
     public function setUp(): void {
@@ -65,8 +81,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when creating a template.
-     *
-     * @covers \mod_customcert\template::create
      */
     public function test_creating_a_template(): void {
         $sink = $this->redirectEvents();
@@ -83,8 +97,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when updating a template.
-     *
-     * @covers \mod_customcert\service\template_service::update
      */
     public function test_updating_a_template(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -111,8 +123,6 @@ final class events_test extends advanced_testcase {
     /**
      * Tests the events are fired correctly when updating a template with no
      * changes.
-     *
-     * @covers \mod_customcert\service\template_service::update
      */
     public function test_updating_a_template_no_change(): void {
         $template = template::create('Test name', context_system::instance()->id);
@@ -133,8 +143,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when creating a page via the service.
-     *
-     * @covers \mod_customcert\service\template_service::add_page
      */
     public function test_creating_a_page_via_service(): void {
         $template = template::create('Test name', context_system::instance()->id);
@@ -161,8 +169,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when moving an item via the service.
-     *
-     * @covers \mod_customcert\service\template_service::move_item
      */
     public function test_moving_item_via_service(): void {
         $template = template::create('Test name', context_system::instance()->id);
@@ -184,8 +190,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when deleting a template.
-     *
-     * @covers \mod_customcert\service\template_service::delete
      */
     public function test_deleting_a_template(): void {
         global $DB;
@@ -227,8 +231,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when deleting a page.
-     *
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_deleting_a_page(): void {
         $template = template::create('Test name', context_system::instance()->id);
@@ -256,8 +258,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when saving a page.
-     *
-     * @covers \mod_customcert\service\template_service::save_pages
      */
     public function test_updating_a_page(): void {
         $template = template::create('Test name', context_system::instance()->id);
@@ -292,8 +292,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the element_created event is fired when inserting an element via element_repository.
-     *
-     * @covers \mod_customcert\service\element_repository::save
      */
     public function test_element_created_event_on_insert(): void {
         global $DB;
@@ -332,8 +330,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the element_updated event is fired when updating an element via element_repository.
-     *
-     * @covers \mod_customcert\service\element_repository::update_name
      */
     public function test_element_updated_event_on_update(): void {
         global $DB;
@@ -372,8 +368,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when copying to a template.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_copy_to_template(): void {
         global $DB;
@@ -414,8 +408,6 @@ final class events_test extends advanced_testcase {
     /**
      * Tests the events are fired correctly when loading a template into a
      * course-level certificate.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_load_template(): void {
         global $DB;
@@ -461,8 +453,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests the events are fired correctly when deleting an element
-     *
-     * @covers \mod_customcert\service\template_service::delete_element
      */
     public function test_deleting_an_element(): void {
         global $DB;
@@ -501,9 +491,6 @@ final class events_test extends advanced_testcase {
 
     /**
      * Tests that the issue_created event is fired correctly.
-     *
-     * @covers \mod_customcert\service\certificate_issue_service::issue_certificate
-     * @covers \mod_customcert\event\issue_created
      */
     public function test_issue_created_event(): void {
         $this->resetAfterTest();
@@ -531,9 +518,6 @@ final class events_test extends advanced_testcase {
     /**
      * Tests that the issue_deleted event is fired correctly.
      * This simulates the deletion process that happens in view.php.
-     *
-     * @covers \mod_customcert\service\certificate_issue_service::issue_certificate
-     * @covers \mod_customcert\event\issue_deleted
      */
     public function test_issue_deleted_event(): void {
         global $DB;

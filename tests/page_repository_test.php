@@ -21,7 +21,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\page_repository
  */
 
 namespace mod_customcert;
@@ -30,10 +29,12 @@ use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
 use advanced_testcase;
 use context_course;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for page_repository behaviour (ordering, resequencing, bulk create).
  */
+#[CoversClass(\mod_customcert\service\page_repository::class)]
 final class page_repository_test extends advanced_testcase {
     /**
      * Repository under test.
@@ -51,9 +52,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures default listing order and append behaviour when sequence is omitted.
-     *
-     * @covers ::create
-     * @covers ::list_by_template
      */
     public function test_list_default_ordering_and_append_sequence(): void {
         $generator = $this->getDataGenerator();
@@ -101,8 +99,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures resequence() compacts sequences to a contiguous 1..N range.
-     *
-     * @covers ::resequence
      */
     public function test_resequence_compacts_gaps(): void {
         $generator = $this->getDataGenerator();
@@ -149,8 +145,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures bulk_create() respects provided sequences and template boundaries.
-     *
-     * @covers ::bulk_create
      */
     public function test_bulk_create_respects_template_and_sequences(): void {
         $generator = $this->getDataGenerator();
@@ -193,8 +187,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_for_template_or_fail returns the page when it belongs to the template.
-     *
-     * @covers ::get_for_template_or_fail
      */
     public function test_get_for_template_or_fail_returns_page_for_correct_template(): void {
         $generator = $this->getDataGenerator();
@@ -219,8 +211,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures get_for_template_or_fail throws when the page belongs to a different template.
-     *
-     * @covers ::get_for_template_or_fail
      */
     public function test_get_for_template_or_fail_throws_for_mismatched_template(): void {
         $generator = $this->getDataGenerator();
@@ -255,8 +245,6 @@ final class page_repository_test extends advanced_testcase {
 
     /**
      * Ensures delete() removes the page record from the database.
-     *
-     * @covers ::delete
      */
     public function test_delete_removes_page_record(): void {
         global $DB;
