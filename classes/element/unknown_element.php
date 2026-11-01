@@ -34,7 +34,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-final class unknown_element extends element implements element_interface, form_element_interface, renderable_element_interface {
+final class unknown_element extends element implements renderable_element_interface {
     /** @var string */
     private string $unknowntype;
 
