@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.3.4] - Unreleased
 
+### Fixed
+
+- Fixed Moodle 5.2 elements that inherited `renderable_element_interface` losing their `normalise_data()`, `prepare_form()` and `validate()` handling (and saved JSON data) when adapted in Moodle 5.3 (#1090).
+
 ### Changed
 
 - Removed empty `validate()` methods and unnecessary `validatable_element_interface` implementations from bundled elements. Third-party subclasses requiring custom validation should explicitly implement the interface (#1091).
