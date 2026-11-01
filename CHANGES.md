@@ -13,6 +13,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Restored compatibility with historical third-party certificate elements while preserving support for plugins updated for Moodle 5.2 (#1103).
+- Restored the historical protected element properties, kept structured JSON intact for native elements, and avoided a duplicate `definition_after_data()` deprecation notice (#1107).
 
 ## [5.2.12] - 2026-10-25
 
@@ -157,6 +158,14 @@ The legacy `mod_customcert\element` base class remains available for compatibili
 
 > **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures for these two methods will fail at class-load time. The deprecated legacy hooks (`render_form_elements`, `definition_after_data`, `validate_form_elements`, `save_form_elements`, `save_unique_data`, `after_restore`, `copy_element`) retain untyped base signatures and are intended to remain compatible with old-style untyped overrides. `can_add()` retains its typed `bool` return and is not deprecated; third-party overrides must declare `public static function can_add(): bool`. See the "Element rendering signatures" section below for the required `render`/`render_html` signatures.
 
+**Compatibility clarification (5.2.13, 2026-11-01)**: The class-load fatal error and the removal of protected element state described in these 5.2.0 notes no longer apply. The notes are kept unchanged as a record of what shipped. From 5.2.13:
+
+- Historical third-party elements extending `mod_customcert\element` may keep their original untyped `render($pdf, $preview, $user)` and `render_html()` methods. They are supported through the legacy compatibility adapter (#1103).
+- Historical elements can again read the protected `$this->element`, `$this->font`, `$this->fontsize`, `$this->colour` and `$this->width` properties (#1107).
+- Plugins already updated for the released 5.2 rendering API remain supported.
+- New Element System v2 elements must explicitly implement `renderable_element_interface` and satisfy its typed method signatures.
+- This legacy compatibility is deprecated and is not intended to continue into the Moodle 6.0-compatible release.
+
 New elements should use:
 - `element_interface` — for the core element contract (identity, payload, type)
 - `form_element_interface` — required for registered certificate elements (along with `renderable_element_interface`); provides edit-form lifecycle hooks including `build_form()`. Note: `form_buildable_interface` was never released and has been fully replaced by `form_element_interface`.
@@ -175,7 +184,7 @@ An `unknown_element` fallback is used when a requested element type is not regis
 
 No deprecated bundled element implementations are shipped in this release. Deprecated element hooks remain only on the legacy `mod_customcert\element` base class to support third-party plugin migration.
 
-> **Legacy internal state removed**: Third-party elements that accessed protected internal state directly will need to update. In particular, direct access to `$this->element`, `$this->font`, `$this->fontsize`, `$this->colour`, `$this->width`, or magic property fallback (`__get()`) must be replaced with the new getters, payload helpers, and repository-managed layout APIs. Visual values now live in `customcert_elements.data`; layout values are managed separately by the repository/layout services.
+> **Legacy internal state removed** (restored in 5.2.13, see the clarification above): Third-party elements that accessed protected internal state directly will need to update. In particular, direct access to `$this->element`, `$this->font`, `$this->fontsize`, `$this->colour`, `$this->width`, or magic property fallback (`__get()`) must be replaced with the new getters, payload helpers, and repository-managed layout APIs. Visual values now live in `customcert_elements.data`; layout values are managed separately by the repository/layout services.
 
 #### Template export and import
 - Templates can now be exported as a ZIP archive and imported on any Moodle site running this plugin.
@@ -252,7 +261,7 @@ Reserved JSON keys (visuals):
 
 #### Element rendering signatures
 
-> **Breaking change for third-party element plugins**: The `render()` and `render_html()` abstract methods on `mod_customcert\element` now have strict typed signatures and return types. Third-party element plugins that override these methods with the old untyped signatures will fail at class-load time with a PHP fatal error, even before the adapter layer can help. Plugins must update their method signatures before upgrading to 5.2. See the before/after signatures below.
+> **Breaking change for third-party element plugins** (relaxed in 5.2.13, see the clarification above): The `render()` and `render_html()` abstract methods on `mod_customcert\element` now have strict typed signatures and return types. Third-party element plugins that override these methods with the old untyped signatures will fail at class-load time with a PHP fatal error, even before the adapter layer can help. Plugins must update their method signatures before upgrading to 5.2. See the before/after signatures below.
 
 - Element render methods are now typed and accept an optional renderer.
 

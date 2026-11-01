@@ -90,16 +90,16 @@ because it has no rules of its own.
 
 ## `get_data()` versus `get_raw_data()`
 
-`get_data()` is the view used by rendering and form code. For an element **without**
-`persistable_element_interface` it may return a compatibility view: a scalar unwrapped from a
-generic migration JSON wrapper. It is not always the stored value.
+`get_data()` is the view used by rendering and form code. For a historical element (one with neither
+`persistable_element_interface` nor `renderable_element_interface`) it may return a compatibility view: a
+scalar unwrapped from a generic migration JSON wrapper. It is not always the stored value.
 
 `raw_data_element_interface::get_raw_data()` exposes the unmodified element
 data intended for persistence. The persistence layer uses it so migrated fields hidden by the
 compatibility view (`font`, `fontsize`, `colour`, `width`, ...) are not lost on save.
 
-For a persistable element, `get_data()` does not apply legacy migration-wrapper unwrapping. Use `get_payload()` for
-structured reads.
+For a persistable or native v2 element, `get_data()` does not apply legacy migration-wrapper unwrapping. Use
+`get_payload()` for structured reads.
 
 ## Renderer contract
 
@@ -121,10 +121,15 @@ Both extend `mod_customcert\element` and neither declares `renderable_element_in
   inheriting `renderable_element_interface` from the base class, which no longer provides it. The adapter
   passes them the renderer.
 
-In both cases the adapter forwards the optional v2 interfaces the element implements
+Historical elements can still read the protected `$this->element`, `$this->font`, `$this->fontsize`,
+`$this->colour` and `$this->width` properties, which are filled from the element record or its stored JSON.
+
+In both cases the compatibility layer preserves the optional v2 lifecycle hooks the element implements
 (`persistable_element_interface`, `validatable_element_interface`, `preparable_form_interface`,
-`restorable_element_interface` and `copyable_element_interface`), so `normalise_data()`, `validate()`,
-`prepare_form()`, `after_restore_from_backup()` and `copy_from()` still run.
+`restorable_element_interface` and `copyable_element_interface`). The relevant services (for example
+`persistence_helper`, `validation_service` and `form_service`) dispatch to the wrapped element where
+appropriate, so `normalise_data()`, `validate()`, `prepare_form()`, `after_restore_from_backup()` and
+`copy_from()` still run.
 
 This is a compatibility layer, not an API to target. New elements should declare
 `renderable_element_interface` explicitly, as in the minimal example above; native v2 elements are never
