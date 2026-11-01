@@ -423,7 +423,7 @@ class element extends \customcertelement_image\element {
      * @param string $value The raw signaturepassword value from the backup.
      * @return string The normalised value safe to store in customcert_elements.data.
      */
-    public static function normalise_restore_password(string $value): string {
+    public static function normalise_restore_password(#[\SensitiveParameter] string $value): string {
         if ($value === '') {
             return '';
         }
@@ -453,7 +453,7 @@ class element extends \customcertelement_image\element {
      * @param string $submitted The value submitted via the form password field.
      * @return string
      */
-    private function resolve_password(string $submitted): string {
+    private function resolve_password(#[\SensitiveParameter] string $submitted): string {
         if ($submitted !== '') {
             // A new password was supplied — encrypt it before storing.
             return \core\encryption::encrypt($submitted);
