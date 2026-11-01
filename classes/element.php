@@ -34,6 +34,7 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\raw_data_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
@@ -123,6 +124,53 @@ abstract class element implements
     private ?edit_element_form $editelementform = null;
 
     /**
+     * @var int Count of definition_after_data() deprecation notices emitted so far. Lets
+     *     legacy_element_adapter detect whether a legacy override's call to
+     *     parent::definition_after_data() already emitted the notice.
+     */
+    private int $definitionafterdatawarnings = 0;
+
+    /**
+     * Clone of the raw element record for historical (Moodle 4.5-era) plugins that read it directly.
+     *
+     * @var stdClass
+     * @deprecated since Moodle 5.2 - Use the typed getters instead.
+     */
+    protected $element;
+
+    /**
+     * Historical font name property.
+     *
+     * @var string|null
+     * @deprecated since Moodle 5.2 - Use get_font() instead.
+     */
+    protected $font;
+
+    /**
+     * Historical font size property.
+     *
+     * @var int|string|null
+     * @deprecated since Moodle 5.2 - Use get_fontsize() instead.
+     */
+    protected $fontsize;
+
+    /**
+     * Historical colour property.
+     *
+     * @var string|null
+     * @deprecated since Moodle 5.2 - Use get_colour() instead.
+     */
+    protected $colour;
+
+    /**
+     * Historical width property.
+     *
+     * @var int|string|null
+     * @deprecated since Moodle 5.2 - Use get_width() instead.
+     */
+    protected $width;
+
+    /**
      * Constructor.
      *
      * @param stdClass $element the element data
@@ -146,6 +194,44 @@ abstract class element implements
 
         $this->showposxy = (bool) ($showposxy ?? false);
         $this->set_alignment($element->alignment ?? self::ALIGN_LEFT);
+
+        $this->initialise_legacy_state($element);
+    }
+
+    /**
+     * Initialise the historical protected state read by Moodle 4.5-era element plugins.
+     *
+     * Fills `$element`, `$font`, `$fontsize`, `$colour` and `$width` from the record, or from the
+     * JSON data column once those fields have been migrated into it.
+     *
+     * @param stdClass $element Raw element record
+     */
+    protected function initialise_legacy_state(stdClass $element): void {
+        $this->element = clone($element);
+
+        // Legacy code reading $this->element->data should see the same scalar as get_data().
+        if (isset($this->element->data) && is_string($this->element->data)) {
+            $this->element->data = $this->get_data();
+        }
+
+        $this->font = isset($element->font) && $element->font !== ''
+            ? (string) $element->font
+            : $this->get_font();
+        $this->fontsize = isset($element->fontsize) && $element->fontsize !== ''
+            ? $element->fontsize
+            : $this->get_fontsize();
+        $this->colour = isset($element->colour) && $element->colour !== ''
+            ? (string) $element->colour
+            : $this->get_colour();
+        $this->width = isset($element->width) && $element->width !== ''
+            ? $element->width
+            : $this->get_width();
+
+        foreach (['font', 'fontsize', 'colour', 'width'] as $property) {
+            if (!isset($this->element->$property)) {
+                $this->element->$property = $this->$property;
+            }
+        }
     }
 
     /**
@@ -178,8 +264,8 @@ abstract class element implements
     /**
      * Returns the data.
      *
-     * Elements without persistable_element_interface receive the unwrapped scalar when
-     * the stored data is a generic migration wrapper; persistable elements always
+     * Historical elements (neither persistable nor renderable) receive the unwrapped scalar when
+     * the stored data is a generic migration wrapper; persistable and native v2 elements always
      * receive the raw JSON.
      *
      * @return mixed
@@ -216,7 +302,8 @@ abstract class element implements
      * @return bool
      */
     private function should_unwrap_generic_migration_wrapper(): bool {
-        return !($this instanceof persistable_element_interface);
+        return !($this instanceof persistable_element_interface)
+            && !($this instanceof renderable_element_interface);
     }
 
     /**
@@ -469,6 +556,7 @@ abstract class element implements
      * @deprecated since Moodle 5.2
      */
     public function definition_after_data($mform) {
+        $this->definitionafterdatawarnings++;
         debugging(
             'definition_after_data() is deprecated since Moodle 5.2. '
             . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
@@ -491,6 +579,15 @@ abstract class element implements
                 $element->setValue($value);
             }
         }
+    }
+
+    /**
+     * Count of definition_after_data() deprecation notices emitted so far on this instance.
+     *
+     * @return int
+     */
+    public function get_definition_after_data_warning_count(): int {
+        return $this->definitionafterdatawarnings;
     }
 
     /**

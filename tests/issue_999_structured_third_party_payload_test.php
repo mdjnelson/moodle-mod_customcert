@@ -41,6 +41,7 @@ use advanced_testcase;
 use context_course;
 use core\clock;
 use mod_customcert\element\persistable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\export\element as export_element;
 use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\template_import_logger_interface;
@@ -189,12 +190,13 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     }
 
     /**
-     * A non-persistable third-party element unwraps.
+     * A native v2 element with no custom save/normalise behaviour still keeps its
+     * structured JSON: the render contract alone is also a valid "current" signal.
      *
      * @covers \mod_customcert\element::get_data
      * @covers \mod_customcert\element::get_raw_data
      */
-    public function test_non_persistable_element_still_unwraps(): void {
+    public function test_native_v2_element_without_persistable_is_not_unwrapped(): void {
         $registry = new element_registry();
         $registry->register('nativev2nopersist', \customcertelement_nativev2nopersist\element::class);
         $factory = new element_factory($registry);
@@ -211,10 +213,11 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
 
         $this->assertInstanceOf(\customcertelement_nativev2nopersist\element::class, $instance);
         $this->assertNotInstanceOf(persistable_element_interface::class, $instance);
+        $this->assertInstanceOf(renderable_element_interface::class, $instance);
 
-        $this->assertSame('native-v2-value', $instance->get_data());
-        // The raw persistence representation must remain the full JSON object.
-        $this->assertSame(json_decode($data, true), json_decode($instance->get_raw_data(), true));
+        $raw = $instance->get_data();
+        $this->assertIsString($raw);
+        $this->assertSame(json_decode($data, true), json_decode($raw, true));
     }
 
     /**
@@ -265,13 +268,13 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     }
 
     /**
-     * Documents a known limitation on this branch (see PR description): a non-persistable
-     * element's imported payload unwraps if the exporter names a field 'value'.
+     * A renderable, non-persistable element's imported payload must stay structured,
+     * even though the exporter's own field happens to be named 'value'.
      *
      * @covers \mod_customcert\element::get_data
      * @covers \mod_customcert\export\element::import
      */
-    public function test_known_limitation_non_persistable_element_import_collision_unwraps(): void {
+    public function test_imported_structured_payload_is_not_unwrapped_for_current_third_party_element(): void {
         global $DB;
 
         $this->resetAfterTest(true);
@@ -307,7 +310,11 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
         $dbrecord = $DB->get_record('customcert_elements', ['pageid' => $pageid], '*', MUST_EXIST);
         $instance = $factory->create('nativev2nopersist', $dbrecord);
 
-        $this->assertSame('imported-value', $instance->get_data());
+        $raw = $instance->get_data();
+        $this->assertIsString($raw);
+        $decoded = json_decode($raw, true);
+        $this->assertSame('imported-value', $decoded['value']);
+        $this->assertSame('Helvetica', $decoded['font']);
     }
 
     /**
