@@ -97,6 +97,8 @@ Download the new zip version that matches your Moodle version, replace the `mod/
 ## More information
 
 - Documentation / wiki: <https://docs.moodle.org/en/Custom_certificate_module>
+- Writing a third-party element plugin: [docs/element_authoring.md](docs/element_authoring.md)
+- Migrating a legacy element plugin to Element System v2: [docs/element_migration_v2.md](docs/element_migration_v2.md)
 
 ## License
 

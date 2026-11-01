@@ -48,9 +48,9 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Developer notes
 
-- **Element authoring guide added** (#819). A new `docs/element_authoring_guide.md` explains which interfaces are required versus optional, provides a decision table, and includes examples for common element types (minimal static, text/stylable, image sketch, and copy-aware elements).
+- **Element authoring guide added** (#819). A new [docs/element_authoring.md](docs/element_authoring.md) explains which interfaces are required versus optional, provides a decision table, and includes examples for common element types (minimal static, text/stylable, image sketch, and copy-aware elements).
 - **`mod_customcert\element\stylable_payload` is an immutable value object** (#814, #815). `from_form()` and `from_array()` return a `stylable_payload` instance; call `->to_array()` when a plain array is needed.
-- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class when an element has a genuine invariant or conditional-serialization rule to enforce; the database continues to store JSON, and this interface governs the PHP layer only. Elements with a real invariant ship a dedicated payload class (`customcertelement_coursename\coursename_payload`, `customcertelement_image\image_payload`, `customcertelement_bgimage\bgimage_payload`, `customcertelement_digitalsignature\digitalsignature_payload`); simple elements compose `mod_customcert\element\stylable_payload` directly in `normalise_data()` instead of wrapping it in an element-specific class. See `docs/element_payload_interface.md` for the full guide.
+- **`mod_customcert\element\element_payload_interface`** (#815). Introduces a typed payload pattern for element data. Implement `from_array()`, `to_array()`, and `validate()` on a dedicated payload class when an element has a genuine invariant or conditional-serialization rule to enforce; the database continues to store JSON, and this interface governs the PHP layer only. Elements with a real invariant ship a dedicated payload class (`customcertelement_coursename\coursename_payload`, `customcertelement_image\image_payload`, `customcertelement_bgimage\bgimage_payload`, `customcertelement_digitalsignature\digitalsignature_payload`); simple elements compose `mod_customcert\element\stylable_payload` directly in `normalise_data()` instead of wrapping it in an element-specific class. See [docs/element_payload_interface.md](docs/element_payload_interface.md) for the full guide.
 
 ### Deprecated / compatibility
 
@@ -62,7 +62,7 @@ to the released Moodle 5.2 contract, both continue to run. Native Element System
 unaffected and never go through the bridge. **Moodle 5.3 is the final release supporting the
 legacy runtime element API; it is removed in the Moodle 6.0-compatible release** (#953, #960,
 #980, #981). Plugin authors should migrate to Element System v2 now — see
-`docs/element_migration_v2.md` for the full lifecycle and how to identify legacy dependence.
+[docs/element_migration_v2.md](docs/element_migration_v2.md) for the full lifecycle and how to identify legacy dependence.
 Historical database-upgrade and backup/restore migration logic for old persisted element data is
 an independent concern and is not tied to this runtime removal date.
 
@@ -88,9 +88,6 @@ an independent concern and is not tied to this runtime removal date.
 - **`mod_customcert\service\element_factory::create_from_legacy_record()`** (#985). Remains
   available as a documented Moodle 5.2 replacement API for the historical static factory shim; it
   is not itself deprecated. New/internal code should prefer `create_from_record()`.
-
-Until `MOODLE_503_STABLE` is created, references above to "Moodle 5.3" mean the current `main`
-branch.
 
 #### Legacy hooks and their Element System v2 replacements
 
@@ -224,6 +221,8 @@ The legacy `mod_customcert\element` base class remains available for compatibili
 
 > **Important**: Third-party element plugins that extend `mod_customcert\element` and override `render()` or `render_html()` **must update their method signatures** to match the new typed signatures before upgrading to 5.2. Plugins with old untyped signatures for these two methods will fail at class-load time. The deprecated legacy hooks (`render_form_elements`, `definition_after_data`, `validate_form_elements`, `save_form_elements`, `save_unique_data`, `after_restore`, `copy_element`) retain untyped base signatures and are intended to remain compatible with old-style untyped overrides. `can_add()` retains its typed `bool` return and is not deprecated; third-party overrides must declare `public static function can_add(): bool`. See the "Element rendering signatures" section below for the required `render`/`render_html` signatures.
 
+> **Superseded as of `mod_customcert` 5.2.13**: The class-load failure for untyped `render()`/`render_html()` overrides described above was introduced in `mod_customcert` 5.2.0, persisted through 5.2.12, and was corrected in 5.2.13, which restored compatibility with historical third-party elements (#1103) and their protected element properties (#1107). The Moodle 5.3-compatible plugin branch supports the same elements, and plugins updated for the originally released 5.2 API, through its deprecated compatibility bridge. The note above is kept as a record of the 5.2.0 release notes. New elements must still implement `renderable_element_interface` explicitly; see [docs/element_migration_v2.md](docs/element_migration_v2.md).
+
 New elements should use:
 - `element_interface` — for the core element contract (identity, payload, type)
 - `form_element_interface` — required for registered certificate elements (along with `renderable_element_interface`); provides edit-form lifecycle hooks including `build_form()`. Note: `form_buildable_interface` was never released and has been fully replaced by `form_element_interface`.
@@ -320,6 +319,8 @@ Reserved JSON keys (visuals):
 #### Element rendering signatures
 
 > **Breaking change for third-party element plugins**: The `render()` and `render_html()` abstract methods on `mod_customcert\element` now have strict typed signatures and return types. Third-party element plugins that override these methods with the old untyped signatures will fail at class-load time with a PHP fatal error, even before the adapter layer can help. Plugins must update their method signatures before upgrading to 5.2. See the before/after signatures below.
+>
+> This describes the requirement as released in `mod_customcert` 5.2.0 and in effect through 5.2.12; compatibility was restored in 5.2.13 and is bridged on the Moodle 5.3-compatible branch (see the clarification above).
 
 - Element render methods are now typed and accept an optional renderer.
 

@@ -24,9 +24,12 @@ enforces this pairing at registration time.
 This is distinct from the temporary Moodle 5.3 legacy compatibility path: the registry
 also accepts historical subclasses of `mod_customcert\element` that do not implement
 `renderable_element_interface`, wrapping them via `legacy_element_adapter`. That path
-exists only to support genuine Moodle 4.5-era third-party elements during the 5.3
-compatibility bridge (see `docs/element_migration_v2.md`) — new elements should not
-rely on it.
+exists only to support two populations of existing third-party elements during the 5.3
+compatibility bridge: genuine Moodle 4.5-5.1-era elements with untyped `render()` /
+`render_html()` methods, and plugins updated for the originally released Moodle 5.2 API that
+relied on inheriting `renderable_element_interface` (compatibility for both was also restored
+in `mod_customcert` 5.2.13, after the regression introduced in 5.2.0). See [element_migration_v2.md](element_migration_v2.md) — new
+elements should not rely on it.
 
 New element plugins will normally extend `mod_customcert\element`, which supplies the
 identity/form plumbing and the common style/layout getters (it already implements
@@ -67,7 +70,8 @@ behaviour.
 > persisted": if an element exposes editable fields whose values belong in
 > `customcert_elements.data` — including the standard visual fields `font`, `fontsize`,
 > `colour`, and `width` when `element_helper::render_common_form_elements()` is used —
-> its `normalise_data()` must return those values. Persistence runs through
+> its `normalise_data()` must return those values (omitted fields are not persisted, while
+> any other returned fields are still saved). Persistence runs through
 > `persistence_helper::to_json_data()`, which calls `normalise_data()` for a
 > `persistable_element_interface` element; a current (non-legacy) element with no
 > genuine legacy `save_unique_data()` override otherwise falls back to `{}`.
@@ -264,7 +268,7 @@ class element extends base_element implements
 
 > **Tip:** `myfield` has no invariant worth protecting, so this recipe composes
 > `stylable_payload` directly rather than introducing a dedicated `mytext_payload`
-> class. See `docs/element_payload_interface.md` for when a dedicated payload class
+> class. See [element_payload_interface.md](element_payload_interface.md) for when a dedicated payload class
 > *is* warranted, and `element/coursename` for the canonical reference
 > implementation of one.
 
@@ -437,6 +441,6 @@ The plugin component name follows the pattern `customcertelement_<type>`.
 
 ## Further reading
 
-- `docs/element_payload_interface.md` — typed payload pattern, skeleton, and examples.
-- `docs/element_migration_v2.md` — migrating legacy (pre-5.2) elements to the v2 API.
+- [element_payload_interface.md](element_payload_interface.md) — typed payload pattern, skeleton, and examples.
+- [element_migration_v2.md](element_migration_v2.md) — migrating legacy (pre-5.2) elements to the v2 API.
 - `element/coursename/` — canonical reference implementation for a stylable text element.
