@@ -20,7 +20,7 @@ Add the others only when the element needs them:
 
 | Interface | Add when |
 |---|---|
-| `persistable_element_interface` | The element has editable values to store in the JSON payload, including the standard `font`, `fontsize`, `colour` and `width` fields. `normalise_data()` must return them, otherwise nothing is saved (`{}`). `posx`, `posy`, `refpoint` and `alignment` are layout data and are saved separately. |
+| `persistable_element_interface` | The element has editable values to store in the JSON payload, including the standard `font`, `fontsize`, `colour` and `width` fields. `normalise_data()` must return the standard fields the element uses; omitted fields are not persisted, while any other returned fields are still saved. `posx`, `posy`, `refpoint` and `alignment` are layout data and are saved separately. |
 | `preparable_form_interface` | Form fields must be pre-populated from stored data on edit. |
 | `validatable_element_interface` | The element has validation rules of its own (see below). |
 | `restorable_element_interface` | Stored references need remapping after backup restore. |
