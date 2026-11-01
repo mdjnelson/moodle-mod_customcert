@@ -39,6 +39,7 @@ class issue_certificates_task extends scheduled_task {
      *
      * @return string
      */
+    #[\Override]
     public function get_name(): string {
         return get_string('taskissuecertificate', 'customcert');
     }
@@ -46,6 +47,7 @@ class issue_certificates_task extends scheduled_task {
     /**
      * Execute.
      */
+    #[\Override]
     public function execute(): void {
         $issuer = certificate_issuer_service::create();
         $issuer->process_email_issuance_run();

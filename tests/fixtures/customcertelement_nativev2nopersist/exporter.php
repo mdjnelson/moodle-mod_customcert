@@ -41,6 +41,7 @@ final class exporter extends subplugin_exportable {
      *
      * @return array
      */
+    #[\Override]
     protected function get_fields(): array {
         return [
             'value' => new string_field(true),

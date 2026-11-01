@@ -44,6 +44,7 @@ class cleanup_site_certificates_downloads_task extends scheduled_task {
      *
      * @return string
      */
+    #[\Override]
     public function get_name(): string {
         return get_string('taskcleanupsitecertificatesdownloads', 'customcert');
     }
@@ -54,6 +55,7 @@ class cleanup_site_certificates_downloads_task extends scheduled_task {
      * Removes site certificate download archives older than
      * {@see certificate_download_service::SITE_DOWNLOAD_FILE_LIFETIME}.
      */
+    #[\Override]
     public function execute(): void {
         $fs = get_file_storage();
         $context = context_system::instance();

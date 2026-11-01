@@ -50,6 +50,7 @@ final class element_test extends advanced_testcase {
     /**
      * Requires user/profile/lib.php so PROFILE_VISIBLE_* constants are defined.
      */
+    #[\Override]
     public static function setUpBeforeClass(): void {
         global $CFG;
         require_once($CFG->dirroot . '/user/profile/lib.php');

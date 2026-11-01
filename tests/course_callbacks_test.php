@@ -39,6 +39,7 @@ final class course_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 

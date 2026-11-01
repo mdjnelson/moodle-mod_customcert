@@ -64,6 +64,7 @@ class file_field implements field_interface, file_field_interface {
      * @param array $data Associative array containing a 'file_ref' key
      * @return array The validated input value. (Local file reference)
      */
+    #[\Override]
     public function import(array $data): mixed {
         if (!$fileref = ($data['file_ref'] ?? null)) {
             throw new format_exception("File reference not set");
@@ -79,6 +80,7 @@ class file_field implements field_interface, file_field_interface {
      * @param mixed $value Field value containing file location data.
      * @return array Array containing the 'file_ref' identifier.
      */
+    #[\Override]
     public function export(mixed $value): array {
         if (!$file = $this->get_file($value)) {
             return [];
@@ -94,6 +96,7 @@ class file_field implements field_interface, file_field_interface {
      *
      * @return array No fallback needed.
      */
+    #[\Override]
     public function get_fallback(): mixed {
         return [];
     }
@@ -104,6 +107,7 @@ class file_field implements field_interface, file_field_interface {
      * @param array $data JSON-encoded data with file metadata.
      * @return stored_file|false The resolved image file or false if not found.
      */
+    #[\Override]
     public function get_file(array $data): stored_file|false {
         if (
             empty($data["contextid"]) || empty($data["filearea"]) ||

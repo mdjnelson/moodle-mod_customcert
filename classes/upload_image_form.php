@@ -45,6 +45,7 @@ class upload_image_form extends moodleform {
     /**
      * Form definition.
      */
+    #[\Override]
     public function definition() {
         global $CFG;
 
@@ -67,6 +68,7 @@ class upload_image_form extends moodleform {
     /**
      * Fill in the current page data for this customcert.
      */
+    #[\Override]
     public function definition_after_data() {
         $mform = $this->_form;
 

@@ -41,6 +41,7 @@ final class template_repository_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $repo;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

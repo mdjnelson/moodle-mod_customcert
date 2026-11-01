@@ -49,6 +49,7 @@ final class template_load_service_test extends advanced_testcase {
     /** @var template_load_service */
     private template_load_service $service;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

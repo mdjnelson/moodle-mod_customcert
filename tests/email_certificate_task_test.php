@@ -52,6 +52,7 @@ final class email_certificate_task_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 

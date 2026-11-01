@@ -45,6 +45,7 @@ class custom_completion extends activity_custom_completion {
      * @param string $rule The completion rule.
      * @return int The completion state (COMPLETION_COMPLETE or COMPLETION_INCOMPLETE).
      */
+    #[\Override]
     public function get_state(string $rule): int {
         global $DB;
 
@@ -79,6 +80,7 @@ class custom_completion extends activity_custom_completion {
      *
      * @return array
      */
+    #[\Override]
     public static function get_defined_custom_rules(): array {
         return ['completionemailed'];
     }
@@ -88,6 +90,7 @@ class custom_completion extends activity_custom_completion {
      *
      * @return array
      */
+    #[\Override]
     public function get_custom_rule_descriptions(): array {
         return [
             'completionemailed' => get_string('completionemailed', 'customcert'),
@@ -99,6 +102,7 @@ class custom_completion extends activity_custom_completion {
      *
      * @return array
      */
+    #[\Override]
     public function get_sort_order(): array {
         return [
             'completionview',

@@ -37,6 +37,7 @@ class element_null_exporter extends subplugin_exportable {
      * @param array $data The data intended for import.
      * @return string|null Always returns null as the conversion is not possible.
      */
+    #[\Override]
     public function convert_for_import(array $data): ?string {
         $this->logger->warning('Couldn\'t import element of type ' . $this->pluginname);
         return null;
@@ -48,6 +49,7 @@ class element_null_exporter extends subplugin_exportable {
      * @param string|null $customdata Custom data associated with the element.
      * @return array Always returns an empty array since export is not supported.
      */
+    #[\Override]
     public function export(?string $customdata): array {
         if (CLI_SCRIPT) {
             mtrace('Couldn\'t export element from plugin ' . $this->pluginname);
@@ -60,6 +62,7 @@ class element_null_exporter extends subplugin_exportable {
      *
      * @return field_interface[] empty array
      */
+    #[\Override]
     protected function get_fields(): array {
         return [];
     }

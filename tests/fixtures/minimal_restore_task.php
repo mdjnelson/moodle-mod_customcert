@@ -69,6 +69,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return void
      */
+    #[\Override]
     protected function define_my_settings() {
     }
 
@@ -77,6 +78,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return void
      */
+    #[\Override]
     protected function define_my_steps() {
     }
 
@@ -85,6 +87,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return void
      */
+    #[\Override]
     public static function define_decode_contents() {
     }
 
@@ -93,6 +96,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return void
      */
+    #[\Override]
     public static function define_decode_rules() {
     }
 
@@ -101,6 +105,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return void
      */
+    #[\Override]
     public static function define_restore_log_rules() {
     }
 
@@ -109,6 +114,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return int
      */
+    #[\Override]
     public function get_activityid() {
         return $this->aid;
     }
@@ -118,6 +124,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return string
      */
+    #[\Override]
     public function get_restoreid() {
         return $this->rid;
     }
@@ -127,6 +134,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return int
      */
+    #[\Override]
     public function get_courseid() {
         return $this->cid;
     }
@@ -154,6 +162,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      * @param bool $ifnotfound
      * @return int|false
      */
+    #[\Override]
     public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
         return $this->map[$itemname][$oldid] ?? false;
     }
@@ -174,6 +183,7 @@ final class minimal_restore_task extends restore_customcert_activity_task {
      *
      * @return element_factory
      */
+    #[\Override]
     protected function get_element_factory(): element_factory {
         return $this->injectedfactory ?? parent::get_element_factory();
     }

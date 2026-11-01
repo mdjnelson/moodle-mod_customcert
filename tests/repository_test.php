@@ -34,6 +34,7 @@ use moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class repository_test extends advanced_testcase {
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();

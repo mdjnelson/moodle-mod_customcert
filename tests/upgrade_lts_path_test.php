@@ -59,6 +59,7 @@ final class upgrade_lts_path_test extends advanced_testcase {
      */
     private const int VERSION_MOODLE_52_ERA = 2026042012;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();

@@ -45,6 +45,7 @@ require_once(__DIR__ . '/fixtures/legacy_and_native_plugin_provider.php');
  * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
 final class legacy_type_repository_placeholder_test extends advanced_testcase {
+    #[\Override]
     protected function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

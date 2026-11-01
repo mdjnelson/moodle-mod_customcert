@@ -63,6 +63,7 @@ final class element_repository_test extends advanced_testcase {
      */
     private page_repository $prepo;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

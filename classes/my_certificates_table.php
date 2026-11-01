@@ -166,6 +166,7 @@ class my_certificates_table extends table_sql {
      * @param int $pagesize size of page for paginated displayed table.
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
+    #[\Override]
     public function query_db($pagesize, $useinitialsbar = true): void {
         $certrepo = new certificate_repository();
         $total = $certrepo->get_number_of_certificates_for_user($this->userid);

@@ -55,6 +55,7 @@ final class raw_data_native_v2_element extends element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         unset($mform);
     }
@@ -65,6 +66,7 @@ final class raw_data_native_v2_element extends element implements
      * @param stdClass $formdata
      * @return array
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         return ['value' => $formdata->value ?? 'raw'];
     }
@@ -77,6 +79,7 @@ final class raw_data_native_v2_element extends element implements
      * @param stdClass $user
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         unset($pdf, $preview, $user);
     }
@@ -86,6 +89,7 @@ final class raw_data_native_v2_element extends element implements
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return 'raw-data-native-v2';
     }
@@ -97,6 +101,7 @@ final class raw_data_native_v2_element extends element implements
      *
      * @return mixed
      */
+    #[\Override]
     public function get_data(): mixed {
         return strtoupper((string) $this->data);
     }
@@ -106,6 +111,7 @@ final class raw_data_native_v2_element extends element implements
      *
      * @return mixed
      */
+    #[\Override]
     public function get_raw_data(): mixed {
         return $this->data;
     }
@@ -117,6 +123,7 @@ final class raw_data_native_v2_element extends element implements
      *
      * @return string
      */
+    #[\Override]
     public function get_type(): string {
         return 'rawdata968';
     }

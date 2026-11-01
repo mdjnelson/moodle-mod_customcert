@@ -64,6 +64,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * @param string $storepath The target path for storing files and the manifest.
      * @throws coding_exception If manifest JSON encoding fails.
      */
+    #[\Override]
     public function export(int $templateid, string $storepath): void {
         $files = $this->get_files_from_template($templateid);
         $files = array_filter($files, fn ($file) => $file instanceof stored_file);
@@ -140,6 +141,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * @param string $importpath Path to the extracted ZIP directory containing files and manifest.
      * @throws Exception If required files or metadata are missing or malformed.
      */
+    #[\Override]
     public function import(int $contextid, string $importpath): void {
         $manifestpath = $this->get_manifest_path($importpath);
 
@@ -276,6 +278,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * Called on rollback to clean up any files stored before a later failure.
      * Pre-existing files that were reused are never deleted.
      */
+    #[\Override]
     public function delete_imported_files(): void {
         foreach ($this->created as $file) {
             $file->delete();
@@ -290,6 +293,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * @param string $identifier The content hash of the file.
      * @return stored_file|false The matched file or false if not found.
      */
+    #[\Override]
     public function find(string $identifier): stored_file|false {
         return $this->index[$identifier] ?? false;
     }
@@ -301,6 +305,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * @param string $identifier The unique identifier for the file.
      * @return array Data array to reference the found file, empty if not found.
      */
+    #[\Override]
     public function get_file_reference(string $identifier): array {
         if (!$file = $this->find($identifier)) {
             return [];
@@ -321,6 +326,7 @@ class template_appendix_manager implements template_appendix_manager_interface {
      * @param stored_file $file The file to identify.
      * @return string The file's content hash.
      */
+    #[\Override]
     public function get_identifier(stored_file $file): string {
         return $file->get_contenthash();
     }

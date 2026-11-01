@@ -36,6 +36,7 @@ use context_system;
  * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
 final class unknown_element_handling_test extends advanced_testcase {
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

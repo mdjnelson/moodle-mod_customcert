@@ -65,6 +65,7 @@ final class minimal_subplugin_exportable extends subplugin_exportable {
      *
      * @return field_interface[]
      */
+    #[\Override]
     protected function get_fields(): array {
         return $this->testfields;
     }

@@ -37,6 +37,7 @@ class backup_customcert_activity_task extends backup_activity_task {
     /**
      * Define particular settings this activity can have.
      */
+    #[\Override]
     protected function define_my_settings() {
         // No particular settings for this activity.
     }
@@ -44,6 +45,7 @@ class backup_customcert_activity_task extends backup_activity_task {
     /**
      * Define particular steps this activity can have.
      */
+    #[\Override]
     protected function define_my_steps() {
         // The customcert only has one structure step.
         $this->add_step(new backup_customcert_activity_structure_step('customcert_structure', 'customcert.xml'));
@@ -55,6 +57,7 @@ class backup_customcert_activity_task extends backup_activity_task {
      * @param string $content
      * @return mixed|string
      */
+    #[\Override]
     public static function encode_content_links($content) {
         global $CFG;
 

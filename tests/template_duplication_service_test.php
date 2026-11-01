@@ -50,6 +50,7 @@ final class template_duplication_service_test extends advanced_testcase {
     /** @var template_duplication_service */
     private template_duplication_service $service;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

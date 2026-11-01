@@ -33,6 +33,7 @@ class int_field extends float_field {
      * @param array $data Associative array with a 'value' key.
      * @return int The validated and typecast integer value.
      */
+    #[\Override]
     public function import(array $data): mixed {
         $validated = parent::import($data);
         return (int) $validated;
@@ -43,6 +44,7 @@ class int_field extends float_field {
      *
      * @return float Default value
      */
+    #[\Override]
     public function get_fallback(): mixed {
         if ($this->min !== null) {
             return ceil($this->min);

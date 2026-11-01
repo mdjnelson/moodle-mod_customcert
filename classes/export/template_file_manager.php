@@ -75,6 +75,7 @@ class template_file_manager implements template_file_manager_interface {
      * @return string The exported file path
      * @throws coding_exception If JSON encoding fails.
      */
+    #[\Override]
     public function export(int $templateid): string {
         $jsondata = $this->template->export($templateid);
 
@@ -124,6 +125,7 @@ class template_file_manager implements template_file_manager_interface {
      * @throws import_exception If extraction fails, required files are missing, or ZIP
      *                          content fails validation.
      */
+    #[\Override]
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
             throw new import_exception('ZIP packer is not available');

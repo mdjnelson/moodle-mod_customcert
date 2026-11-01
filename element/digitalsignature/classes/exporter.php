@@ -36,6 +36,7 @@ class exporter extends subplugin_exportable {
      *
      * @return field_interface[] plugin-specific custom data fields
      */
+    #[\Override]
     protected function get_fields(): array {
         return [
             '$' => $this->filefield,

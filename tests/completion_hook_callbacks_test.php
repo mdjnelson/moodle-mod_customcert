@@ -49,6 +49,7 @@ final class completion_hook_callbacks_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

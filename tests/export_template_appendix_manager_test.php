@@ -44,6 +44,7 @@ final class export_template_appendix_manager_test extends advanced_testcase {
     /** @var string */
     private string $tempdir;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

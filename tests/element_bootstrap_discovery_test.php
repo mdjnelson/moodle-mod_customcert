@@ -50,6 +50,7 @@ final class element_bootstrap_discovery_test extends advanced_testcase {
      * Provide a fake element class for discovery (namespaced like a real plugin).
      * Avoids eval() by aliasing a local fixture class to the expected FQCN.
      */
+    #[\Override]
     public function setUp(): void {
         parent::setUp();
         if (!class_exists('\\customcertelement_fakeplugin\\element', false)) {

@@ -158,6 +158,7 @@ abstract class element implements
      *
      * @return int
      */
+    #[\Override]
     public function get_id(): int {
         return $this->id;
     }
@@ -167,6 +168,7 @@ abstract class element implements
      *
      * @return int
      */
+    #[\Override]
     public function get_pageid(): int {
         return $this->pageid;
     }
@@ -176,6 +178,7 @@ abstract class element implements
      *
      * @return int
      */
+    #[\Override]
     public function get_name(): string {
         return $this->name;
     }
@@ -185,6 +188,7 @@ abstract class element implements
      *
      * @return mixed
      */
+    #[\Override]
     public function get_data(): mixed {
         return $this->data;
     }
@@ -196,6 +200,7 @@ abstract class element implements
      *
      * @return mixed
      */
+    #[\Override]
     public function get_raw_data(): mixed {
         return $this->data;
     }
@@ -205,6 +210,7 @@ abstract class element implements
      *
      * @return string|null
      */
+    #[\Override]
     public function get_font(): ?string {
         return $this->get_string_from_data_key('font');
     }
@@ -214,6 +220,7 @@ abstract class element implements
      *
      * @return int|null
      */
+    #[\Override]
     public function get_fontsize(): ?int {
         return $this->get_int_from_data_key('fontsize');
     }
@@ -223,6 +230,7 @@ abstract class element implements
      *
      * @return string|null
      */
+    #[\Override]
     public function get_colour(): ?string {
         return $this->get_string_from_data_key('colour');
     }
@@ -270,6 +278,7 @@ abstract class element implements
      *
      * @return int|null
      */
+    #[\Override]
     public function get_posx(): ?int {
         return $this->posx ?? null;
     }
@@ -279,6 +288,7 @@ abstract class element implements
      *
      * @return int|null
      */
+    #[\Override]
     public function get_posy(): ?int {
         return $this->posy ?? null;
     }
@@ -288,6 +298,7 @@ abstract class element implements
      *
      * @return int|null
      */
+    #[\Override]
     public function get_width(): ?int {
         return $this->get_int_from_data_key('width');
     }
@@ -297,6 +308,7 @@ abstract class element implements
      *
      * @return int
      */
+    #[\Override]
     public function get_refpoint(): ?int {
         return $this->refpoint ?? null;
     }
@@ -306,6 +318,7 @@ abstract class element implements
      *
      * @return string The current alignment value.
      */
+    #[\Override]
     public function get_alignment(): ?string {
         return $this->alignment ?? self::ALIGN_LEFT;
     }
@@ -315,6 +328,7 @@ abstract class element implements
      *
      * @return string
      */
+    #[\Override]
     public function get_type(): string {
         $classname = get_class($this);
         $parts = explode('\\', $classname);
@@ -387,6 +401,7 @@ abstract class element implements
      *
      * @param edit_element_form $editelementform
      */
+    #[\Override]
     public function set_edit_element_form(edit_element_form $editelementform): void {
         $this->editelementform = $editelementform;
     }
@@ -410,6 +425,7 @@ abstract class element implements
      *
      * @return bool returns true if the element need to add the "Save and continue" button, false otherwise
      */
+    #[\Override]
     public function has_save_and_continue(): bool {
         return false;
     }
@@ -422,6 +438,7 @@ abstract class element implements
      *
      * @param MoodleQuickForm $mform the edit_form instance.
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         element_helper::render_common_form_elements($mform, $this->showposxy);
     }

@@ -48,6 +48,7 @@ final class export_page_test extends advanced_testcase {
     /** @var int */
     private int $templateid;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

@@ -57,6 +57,7 @@ use stdClass;
  * @category  test
  */
 final class events_test extends advanced_testcase {
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

@@ -64,6 +64,7 @@ final class issue_968_raw_data_persistence_test extends advanced_testcase {
     /** @var int */
     private int $pageid;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

@@ -35,6 +35,7 @@ use mod_customcert\tests\fixtures\fake_element_fixture;
  * @covers     \mod_customcert\element\element_bootstrap::register_defaults
  */
 final class element_bootstrap_memoization_test extends advanced_testcase {
+    #[\Override]
     protected function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

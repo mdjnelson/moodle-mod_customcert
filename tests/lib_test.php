@@ -51,6 +51,7 @@ final class lib_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     protected function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

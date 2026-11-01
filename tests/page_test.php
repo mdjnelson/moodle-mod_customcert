@@ -43,6 +43,7 @@ final class page_test extends advanced_testcase {
      *
      * @return void
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 

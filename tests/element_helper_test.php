@@ -46,6 +46,7 @@ final class element_helper_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 

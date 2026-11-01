@@ -54,6 +54,7 @@ final class save_element_security_test extends advanced_testcase {
     /**
      * Create two courses, a teacher in course A and a certificate with one page in course A.
      */
+    #[\Override]
     protected function setUp(): void {
         global $DB;
 

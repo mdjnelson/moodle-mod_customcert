@@ -35,6 +35,7 @@ use pdf;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class pdf_generation_service_test extends advanced_testcase {
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 

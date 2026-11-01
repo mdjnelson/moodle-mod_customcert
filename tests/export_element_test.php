@@ -50,6 +50,7 @@ final class export_element_test extends advanced_testcase {
     /** @var element */
     private element $element;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

@@ -67,6 +67,7 @@ class edit_form extends moodleform {
     /**
      * Form definition.
      */
+    #[\Override]
     public function definition() {
         global $DB, $OUTPUT;
 
@@ -121,6 +122,7 @@ class edit_form extends moodleform {
     /**
      * Fill in the current page data for this customcert.
      */
+    #[\Override]
     public function definition_after_data() {
         global $DB;
 
@@ -149,6 +151,7 @@ class edit_form extends moodleform {
      * @param array $files
      * @return array the errors that were found
      */
+    #[\Override]
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 

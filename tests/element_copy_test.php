@@ -43,6 +43,7 @@ final class element_copy_test extends advanced_testcase {
     /**
      * Set up the test.
      */
+    #[\Override]
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
