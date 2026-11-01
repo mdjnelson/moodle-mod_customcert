@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [6.0] - [Unreleased]
 
+### Fixed
+
+- Fixed the rearrange modal rejecting valid Moodle form field names such as `startdate[0][day]`. Submitted values are now rebuilt into nested arrays, as in a normal form submission, before being processed by the element edit form (#1102).
+
 ### Changed
 
 - **Breaking change:** Removed `element_renderer`, `pdf_renderer` and `html_renderer`, along with the
