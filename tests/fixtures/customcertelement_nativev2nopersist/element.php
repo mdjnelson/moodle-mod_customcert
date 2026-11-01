@@ -28,13 +28,14 @@ declare(strict_types=1);
 namespace customcertelement_nativev2nopersist;
 
 use mod_customcert\element as base_element;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use stdClass;
 
 /**
  * Third-party fixture without custom form persistence.
  */
-final class element extends base_element {
+final class element extends base_element implements renderable_element_interface {
     /**
      * Render into TCPDF (unused in these tests).
      *

@@ -29,13 +29,14 @@ namespace customcertelement_structuredv2;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use stdClass;
 
 /**
  * Third-party fixture with a custom form persistence contract.
  */
-final class element extends base_element implements persistable_element_interface {
+final class element extends base_element implements persistable_element_interface, renderable_element_interface {
     /**
      * Normalise submitted form data into the structured payload this plugin persists.
      *

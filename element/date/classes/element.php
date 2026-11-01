@@ -37,6 +37,7 @@ use restore_customcert_activity_task;
 use stdClass;
 use mod_customcert\service\element_renderer;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -53,6 +54,7 @@ require_once($CFG->dirroot . '/lib/grade/constants.php');
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
+    renderable_element_interface,
     restorable_element_interface
 {
     /** @var string Course grade date identifier. */

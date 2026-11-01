@@ -50,14 +50,15 @@ final class persistence_helper {
      * @return string JSON object string suitable for DB storage
      */
     public static function to_json_data(object $element, stdClass $formdata): string {
-        if ($element instanceof persistable_element_interface) {
-            $normalised = $element->normalise_data($formdata);
+        // Unwrap the adapter: an adapted element may itself implement persistable_element_interface.
+        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
+        if ($target instanceof persistable_element_interface) {
+            $normalised = $target->normalise_data($formdata);
             return self::to_object_json($normalised);
         }
 
         // Only call save_unique_data() when the concrete class overrides it, not when it is merely
-        // inherited from the base class. Unwrap the adapter to inspect the inner element's class.
-        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
+        // inherited from the base class.
         if (
             method_exists($target, 'save_unique_data') &&
             (new ReflectionMethod($target, 'save_unique_data'))->getDeclaringClass()->getName() !== \mod_customcert\element::class

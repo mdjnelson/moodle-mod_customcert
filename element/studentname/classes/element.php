@@ -28,6 +28,7 @@ namespace customcertelement_studentname;
 
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -43,7 +44,8 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class element extends base_element implements
-    persistable_element_interface
+    persistable_element_interface,
+    renderable_element_interface
 {
     /**
      * Build the configuration form for this element.
