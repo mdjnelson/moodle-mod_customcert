@@ -36,6 +36,21 @@ class element extends \mod_customcert\element {
     public $restored = false;
 
     /**
+     * Expose the historical protected properties, as a 4.5-era plugin would read them.
+     *
+     * @return array
+     */
+    public function get_legacy_state() {
+        return [
+            'element' => $this->element,
+            'font' => $this->font,
+            'fontsize' => $this->fontsize,
+            'colour' => $this->colour,
+            'width' => $this->width,
+        ];
+    }
+
+    /**
      * Render the form elements.
      *
      * @param \MoodleQuickForm $mform
