@@ -239,6 +239,74 @@ final class legacy_element_contract_test extends advanced_testcase {
     }
 
     /**
+     * Historical protected properties are populated from explicit record fields.
+     */
+    public function test_historical_protected_properties_from_record_fields(): void {
+        $element = $this->make_factory()->create('legacy45', $this->make_record('legacy45', [
+            'font' => 'Helvetica',
+            'fontsize' => 12,
+            'colour' => '#112233',
+            'width' => 50,
+        ]))->get_inner();
+
+        $state = $element->get_legacy_state();
+        $this->assertSame('Helvetica', $state['font']);
+        $this->assertSame(12, $state['fontsize']);
+        $this->assertSame('#112233', $state['colour']);
+        $this->assertSame(50, $state['width']);
+
+        $record = $state['element'];
+        $this->assertSame(7, $record->id);
+        $this->assertSame('legacy45', $record->element);
+        $this->assertSame('Helvetica', $record->font);
+    }
+
+    /**
+     * Historical protected properties are populated from migrated JSON, and the legacy
+     * record view sees the same scalar as get_data() while the raw JSON is preserved.
+     */
+    public function test_historical_protected_properties_from_migrated_json(): void {
+        $json = json_encode([
+            'value' => 'scalar',
+            'font' => 'Courier',
+            'fontsize' => 14,
+            'colour' => '#445566',
+            'width' => 60,
+        ]);
+        $element = $this->make_factory()->create('legacy45', $this->make_record('legacy45', ['data' => $json]))
+            ->get_inner();
+
+        $state = $element->get_legacy_state();
+        $this->assertSame('Courier', $state['font']);
+        $this->assertSame(14, $state['fontsize']);
+        $this->assertSame('#445566', $state['colour']);
+        $this->assertSame(60, $state['width']);
+
+        $record = $state['element'];
+        $this->assertSame('scalar', $record->data);
+        $this->assertSame('scalar', $element->get_data());
+        $this->assertSame($json, $element->get_raw_data());
+        $this->assertSame('Courier', $record->font);
+    }
+
+    /**
+     * An override calling parent::definition_after_data() produces a single deprecation notice.
+     */
+    public function test_definition_after_data_override_calling_parent_emits_single_notice(): void {
+        $this->resetAfterTest();
+        $element = $this->make_factory()->create('legacy45', $this->make_record());
+
+        $mform = new MoodleQuickForm('legacyform', 'post', '');
+        (new form_service())->build_form($mform, $element);
+        $this->resetDebugging();
+
+        (new form_service())->prepare_after_data($mform, $element);
+
+        $this->assertDebuggingCalledCount(1);
+        $this->resetDebugging();
+    }
+
+    /**
      * Historical render($pdf, $preview, $user) receives exactly its three declared arguments.
      */
     public function test_adapter_renders_pdf_with_historical_three_argument_signature(): void {
