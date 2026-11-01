@@ -37,6 +37,7 @@ use mod_customcert\element_helper;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\copyable_element_interface;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
 use moodle_url;
@@ -56,6 +57,7 @@ class element extends base_element implements
     copyable_element_interface,
     persistable_element_interface,
     preparable_form_interface,
+    renderable_element_interface,
     restorable_element_interface
 {
     /**

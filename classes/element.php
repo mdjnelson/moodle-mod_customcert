@@ -34,16 +34,13 @@ use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\form_element_interface;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\raw_data_element_interface;
-use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\element_created;
 use mod_customcert\event\element_updated;
-use mod_customcert\service\element_renderer;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\persistence_helper;
 use MoodleQuickForm;
-use pdf;
 use stdClass;
 
 /**
@@ -59,7 +56,6 @@ abstract class element implements
     form_element_interface,
     layout_element_interface,
     raw_data_element_interface,
-    renderable_element_interface,
     stylable_element_interface {
     /**
      * @var string The left alignment constant.
@@ -654,31 +650,6 @@ abstract class element implements
     public static function can_add(): bool {
         return true;
     }
-
-    /**
-     * Handles rendering the element on the pdf.
-     *
-     * Must be overridden.
-     *
-     * @param pdf $pdf the pdf object
-     * @param bool $preview true if it is a preview, false otherwise
-     * @param stdClass $user the user we are rendering this for
-     * @param element_renderer|null $renderer the renderer service
-     */
-    abstract public function render(pdf $pdf, bool $preview, stdClass $user, ?element_renderer $renderer = null): void;
-
-    /**
-     * Render the element in html.
-     *
-     * Must be overridden.
-     *
-     * This function is used to render the element when we are using the
-     * drag and drop interface to position it.
-     *
-     * @param element_renderer|null $renderer the renderer service
-     * @return string the html
-     */
-    abstract public function render_html(?element_renderer $renderer = null): string;
 
     /**
      * Handles deleting any data this element may have introduced.

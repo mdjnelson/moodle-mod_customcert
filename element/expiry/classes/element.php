@@ -37,6 +37,7 @@ use pdf;
 use restore_customcert_activity_task;
 use stdClass;
 use mod_customcert\element\restorable_element_interface;
+use mod_customcert\element\renderable_element_interface;
 
 /**
  * The customcert element expiry's core interaction API.
@@ -48,6 +49,7 @@ use mod_customcert\element\restorable_element_interface;
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
+    renderable_element_interface,
     restorable_element_interface
 {
     /**

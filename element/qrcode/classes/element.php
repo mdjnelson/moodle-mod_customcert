@@ -30,6 +30,7 @@ use context;
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\preparable_form_interface;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\element_renderer;
 use MoodleQuickForm;
@@ -54,7 +55,8 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
  */
 class element extends base_element implements
     persistable_element_interface,
-    preparable_form_interface
+    preparable_form_interface,
+    renderable_element_interface
 {
     /**
      * Build the configuration form for this element.

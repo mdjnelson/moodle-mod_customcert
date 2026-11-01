@@ -26,9 +26,11 @@ declare(strict_types=1);
 
 namespace mod_customcert\service;
 
+use coding_exception;
 use mod_customcert\element\element_interface;
 use mod_customcert\element\legacy_element_adapter;
 use mod_customcert\element\element_bootstrap;
+use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element as legacy_base;
 use stdClass;
 
@@ -54,7 +56,7 @@ final class element_factory {
      * Register an element class for a given type key.
      *
      * @param string $type
-     * @param string $class Class-string implementing element_interface
+     * @param string $class Class-string of a native v2 element or a historical mod_customcert\element subclass
      * @return void
      */
     public function register(string $type, string $class): void {
@@ -92,10 +94,30 @@ final class element_factory {
             throw $e;
         }
 
-        if ($instance instanceof element_interface) {
+        $element = self::native_or_adapted($instance);
+        if ($element === null) {
+            throw new coding_exception(
+                "Element factory cannot use class '{$class}' for type '{$type}': "
+                . 'it must implement renderable_element_interface or extend mod_customcert\\element.'
+            );
+        }
+        return $element;
+    }
+
+    /**
+     * Return native v2 elements as-is and wrap historical mod_customcert\element subclasses in the adapter.
+     *
+     * @param object $instance
+     * @return element_interface|null Null when the instance is neither supported shape.
+     */
+    private static function native_or_adapted(object $instance): ?element_interface {
+        if ($instance instanceof renderable_element_interface && $instance instanceof element_interface) {
             return $instance;
         }
-        return new legacy_element_adapter($instance);
+        if ($instance instanceof legacy_base) {
+            return new legacy_element_adapter($instance);
+        }
+        return null;
     }
 
     /**
@@ -137,11 +159,7 @@ final class element_factory {
             return null;
         }
 
-        if ($legacy instanceof element_interface) {
-            return $legacy;
-        }
-
-        return $legacy ? new legacy_element_adapter($legacy) : null;
+        return $legacy ? self::native_or_adapted($legacy) : null;
     }
 
     /**

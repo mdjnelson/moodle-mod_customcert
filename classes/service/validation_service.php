@@ -65,9 +65,10 @@ final class validation_service {
         }
 
         // Let elements contribute their own specific validation when they opt-in.
-        if ($element instanceof validatable_element_interface) {
+        $target = ($element instanceof legacy_element_adapter) ? $element->get_inner() : $element;
+        if ($target instanceof validatable_element_interface) {
             try {
-                $errors += (array) $element->validate($data);
+                $errors += (array) $target->validate($data);
             } catch (Throwable $e) {
                 // Never break the form on custom element validation; attach error to a visible field.
                 $errors['name'] = get_string('invaliddata', 'error');

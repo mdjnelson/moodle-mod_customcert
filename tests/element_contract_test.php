@@ -86,7 +86,7 @@ final class element_contract_test extends advanced_testcase {
             $this->assertArrayHasKey($interface, $implemented, "text element lost {$interface}");
         }
 
-        // Also inherited from the 5.2 base class, and redeclared by the element itself.
+        // Native v2 elements declare the rendering contract themselves.
         $this->assertArrayHasKey(renderable_element_interface::class, $implemented);
 
         // Custom form validation is optional and bundled elements have no element-specific rules.
@@ -161,15 +161,14 @@ final class element_contract_test extends advanced_testcase {
     }
 
     /**
-     * Moodle 5.2 base class implements renderable_element_interface (unlike 5.3) but not the
-     * optional validatable_element_interface.
+     * The legacy base class does not impose the v2 rendering contract and has no validation interface.
      *
      * @covers \mod_customcert\element
      */
-    public function test_base_class_implements_renderable_but_not_validatable(): void {
+    public function test_base_class_implements_neither_renderable_nor_validatable(): void {
         $implemented = class_implements(element::class);
 
-        $this->assertArrayHasKey(renderable_element_interface::class, $implemented);
+        $this->assertArrayNotHasKey(renderable_element_interface::class, $implemented);
         $this->assertArrayHasKey(form_element_interface::class, $implemented);
         $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented);
     }
