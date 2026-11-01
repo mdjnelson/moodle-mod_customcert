@@ -10,6 +10,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Removed empty `validate()` methods and unnecessary `validatable_element_interface` implementations from bundled elements. Third-party subclasses requiring custom validation should explicitly implement the interface (#1091).
 
+### Fixed
+
+- Restored compatibility with historical third-party certificate elements while preserving support for plugins updated for Moodle 5.2 (#1103).
+
 ## [5.2.12] - 2026-10-25
 
 ### Security
