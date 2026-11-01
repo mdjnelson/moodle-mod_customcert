@@ -22,16 +22,25 @@ required to safely upgrade or restore historical data.
 
 ### The released Moodle 5.2 compatibility boundary
 
-The released Moodle 5.2 compatibility surface — including its requirement that third-party
-`render()`/`render_html()` overrides adopt the 5.2 typed declarations — remains the normal
-compatibility baseline, and a plugin that already migrated for 5.2 continues to work unchanged on
-5.3. Moodle 5.3 adds only narrow additional corrections needed for a genuine Moodle 4.5-era
-element (one that never ran through 5.2) to cross directly to 5.3 — for example, accepting the
-genuine 4.5-era untyped `render()`/`render_html()` shape through the compatibility bridge. This
-does not retroactively change the released 5.2 contract, and is not a general licence to recreate
-older declarations: the old one-record `mod_customcert\template` constructor, for instance, was
-not restored. `MOODLE_502_STABLE` does not automatically receive this bridge's class-loading
-changes; independent 5.2 bug fixes remain eligible for normal stable maintenance as usual.
+`mod_customcert` 5.2.0 required third-party `render()`/`render_html()` overrides to adopt the
+typed 5.2 declarations, and an element with the old untyped declarations failed with a PHP fatal
+error at class-load time. That regression was introduced in 5.2.0, persisted through 5.2.12, and
+was corrected in 5.2.13, which restored compatibility with historical third-party elements (#1103)
+and their protected element properties (#1107). The fatal error no longer applies to 5.2.13 or
+later. (These are plugin release versions, not Moodle core versions.)
+
+The Moodle 5.3-compatible plugin branch supports the same two populations of third-party element through the compatibility
+bridge:
+
+1. Genuine Moodle 4.5-5.1-era elements with historical, untyped `render()`/`render_html()`
+   methods.
+2. Plugins updated for the originally released Moodle 5.2 API, which declare the typed methods but
+   relied on inheriting `renderable_element_interface` from the base class, and which may
+   implement optional v2 lifecycle interfaces such as `persistable_element_interface`.
+
+Native Element System v2 elements that implement `renderable_element_interface` directly are not
+wrapped. The bridge is not a general licence to recreate older declarations: the old one-record
+`mod_customcert\template` constructor, for instance, was not restored.
 
 ---
 
@@ -41,7 +50,10 @@ A plugin still depends on the legacy compatibility bridge if it overrides any of
 hooks listed in the table below instead of implementing the corresponding Element System v2
 interface — for example `render_form_elements()`, `definition_after_data()`,
 `validate_form_elements()`, `save_form_elements()`, `save_unique_data()`, `after_restore()`, or
-`copy_element()`.
+`copy_element()`. A subclass of `mod_customcert\element` that declares `render()`/`render_html()`
+without explicitly implementing `renderable_element_interface` — whether with untyped historical
+signatures or with typed 5.2 signatures that relied on an inherited interface — is also adapted by
+the bridge.
 
 A running site also surfaces this at runtime: with `DEBUG_DEVELOPER` enabled, a legacy element
 triggers a notice similar to:
@@ -52,7 +64,7 @@ triggers a notice similar to:
 You do not need to inspect `legacy_element_adapter` or any other internal implementation detail to
 answer this. The migration test is conceptually: implement the appropriate Element System v2
 interfaces directly, rather than depending on the compatibility bridge. See
-`docs/element_authoring_guide.md` for the current authoring reference.
+[element_authoring.md](element_authoring.md) for the current authoring reference.
 
 ---
 
@@ -113,8 +125,8 @@ Add these based on what the element actually does:
 | `restorable_element_interface` | Element remaps internal references after backup restore |
 | `copyable_element_interface` | Element needs custom logic when copied (e.g. file copying) |
 
-All interfaces live under `mod_customcert\element\`. See `docs/element_authoring_guide.md` for the
-validation, `get_data()` / `get_raw_data()` and renderer notes.
+All interfaces live under `mod_customcert\element\`. See [element_authoring.md](element_authoring.md)
+for the validation, `get_data()` / `get_raw_data()` and renderer notes.
 
 ---
 
@@ -125,7 +137,7 @@ fields. `mod_customcert\element` already provides `form_element_interface`, so d
 `renderable_element_interface` completes the native registration contract. The standard style
 controls are not added here, so nothing needs persisting; if you add them with
 `element_helper::render_common_form_elements()`, also implement
-`persistable_element_interface` (see `docs/element_authoring_guide.md`):
+`persistable_element_interface` (see [element_authoring.md](element_authoring.md)):
 
 ```php
 namespace customcertelement_myelement;
@@ -342,7 +354,7 @@ The service layer enforces these checks. Bypassing them is a security risk.
 
 ## Further reading
 
-- `CHANGES.md` — 5.3 deprecated/compatibility entry with full migration table
+- [CHANGES.md](../CHANGES.md) — 5.3 deprecated/compatibility entry with full migration table
 - `classes/element/` — all v2 interface definitions
 - Bundled elements (e.g. `element/coursename`, `element/text`, `element/date`) — real-world v2
   implementations to use as reference
