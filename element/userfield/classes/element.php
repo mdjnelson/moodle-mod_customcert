@@ -54,7 +54,7 @@ class element extends base_element implements
     /**
      * Core user table fields that may be displayed.
      */
-    private const USER_FIELDS = [
+    private const array USER_FIELDS = [
         'firstname', 'lastname', 'username', 'email', 'city', 'country', 'url',
         'idnumber', 'institution', 'department', 'phone1', 'phone2', 'address',
     ];
