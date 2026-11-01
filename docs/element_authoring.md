@@ -1,8 +1,9 @@
 # Element authoring guide
 
-This guide is for third-party developers who want to create a custom certificate
-element plugin. It explains which interfaces are required, which are optional, and
-provides examples and sketches for the most common element types.
+This guide covers the **Moodle 6.0-compatible API** and is for third-party developers who
+want to create a custom certificate element plugin. It explains which interfaces are
+required, which are optional, and provides examples and sketches for the most common
+element types.
 
 ---
 
@@ -21,9 +22,11 @@ enforces this pairing at registration time.
 | `renderable_element_interface` | Output: `render()` (PDF) and `render_html()` (drag-and-drop preview) |
 
 The historical legacy compatibility path (`legacy_element_adapter`) that used to wrap
-subclasses not implementing `renderable_element_interface` has been removed — see
-`docs/element_migration_v2.md` for the removed hooks and their current replacements. A
-class that does not satisfy the native v2 contract above is rejected at registration time.
+subclasses not implementing `renderable_element_interface` has been removed, together with the
+other deprecated runtime APIs — see [element_migration_v2.md](element_migration_v2.md) for the
+removed hooks and their current replacements. A class that does not satisfy the native v2
+contract above is rejected at registration time. Only the runtime compatibility was removed:
+historical database-upgrade and backup/restore migrations of stored element data are retained.
 
 New element plugins will normally extend `mod_customcert\element`, which supplies the
 identity/form plumbing and the common style/layout getters (it already implements
@@ -259,7 +262,7 @@ class element extends base_element implements
 
 > **Tip:** `myfield` has no invariant worth protecting, so this recipe composes
 > `stylable_payload` directly rather than introducing a dedicated `mytext_payload`
-> class. See `docs/element_payload_interface.md` for when a dedicated payload class
+> class. See [element_payload_interface.md](element_payload_interface.md) for when a dedicated payload class
 > *is* warranted, and `element/coursename` for the canonical reference
 > implementation of one.
 
@@ -430,6 +433,6 @@ The plugin component name follows the pattern `customcertelement_<type>`.
 
 ## Further reading
 
-- `docs/element_payload_interface.md` — typed payload pattern, skeleton, and examples.
-- `docs/element_migration_v2.md` — the current Element System v2 API and the removed legacy hooks.
+- [element_payload_interface.md](element_payload_interface.md) — typed payload pattern, skeleton, and examples.
+- [element_migration_v2.md](element_migration_v2.md) — the current Element System v2 API and the removed legacy hooks.
 - `element/coursename/` — canonical reference implementation for a stylable text element.

@@ -21,8 +21,8 @@ acceptance.
 This removal is a **runtime API** change only. Historical database-upgrade (`db/upgrade.php`) and
 backup/restore migration logic for old persisted element data is a separate, independent concern
 and is retained — upgrading or restoring historical data continues to work. See
-`docs/element_authoring_guide.md` for the current authoring reference and
-`CHANGES.md` for the dated history of each deprecation and removal.
+[element_authoring.md](element_authoring.md) for the current authoring reference and
+[CHANGES.md](../CHANGES.md) for the dated history of each deprecation and removal.
 
 ---
 
@@ -345,7 +345,7 @@ The service layer enforces these checks. Bypassing them is a security risk.
 
 ## Further reading
 
-- `CHANGES.md` — full dated history of each deprecation and removal (#993–#997 under
+- [CHANGES.md](../CHANGES.md) — full dated history of each deprecation and removal (#993–#997 under
   `[Unreleased] → Removed`)
 - `classes/element/` — all v2 interface definitions
 - Bundled elements (e.g. `element/coursename`, `element/text`, `element/date`) — real-world v2
