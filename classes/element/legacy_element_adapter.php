@@ -337,10 +337,9 @@ final class legacy_element_adapter implements
     /**
      * Sets the data on the form when editing an element (legacy fallback).
      *
-     * Only invokes the legacy hook when the wrapped element actually overrides it;
-     * calling the inherited no-op base implementation would emit a spurious deprecation.
-     * The deprecation notice is emitted here (the compatibility bridge) rather than
-     * in the base class no-op, so it is only emitted once.
+     * Only invokes the legacy hook when the wrapped element actually overrides it. If the override
+     * calls parent::definition_after_data(), the base class has already emitted the deprecation
+     * notice (detected via its warning count); otherwise it is emitted here, so it appears once.
      *
      * @param \MoodleQuickForm $mform
      * @return void
@@ -349,12 +348,15 @@ final class legacy_element_adapter implements
         if (method_exists($this->inner, 'definition_after_data')) {
             $ref = new \ReflectionMethod($this->inner, 'definition_after_data');
             if ($ref->getDeclaringClass()->getName() !== \mod_customcert\element::class) {
-                debugging(
-                    'definition_after_data() is deprecated since Moodle 5.2. '
-                    . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
-                    DEBUG_DEVELOPER
-                );
+                $warningsbefore = $this->inner->get_definition_after_data_warning_count();
                 $this->inner->definition_after_data($mform);
+                if ($this->inner->get_definition_after_data_warning_count() === $warningsbefore) {
+                    debugging(
+                        'definition_after_data() is deprecated since Moodle 5.2. '
+                        . 'Implement mod_customcert\\element\\preparable_form_interface::prepare_form() instead.',
+                        DEBUG_DEVELOPER
+                    );
+                }
             }
         }
     }
