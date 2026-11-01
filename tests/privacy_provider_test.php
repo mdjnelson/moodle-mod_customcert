@@ -34,6 +34,7 @@ use mod_customcert\privacy\provider;
 use mod_customcert\service\certificate_issue_service;
 use core_privacy\local\request\writer;
 use core_privacy\tests\provider_testcase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Privacy provider tests class.
@@ -42,11 +43,15 @@ use core_privacy\tests\provider_testcase;
  * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'get_contexts_for_userid')]
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'get_users_in_context')]
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'export_user_data')]
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'delete_data_for_all_users_in_context')]
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'delete_data_for_user')]
+#[CoversMethod(\mod_customcert\privacy\provider::class, 'delete_data_for_users')]
 final class privacy_provider_test extends provider_testcase {
     /**
      * Test for provider::get_contexts_for_userid().
-     *
-     * @covers \provider::get_contexts_for_userid
      */
     public function test_get_contexts_for_userid(): void {
         $this->resetAfterTest();
@@ -76,8 +81,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::get_users_in_context().
-     *
-     * @covers \provider::get_users_in_context()
      */
     public function test_get_users_in_context(): void {
         $this->resetAfterTest();
@@ -117,8 +120,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::get_users_in_context() with invalid context type.
-     *
-     * @covers \provider::get_users_in_context()
      */
     public function test_get_users_in_context_invalid_context_type(): void {
         $systemcontext = context_system::instance();
@@ -131,8 +132,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::export_user_data().
-     *
-     * @covers \provider::export_user_data()
      */
     public function test_export_for_context(): void {
         $this->resetAfterTest();
@@ -168,8 +167,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::delete_data_for_all_users_in_context().
-     *
-     * @covers \provider::delete_data_for_all_users_in_context()
      */
     public function test_delete_data_for_all_users_in_context(): void {
         global $DB;
@@ -210,8 +207,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::delete_data_for_user().
-     *
-     * @covers \provider::delete_data_for_user()
      */
     public function test_delete_data_for_user(): void {
         global $DB;
@@ -254,8 +249,6 @@ final class privacy_provider_test extends provider_testcase {
 
     /**
      * Test for provider::delete_data_for_users().
-     *
-     * @covers \provider::delete_data_for_users()
      */
     public function test_delete_data_for_users(): void {
         global $DB;

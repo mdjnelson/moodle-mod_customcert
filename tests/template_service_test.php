@@ -29,6 +29,7 @@ use context_course;
 use context_system;
 use invalid_parameter_exception;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Service-layer tests for template operations (non-deprecated API).
@@ -38,7 +39,16 @@ use stdClass;
  * @copyright 2026 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\service\template_service::class, 'add_page')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_page')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'move_item')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'update')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_element')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'copy_to_template')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'save_pages')]
 final class template_service_test extends advanced_testcase {
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 
@@ -47,9 +57,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Adding and deleting a page via the service should work without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::add_page
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_add_and_delete_page_service(): void {
         global $DB;
@@ -68,8 +75,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Adding multiple pages should assign increasing sequence values starting at 1.
-     *
-     * @covers \mod_customcert\service\template_service::add_page
      */
     public function test_add_page_sets_sequence(): void {
         global $DB;
@@ -95,8 +100,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Moving pages via the service should reorder sequences without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::move_item
      */
     public function test_move_page_service(): void {
         global $DB;
@@ -124,8 +127,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Updating a template name via the service should fire template_updated only when changed.
-     *
-     * @covers \mod_customcert\service\template_service::update
      */
     public function test_update_template_service(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -149,8 +150,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * System-context renames should persist but not emit template_updated.
-     *
-     * @covers \mod_customcert\service\template_service::update
      */
     public function test_update_template_service_system_context_does_not_emit_event(): void {
         $template = template::create('System Original', context_system::instance()->id);
@@ -167,9 +166,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Deleting a template via the service should remove pages/elements and fire expected events without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::delete
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_delete_template_service(): void {
         global $DB;
@@ -204,8 +200,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Deleting an element via the service should resequence and fire template_updated without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::delete_element
      */
     public function test_delete_element_service(): void {
         global $DB;
@@ -249,8 +243,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * Copying to another template via the service should duplicate pages/elements without debugging.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_copy_to_template_service(): void {
         global $DB;
@@ -290,8 +282,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * save_pages should throw when required page fields are missing from input data.
-     *
-     * @covers \mod_customcert\service\template_service::save_pages
      */
     public function test_save_pages_throws_on_missing_fields(): void {
         $template = template::create('Missing fields', context_system::instance()->id);
@@ -308,8 +298,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * delete_page fires a debugging notice when a page contains an element of an unknown type.
-     *
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_delete_page_with_unknown_element_type_logs_debugging(): void {
         global $DB;
@@ -344,8 +332,6 @@ final class template_service_test extends advanced_testcase {
 
     /**
      * delete_element fires a debugging notice when the element type cannot be resolved.
-     *
-     * @covers \mod_customcert\service\template_service::delete_element
      */
     public function test_delete_element_with_unknown_type_logs_debugging(): void {
         global $DB;

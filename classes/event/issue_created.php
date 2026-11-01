@@ -37,6 +37,7 @@ class issue_created extends \core\event\base {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['crud'] = 'c'; // A 'create' operation.
         $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
@@ -48,6 +49,7 @@ class issue_created extends \core\event\base {
      *
      * @return string The name of the event.
      */
+    #[\Override]
     public static function get_name(): string {
         return get_string('eventissuecreated', 'mod_customcert');
     }
@@ -57,6 +59,7 @@ class issue_created extends \core\event\base {
      *
      * @return string A detailed description of the event.
      */
+    #[\Override]
     public function get_description(): string {
         return "The user with id '{$this->userid}' was issued a custom certificate with issue id '{$this->objectid}'.";
     }
@@ -66,6 +69,7 @@ class issue_created extends \core\event\base {
      *
      * @return moodle_url A URL to view the certificate or related activity.
      */
+    #[\Override]
     public function get_url(): moodle_url {
         return new moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
     }

@@ -53,6 +53,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         element_helper::render_common_form_elements($mform, $this->showposxy);
     }
@@ -64,6 +65,7 @@ class element extends base_element implements
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, fullname($user));
     }
@@ -76,6 +78,7 @@ class element extends base_element implements
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         global $USER;
 
@@ -88,6 +91,7 @@ class element extends base_element implements
      * @param stdClass $formdata
      * @return array
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         return stylable_payload::from_form($formdata)->to_array();
     }

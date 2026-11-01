@@ -20,6 +20,7 @@ use advanced_testcase;
 use context_module;
 use required_capability_exception;
 use require_login_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for the mobile certificate access checks.
@@ -27,8 +28,8 @@ use require_login_exception;
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\mobile_access
  */
+#[CoversClass(\mod_customcert\mobile_access::class)]
 final class mobile_access_test extends advanced_testcase {
     /**
      * Creates a course with an enrolled student and a certificate.
@@ -51,8 +52,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A student can access their own certificate for a visible activity.
-     *
-     * @covers ::require_access
      */
     public function test_student_can_access_own_certificate(): void {
         $this->resetAfterTest();
@@ -66,8 +65,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A student cannot use the endpoint to reach a hidden activity.
-     *
-     * @covers ::require_access
      */
     public function test_hidden_activity_is_denied(): void {
         $this->resetAfterTest();
@@ -81,8 +78,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A student cannot use the endpoint to bypass restrict access conditions.
-     *
-     * @covers ::require_access
      */
     public function test_restricted_activity_is_denied(): void {
         $this->resetAfterTest();
@@ -99,8 +94,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A user who cannot receive issues cannot cause a certificate to be issued to themselves.
-     *
-     * @covers ::require_access
      */
     public function test_receiveissue_required_to_issue(): void {
         $this->resetAfterTest();
@@ -122,8 +115,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * Downloading an existing issue does not require the receiveissue capability.
-     *
-     * @covers ::require_access
      */
     public function test_receiveissue_not_required_for_existing_issue(): void {
         $this->resetAfterTest();
@@ -143,8 +134,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * Requesting another user's certificate requires the viewreport capability.
-     *
-     * @covers ::require_access
      */
     public function test_other_user_requires_viewreport(): void {
         $this->resetAfterTest();
@@ -160,8 +149,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A teacher can access another user's issued certificate but nothing is generated without an issue.
-     *
-     * @covers ::require_access
      */
     public function test_teacher_can_access_other_user_issue(): void {
         $this->resetAfterTest();
@@ -177,8 +164,6 @@ final class mobile_access_test extends advanced_testcase {
 
     /**
      * A user who has not met the required time is turned away.
-     *
-     * @covers ::require_access
      */
     public function test_required_time_is_enforced(): void {
         global $DB;

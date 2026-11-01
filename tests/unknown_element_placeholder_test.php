@@ -25,6 +25,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use context_system;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests that unknown element types produce HTML placeholders instead of being silently skipped.
@@ -33,9 +34,10 @@ use context_system;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\service\element_repository::load_by_page_id
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'load_by_page_id')]
 final class unknown_element_placeholder_test extends advanced_testcase {
+    #[\Override]
     protected function setUp(): void {
         $this->resetAfterTest();
         parent::setUp();

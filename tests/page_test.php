@@ -29,6 +29,7 @@ use mod_customcert\service\template_service;
 use advanced_testcase;
 use context_system;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Contains tests for template's page operations.
@@ -37,12 +38,15 @@ use stdClass;
  * @copyright 2023 Leon Stringer <leon.stringer@ntlworld.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\service\template_service::class, 'delete_page')]
+#[CoversMethod(\mod_customcert\service\page_update::class, '__construct')]
 final class page_test extends advanced_testcase {
     /**
      * Set the test up.
      *
      * @return void
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 
@@ -56,8 +60,6 @@ final class page_test extends advanced_testcase {
      *   3. Add an element to the second page.
      *   4. Delete the second page.
      * Previously the above scenario resulted in an error (#571).
-     *
-     * @covers \mod_customcert\service\template_service::delete_page
      */
     public function test_delete_non_empty_page(): void {
         global $DB;
@@ -85,8 +87,6 @@ final class page_test extends advanced_testcase {
 
     /**
      * page_update uses the current time when $timemodified is not provided.
-     *
-     * @covers \mod_customcert\service\page_update::__construct
      */
     public function test_page_update_null_timemodified_defaults_to_current_time(): void {
         $before = time();
@@ -99,8 +99,6 @@ final class page_test extends advanced_testcase {
 
     /**
      * page_update uses the explicitly provided $timemodified when given.
-     *
-     * @covers \mod_customcert\service\page_update::__construct
      */
     public function test_page_update_explicit_timemodified_is_preserved(): void {
         $update = new page_update(210, 297, 10, 10, 1_000_000);

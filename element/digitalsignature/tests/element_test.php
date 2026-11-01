@@ -37,6 +37,8 @@ use mod_customcert\export\template_appendix_manager_interface;
 use mod_customcert\export\template_import_logger_interface;
 use pdf;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversFunction;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -51,6 +53,9 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_digitalsignature\element::class)]
+#[CoversClass(\customcertelement_digitalsignature\exporter::class)]
+#[CoversFunction('xmldb_customcertelement_digitalsignature_upgrade')]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -92,8 +97,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element can be instantiated.
-     *
-     * @covers \customcertelement_digitalsignature\element
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -102,8 +105,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_digitalsignature\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -115,8 +116,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -131,8 +130,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns the styled designer container with no content.
-     *
-     * @covers \customcertelement_digitalsignature\element::render_html
      */
     public function test_render_html_returns_styled_empty_container(): void {
         $el = new element($this->make_record());
@@ -143,8 +140,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_width() returns the stored width value.
-     *
-     * @covers \customcertelement_digitalsignature\element::get_width
      */
     public function test_get_width_returns_stored_value(): void {
         $el = new element($this->make_record([
@@ -155,8 +150,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_height() returns the stored height value.
-     *
-     * @covers \customcertelement_digitalsignature\element::get_height
      */
     public function test_get_height_returns_stored_value(): void {
         $el = new element($this->make_record([
@@ -167,8 +160,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that has_save_and_continue() returns true.
-     *
-     * @covers \customcertelement_digitalsignature\element::has_save_and_continue
      */
     public function test_has_save_and_continue(): void {
         $el = new element($this->make_record());
@@ -177,8 +168,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'digitalsignature'.
-     *
-     * @covers \customcertelement_digitalsignature\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -187,8 +176,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() does not store the plaintext password on first save.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_data
      */
     public function test_normalise_data_does_not_store_plaintext_password(): void {
         $el = new element($this->make_record());
@@ -220,8 +207,6 @@ final class element_test extends advanced_testcase {
      * When an administrator reopens the element form, the password field is intentionally
      * left blank. The existing stored password must be preserved rather than overwritten
      * with an empty string.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_data
      */
     public function test_normalise_data_preserves_password_when_field_is_blank(): void {
         $encryptedpassword = \core\encryption::encrypt('original_secret');
@@ -259,8 +244,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() replaces the password when a new value is provided.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_data
      */
     public function test_normalise_data_replaces_password_when_new_value_provided(): void {
         $encryptedpassword = \core\encryption::encrypt('original_secret');
@@ -298,8 +281,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the upgrade migration encrypts existing plaintext passwords.
-     *
-     * @covers \xmldb_customcertelement_digitalsignature_upgrade
      */
     public function test_upgrade_encrypts_plaintext_passwords(): void {
         global $DB, $CFG;
@@ -379,8 +360,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the upgrade migration does not double-encrypt already-migrated values.
-     *
-     * @covers \xmldb_customcertelement_digitalsignature_upgrade
      */
     public function test_upgrade_does_not_double_encrypt_already_migrated_passwords(): void {
         global $DB, $CFG;
@@ -464,8 +443,6 @@ final class element_test extends advanced_testcase {
      *
      * empty('0') evaluates to true in PHP, so a naive empty() check on signaturepassword would
      * incorrectly skip migrating a valid password consisting solely of "0".
-     *
-     * @covers \xmldb_customcertelement_digitalsignature_upgrade
      */
     public function test_upgrade_encrypts_zero_string_password(): void {
         global $DB, $CFG;
@@ -544,8 +521,6 @@ final class element_test extends advanced_testcase {
      * This is distinct from an empty-string password: it specifically exercises the
      * array_key_exists() check, as a missing array key and an empty string are not the same
      * thing in PHP.
-     *
-     * @covers \xmldb_customcertelement_digitalsignature_upgrade
      */
     public function test_upgrade_skips_missing_signaturepassword_key(): void {
         global $DB, $CFG;
@@ -625,8 +600,6 @@ final class element_test extends advanced_testcase {
      * different site's key, or is corrupt. Encrypting such a value again would produce ciphertext
      * that, once decrypted, yields the previous unusable ciphertext rather than the actual
      * private-key password.
-     *
-     * @covers \xmldb_customcertelement_digitalsignature_upgrade
      */
     public function test_upgrade_clears_undecryptable_ciphertext_password(): void {
         global $DB, $CFG;
@@ -706,8 +679,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() encrypts a legacy plaintext password.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_encrypts_plaintext(): void {
         $result = element::normalise_restore_password('s3cr3t');
@@ -725,8 +696,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() does not store plaintext in the result.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_plaintext_absent_from_result(): void {
         $result = element::normalise_restore_password('s3cr3t');
@@ -739,8 +708,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() preserves valid same-site ciphertext.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_preserves_valid_ciphertext(): void {
         $encrypted = \core\encryption::encrypt('s3cr3t');
@@ -754,8 +721,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() clears foreign-site ciphertext.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_clears_foreign_ciphertext(): void {
         // Simulate a sodium: prefixed value that cannot be decrypted on this site.
@@ -770,8 +735,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() handles empty password.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_handles_empty(): void {
         $result = element::normalise_restore_password('');
@@ -789,8 +752,6 @@ final class element_test extends advanced_testcase {
      * password such as "secret:1234" as encrypted data and could clear it during restore.
      * Only the encryption method prefixes this site's core encryption API actually supports
      * must be treated as ciphertext.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_treats_plaintext_with_colon_as_plaintext(): void {
         $plaintext = 'secret:1234';
@@ -814,8 +775,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_restore_password() treats another plaintext-with-colon value correctly.
-     *
-     * @covers \customcertelement_digitalsignature\element::normalise_restore_password
      */
     public function test_normalise_restore_password_treats_another_plaintext_with_colon_as_plaintext(): void {
         $plaintext = 'password:hunter2';
@@ -834,8 +793,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the exporter does not include signaturepassword in its field definitions.
-     *
-     * @covers \customcertelement_digitalsignature\exporter
      */
     public function test_exporter_does_not_include_signaturepassword(): void {
         $exporter = $this->make_exporter();
@@ -862,8 +819,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the exporter still exports other fields correctly.
-     *
-     * @covers \customcertelement_digitalsignature\exporter
      */
     public function test_exporter_exports_other_fields(): void {
         $exporter = $this->make_exporter();
@@ -884,8 +839,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that importing a template that contains signaturepassword discards it.
-     *
-     * @covers \customcertelement_digitalsignature\exporter
      */
     public function test_importer_discards_signaturepassword(): void {
         $exporter = $this->make_exporter();
@@ -920,8 +873,6 @@ final class element_test extends advanced_testcase {
     /**
      * Test that render() decrypts the stored password before passing it to the PDF signing
      * library, and never passes the encrypted stored representation.
-     *
-     * @covers \customcertelement_digitalsignature\element::render
      */
     public function test_render_uses_decrypted_password_for_signing(): void {
         $this->resetAfterTest();

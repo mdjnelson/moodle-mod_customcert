@@ -38,6 +38,7 @@ class fake_element_fixture extends element implements renderable_element_interfa
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -49,6 +50,7 @@ class fake_element_fixture extends element implements renderable_element_interfa
      * @param stdClass $user The user record
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
     }
 
@@ -57,6 +59,7 @@ class fake_element_fixture extends element implements renderable_element_interfa
      *
      * @return string HTML
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

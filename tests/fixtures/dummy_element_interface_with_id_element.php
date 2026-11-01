@@ -61,6 +61,7 @@ final class dummy_element_interface_with_id_element implements element_interface
      *
      * @return int
      */
+    #[\Override]
     public function get_id(): int {
         return $this->id;
     }
@@ -70,6 +71,7 @@ final class dummy_element_interface_with_id_element implements element_interface
      *
      * @return int
      */
+    #[\Override]
     public function get_pageid(): int {
         return $this->pageid;
     }
@@ -79,6 +81,7 @@ final class dummy_element_interface_with_id_element implements element_interface
      *
      * @return string
      */
+    #[\Override]
     public function get_name(): string {
         return 'Dummy name';
     }
@@ -88,6 +91,7 @@ final class dummy_element_interface_with_id_element implements element_interface
      *
      * @return mixed
      */
+    #[\Override]
     public function get_data(): mixed {
         return 'Dummy data';
     }
@@ -97,6 +101,7 @@ final class dummy_element_interface_with_id_element implements element_interface
      *
      * @return string
      */
+    #[\Override]
     public function get_type(): string {
         return $this->type;
     }

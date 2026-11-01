@@ -31,6 +31,8 @@ use cm_info;
 use coding_exception;
 use mod_customcert\completion\custom_completion;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -44,6 +46,11 @@ require_once($CFG->libdir . '/completionlib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\completion\custom_completion::class, 'get_state')]
+#[CoversMethod(\mod_customcert\completion\custom_completion::class, 'get_defined_custom_rules')]
+#[CoversMethod(\mod_customcert\completion\custom_completion::class, 'get_custom_rule_descriptions')]
+#[CoversMethod(\mod_customcert\completion\custom_completion::class, 'get_sort_order')]
+#[CoversMethod(\core_completion\activity_custom_completion::class, 'is_defined')]
 final class custom_completion_test extends advanced_testcase {
     /**
      * Data provider for get_state().
@@ -73,8 +80,6 @@ final class custom_completion_test extends advanced_testcase {
     /**
      * Test for get_state().
      *
-     * @covers \mod_customcert\completion\custom_completion::get_state
-     * @dataProvider get_state_provider
      * @param string $rule The custom completion rule.
      * @param int $available Whether this rule is available (from cm_info::customdata).
      * @param int $completionemailed The completionemailed field on the customcert instance record.
@@ -82,6 +87,7 @@ final class custom_completion_test extends advanced_testcase {
      * @param int|null $status Expected completion status.
      * @param string|null $exception Expected exception class.
      */
+    #[DataProvider('get_state_provider')]
     public function test_get_state(
         string $rule,
         int $available,
@@ -131,8 +137,6 @@ final class custom_completion_test extends advanced_testcase {
     /**
      * get_state() must only treat studentemailed = 1 as complete; NULL (unknown/legacy) and 0
      * (retryable) are both incomplete.
-     *
-     * @covers \mod_customcert\completion\custom_completion::get_state
      */
     public function test_get_state_studentemailed_tri_state_against_real_db(): void {
         global $CFG, $DB;
@@ -169,8 +173,6 @@ final class custom_completion_test extends advanced_testcase {
 
     /**
      * Test for get_defined_custom_rules().
-     *
-     * @covers \mod_customcert\completion\custom_completion::get_defined_custom_rules
      */
     public function test_get_defined_custom_rules(): void {
         $rules = custom_completion::get_defined_custom_rules();
@@ -180,8 +182,6 @@ final class custom_completion_test extends advanced_testcase {
 
     /**
      * Test for get_custom_rule_descriptions().
-     *
-     * @covers \mod_customcert\completion\custom_completion::get_custom_rule_descriptions
      */
     public function test_get_custom_rule_descriptions(): void {
         $rules = custom_completion::get_defined_custom_rules();
@@ -203,8 +203,6 @@ final class custom_completion_test extends advanced_testcase {
 
     /**
      * Test for get_sort_order().
-     *
-     * @covers \mod_customcert\completion\custom_completion::get_sort_order
      */
     public function test_get_sort_order(): void {
         $mockcminfo = $this->getMockBuilder(cm_info::class)
@@ -218,8 +216,6 @@ final class custom_completion_test extends advanced_testcase {
 
     /**
      * Test for is_defined().
-     *
-     * @covers \core_completion\activity_custom_completion::is_defined
      */
     public function test_is_defined(): void {
         $mockcminfo = $this->getMockBuilder(cm_info::class)

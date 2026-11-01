@@ -46,6 +46,7 @@ class load_template_form extends moodleform {
     /**
      * Form definition.
      */
+    #[\Override]
     public function definition() {
         $mform =& $this->_form;
 

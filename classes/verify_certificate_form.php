@@ -41,6 +41,7 @@ class verify_certificate_form extends moodleform {
     /**
      * Form definition.
      */
+    #[\Override]
     public function definition() {
         $mform =& $this->_form;
 
@@ -57,6 +58,7 @@ class verify_certificate_form extends moodleform {
      * @param array $files
      * @return array the errors that were found
      */
+    #[\Override]
     public function validation($data, $files) {
         $errors = [];
 

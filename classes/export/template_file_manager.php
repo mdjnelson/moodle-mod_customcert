@@ -40,13 +40,13 @@ use Throwable;
  */
 class template_file_manager implements template_file_manager_interface {
     /** @var int Maximum number of files allowed in an imported archive. */
-    const MAX_ARCHIVE_FILES = 500;
+    const int MAX_ARCHIVE_FILES = 500;
 
     /** @var int Maximum size in bytes for a single file in an imported archive (50 MB). */
-    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    const int MAX_FILE_BYTES = 50 * 1024 * 1024;
 
     /** @var int Maximum total size in bytes for all files in an imported archive (200 MB). */
-    const MAX_TOTAL_BYTES = 200 * 1024 * 1024;
+    const int MAX_TOTAL_BYTES = 200 * 1024 * 1024;
 
     /** @var template_appendix_manager_interface The manager for appendix file operations. */
     private readonly template_appendix_manager_interface $filemng;
@@ -75,6 +75,7 @@ class template_file_manager implements template_file_manager_interface {
      * @return string The exported file path
      * @throws coding_exception If JSON encoding fails.
      */
+    #[\Override]
     public function export(int $templateid): string {
         $jsondata = $this->template->export($templateid);
 
@@ -124,6 +125,7 @@ class template_file_manager implements template_file_manager_interface {
      * @throws import_exception If extraction fails, required files are missing, or ZIP
      *                          content fails validation.
      */
+    #[\Override]
     public function import(int $contextid, string $tempdir): void {
         if (!$packer = get_file_packer()) {
             throw new import_exception('ZIP packer is not available');

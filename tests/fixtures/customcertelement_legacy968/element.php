@@ -88,6 +88,7 @@ class element extends \mod_customcert\element {
      *
      * @return bool
      */
+    #[\Override]
     public static function can_add(): bool {
         return true;
     }

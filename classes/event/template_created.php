@@ -40,6 +40,7 @@ class template_created extends base {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
@@ -51,6 +52,7 @@ class template_created extends base {
      *
      * @return string
      */
+    #[\Override]
     public function get_description(): string {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
@@ -67,6 +69,7 @@ class template_created extends base {
      *
      * @return string
      */
+    #[\Override]
     public static function get_name(): string {
         return get_string('eventtemplatecreated', 'customcert');
     }
@@ -90,6 +93,7 @@ class template_created extends base {
      * Returns relevant URL.
      * @return moodle_url
      */
+    #[\Override]
     public function get_url(): moodle_url {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             return new moodle_url('/mod/customcert/manage_templates.php');
@@ -106,6 +110,7 @@ class template_created extends base {
      *
      * @return string[]
      */
+    #[\Override]
     public static function get_objectid_mapping(): array {
         return ['db' => 'customcert_templates', 'restore' => 'customcert_templates'];
     }
@@ -115,6 +120,7 @@ class template_created extends base {
      *
      * @return bool
      */
+    #[\Override]
     public static function get_other_mapping() {
         // No need to map.
         return false;

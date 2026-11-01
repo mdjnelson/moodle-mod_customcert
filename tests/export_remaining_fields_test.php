@@ -21,18 +21,20 @@ use mod_customcert\export\datatypes\format_exception;
 use mod_customcert\export\datatypes\unimported_field;
 use mod_customcert\export\datatypes\user_field;
 use mod_customcert\export\table_exporter;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 /**
  * Tests for user_field, unimported_field and table_exporter.
  *
  * @package    mod_customcert
  * @category   test
- * @group      mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\export\datatypes\user_field
- * @covers     \mod_customcert\export\datatypes\unimported_field
- * @covers     \mod_customcert\export\table_exporter
  */
+#[CoversClass(\mod_customcert\export\datatypes\user_field::class)]
+#[CoversClass(\mod_customcert\export\datatypes\unimported_field::class)]
+#[CoversClass(\mod_customcert\export\table_exporter::class)]
+#[Group('mod_customcert')]
 final class export_remaining_fields_test extends advanced_testcase {
     // Unimported_field tests.
 

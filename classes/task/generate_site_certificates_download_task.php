@@ -50,6 +50,7 @@ class generate_site_certificates_download_task extends adhoc_task {
      *
      * @return string
      */
+    #[\Override]
     public function get_name(): string {
         return get_string('taskgeneratesitecertificatesdownload', 'customcert');
     }
@@ -60,6 +61,7 @@ class generate_site_certificates_download_task extends adhoc_task {
      * Unexpected exceptions are intentionally not caught here so the adhoc task runner can
      * log the failure and retry according to its fail-delay schedule.
      */
+    #[\Override]
     public function execute(): void {
         global $CFG;
 

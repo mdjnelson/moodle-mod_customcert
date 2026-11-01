@@ -34,6 +34,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the text element.
@@ -43,6 +44,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_text\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -76,8 +78,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_text\element::__construct
      */
     public function test_constructor_returns_instance(): void {
         $el = new element($this->make_record());
@@ -86,8 +86,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_text\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -99,8 +97,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys.
-     *
-     * @covers \customcertelement_text\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -126,8 +122,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_text\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -141,8 +135,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a non-empty string when data is set.
-     *
-     * @covers \customcertelement_text\element::render_html
      */
     public function test_render_html_returns_string(): void {
         $this->resetAfterTest();
@@ -180,8 +172,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a div wrapper even when no data is set.
-     *
-     * @covers \customcertelement_text\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $this->resetAfterTest();
@@ -220,8 +210,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_name() returns the element name.
-     *
-     * @covers \customcertelement_text\element
      */
     public function test_get_name(): void {
         $el = new element($this->make_record(['name' => 'My label']));
@@ -230,8 +218,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'text'.
-     *
-     * @covers \customcertelement_text\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());

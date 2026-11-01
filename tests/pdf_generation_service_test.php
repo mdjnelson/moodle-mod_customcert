@@ -25,6 +25,7 @@ use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\throwing_template;
 use context_system;
 use pdf;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for the PDF generation service.
@@ -34,7 +35,14 @@ use pdf;
  * @copyright 2026 Mark Nelson <mdjnelson@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\service\pdf_generation_service::class, 'create_preview_pdf')]
+#[CoversMethod(\mod_customcert\service\pdf_generation_service::class, 'generate_pdf')]
+#[CoversMethod(\mod_customcert\service\pdf_generation_service::class, 'compute_filename_for_user')]
+#[CoversMethod(\customcertelement_image\element::class, 'render')]
+#[CoversMethod(\customcertelement_qrcode\element::class, 'render')]
+#[CoversMethod(\customcertelement_userpicture\element::class, 'render')]
 final class pdf_generation_service_test extends advanced_testcase {
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 
@@ -43,8 +51,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * create_preview_pdf should return a configured PDF instance without debugging notices.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::create_preview_pdf
      */
     public function test_create_preview_pdf_service(): void {
         global $USER;
@@ -65,8 +71,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * generate_pdf should produce a PDF string when returning output and avoid debugging.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::generate_pdf
      */
     public function test_generate_pdf_service_preview_returns_string(): void {
         global $DB, $USER;
@@ -100,9 +104,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * System templates without a backing customcert record should still generate PDFs and safe filenames.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::generate_pdf
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_generate_pdf_system_template_without_customcert(): void {
         global $DB, $USER, $CFG;
@@ -141,8 +142,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * compute_filename_for_user should honour custom filename patterns without debugging.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_compute_filename_for_user_service(): void {
         global $CFG, $DB;
@@ -199,10 +198,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * Image, QR code and user picture elements must render directly to PDF without errors or diagnostics.
-     *
-     * @covers \customcertelement_image\element::render
-     * @covers \customcertelement_qrcode\element::render
-     * @covers \customcertelement_userpicture\element::render
      */
     public function test_image_qrcode_userpicture_render_on_pdf_without_error(): void {
         global $DB, $USER;
@@ -232,8 +227,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * compute_filename_for_user should drop GROUP_NAME when no course/group data is available.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_compute_filename_for_user_without_group_data(): void {
         $this->setAdminUser();
@@ -263,8 +256,6 @@ final class pdf_generation_service_test extends advanced_testcase {
 
     /**
      * Test that the runtime language is restored even if an exception occurs during PDF generation.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::generate_pdf
      */
     public function test_generate_pdf_restores_language_on_exception(): void {
         global $CFG, $USER;

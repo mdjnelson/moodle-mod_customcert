@@ -83,9 +83,9 @@ that code or documentation still referring to them can be mapped to the current 
 | `certificate` facade methods | `form_service`, `element_helper`, `certificate_time_service`, `certificate_download_service`, `issue_repository`, `certificate_repository`, `certificate_issue_service` |
 | `template` forwarding methods | `template_service` and `pdf_generation_service` |
 
-`service\element_factory::create_from_legacy_record()` is **not** a removed hook — it remains a
-supported public API for constructing an element instance from a historical record shape; prefer
-`create_from_record()` for new/internal code.
+`service\element_factory::create_from_legacy_record()` is **not** a removed hook — it remains
+available as a deprecated alias (since 6.0, marked with `\core\attribute\deprecated`, no runtime
+warning, no removal date) that forwards to `create_from_record()`. Use `create_from_record()`.
 
 ---
 

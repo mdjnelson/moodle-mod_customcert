@@ -82,6 +82,7 @@ class admin_setting_link extends admin_setting_configtext {
      * @param string $query
      * @return string
      */
+    #[\Override]
     public function output_html($data, $query = ''): string {
         // Create a dummy variable for this field to avoid being redirected back to the upgrade settings page.
         $this->config_write($this->name, '');

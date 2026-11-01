@@ -32,6 +32,8 @@ use mod_customcert\tests\fixtures\testable_generate_site_certificates_download_t
 use moodle_exception;
 use stdClass;
 use zip_archive;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -43,10 +45,10 @@ require_once(__DIR__ . '/fixtures/testable_generate_site_certificates_download_t
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\task\generate_site_certificates_download_task
- * @covers     \mod_customcert\task\cleanup_site_certificates_downloads_task
- * @covers     \mod_customcert\callback\file_callbacks::pluginfile
  */
+#[CoversClass(\mod_customcert\task\generate_site_certificates_download_task::class)]
+#[CoversClass(\mod_customcert\task\cleanup_site_certificates_downloads_task::class)]
+#[CoversMethod(\mod_customcert\callback\file_callbacks::class, 'pluginfile')]
 final class generate_site_certificates_download_task_test extends advanced_testcase {
     /**
      * The message provider must use valid Moodle message default constants.

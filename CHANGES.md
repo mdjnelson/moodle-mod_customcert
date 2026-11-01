@@ -13,6 +13,12 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   these APIs must be updated to render directly, using `element_helper` where appropriate. See
   `docs/element_migration_v2.md`.
 
+### Deprecated
+
+- `mod_customcert\service\element_factory::create_from_legacy_record()` is now deprecated (#1060). It
+  remains available and forwards to `create_from_record()`, which is the preferred API. No runtime
+  warning is emitted and no removal date is set.
+
 ### Removed
 
 - Removed the internal `legacy_element_adapter` and `legacy_compatibility_diagnostic` compatibility

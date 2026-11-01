@@ -36,6 +36,7 @@ class unimported_field implements field_interface {
      * @param array $data Input data array (ignored).
      * @throws format_exception Always thrown to block import attempts.
      */
+    #[\Override]
     public function import(array $data): mixed {
         throw new format_exception('can not be imported');
     }
@@ -46,6 +47,7 @@ class unimported_field implements field_interface {
      * @param mixed $value Ignored value.
      * @return array Always returns an empty array.
      */
+    #[\Override]
     public function export(mixed $value): array {
         return [];
     }
@@ -55,6 +57,7 @@ class unimported_field implements field_interface {
      *
      * @return string Empty fallback.
      */
+    #[\Override]
     public function get_fallback(): mixed {
         return "";
     }

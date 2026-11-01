@@ -45,6 +45,7 @@ class element extends \customcertelement_image\element {
      * Background image covers the whole page; width/height fields are ignored and
      * always treated as auto-fit. Override getters to prevent stale values.
      */
+    #[\Override]
     public function get_width(): ?int {
         return 0;
     }
@@ -54,6 +55,7 @@ class element extends \customcertelement_image\element {
      *
      * @return int|null
      */
+    #[\Override]
     public function get_height(): ?int {
         return 0;
     }
@@ -65,6 +67,7 @@ class element extends \customcertelement_image\element {
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
         $mform->addElement(
@@ -82,6 +85,7 @@ class element extends \customcertelement_image\element {
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         global $COURSE, $SITE;
 
@@ -123,6 +127,7 @@ class element extends \customcertelement_image\element {
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         // Prepare data to store; form service will have populated file metadata when applicable.
         $arrtostore = [];
@@ -160,6 +165,7 @@ class element extends \customcertelement_image\element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         if (empty($this->get_data())) {
             return;
@@ -192,6 +198,7 @@ class element extends \customcertelement_image\element {
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         global $DB;
 
@@ -228,6 +235,7 @@ class element extends \customcertelement_image\element {
      *
      * @return bool
      */
+    #[\Override]
     public function has_save_and_continue(): bool {
         return true;
     }

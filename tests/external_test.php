@@ -33,6 +33,9 @@ use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\template_service;
 use context_system;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit tests for the webservices.
@@ -42,10 +45,16 @@ use moodle_exception;
  * @copyright  2018 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\external::class, 'save_element')]
+#[CoversMethod(\mod_customcert\external::class, 'get_element_html')]
+#[CoversMethod(\external::class, 'delete_issue')]
+#[CoversMethod(\mod_customcert\external::class, 'list_issues')]
+#[CoversFunction('mod_customcert_output_fragment_editelement')]
 final class external_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 
@@ -54,8 +63,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that save_element persists element data via normalise_data().
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_saves_text_value(): void {
         global $DB;
@@ -127,8 +134,6 @@ final class external_test extends advanced_testcase {
     /**
      * Legitimate layout fields (posx, posy, refpoint, alignment) sent alongside the
      * element-specific payload must still be saved after the identity hardening fix.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_saves_layout_fields(): void {
         global $DB;
@@ -197,8 +202,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher with mod/customcert:manage in Course A must not be able to overwrite
      * an element belonging to Course B by supplying a foreign elementid.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_foreign_elementid(): void {
         global $DB;
@@ -326,8 +329,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher who is legitimately authorised to save Element A must not be able to
      * redirect the persisted identity to Element B by supplying a mutated 'id' value.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_id_mutation(): void {
         global $DB;
@@ -354,8 +355,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher legitimately authorised to save Element A must not be able to move it
      * onto Course B's page by supplying a mutated 'pageid' value.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_pageid_mutation(): void {
         global $DB;
@@ -379,8 +378,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher legitimately authorised to save Element A must not be able to change its
      * stored element type by supplying a mutated 'element' value.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_rejects_element_type_mutation(): void {
         global $DB;
@@ -402,11 +399,10 @@ final class external_test extends advanced_testcase {
     /**
      * Server-managed lifecycle fields must not be settable by the client.
      *
-     * @dataProvider protected_lifecycle_field_provider
      * @param string $field
      * @param string $value
-     * @covers \mod_customcert\external::save_element
      */
+    #[DataProvider('protected_lifecycle_field_provider')]
     public function test_save_element_rejects_lifecycle_field_mutation(string $field, string $value): void {
         global $DB;
 
@@ -440,8 +436,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher with mod/customcert:manage in Course A must not be able to read
      * an element belonging to Course B via get_element_html.
-     *
-     * @covers \mod_customcert\external::get_element_html
      */
     public function test_get_element_html_rejects_foreign_elementid(): void {
         global $DB;
@@ -488,8 +482,6 @@ final class external_test extends advanced_testcase {
     /**
      * A teacher with mod/customcert:manage in Course A must not be able to read
      * an element belonging to Course B via the editelement fragment callback.
-     *
-     * @covers \mod_customcert_output_fragment_editelement
      */
     public function test_editelement_fragment_rejects_foreign_elementid(): void {
         global $DB;
@@ -541,8 +533,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test the delete_issue web service.
-     *
-     * @covers \external::delete_issue
      */
     public function test_delete_issue(): void {
         global $DB;
@@ -583,8 +573,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test the delete_issue web service.
-     *
-     * @covers \external::delete_issue
      */
     public function test_delete_issue_no_login(): void {
         global $DB;
@@ -616,8 +604,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test the delete_issue web service.
-     *
-     * @covers \external::delete_issue
      */
     public function test_delete_issue_no_capability(): void {
         global $DB;
@@ -651,8 +637,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues basic behaviour.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_basic(): void {
         $this->setAdminUser();
@@ -680,8 +664,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues filtered by user.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_filter_by_user(): void {
         $this->setAdminUser();
@@ -711,8 +693,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues pagination.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_pagination(): void {
         $this->setAdminUser();
@@ -744,8 +724,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that includepdf works.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_include_pdf(): void {
         $this->setAdminUser();
@@ -769,8 +747,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues without logging in.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_no_login(): void {
         // Expect require_login_exception *before* capability check.
@@ -781,8 +757,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues without capability.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_no_capability(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -846,8 +820,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that save_element rejects an element belonging to a different template.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_cross_template_access_denied(): void {
         $this->setAdminUser();
@@ -867,8 +839,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that save_element succeeds when element belongs to the given template.
-     *
-     * @covers \mod_customcert\external::save_element
      */
     public function test_save_element_same_template_allowed(): void {
         $this->setAdminUser();
@@ -893,8 +863,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that get_element_html rejects an element belonging to a different template.
-     *
-     * @covers \mod_customcert\external::get_element_html
      */
     public function test_get_element_html_cross_template_access_denied(): void {
         $this->setAdminUser();
@@ -914,8 +882,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that get_element_html succeeds when element belongs to the given template.
-     *
-     * @covers \mod_customcert\external::get_element_html
      */
     public function test_get_element_html_same_template_allowed(): void {
         $this->setAdminUser();
@@ -930,8 +896,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test that get_element_html rejects a user who can view the certificate but cannot manage it.
-     *
-     * @covers \mod_customcert\external::get_element_html
      */
     public function test_get_element_html_rejects_view_only_capability(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -948,8 +912,6 @@ final class external_test extends advanced_testcase {
 
     /**
      * Test list_issues PDF limit.
-     *
-     * @covers \mod_customcert\external::list_issues
      */
     public function test_list_issues_pdf_limit(): void {
         $this->setAdminUser();

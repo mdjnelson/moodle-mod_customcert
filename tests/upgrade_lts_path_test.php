@@ -24,7 +24,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     ::xmldb_customcert_upgrade
  */
 
 namespace mod_customcert;
@@ -34,14 +33,14 @@ use mod_customcert\service\issue_repository;
 use stdClass;
 use xmldb_field;
 use xmldb_table;
+use PHPUnit\Framework\Attributes\CoversFunction;
 
 /**
  * Tests the direct Moodle 4.5 upgrade to current main (6.0 development) from MOODLE_404_STABLE version 2024042224.
  * The baseline has usecustomfilename, customfilenamepattern and issueautomatically;
  * upgrades add completionemailed/studentemailed and migrate visual columns to JSON.
- *
- * @covers ::xmldb_customcert_upgrade
  */
+#[CoversFunction('xmldb_customcert_upgrade')]
 final class upgrade_lts_path_test extends advanced_testcase {
     /**
      * Genuine Moodle 4.5-era (MOODLE_404_STABLE) plugin version.
@@ -59,6 +58,7 @@ final class upgrade_lts_path_test extends advanced_testcase {
      */
     private const int VERSION_MOODLE_52_ERA = 2026042012;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
@@ -70,8 +70,6 @@ final class upgrade_lts_path_test extends advanced_testcase {
      * assert the supported final schema/data shape.
      *
      * This is intentionally distinct from any 5.2 → current main incremental coverage.
-     *
-     * @covers ::xmldb_customcert_upgrade
      */
     public function test_direct_moodle_45_to_53_upgrade_migrates_schema_and_element_data(): void {
         global $CFG;
@@ -94,8 +92,6 @@ final class upgrade_lts_path_test extends advanced_testcase {
     /**
      * Direct 4.5 and incremental 5.2 upgrades must produce identical schema and data.
      * Both use the same fixture values; the 5.2 path starts with its migrations already applied.
-     *
-     * @covers ::xmldb_customcert_upgrade
      */
     public function test_direct_45_and_incremental_52_paths_reach_equivalent_final_state(): void {
         global $DB, $CFG;

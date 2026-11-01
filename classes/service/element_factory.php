@@ -142,7 +142,12 @@ final class element_factory {
      *
      * @param stdClass $record
      * @return element_interface|null
+     * @deprecated since 6.0, use {@see self::create_from_record()} instead.
      */
+    #[\core\attribute\deprecated(
+        replacement: 'mod_customcert\service\element_factory::create_from_record',
+        since: '6.0',
+    )]
     public function create_from_legacy_record(stdClass $record): ?element_interface {
         return $this->create_from_record($record);
     }

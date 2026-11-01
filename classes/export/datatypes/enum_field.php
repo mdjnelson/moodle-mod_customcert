@@ -56,6 +56,7 @@ class enum_field implements field_interface {
      * @return mixed The validated input value.
      * @throws format_exception If the input is not a valid option.
      */
+    #[\Override]
     public function import(array $data): mixed {
         $option = $data['value'];
 
@@ -72,6 +73,7 @@ class enum_field implements field_interface {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
+    #[\Override]
     public function export(mixed $value): array {
         return [
             'value' => $value,
@@ -83,6 +85,7 @@ class enum_field implements field_interface {
      *
      * @return mixed Returns the first element as fallback
      */
+    #[\Override]
     public function get_fallback(): mixed {
         if ($this->firstasdefault) {
             return reset($this->options);

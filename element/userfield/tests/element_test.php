@@ -37,6 +37,7 @@ use stdClass;
 use context_system;
 use MoodleQuickForm;
 use ReflectionMethod;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the userfield element.
@@ -46,10 +47,12 @@ use ReflectionMethod;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_userfield\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Requires user/profile/lib.php so PROFILE_VISIBLE_* constants are defined.
      */
+    #[\Override]
     public static function setUpBeforeClass(): void {
         global $CFG;
         require_once($CFG->dirroot . '/user/profile/lib.php');
@@ -211,8 +214,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_userfield\element
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -221,8 +222,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_userfield\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -234,8 +233,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys and values.
-     *
-     * @covers \customcertelement_userfield\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -256,8 +253,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_userfield\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -271,8 +266,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns the user's email in preview mode.
-     *
-     * @covers \customcertelement_userfield\element::render_html
      */
     public function test_render_html_returns_user_field_value(): void {
         $this->resetAfterTest();
@@ -303,8 +296,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns the field name when user field is empty.
-     *
-     * @covers \customcertelement_userfield\element::render_html
      */
     public function test_render_html_returns_field_name_when_empty(): void {
         $this->resetAfterTest();
@@ -345,8 +336,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'userfield'.
-     *
-     * @covers \customcertelement_userfield\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -355,8 +344,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test a PROFILE_VISIBLE_NONE field is hidden from another user without viewalldetails.
-     *
-     * @covers \customcertelement_userfield\element::get_user_field_value
      */
     public function test_admin_only_custom_field_is_not_disclosed_to_other_user(): void {
         $this->resetAfterTest();
@@ -377,8 +364,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test a PROFILE_VISIBLE_NONE field is shown to a viewer with viewalldetails.
-     *
-     * @covers \customcertelement_userfield\element::get_user_field_value
      */
     public function test_admin_only_custom_field_is_disclosed_with_viewalldetails(): void {
         $this->resetAfterTest();
@@ -399,8 +384,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test a PROFILE_VISIBLE_PRIVATE field is shown to its own owner.
-     *
-     * @covers \customcertelement_userfield\element::get_user_field_value
      */
     public function test_private_custom_field_is_disclosed_to_own_user(): void {
         $this->resetAfterTest();
@@ -418,8 +401,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test an identity field is shown with viewuseridentity and showuseridentity set.
-     *
-     * @covers \customcertelement_userfield\element::get_user_field_value
      */
     public function test_identity_field_is_disclosed_with_capability_and_showuseridentity(): void {
         global $CFG;
@@ -441,8 +422,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test build_form() excludes a PROFILE_VISIBLE_NONE field for a regular user.
-     *
-     * @covers \customcertelement_userfield\element::build_form
      */
     public function test_build_form_excludes_admin_only_field_for_regular_user(): void {
         $this->resetAfterTest();
@@ -462,8 +441,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test build_form() includes a PROFILE_VISIBLE_NONE field for a privileged user.
-     *
-     * @covers \customcertelement_userfield\element::build_form
      */
     public function test_build_form_includes_admin_only_field_for_privileged_user(): void {
         $this->resetAfterTest();

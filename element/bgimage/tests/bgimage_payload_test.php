@@ -20,6 +20,7 @@ namespace customcertelement_bgimage;
 
 use advanced_testcase;
 use mod_customcert\element\element_payload_interface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for bgimage_payload.
@@ -28,8 +29,8 @@ use mod_customcert\element\element_payload_interface;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \customcertelement_bgimage\bgimage_payload
  */
+#[CoversClass(\customcertelement_bgimage\bgimage_payload::class)]
 final class bgimage_payload_test extends advanced_testcase {
     /**
      * bgimage_payload implements element_payload_interface.

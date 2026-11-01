@@ -35,6 +35,7 @@ class backup_customcert_activity_structure_step extends backup_activity_structur
      *
      * @return backup_nested_element
      */
+    #[\Override]
     protected function define_structure() {
 
         $customcert = new backup_nested_element('customcert', ['id'], [

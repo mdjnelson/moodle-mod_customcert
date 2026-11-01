@@ -21,6 +21,8 @@ namespace mod_customcert;
 use advanced_testcase;
 use mod_customcert\element\stylable_payload;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Tests for stylable_payload helper and that bundled text-like elements preserve style fields.
@@ -29,8 +31,8 @@ use stdClass;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_customcert\element\stylable_payload
  */
+#[CoversClass(\mod_customcert\element\stylable_payload::class)]
 final class stylable_payload_test extends advanced_testcase {
     /**
      * stylable_payload::from_form() returns all four fields with correct types.
@@ -186,11 +188,11 @@ final class stylable_payload_test extends advanced_testcase {
     /**
      * Each bundled text-like element preserves all four style fields in normalise_data().
      *
-     * @dataProvider bundled_elements_provider
      * @param string $class Fully-qualified element class name.
      * @param array $extra Expected element-specific keys in the payload.
      * @param array $formextra Extra form fields to set.
      */
+    #[DataProvider('bundled_elements_provider')]
     public function test_element_normalise_data_preserves_style_fields(
         string $class,
         array $extra,

@@ -65,6 +65,7 @@ final class coursename_payload implements element_payload_interface {
      * @param array $data Associative array, typically from json_decode($raw, true).
      * @return static
      */
+    #[\Override]
     public static function from_array(array $data): static {
         return new static(
             coursenamedisplay: (int)($data['coursenamedisplay'] ?? element::COURSE_FULL_NAME),
@@ -77,6 +78,7 @@ final class coursename_payload implements element_payload_interface {
      *
      * @return array{coursenamedisplay:int,font:string,fontsize:int,colour:string,width:int}
      */
+    #[\Override]
     public function to_array(): array {
         return array_merge(
             ['coursenamedisplay' => $this->coursenamedisplay],
@@ -90,6 +92,7 @@ final class coursename_payload implements element_payload_interface {
      * @return void
      * @throws coding_exception when coursenamedisplay is not a recognised constant.
      */
+    #[\Override]
     public function validate(): void {
         $valid = [element::COURSE_FULL_NAME, element::COURSE_SHORT_NAME];
         if (!in_array($this->coursenamedisplay, $valid, true)) {

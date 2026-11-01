@@ -34,6 +34,7 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
 use context_module;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the coursefield element.
@@ -43,6 +44,7 @@ use context_module;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_coursefield\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -75,8 +77,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_coursefield\element::__construct
      */
     public function test_constructor_returns_instance(): void {
         $el = new element($this->make_record());
@@ -85,8 +85,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_coursefield\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -98,8 +96,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys and values.
-     *
-     * @covers \customcertelement_coursefield\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -120,8 +116,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_coursefield\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -135,8 +129,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns the field name in preview mode (uses $COURSE global).
-     *
-     * @covers \customcertelement_coursefield\element::render_html
      */
     public function test_render_html_returns_field_name_in_preview(): void {
         $this->resetAfterTest();
@@ -167,8 +159,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns the course fullname when field is 'fullname'.
-     *
-     * @covers \customcertelement_coursefield\element::render_html
      */
     public function test_render_html_returns_course_fullname(): void {
         $this->resetAfterTest();
@@ -208,8 +198,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'coursefield'.
-     *
-     * @covers \customcertelement_coursefield\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -251,8 +239,6 @@ final class element_test extends advanced_testcase {
      * In this case the element should fall back to displaying the field shortname.
      *
      * This exercises the (int)$course->id cast introduced in the last commit.
-     *
-     * @covers \customcertelement_coursefield\element::render_html
      */
     public function test_render_html_custom_profile_field_preview_shows_shortname(): void {
         $this->resetAfterTest();
@@ -292,8 +278,6 @@ final class element_test extends advanced_testcase {
      * The element should display the actual field value.
      *
      * This exercises the (int)$course->id cast introduced in the last commit.
-     *
-     * @covers \customcertelement_coursefield\element::render_html
      */
     public function test_render_html_custom_profile_field_shows_value(): void {
         $this->resetAfterTest();

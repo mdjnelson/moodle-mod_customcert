@@ -39,6 +39,7 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
      *
      * @param string $value
      */
+    #[\Override]
     public function setvalue($value) {
         $this->updateAttributes(['value' => $value]);
     }
@@ -46,6 +47,7 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
     /**
      * Gets the value of the form element
      */
+    #[\Override]
     public function getvalue() {
         return $this->getAttribute('value');
     }
@@ -55,6 +57,7 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
      *
      * @return string
      */
+    #[\Override]
     public function tohtml() {
         global $PAGE, $OUTPUT;
 
@@ -80,6 +83,7 @@ class moodlequickform_customcert_colourpicker extends moodlequickform_editor {
      * @param \renderer_base $output Used to do a final render of any components that need to be rendered for export.
      * @return \stdClass|array
      */
+    #[\Override]
     public function export_for_template(renderer_base $output) {
         $context = $this->export_for_template_base($output);
         $context['html'] = $this->toHtml();

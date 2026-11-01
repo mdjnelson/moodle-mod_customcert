@@ -30,15 +30,15 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use mod_customcert\service\pdf_generation_service;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for certificate filename generation.
  */
+#[CoversMethod(\mod_customcert\service\pdf_generation_service::class, 'compute_filename_for_user')]
 final class template_filename_test extends advanced_testcase {
     /**
      * Test default name simply uses template name.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_default_filename_uses_template_name(): void {
         $this->resetAfterTest();
@@ -62,8 +62,6 @@ final class template_filename_test extends advanced_testcase {
 
     /**
      * Test placeholders are applied when a custom pattern is added.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_custom_pattern_placeholders_are_applied(): void {
         $this->resetAfterTest();
@@ -89,8 +87,6 @@ final class template_filename_test extends advanced_testcase {
 
     /**
      * Custom patterns that already include ".pdf" should not produce double extensions.
-     *
-     * @covers \mod_customcert\service\pdf_generation_service::compute_filename_for_user
      */
     public function test_custom_pattern_with_pdf_suffix_is_not_duplicated(): void {
         $this->resetAfterTest();

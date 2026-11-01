@@ -37,13 +37,14 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use required_capability_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Authorisation regression tests for the template class's manage/use-as-source checks.
- *
- * @group mod_customcert
- * @coversDefaultClass \mod_customcert\template
  */
+#[CoversClass(\mod_customcert\template::class)]
+#[Group('mod_customcert')]
 final class template_authorisation_test extends advanced_testcase {
     /**
      * Create a course with a customcert module and return the template object.
@@ -70,8 +71,6 @@ final class template_authorisation_test extends advanced_testcase {
      * This is the primary regression test for the horizontal authorisation bypass:
      * without the fix, only the destination template was checked, allowing the copy
      * to proceed with an unauthorized source template.
-     *
-     * @covers ::require_use_as_source
      */
     public function test_require_use_as_source_denies_unauthorized_course_template(): void {
         $this->resetAfterTest();
@@ -101,8 +100,6 @@ final class template_authorisation_test extends advanced_testcase {
      *
      * This verifies the happy path: a legitimate user authorized for both courses
      * is not incorrectly blocked by the fix.
-     *
-     * @covers ::require_use_as_source
      */
     public function test_require_use_as_source_allows_manageable_course_template(): void {
         $this->resetAfterTest();
@@ -133,8 +130,6 @@ final class template_authorisation_test extends advanced_testcase {
      * lists them to any user regardless of system-level capability, so require_use_as_source()
      * must not require mod/customcert:manage at the system context for them, unlike other
      * course or activity context templates.
-     *
-     * @covers ::require_use_as_source
      */
     public function test_require_use_as_source_allows_system_template_without_system_capability(): void {
         $this->resetAfterTest();

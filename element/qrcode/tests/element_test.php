@@ -34,6 +34,7 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
 use pdf;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -48,6 +49,7 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_qrcode\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -81,8 +83,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_qrcode\element::__construct
      */
     public function test_constructor_returns_instance(): void {
         $el = new element($this->make_record());
@@ -91,8 +91,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_qrcode\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -104,8 +102,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys and values.
-     *
-     * @covers \customcertelement_qrcode\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -122,8 +118,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_qrcode\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -134,8 +128,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_qrcode\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record(['data' => null]));
@@ -144,8 +136,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a non-empty string when data is set.
-     *
-     * @covers \customcertelement_qrcode\element::render_html
      */
     public function test_render_html_returns_string_with_data(): void {
         $el = new element($this->make_record());
@@ -156,8 +146,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'qrcode'.
-     *
-     * @covers \customcertelement_qrcode\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -168,8 +156,6 @@ final class element_test extends advanced_testcase {
      * Test that render() draws the QR code on the PDF.
      *
      * Preview mode is used so the render path does not require a DB-backed issue record.
-     *
-     * @covers \customcertelement_qrcode\element::render
      */
     public function test_render_draws_qr_code_on_pdf(): void {
         $el = new element($this->make_record());
@@ -182,8 +168,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() wraps the QR code in the styled designer container.
-     *
-     * @covers \customcertelement_qrcode\element::render_html
      */
     public function test_render_html_wraps_qr_code_in_styled_container(): void {
         $el = new element($this->make_record());

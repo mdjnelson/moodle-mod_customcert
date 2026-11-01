@@ -55,6 +55,7 @@ final class testable_generate_site_certificates_download_task extends generate_s
      *
      * @return certificate_download_service
      */
+    #[\Override]
     protected function create_download_service(): certificate_download_service {
         return $this->downloadservice;
     }

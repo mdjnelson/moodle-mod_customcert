@@ -37,6 +37,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
      *
      * @return array the restore paths
      */
+    #[\Override]
     protected function define_structure() {
         $paths = [];
 
@@ -233,6 +234,7 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
     /**
      * Called immediately after all the other restore functions.
      */
+    #[\Override]
     protected function after_execute() {
         parent::after_execute();
 

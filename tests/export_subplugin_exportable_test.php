@@ -26,6 +26,8 @@ use mod_customcert\export\datatypes\field_interface;
 use mod_customcert\export\datatypes\string_field;
 use mod_customcert\export\datatypes\format_error;
 use mod_customcert\tests\fixtures\minimal_subplugin_exportable;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -36,11 +38,11 @@ require_once(__DIR__ . '/fixtures/minimal_subplugin_exportable.php');
  *
  * @package    mod_customcert
  * @category   test
- * @group      mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\export\subplugin_exportable
  */
+#[CoversClass(\mod_customcert\export\subplugin_exportable::class)]
+#[Group('mod_customcert')]
 final class export_subplugin_exportable_test extends advanced_testcase {
     /**
      * Build a minimal concrete subplugin_exportable with given fields.

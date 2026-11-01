@@ -92,6 +92,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         global $CFG, $COURSE;
 
@@ -129,6 +130,7 @@ class element extends base_element implements
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         return array_merge(
             [
@@ -146,6 +148,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         if (!empty($this->get_data())) {
             $payload = $this->get_payload();
@@ -168,6 +171,7 @@ class element extends base_element implements
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         if (empty($this->get_data())) {
             return;
@@ -210,6 +214,7 @@ class element extends base_element implements
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         if (empty($this->get_data())) {
             return '';
@@ -255,6 +260,7 @@ class element extends base_element implements
      *
      * @param restore_customcert_activity_task $restore
      */
+    #[\Override]
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 

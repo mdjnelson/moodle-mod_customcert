@@ -41,6 +41,7 @@ class new_restorable_element extends element implements renderable_element_inter
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -61,6 +62,7 @@ class new_restorable_element extends element implements renderable_element_inter
      * @param restore_customcert_activity_task $restore
      * @return void
      */
+    #[\Override]
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
@@ -86,6 +88,7 @@ class new_restorable_element extends element implements renderable_element_inter
      * @param stdClass $user
      * @return void
      */
+    #[\Override]
     public function render(
         pdf $pdf,
         bool $preview,
@@ -98,6 +101,7 @@ class new_restorable_element extends element implements renderable_element_inter
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

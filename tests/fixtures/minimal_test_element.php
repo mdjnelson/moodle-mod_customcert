@@ -44,6 +44,7 @@ final class minimal_test_element extends element implements renderable_element_i
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -55,6 +56,7 @@ final class minimal_test_element extends element implements renderable_element_i
      * @param stdClass $user The user object that contains user-specific data for rendering.
      * @return void
      */
+    #[\Override]
     public function render(
         \pdf $pdf,
         bool $preview,
@@ -68,6 +70,7 @@ final class minimal_test_element extends element implements renderable_element_i
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }
