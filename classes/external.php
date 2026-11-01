@@ -66,7 +66,7 @@ class external extends external_api {
                 'values' => new external_multiple_structure(
                     new external_single_structure(
                         [
-                            'name' => new external_value(PARAM_ALPHANUMEXT, 'The field to update'),
+                            'name' => new external_value(PARAM_RAW, 'The field to update'),
                             'value' => new external_value(PARAM_RAW, 'The value of the field'),
                         ]
                     )
@@ -88,8 +88,6 @@ class external extends external_api {
      * @return array{id: int, posx: int, posy: int, width: ?int, refpoint: int, alignment: string, html: string}
      */
     public static function save_element($templateid, $elementid, $values) {
-        global $USER;
-
         $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
@@ -123,40 +121,23 @@ class external extends external_api {
             'timemodified' => true,
         ];
 
-        // Submit the values through the element edit form so the same select-option filtering
-        // and validation as edit_element.php is applied.
-        $submission = self::get_form_submission($element);
-        foreach ($values as $value) {
-            $field = $value['name'];
-            if (isset($protectedfields[$field])) {
-                throw new invalid_parameter_exception('Field is not allowed to be updated: ' . $field);
-            }
-            $submission[$field] = $value['value'];
+        $posted = self::get_posted_values($values);
+        if ($protected = array_intersect_key($posted, $protectedfields)) {
+            throw new invalid_parameter_exception('Field is not allowed to be updated: ' . key($protected));
         }
 
+        // Submit the values through the element edit form so the same select-option filtering
+        // and validation as edit_element.php is applied. Stored values fill any omitted fields.
         $factory = element_factory::build_with_defaults();
-        $formid = preg_replace('/[^a-z0-9_]/i', '_', edit_element_form::class);
-        $submission['_qf__' . $formid] = 1;
-        // The web service request is already authenticated, so skip the form's own sesskey check.
-        $ignoresesskey = $USER->ignoresesskey ?? null;
-        $USER->ignoresesskey = true;
-        try {
-            $mform = new edit_element_form(
-                null,
-                ['element' => $element, 'factory' => $factory],
-                'post',
-                '',
-                null,
-                true,
-                $submission
-            );
-        } finally {
-            if ($ignoresesskey === null) {
-                unset($USER->ignoresesskey);
-            } else {
-                $USER->ignoresesskey = $ignoresesskey;
-            }
-        }
+        $mform = new edit_element_form(
+            null,
+            ['element' => $element, 'factory' => $factory],
+            'post',
+            '',
+            null,
+            true,
+            $posted + self::get_form_submission($element)
+        );
         if (!$mform->is_validated() || !($data = $mform->get_data())) {
             throw new invalid_parameter_exception('Invalid element values');
         }
@@ -215,6 +196,22 @@ class external extends external_api {
             'alignment' => $layout->alignment,
             'html' => $instance->render_html(),
         ];
+    }
+
+    /**
+     * Rebuilds the nested array a normal form POST would produce (e.g. "startdate[0][day]") from name/value pairs.
+     *
+     * @param array $values List of ['name' => string, 'value' => string] pairs.
+     * @return array
+     */
+    private static function get_posted_values(array $values): array {
+        $query = [];
+        foreach ($values as $value) {
+            $query[] = rawurlencode($value['name']) . '=' . rawurlencode($value['value']);
+        }
+        parse_str(implode('&', $query), $posted);
+
+        return $posted;
     }
 
     /**
