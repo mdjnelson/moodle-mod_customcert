@@ -117,7 +117,9 @@ final class save_element_security_test extends advanced_testcase {
     private function save(stdClass $element, array $values): ?array {
         global $DB;
 
-        $submitted = [];
+        // Like the modal, post the form's hidden submission marker; the AJAX request carries the sesskey.
+        $_POST['sesskey'] = sesskey();
+        $submitted = [['name' => '_qf__mod_customcert_edit_element_form', 'value' => '1']];
         foreach ($values as $name => $value) {
             $submitted[] = ['name' => $name, 'value' => (string)$value];
         }
