@@ -37,6 +37,16 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   `delete_page`, `delete_element`, `copy_to_template`, `move_item`) or
   `pdf_generation_service::generate_pdf()` instead.
 
+## [5.3.4] - 2026-11-01
+
+### Fixed
+
+- Fixed Moodle 5.2 elements that inherited `renderable_element_interface` losing their `normalise_data()`, `prepare_form()` and `validate()` handling (and saved JSON data) when adapted in Moodle 5.3 (#1090).
+
+### Changed
+
+- Removed empty `validate()` methods and unnecessary `validatable_element_interface` implementations from bundled elements. Third-party subclasses requiring custom validation should explicitly implement the interface (#1091).
+
 ## [5.3.3] - 2026-10-25
 
 ### Security
