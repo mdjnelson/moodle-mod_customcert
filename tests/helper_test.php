@@ -28,6 +28,8 @@ namespace mod_customcert;
 use advanced_testcase;
 use context_system;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Unit tests for the helper class.
@@ -37,11 +39,10 @@ use moodle_exception;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\helper::class, 'require_view_user_certificates')]
 final class helper_test extends advanced_testcase {
     /**
      * Test a user can view their own certificates.
-     *
-     * @covers \mod_customcert\helper::require_view_user_certificates
      */
     public function test_require_view_user_certificates_own(): void {
         $this->resetAfterTest();
@@ -55,8 +56,6 @@ final class helper_test extends advanced_testcase {
 
     /**
      * Test a user without the capability cannot view another user's certificates.
-     *
-     * @covers \mod_customcert\helper::require_view_user_certificates
      */
     public function test_require_view_user_certificates_other_user_denied(): void {
         $this->resetAfterTest();
@@ -72,8 +71,6 @@ final class helper_test extends advanced_testcase {
 
     /**
      * Test a user with the capability can view another user's certificates.
-     *
-     * @covers \mod_customcert\helper::require_view_user_certificates
      */
     public function test_require_view_user_certificates_other_user_allowed(): void {
         $this->resetAfterTest();
@@ -92,9 +89,8 @@ final class helper_test extends advanced_testcase {
 
     /**
      * Test my_certificates.php authorises the request after login and before looking up any certificate.
-     *
-     * @coversNothing
      */
+    #[CoversNothing]
     public function test_my_certificates_authorises_before_certificate_lookup(): void {
         $source = file_get_contents(__DIR__ . '/../my_certificates.php');
 

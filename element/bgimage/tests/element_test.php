@@ -33,6 +33,7 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the bgimage element.
@@ -42,6 +43,7 @@ use stdClass;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_bgimage\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -72,8 +74,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element can be instantiated.
-     *
-     * @covers \customcertelement_bgimage\element
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -82,8 +82,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_bgimage\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -95,8 +93,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_bgimage\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record());
@@ -105,8 +101,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when data has no filename.
-     *
-     * @covers \customcertelement_bgimage\element::render_html
      */
     public function test_render_html_empty_when_no_filename(): void {
         $el = new element($this->make_record([
@@ -117,8 +111,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_width() returns 0 (bgimage always auto-fits the page).
-     *
-     * @covers \customcertelement_bgimage\element::get_width
      */
     public function test_get_width_returns_zero(): void {
         $el = new element($this->make_record());
@@ -127,8 +119,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_height() returns 0 (bgimage always auto-fits the page).
-     *
-     * @covers \customcertelement_bgimage\element::get_height
      */
     public function test_get_height_returns_zero(): void {
         $el = new element($this->make_record());
@@ -137,8 +127,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that has_save_and_continue() returns true.
-     *
-     * @covers \customcertelement_bgimage\element::has_save_and_continue
      */
     public function test_has_save_and_continue(): void {
         $el = new element($this->make_record());
@@ -147,8 +135,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'bgimage'.
-     *
-     * @covers \customcertelement_bgimage\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());

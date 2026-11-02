@@ -89,6 +89,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
 
@@ -138,6 +139,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         global $COURSE, $SITE;
 
@@ -187,6 +189,7 @@ class element extends base_element implements
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
@@ -233,6 +236,7 @@ class element extends base_element implements
      *
      * @return int|null Width in mm, or null if not set.
      */
+    #[\Override]
     public function get_width(): ?int {
         $data = $this->get_data();
 
@@ -270,6 +274,7 @@ class element extends base_element implements
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         if (empty($this->get_data())) {
             return;
@@ -321,6 +326,7 @@ class element extends base_element implements
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         if (empty($this->get_data())) {
             return '';
@@ -387,6 +393,7 @@ class element extends base_element implements
      *
      * @param restore_customcert_activity_task $restore
      */
+    #[\Override]
     public function after_restore_from_backup(restore_customcert_activity_task $restore): void {
         global $DB;
 
@@ -460,6 +467,7 @@ class element extends base_element implements
      * @param stdClass $source The original element DB record being copied from.
      * @return bool True on success, false if the copy should be aborted.
      */
+    #[\Override]
     public function copy_from(stdClass $source): bool {
         return $this->do_copy($source);
     }
@@ -530,6 +538,7 @@ class element extends base_element implements
      *
      * @return bool
      */
+    #[\Override]
     public function has_save_and_continue(): bool {
         return true;
     }

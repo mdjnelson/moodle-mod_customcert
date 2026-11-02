@@ -23,7 +23,6 @@
  * @category   test
  * @copyright  2025 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \mod_customcert\local\upgrade\row_migrator
  */
 
 namespace mod_customcert;
@@ -32,6 +31,8 @@ use mod_customcert\local\upgrade\row_migrator;
 use mod_customcert\tests\fixtures\minimal_test_element;
 use advanced_testcase;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,8 +43,8 @@ require_once(__DIR__ . '/fixtures/minimal_test_element.php');
  *
  * @package   mod_customcert
  * @category  test
- * @covers    \mod_customcert\local\upgrade\row_migrator::migrate_row
  */
+#[CoversClass(\mod_customcert\local\upgrade\row_migrator::class)]
 final class upgrade_visuals_migration_test extends advanced_testcase {
     /**
      * Data provider for migrate_row cases.
@@ -161,7 +162,6 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
     /**
      * A data provider for migrate_row cases.
      *
-     * @dataProvider migrate_row_provider
      *
      * @param mixed $data
      * @param ?int $width
@@ -170,6 +170,7 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
      * @param ?string $colour
      * @param array $expected
      */
+    #[DataProvider('migrate_row_provider')]
     public function test_migrate_row_cases(
         $data,
         ?int $width,
@@ -229,8 +230,6 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
     /**
      * Test migrate_border_row handles legacy border scalar-width promotion and other cases.
      *
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_border_row
-     * @dataProvider migrate_border_row_provider
      *
      * @param mixed $data
      * @param ?int $width
@@ -239,6 +238,7 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
      * @param ?string $colour
      * @param array $expected
      */
+    #[DataProvider('migrate_border_row_provider')]
     public function test_migrate_border_row_cases(
         $data,
         ?int $width,
@@ -310,8 +310,6 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
     /**
      * Test that scalar legacy data is migrated into the element-specific canonical key.
      *
-     * @dataProvider element_scalar_key_provider
-     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_row
      *
      * @param string $data
      * @param string $element
@@ -321,6 +319,7 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
      * @param ?string $colour
      * @param array $expected
      */
+    #[DataProvider('element_scalar_key_provider')]
     public function test_migrate_row_element_specific_scalar_key(
         string $data,
         string $element,

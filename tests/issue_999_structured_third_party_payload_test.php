@@ -22,7 +22,6 @@
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_customcert\element
  */
 
 declare(strict_types=1);
@@ -52,11 +51,16 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests proving that structured-payload classification is based on the current
  * persistence or rendering contract, not plugin identity.
  */
+#[CoversClass(\mod_customcert\element::class)]
+#[CoversMethod(\mod_customcert\export\element::class, 'import')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'create')]
 final class issue_999_structured_third_party_payload_test extends advanced_testcase {
     /**
      * Build a minimal element DB-shaped record.
@@ -103,8 +107,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
 
     /**
      * A migrated third-party element's wrapper-shaped JSON must stay JSON.
-     *
-     * @covers \mod_customcert\element::get_data
      */
     public function test_migrated_third_party_structured_element_returns_json(): void {
         $data = json_encode([
@@ -133,8 +135,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
 
     /**
      * Plugin-specific keys (not wrapper-shaped at all) also stay JSON.
-     *
-     * @covers \mod_customcert\element::get_data
      */
     public function test_migrated_third_party_element_with_custom_keys_returns_json(): void {
         $data = json_encode(['first' => 'A', 'second' => 'B']);
@@ -148,8 +148,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     /**
      * Bundled elements keep their full JSON payload, proving the distinction is the
      * persistence/render contract, not a bundled-name allowlist.
-     *
-     * @covers \mod_customcert\element::get_data
      */
     public function test_bundled_element_with_wrapper_shaped_payload_returns_json(): void {
         $data = json_encode([
@@ -170,8 +168,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     /**
      * Historical-shaped base subclasses also receive the current payload representation:
      * get_data() no longer unwraps generic migration wrappers (#994).
-     *
-     * @covers \mod_customcert\element::get_data
      */
     public function test_historical_base_subclass_receives_current_payload_not_unwrapped_scalar(): void {
         $data = json_encode([
@@ -192,8 +188,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     /**
      * A native v2 element with no custom save/normalise behaviour still keeps its
      * structured JSON: the render contract alone is also a valid "current" signal.
-     *
-     * @covers \mod_customcert\element::get_data
      */
     public function test_native_v2_element_without_persistable_is_not_unwrapped(): void {
         $registry = new element_registry();
@@ -222,9 +216,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     /**
      * Template import bypasses persistence_helper entirely: a persistable third-party
      * element's imported payload must stay structured.
-     *
-     * @covers \mod_customcert\element::get_data
-     * @covers \mod_customcert\export\element::import
      */
     public function test_imported_structured_payload_is_not_unwrapped_for_persistable_element(): void {
         global $DB;
@@ -270,9 +261,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
     /**
      * A renderable, non-persistable element's imported payload must stay structured,
      * even though the exporter's own field happens to be named 'value'.
-     *
-     * @covers \mod_customcert\element::get_data
-     * @covers \mod_customcert\export\element::import
      */
     public function test_imported_structured_payload_is_not_unwrapped_for_current_third_party_element(): void {
         global $DB;
@@ -319,8 +307,6 @@ final class issue_999_structured_third_party_payload_test extends advanced_testc
 
     /**
      * Full pipeline: create()/reload round trip through element_repository keeps JSON intact.
-     *
-     * @covers \mod_customcert\service\element_repository::create
      */
     public function test_migrated_third_party_element_survives_persistence_round_trip(): void {
         global $DB;

@@ -38,6 +38,7 @@ class throwing_template extends template {
      *
      * @return \context
      */
+    #[\Override]
     public function get_context(): \context {
         if (current_language() !== 'en') {
             throw new \LogicException(

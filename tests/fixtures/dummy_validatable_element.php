@@ -49,6 +49,7 @@ final class dummy_validatable_element extends element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -84,6 +85,7 @@ final class dummy_validatable_element extends element implements
      * @param array $data
      * @return array<string,string>
      */
+    #[\Override]
     public function validate(array $data): array {
         if ($this->throwonvalidate) {
             throw new RuntimeException('Boom');
@@ -98,6 +100,7 @@ final class dummy_validatable_element extends element implements
      * @param bool $preview Whether this is a preview render.
      * @param stdClass $user The user being rendered for.
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // No-op for tests.
     }
@@ -107,6 +110,7 @@ final class dummy_validatable_element extends element implements
      *
      * @return string HTML output.
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

@@ -42,6 +42,7 @@ class element_deleted extends base {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['crud'] = 'd';
         $this->data['edulevel'] = self::LEVEL_OTHER;
@@ -53,6 +54,7 @@ class element_deleted extends base {
      *
      * @return string
      */
+    #[\Override]
     public function get_description(): string {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             // If CONTEXT_SYSTEM assume it's a template.
@@ -69,6 +71,7 @@ class element_deleted extends base {
      *
      * @return string
      */
+    #[\Override]
     public static function get_name(): string {
         return get_string('eventelementdeleted', 'customcert');
     }
@@ -95,6 +98,7 @@ class element_deleted extends base {
      * Returns relevant URL.
      * @return moodle_url
      */
+    #[\Override]
     public function get_url(): moodle_url {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             return new moodle_url('/mod/customcert/manage_templates.php');
@@ -111,6 +115,7 @@ class element_deleted extends base {
      *
      * @return string[]
      */
+    #[\Override]
     public static function get_objectid_mapping(): array {
         return ['db' => 'customcert_elements', 'restore' => 'customcert_elements'];
     }
@@ -120,6 +125,7 @@ class element_deleted extends base {
      *
      * @return bool
      */
+    #[\Override]
     public static function get_other_mapping() {
         // No need to map.
         return false;

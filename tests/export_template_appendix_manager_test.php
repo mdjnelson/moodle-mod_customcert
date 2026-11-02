@@ -31,19 +31,21 @@ use advanced_testcase;
 use mod_customcert\export\import_exception;
 use mod_customcert\export\template_appendix_manager;
 use context_system;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests for export\template_appendix_manager.
- *
- * @group      mod_customcert
- * @covers     \mod_customcert\export\template_appendix_manager
  */
+#[CoversClass(\mod_customcert\export\template_appendix_manager::class)]
+#[Group('mod_customcert')]
 final class export_template_appendix_manager_test extends advanced_testcase {
     /** @var template_appendix_manager */
     private template_appendix_manager $manager;
     /** @var string */
     private string $tempdir;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

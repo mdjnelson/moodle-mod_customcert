@@ -40,6 +40,7 @@ final class simple_plugin_provider implements plugin_provider {
      *
      * @return array<string,string>
      */
+    #[\Override]
     public function get_plugins(): array {
         return ['fakeplugin' => '/virtual/path'];
     }

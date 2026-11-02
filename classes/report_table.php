@@ -136,6 +136,7 @@ class report_table extends table_sql {
      * @param stdClass $user
      * @return string
      */
+    #[\Override]
     public function col_fullname($user) {
         global $OUTPUT;
 
@@ -233,6 +234,7 @@ class report_table extends table_sql {
      * @param int $pagesize size of page for paginated displayed table.
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
+    #[\Override]
     public function query_db($pagesize, $useinitialsbar = true) {
         $issuerepo = new issue_repository();
         $total = $issuerepo->get_number_of_issues($this->customcertid, $this->cm);

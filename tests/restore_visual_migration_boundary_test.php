@@ -34,6 +34,7 @@ use advanced_testcase;
 use backup;
 use restore_controller;
 use restore_dbops;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -43,9 +44,8 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
 /**
  * Proves an explicit legacy width of 0 survives a real restore as 0, not as absent.
- *
- * @covers \restore_customcert_activity_structure_step::process_customcert_element
  */
+#[CoversMethod(\restore_customcert_activity_structure_step::class, 'process_customcert_element')]
 final class restore_visual_migration_boundary_test extends advanced_testcase {
     /**
      * An explicit width of 0 (auto-width) must not be indistinguishable from a column that was

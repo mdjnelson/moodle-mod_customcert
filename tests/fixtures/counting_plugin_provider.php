@@ -57,6 +57,7 @@ final class counting_plugin_provider implements plugin_provider {
      *
      * @return array<string,string>
      */
+    #[\Override]
     public function get_plugins(): array {
         $this->calls++;
         return [$this->type => '/virtual/path'];

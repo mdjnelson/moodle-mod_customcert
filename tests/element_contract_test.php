@@ -42,6 +42,9 @@ use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\minimal_test_element;
 use ReflectionMethod;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -49,9 +52,13 @@ require_once(__DIR__ . '/fixtures/minimal_test_element.php');
 
 /**
  * Regression tests for the published Element System v2 contracts.
- *
- * @group mod_customcert
  */
+#[CoversClass(\mod_customcert\element::class)]
+#[CoversClass(\mod_customcert\element\renderable_element_interface::class)]
+#[CoversMethod(\mod_customcert\service\validation_service::class, 'validate')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'register')]
+#[CoversMethod(\mod_customcert\service\element_factory::class, 'create')]
+#[Group('mod_customcert')]
 final class element_contract_test extends advanced_testcase {
     /**
      * Build a minimal element record.
@@ -65,8 +72,6 @@ final class element_contract_test extends advanced_testcase {
     /**
      * A bundled element keeps the interfaces inherited from the base class plus its own declarations,
      * but does not declare the optional validatable_element_interface.
-     *
-     * @covers \mod_customcert\element
      */
     public function test_bundled_element_retains_public_interfaces(): void {
         $implemented = class_implements(text_element::class);
@@ -93,8 +98,6 @@ final class element_contract_test extends advanced_testcase {
     /**
      * No bundled element opts in to the optional validation interface, and standard colour, position and
      * width validation still runs for each of them through the real validation service.
-     *
-     * @covers \mod_customcert\service\validation_service::validate
      */
     public function test_bundled_elements_do_not_implement_validation_but_keep_standard_validation(): void {
         $this->resetAfterTest();
@@ -156,8 +159,6 @@ final class element_contract_test extends advanced_testcase {
     /**
      * The base class deliberately does not implement renderable_element_interface (native v2
      * elements declare it themselves), nor the optional validatable_element_interface.
-     *
-     * @covers \mod_customcert\element
      */
     public function test_base_class_does_not_implement_renderable_or_validatable(): void {
         $implemented = class_implements(element::class);
@@ -170,10 +171,6 @@ final class element_contract_test extends advanced_testcase {
     /**
      * A third-party native v2 element without the optional validation interface registers, builds,
      * renders and validates through the shared services.
-     *
-     * @covers \mod_customcert\service\element_registry::register
-     * @covers \mod_customcert\service\element_factory::create
-     * @covers \mod_customcert\service\validation_service::validate
      */
     public function test_minimal_native_element_without_validation_interface(): void {
         global $CFG, $USER;
@@ -227,8 +224,6 @@ final class element_contract_test extends advanced_testcase {
 
     /**
      * The renderable_element_interface exposes exactly render() and render_html(), with no renderer argument.
-     *
-     * @covers \mod_customcert\element\renderable_element_interface
      */
     public function test_renderable_element_interface_signatures(): void {
         $expected = [

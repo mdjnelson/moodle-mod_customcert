@@ -29,6 +29,7 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use advanced_testcase;
 use required_capability_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for template_load_service behaviour.
@@ -37,8 +38,8 @@ use required_capability_exception;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\template_load_service
  */
+#[CoversClass(\mod_customcert\service\template_load_service::class)]
 final class template_load_service_test extends advanced_testcase {
     /** @var template_repository */
     private template_repository $templates;
@@ -49,6 +50,7 @@ final class template_load_service_test extends advanced_testcase {
     /** @var template_load_service */
     private template_load_service $service;
 
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
@@ -67,8 +69,6 @@ final class template_load_service_test extends advanced_testcase {
 
     /**
      * Ensures replace() overwrites target pages/elements and fires template_updated for module contexts.
-     *
-     * @covers ::replace
      */
     public function test_replace_overwrites_pages_and_elements(): void {
         global $DB;
@@ -177,8 +177,6 @@ final class template_load_service_test extends advanced_testcase {
 
     /**
      * The service must enforce source-template access independently of its callers.
-     *
-     * @covers ::replace
      */
     public function test_replace_denies_unauthorized_source_template(): void {
         $generator = $this->getDataGenerator();
@@ -208,8 +206,6 @@ final class template_load_service_test extends advanced_testcase {
     /**
      * A system-context template remains usable as a source even for a user with no
      * mod/customcert:manage capability at the system context, matching template::require_use_as_source().
-     *
-     * @covers ::replace
      */
     public function test_replace_allows_system_context_source_template(): void {
         $generator = $this->getDataGenerator();

@@ -36,6 +36,7 @@ class exporter extends subplugin_text_exportable {
      *
      * @return field_interface[] plugin-specific custom data fields
      */
+    #[\Override]
     protected function get_fields(): array {
         return parent::get_fields() + [
             'gradeformat' => new enum_field(

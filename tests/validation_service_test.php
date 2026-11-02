@@ -31,6 +31,8 @@ use advanced_testcase;
 use mod_customcert\service\validation_service;
 use mod_customcert\tests\fixtures\dummy_element_interface_element;
 use mod_customcert\tests\fixtures\dummy_validatable_element;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -39,10 +41,9 @@ require_once(__DIR__ . '/fixtures/dummy_validatable_element.php');
 
 /**
  * Tests for the validation_service behaviour with validatable elements.
- *
- * @group mod_customcert
- * @covers \mod_customcert\service\validation_service
  */
+#[CoversClass(\mod_customcert\service\validation_service::class)]
+#[Group('mod_customcert')]
 final class validation_service_test extends advanced_testcase {
     /**
      * Ensure standard field validation still runs for validatable elements.
@@ -133,8 +134,6 @@ final class validation_service_test extends advanced_testcase {
     /**
      * A pure v2 element that implements only element_interface (no validation hook) must not
      * produce a generic 'invaliddata' error — it should simply contribute no extra errors.
-     *
-     * @covers \mod_customcert\service\validation_service::validate
      */
     public function test_pure_v2_element_with_no_validation_hook_produces_no_errors(): void {
         $element = new dummy_element_interface_element(1, 'test');

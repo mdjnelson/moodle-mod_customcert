@@ -33,6 +33,8 @@ use advanced_testcase;
 use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit tests for the element helper class.
@@ -42,10 +44,21 @@ use stdClass;
  * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\element_helper::class, 'get_courseid')]
+#[CoversMethod(\element_helper::class, 'get_context')]
+#[CoversMethod(\element_helper::class, 'get_grade_items')]
+#[CoversMethod(\element_helper::class, 'get_mod_grade_info')]
+#[CoversMethod(\element_helper::class, 'get_course_grade_info')]
+#[CoversMethod(\element_helper::class, 'get_grade_item_info')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_fonts')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_font_sizes')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_date_format_string')]
+#[CoversMethod(\mod_customcert\element_helper::class, 'get_available_element_types')]
 final class element_helper_test extends advanced_testcase {
     /**
      * Test set up.
      */
+    #[\Override]
     public function setUp(): void {
         $this->resetAfterTest();
 
@@ -54,8 +67,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course id for an element in a course customcert activity.
-     *
-     * @covers \element_helper::get_courseid
      */
     public function test_get_courseid_element_in_course_certificate(): void {
         global $DB;
@@ -90,8 +101,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course id for an element in a site template.
-     *
-     * @covers \element_helper::get_courseid
      */
     public function test_get_courseid_element_in_site_template(): void {
         global $DB, $SITE;
@@ -119,8 +128,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course module id for an element in a course customcert activity.
-     *
-     * @covers \element_helper::get_context
      */
     public function test_get_context_element_in_course_certificate(): void {
         global $DB;
@@ -158,8 +165,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Tests we are returning the correct course module id for an element in a site template.
-     *
-     * @covers \element_helper::get_context
      */
     public function test_get_context_element_in_site_template(): void {
         global $DB;
@@ -187,8 +192,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade items in a course.
-     *
-     * @covers \element_helper::get_grade_items
      */
     public function test_get_grade_items(): void {
         global $DB;
@@ -230,8 +233,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for an activity.
-     *
-     * @covers \element_helper::get_mod_grade_info
      */
     public function test_get_mod_grade_info(): void {
         // Create a course.
@@ -301,8 +302,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for a course.
-     *
-     * @covers \element_helper::get_course_grade_info
      */
     public function test_get_course_grade_info(): void {
         // Create a course.
@@ -363,8 +362,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Test we return the correct grade information for a grade item.
-     *
-     * @covers \element_helper::get_grade_item_info
      */
     public function test_get_grade_item_info(): void {
         // Create a course.
@@ -426,8 +423,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * get_fonts returns a non-empty array of font names.
-     *
-     * @covers \mod_customcert\element_helper::get_fonts
      */
     public function test_get_fonts_returns_non_empty_array(): void {
         $fonts = element_helper::get_fonts();
@@ -442,8 +437,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * get_font_sizes returns a non-empty array mapping size to size.
-     *
-     * @covers \mod_customcert\element_helper::get_font_sizes
      */
     public function test_get_font_sizes_returns_non_empty_array(): void {
         $sizes = element_helper::get_font_sizes();
@@ -474,10 +467,9 @@ final class element_helper_test extends advanced_testcase {
     /**
      * get_date_format_string returns a non-empty string for all supported formats.
      *
-     * @dataProvider get_date_format_string_provider
-     * @covers \mod_customcert\element_helper::get_date_format_string
      * @param string $dateformat
      */
+    #[DataProvider('get_date_format_string_provider')]
     public function test_get_date_format_string_returns_non_empty_string(string $dateformat): void {
         $date = mktime(12, 0, 0, 6, 15, 2020);
         $result = element_helper::get_date_format_string($date, $dateformat);
@@ -490,8 +482,6 @@ final class element_helper_test extends advanced_testcase {
      * as a plain numeric string or as the result of casting an int to string — this is the
      * backwards-compatibility regression test for legacy JSON data that stored dateformat as
      * an integer (e.g. {"dateformat": 1}).
-     *
-     * @covers \mod_customcert\element_helper::get_date_format_string
      */
     public function test_get_date_format_string_int_cast_to_string_matches_string(): void {
         $date = mktime(12, 0, 0, 6, 15, 2020);
@@ -505,8 +495,6 @@ final class element_helper_test extends advanced_testcase {
 
     /**
      * Legacy-only elements must not appear in the Add element dropdown.
-     *
-     * @covers \mod_customcert\element_helper::get_available_element_types
      */
     public function test_get_available_element_types_excludes_legacy_only_element(): void {
         global $CFG;

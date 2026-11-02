@@ -68,6 +68,7 @@ class copy_observing_element_fixture extends element implements
      * @param stdClass $source The original element DB record being copied from.
      * @return bool True on success, false if the copy should be aborted.
      */
+    #[\Override]
     public function copy_from(stdClass $source): bool {
         self::$calls++;
         self::$lastsource = $source;
@@ -81,6 +82,7 @@ class copy_observing_element_fixture extends element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -92,6 +94,7 @@ class copy_observing_element_fixture extends element implements
      * @param stdClass $user The user record
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
     }
 
@@ -100,6 +103,7 @@ class copy_observing_element_fixture extends element implements
      *
      * @return string HTML
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

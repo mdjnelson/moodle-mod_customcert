@@ -35,14 +35,19 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\template_service;
 use mod_customcert\tests\fixtures\copy_observing_element_fixture;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for consolidated element copy logic.
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'copy_element')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'copy_page')]
+#[CoversMethod(\mod_customcert\service\template_service::class, 'copy_to_template')]
 final class element_copy_test extends advanced_testcase {
     /**
      * Set up the test.
      */
+    #[\Override]
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
@@ -62,8 +67,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Test that copy_element correctly duplicates an element.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_element
      */
     public function test_copy_element(): void {
         global $DB;
@@ -105,8 +108,6 @@ final class element_copy_test extends advanced_testcase {
     /**
      * Test that copy_element() invokes copy_from() on copyable elements, passes it the expected
      * source record, and that the result is reflected on the returned instance.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_element
      */
     public function test_copy_element_invokes_copy_from_on_success(): void {
         global $DB;
@@ -143,8 +144,6 @@ final class element_copy_test extends advanced_testcase {
     /**
      * Test that when copy_from() returns false, the newly inserted row is cleaned up and
      * copy_element() reports failure.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_element
      */
     public function test_copy_element_cleans_up_on_copy_from_failure(): void {
         global $DB;
@@ -177,8 +176,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Native v2 copyable_element_interface is invoked on copy, without legacy diagnostics.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_element
      */
     public function test_copy_element_native_v2_copyable_is_invoked(): void {
         global $DB;
@@ -209,8 +206,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Test that copy_page does not increment its count for an element whose copy_from() fails.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_page
      */
     public function test_copy_page_does_not_count_copy_from_failure(): void {
         global $DB;
@@ -238,8 +233,6 @@ final class element_copy_test extends advanced_testcase {
     /**
      * Test that copy_to_template does not emit element_created for an element whose copy_from()
      * fails.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_copy_to_template_does_not_emit_event_on_copy_from_failure(): void {
         global $DB;
@@ -274,8 +267,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Test that copy_page uses consolidated logic and does not fire events.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_page
      */
     public function test_copy_page_does_not_fire_events(): void {
         global $DB;
@@ -306,8 +297,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Test that copy_to_template uses consolidated logic and fires events.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_copy_to_template_fires_events(): void {
         global $DB;
@@ -335,8 +324,6 @@ final class element_copy_test extends advanced_testcase {
     /**
      * Characterization test: copy_page() historically let an unresolvable element type throw,
      * aborting the copy rather than silently skipping it. Verify this is preserved.
-     *
-     * @covers \mod_customcert\service\element_repository::copy_page
      */
     public function test_copy_page_throws_for_unregistered_element_type(): void {
         global $DB;
@@ -362,8 +349,6 @@ final class element_copy_test extends advanced_testcase {
 
     /**
      * Unresolvable elements must retain their copied row without emitting element_created or throwing.
-     *
-     * @covers \mod_customcert\service\template_service::copy_to_template
      */
     public function test_copy_to_template_tolerates_unregistered_element_type(): void {
         global $DB;

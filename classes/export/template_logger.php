@@ -44,6 +44,7 @@ class template_logger implements template_import_logger_interface {
      *
      * @param string $message The warning message.
      */
+    #[\Override]
     public function warning(string $message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
@@ -58,6 +59,7 @@ class template_logger implements template_import_logger_interface {
      *
      * @param string $message The informational message.
      */
+    #[\Override]
     public function info(string $message): void {
         if (CLI_SCRIPT) {
             mtrace($message);
@@ -70,6 +72,7 @@ class template_logger implements template_import_logger_interface {
     /**
      * Outputs all stored warning and info messages using Moodle’s notification system.
      */
+    #[\Override]
     public function print_notification(): void {
         foreach ($this->warnings as $message) {
             notification::warning($message);

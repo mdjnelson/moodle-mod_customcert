@@ -147,6 +147,7 @@ class manage_templates_table extends table_sql {
      * @param int $pagesize size of page for paginated displayed table.
      * @param bool $useinitialsbar do you want to use the initials bar.
      */
+    #[\Override]
     public function query_db($pagesize, $useinitialsbar = true) {
         // Use repository to fetch data with consistent ordering/paging.
         $repo = new template_repository();

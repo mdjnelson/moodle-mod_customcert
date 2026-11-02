@@ -21,6 +21,7 @@ namespace customcertelement_coursename;
 use advanced_testcase;
 use coding_exception;
 use mod_customcert\element\element_payload_interface;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for coursename_payload — the prototype element_payload_interface implementation.
@@ -29,8 +30,8 @@ use mod_customcert\element\element_payload_interface;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \customcertelement_coursename\coursename_payload
  */
+#[CoversClass(\customcertelement_coursename\coursename_payload::class)]
 final class coursename_payload_test extends advanced_testcase {
     /**
      * coursename_payload implements element_payload_interface.

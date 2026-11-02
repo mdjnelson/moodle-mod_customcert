@@ -42,6 +42,7 @@ final class legacy_and_native_plugin_provider implements plugin_provider {
      *
      * @return array<string,string>
      */
+    #[\Override]
     public function get_plugins(): array {
         return [
             'legacy45' => '/virtual/path',

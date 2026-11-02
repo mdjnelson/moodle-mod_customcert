@@ -68,6 +68,7 @@ final class bgimage_payload implements element_payload_interface {
      * @param array $data Associative array, typically from json_decode($raw, true).
      * @return static
      */
+    #[\Override]
     public static function from_array(array $data): static {
         $hasfile = isset(
             $data['contextid'],
@@ -92,6 +93,7 @@ final class bgimage_payload implements element_payload_interface {
      *
      * @return array
      */
+    #[\Override]
     public function to_array(): array {
         if ($this->contextid === null) {
             return [];
@@ -113,6 +115,7 @@ final class bgimage_payload implements element_payload_interface {
      * @return void
      * @throws \coding_exception If only some file metadata fields are present.
      */
+    #[\Override]
     public function validate(): void {
         $fields = [$this->contextid, $this->filearea, $this->itemid, $this->filepath, $this->filename];
         $set = array_filter($fields, fn($v) => $v !== null);

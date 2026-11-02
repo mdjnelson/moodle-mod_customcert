@@ -41,6 +41,7 @@ use mod_customcert\element\unknown_element;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -50,10 +51,9 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 
 /**
  * Proves a missing third-party element type survives restore intact and degrades gracefully.
- *
- * @covers \restore_customcert_activity_structure_step::process_customcert_element
- * @covers \mod_customcert\service\element_repository::load_by_page_id
  */
+#[CoversMethod(\restore_customcert_activity_structure_step::class, 'process_customcert_element')]
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'load_by_page_id')]
 final class restore_missing_third_party_element_test extends advanced_testcase {
     /** The fictitious type standing in for an uninstalled third-party plugin. */
     private const MISSING_TYPE = 'missing959notinstalled';

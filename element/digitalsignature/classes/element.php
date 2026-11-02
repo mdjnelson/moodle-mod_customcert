@@ -72,6 +72,7 @@ class element extends \customcertelement_image\element {
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return element_helper::render_html_content($this, '');
     }
@@ -82,6 +83,7 @@ class element extends \customcertelement_image\element {
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         // Image selector first.
         $mform->addElement('select', 'fileid', get_string('image', 'customcertelement_image'), self::get_images());
@@ -156,6 +158,7 @@ class element extends \customcertelement_image\element {
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         global $COURSE, $SITE;
 
@@ -229,6 +232,7 @@ class element extends \customcertelement_image\element {
      *
      * @return int|null
      */
+    #[\Override]
     public function get_width(): ?int {
         $payload = $this->get_payload();
         if (empty($payload)) {
@@ -242,6 +246,7 @@ class element extends \customcertelement_image\element {
      *
      * @return int|null
      */
+    #[\Override]
     public function get_height(): ?int {
         $payload = $this->get_payload();
         if (empty($payload)) {
@@ -256,6 +261,7 @@ class element extends \customcertelement_image\element {
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         global $COURSE, $SITE;
 
@@ -319,6 +325,7 @@ class element extends \customcertelement_image\element {
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         if (empty($this->get_data())) {
             return;
@@ -416,7 +423,7 @@ class element extends \customcertelement_image\element {
      * @param string $value The raw signaturepassword value from the backup.
      * @return string The normalised value safe to store in customcert_elements.data.
      */
-    public static function normalise_restore_password(string $value): string {
+    public static function normalise_restore_password(#[\SensitiveParameter] string $value): string {
         if ($value === '') {
             return '';
         }
@@ -446,7 +453,7 @@ class element extends \customcertelement_image\element {
      * @param string $submitted The value submitted via the form password field.
      * @return string
      */
-    private function resolve_password(string $submitted): string {
+    private function resolve_password(#[\SensitiveParameter] string $submitted): string {
         if ($submitted !== '') {
             // A new password was supplied — encrypt it before storing.
             return \core\encryption::encrypt($submitted);
@@ -481,6 +488,7 @@ class element extends \customcertelement_image\element {
      *
      * @return bool
      */
+    #[\Override]
     public function has_save_and_continue(): bool {
         return true;
     }

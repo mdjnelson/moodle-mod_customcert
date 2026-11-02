@@ -65,6 +65,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         $mform->addElement(
             'select',
@@ -85,6 +86,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         // Preselect the stored value if present (options populated centrally).
         $value = $this->get_selected_display_field();
@@ -99,6 +101,7 @@ class element extends base_element implements
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         $payload = new coursename_payload(
             coursenamedisplay: isset($formdata->coursenamedisplay) ? (int)$formdata->coursenamedisplay : self::COURSE_FULL_NAME,
@@ -115,6 +118,7 @@ class element extends base_element implements
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         element_helper::render_content($pdf, $this, $this->get_course_name_detail());
     }
@@ -127,6 +131,7 @@ class element extends base_element implements
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         return element_helper::render_html_content($this, $this->get_course_name_detail());
     }

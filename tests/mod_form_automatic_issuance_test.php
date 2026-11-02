@@ -32,6 +32,7 @@ use context_course;
 use mod_customcert\callback\instance_callbacks;
 use MoodleQuickForm;
 use ReflectionClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -47,6 +48,9 @@ require_once($CFG->libdir . '/formslib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert_mod_form::class, 'get_options_elements_with_required_caps')]
+#[CoversMethod(\mod_customcert_mod_form::class, 'data_postprocessing')]
+#[CoversMethod(\mod_customcert\callback\instance_callbacks::class, 'update_instance')]
 final class mod_form_automatic_issuance_test extends advanced_testcase {
     /**
      * Build a mod_customcert_mod_form with the given context, skipping the constructor (which
@@ -99,8 +103,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
      * simply never registered on the form for a capability-less user, so it is absent from
      * submitted data and update_instance() never writes over the stored value (see the
      * test_update_instance_* tests below).
-     *
-     * @covers \mod_customcert_mod_form::get_options_elements_with_required_caps
      */
     public function test_options_elements_with_required_caps_includes_issueautomatically(): void {
         $this->resetAfterTest();
@@ -120,8 +122,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
      * A user without manageautomaticissuance never has the field in their submitted data (the
      * mform never registers it for them), so on a new instance it falls back to the default.
      * This is the same mechanism that already protects emailstudents/emailteachers/emailothers.
-     *
-     * @covers \mod_customcert_mod_form::data_postprocessing
      */
     public function test_new_instance_defaults_issueautomatically_without_capability(): void {
         $this->resetAfterTest();
@@ -144,8 +144,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
     /**
      * A user with manageautomaticissuance submits the field normally, and their value passes
      * through data_postprocessing() untouched.
-     *
-     * @covers \mod_customcert_mod_form::data_postprocessing
      */
     public function test_new_instance_preserves_submitted_issueautomatically_with_capability(): void {
         $this->resetAfterTest();
@@ -167,8 +165,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
      * Editing an existing certificate as a user without manageautomaticissuance must not reset
      * issueautomatically: since the field was never in their submitted data, update_instance()
      * only ever writes the columns actually present on $data, leaving the stored value alone.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::update_instance
      */
     public function test_update_instance_preserves_issueautomatically_when_absent_from_submission(): void {
         global $DB;
@@ -201,8 +197,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
     /**
      * A user with manageautomaticissuance submits a real change to the setting, and
      * update_instance() applies it.
-     *
-     * @covers \mod_customcert\callback\instance_callbacks::update_instance
      */
     public function test_update_instance_applies_issueautomatically_when_submitted(): void {
         global $DB;
@@ -225,8 +219,6 @@ final class mod_form_automatic_issuance_test extends advanced_testcase {
      * mod/customcert:manageautomaticissuance is independent of mod/customcert:manageemailothers:
      * a user who can manage "Email others" but not automatic issuance keeps their emailothers
      * submission untouched while issueautomatically still falls back to the default.
-     *
-     * @covers \mod_customcert_mod_form::data_postprocessing
      */
     public function test_manageautomaticissuance_independent_of_manageemailothers(): void {
         $this->resetAfterTest();

@@ -99,6 +99,7 @@ class email_certificate implements renderable, templatable {
      * @param renderer_base $renderer The render to be used for formatting the email
      * @return stdClass The data ready for use in a mustache template
      */
+    #[\Override]
     public function export_for_template(renderer_base $renderer): stdClass {
         $data = new stdClass();
 

@@ -40,6 +40,7 @@ final class minimal_persistable_element implements persistable_element_interface
      * @param stdClass $formdata Raw form data.
      * @return array
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         return ['value' => (string)($formdata->text ?? '')];
     }

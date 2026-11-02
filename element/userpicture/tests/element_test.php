@@ -34,6 +34,7 @@ use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\validatable_element_interface;
 use stdClass;
 use pdf;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -48,6 +49,7 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_userpicture\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -78,8 +80,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element can be instantiated.
-     *
-     * @covers \customcertelement_userpicture\element
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -88,8 +88,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_userpicture\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -101,8 +99,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns width and height.
-     *
-     * @covers \customcertelement_userpicture\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -114,8 +110,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_userpicture\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -126,8 +120,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_userpicture\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record());
@@ -136,8 +128,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns an img tag when data is set.
-     *
-     * @covers \customcertelement_userpicture\element::render_html
      */
     public function test_render_html_returns_img_tag(): void {
         $this->resetAfterTest();
@@ -154,8 +144,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_name() returns the element name.
-     *
-     * @covers \customcertelement_userpicture\element
      */
     public function test_get_name(): void {
         $el = new element($this->make_record());
@@ -164,8 +152,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render() draws the default picture on the PDF in preview mode when the user has none.
-     *
-     * @covers \customcertelement_userpicture\element::render
      */
     public function test_render_preview_draws_default_picture_on_pdf(): void {
         $this->resetAfterTest();
@@ -180,8 +166,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render() draws nothing outside preview mode when the user has no picture.
-     *
-     * @covers \customcertelement_userpicture\element::render
      */
     public function test_render_without_picture_draws_nothing(): void {
         $this->resetAfterTest();
@@ -196,8 +180,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() wraps the picture in the styled designer container.
-     *
-     * @covers \customcertelement_userpicture\element::render_html
      */
     public function test_render_html_wraps_picture_in_styled_container(): void {
         $this->resetAfterTest();

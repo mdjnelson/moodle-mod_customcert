@@ -40,6 +40,7 @@ class mod_customcert_mod_form extends moodleform_mod {
     /**
      * Form definition.
      */
+    #[\Override]
     public function definition() {
         global $CFG;
 
@@ -146,6 +147,7 @@ class mod_customcert_mod_form extends moodleform_mod {
     /**
      * Add elements to form.
      */
+    #[\Override]
     public function add_completion_rules() {
         $mform =& $this->_form;
         $suffix = $this->get_suffix();
@@ -186,6 +188,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @param array $data Input data (not yet validated)
      * @return bool True if one or more rules is enabled, false if none are.
      */
+    #[\Override]
     public function completion_rule_enabled($data) {
         return !empty($data['completionemailed' . $this->get_suffix()]);
     }
@@ -195,6 +198,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      *
      * @param array $defaultvalues
      */
+    #[\Override]
     public function data_preprocessing(&$defaultvalues) {
         // Set the values in the form to what has been set in database if updating
         // or set default configured values if creating.
@@ -220,6 +224,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      *
      * @throws dml_exception
      */
+    #[\Override]
     public function data_postprocessing($data) {
         global $DB;
 
@@ -264,6 +269,7 @@ class mod_customcert_mod_form extends moodleform_mod {
      * @param array $files
      * @return array the errors that were found
      */
+    #[\Override]
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 

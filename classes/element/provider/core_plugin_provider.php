@@ -29,6 +29,7 @@ final class core_plugin_provider implements plugin_provider {
     /**
      * {@inheritdoc}
      */
+    #[\Override]
     public function get_plugins(): array {
         return \core_component::get_plugin_list('customcertelement');
     }

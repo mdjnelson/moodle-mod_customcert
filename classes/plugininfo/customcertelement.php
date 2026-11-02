@@ -39,6 +39,7 @@ class customcertelement extends base {
      *
      * @return bool
      */
+    #[\Override]
     public function is_uninstall_allowed(): bool {
         return false;
     }
@@ -50,6 +51,7 @@ class customcertelement extends base {
      * @param string $parentnodename
      * @param bool $hassiteconfig whether the current user has moodle/site:config capability
      */
+    #[\Override]
     public function load_settings(\part_of_admin_tree $adminroot, $parentnodename, $hassiteconfig): void {
         global $CFG, $USER, $DB, $OUTPUT, $PAGE;
         $ADMIN = $adminroot;
@@ -75,6 +77,7 @@ class customcertelement extends base {
      *
      * @return null|string the settings section name.
      */
+    #[\Override]
     public function get_settings_section_name(): ?string {
         if (file_exists($this->full_path('settings.php'))) {
             return 'customcertelement_' . $this->name;

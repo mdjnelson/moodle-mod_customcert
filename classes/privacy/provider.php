@@ -51,6 +51,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      * @param collection $items a reference to the collection to use to store the metadata.
      * @return collection the updated collection of metadata items.
      */
+    #[\Override]
     public static function get_metadata(collection $items): collection {
         $items->add_database_table(
             'customcert_issues',
@@ -74,6 +75,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      * @param int $userid the userid.
      * @return contextlist the list of contexts containing user info for the user.
      */
+    #[\Override]
     public static function get_contexts_for_userid(int $userid): contextlist {
         $sql = "SELECT c.id
                   FROM {context} c
@@ -105,6 +107,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param userlist $userlist The userlist containing the list of users who have data in this context/plugin combination.
      */
+    #[\Override]
     public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
 
@@ -136,6 +139,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_contextlist $contextlist a list of contexts approved for export.
      */
+    #[\Override]
     public static function export_user_data(approved_contextlist $contextlist): void {
         global $DB;
 
@@ -191,6 +195,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param context $context the context to delete in.
      */
+    #[\Override]
     public static function delete_data_for_all_users_in_context(context $context): void {
         global $DB;
 
@@ -210,6 +215,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_contextlist $contextlist a list of contexts approved for deletion.
      */
+    #[\Override]
     public static function delete_data_for_user(approved_contextlist $contextlist): void {
         global $DB;
 
@@ -232,6 +238,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      *
      * @param approved_userlist $userlist The approved context and user information to delete information for.
      */
+    #[\Override]
     public static function delete_data_for_users(approved_userlist $userlist): void {
         global $DB;
 

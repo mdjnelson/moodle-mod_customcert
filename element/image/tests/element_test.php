@@ -35,6 +35,7 @@ use mod_customcert\element\validatable_element_interface;
 use stdClass;
 use context_system;
 use pdf;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -49,6 +50,7 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_image\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -79,8 +81,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element can be instantiated from a record.
-     *
-     * @covers \customcertelement_image\element
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -89,8 +89,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_image\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -102,8 +100,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_image\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record());
@@ -112,8 +108,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when data has no filename.
-     *
-     * @covers \customcertelement_image\element::render_html
      */
     public function test_render_html_empty_when_no_filename(): void {
         $el = new element($this->make_record([
@@ -124,8 +118,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_width() returns null when no data is set.
-     *
-     * @covers \customcertelement_image\element::get_width
      */
     public function test_get_width_null_when_no_data(): void {
         $el = new element($this->make_record());
@@ -134,8 +126,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_width() returns the stored width value.
-     *
-     * @covers \customcertelement_image\element::get_width
      */
     public function test_get_width_returns_stored_value(): void {
         $el = new element($this->make_record([
@@ -146,8 +136,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_height() returns the stored height value.
-     *
-     * @covers \customcertelement_image\element::get_height
      */
     public function test_get_height_returns_stored_value(): void {
         $el = new element($this->make_record([
@@ -158,8 +146,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that has_save_and_continue() returns true.
-     *
-     * @covers \customcertelement_image\element::has_save_and_continue
      */
     public function test_has_save_and_continue(): void {
         $el = new element($this->make_record());
@@ -168,8 +154,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'image'.
-     *
-     * @covers \customcertelement_image\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -178,8 +162,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render() draws nothing on the PDF when no data is set.
-     *
-     * @covers \customcertelement_image\element::render
      */
     public function test_render_without_data_draws_nothing(): void {
         $el = new element($this->make_record());
@@ -193,8 +175,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render() draws a stored image on the PDF.
-     *
-     * @covers \customcertelement_image\element::render
      */
     public function test_render_with_stored_file_draws_image_on_pdf(): void {
         $this->resetAfterTest();
@@ -212,8 +192,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() wraps the image in the styled designer container.
-     *
-     * @covers \customcertelement_image\element::render_html
      */
     public function test_render_html_wraps_image_in_styled_container(): void {
         $this->resetAfterTest();

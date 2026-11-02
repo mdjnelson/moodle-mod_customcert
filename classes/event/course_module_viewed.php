@@ -35,6 +35,7 @@ class course_module_viewed extends \core\event\course_module_viewed {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['objecttable'] = 'customcert';
         parent::init();
@@ -45,6 +46,7 @@ class course_module_viewed extends \core\event\course_module_viewed {
      *
      * @return string[]
      */
+    #[\Override]
     public static function get_objectid_mapping(): array {
         return ['db' => 'customcert', 'restore' => 'customcert'];
     }
@@ -54,6 +56,7 @@ class course_module_viewed extends \core\event\course_module_viewed {
      *
      * @return bool
      */
+    #[\Override]
     public static function get_other_mapping() {
         // No need to map.
         return false;

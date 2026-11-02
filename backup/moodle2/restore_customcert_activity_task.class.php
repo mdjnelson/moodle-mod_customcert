@@ -59,6 +59,7 @@ class restore_customcert_activity_task extends restore_activity_task {
     /**
      * Define  particular settings this activity can have.
      */
+    #[\Override]
     protected function define_my_settings() {
         // No particular settings for this activity.
     }
@@ -66,6 +67,7 @@ class restore_customcert_activity_task extends restore_activity_task {
     /**
      * Define particular steps this activity can have.
      */
+    #[\Override]
     protected function define_my_steps() {
         // The customcert only has one structure step.
         $this->add_step(new restore_customcert_activity_structure_step('customcert_structure', 'customcert.xml'));
@@ -74,6 +76,7 @@ class restore_customcert_activity_task extends restore_activity_task {
     /**
      * Define the contents in the activity that must be processed by the link decoder.
      */
+    #[\Override]
     public static function define_decode_contents() {
         $contents = [];
 
@@ -85,6 +88,7 @@ class restore_customcert_activity_task extends restore_activity_task {
     /**
      * Define the decoding rules for links belonging to the activity to be executed by the link decoder.
      */
+    #[\Override]
     public static function define_decode_rules() {
         $rules = [];
 
@@ -100,6 +104,7 @@ class restore_customcert_activity_task extends restore_activity_task {
      *
      * @return array the restore log rules
      */
+    #[\Override]
     public static function define_restore_log_rules() {
         $rules = [];
 

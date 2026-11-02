@@ -104,6 +104,7 @@ final class digitalsignature_payload implements element_payload_interface {
      * @param array $data Associative array, typically from json_decode($raw, true).
      * @return static
      */
+    #[\Override]
     public static function from_array(array $data): static {
         $hasfile = isset(
             $data['contextid'],
@@ -147,6 +148,7 @@ final class digitalsignature_payload implements element_payload_interface {
      *
      * @return array
      */
+    #[\Override]
     public function to_array(): array {
         $data = [
             'signaturename' => $this->signaturename,
@@ -183,6 +185,7 @@ final class digitalsignature_payload implements element_payload_interface {
      * @return void
      * @throws \coding_exception If only some fields within a file group are present.
      */
+    #[\Override]
     public function validate(): void {
         $imagefields = [$this->contextid, $this->filearea, $this->itemid, $this->filepath, $this->filename];
         $imageset = array_filter($imagefields, fn($v) => $v !== null);

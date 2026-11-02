@@ -44,6 +44,7 @@ class import_form extends moodleform {
     /**
      * Build the template ZIP upload form.
      */
+    #[\Override]
     protected function definition(): void {
         $mform = $this->_form;
 

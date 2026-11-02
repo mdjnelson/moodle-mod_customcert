@@ -64,6 +64,7 @@ class float_field implements field_interface {
      * @return float The validated float value.
      * @throws format_exception If the value is not numeric or is outside the defined bounds.
      */
+    #[\Override]
     public function import(array $data): mixed {
         $value = $data['value'];
 
@@ -87,6 +88,7 @@ class float_field implements field_interface {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
+    #[\Override]
     public function export(mixed $value): array {
         return [
             'value' => $value,
@@ -98,6 +100,7 @@ class float_field implements field_interface {
      *
      * @return float Default value
      */
+    #[\Override]
     public function get_fallback(): mixed {
         if ($this->min !== null) {
             return $this->min;

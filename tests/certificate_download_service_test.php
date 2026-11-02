@@ -26,6 +26,7 @@ use mod_customcert\service\template_service;
 use moodle_exception;
 use stdClass;
 use zip_archive;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for the certificate_download_service.
@@ -33,12 +34,11 @@ use zip_archive;
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\certificate_download_service
  */
+#[CoversClass(\mod_customcert\service\certificate_download_service::class)]
 final class certificate_download_service_test extends advanced_testcase {
     /**
      * Ensure instance download builds a ZIP archive of certificate PDFs.
-     * @covers ::download_all_issues_for_instance
      */
     public function test_download_all_issues_for_instance_creates_zip(): void {
         global $DB;
@@ -104,8 +104,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * Ensure site-wide download builds a ZIP archive of certificate PDFs.
-     * @covers ::download_all_for_site
-     * @covers ::generate_all_for_site_zip
      */
     public function test_download_all_for_site_creates_zip(): void {
         global $DB;
@@ -165,8 +163,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * Ensure multiple certificates sharing a template name are all retained with distinct paths.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_site_zip_retains_all_issues_with_same_template_name(): void {
         global $DB;
@@ -236,8 +232,6 @@ final class certificate_download_service_test extends advanced_testcase {
     /**
      * Activity names that differ only by characters stripped by clean_filename() must still
      * produce distinct archive paths once the issue id is appended.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_site_zip_retains_issues_with_sanitisation_colliding_names(): void {
         global $DB;
@@ -317,8 +311,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * The archive path must be built from the certificate activity name, not the template name.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_site_zip_uses_activity_name_not_template_name(): void {
         global $DB;
@@ -372,8 +364,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * generate_all_for_site_zip returns null when there are no certificates.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_generate_all_for_site_zip_returns_null_when_no_certificates(): void {
         global $DB;
@@ -391,8 +381,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * generate_all_for_site_zip throws when the temporary directory cannot be created.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_generate_all_for_site_zip_throws_when_temp_dir_fails(): void {
         global $DB;
@@ -420,8 +408,6 @@ final class certificate_download_service_test extends advanced_testcase {
 
     /**
      * generate_all_for_site_zip throws when the zip archive cannot be opened/created.
-     *
-     * @covers ::generate_all_for_site_zip
      */
     public function test_generate_all_for_site_zip_throws_when_zip_open_fails(): void {
         global $DB;

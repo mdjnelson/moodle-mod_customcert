@@ -25,6 +25,7 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\persistence_helper;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Tests that element data is always stored as JSON for v2 (persistable) elements.
@@ -33,8 +34,8 @@ use stdClass;
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversNothing
  */
+#[CoversNothing]
 final class persistence_json_test extends advanced_testcase {
     /**
      * Create a minimal template + page and return their IDs.

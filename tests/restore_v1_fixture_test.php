@@ -26,6 +26,7 @@ use stdClass;
 use context_course;
 use context_module;
 use grade_item;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -42,8 +43,8 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversNothing
  */
+#[CoversNothing]
 final class restore_v1_fixture_test extends advanced_testcase {
     /**
      * Verify restoring the v1 fixture produces valid JSON payloads with merged visuals.

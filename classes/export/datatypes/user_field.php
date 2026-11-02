@@ -48,6 +48,7 @@ class user_field implements field_interface {
      * @return int The validated user ID.
      * @throws format_exception If the user does not exist or the name does not match.
      */
+    #[\Override]
     public function import(array $data): mixed {
         global $DB;
 
@@ -74,6 +75,7 @@ class user_field implements field_interface {
      * @param mixed $value The user ID to export.
      * @return array Exported data with 'userid' and 'fullname' keys, or an empty array.
      */
+    #[\Override]
     public function export(mixed $value): array {
         global $DB;
 
@@ -99,6 +101,7 @@ class user_field implements field_interface {
      *
      * @return int Fallback user ID (0 = no user).
      */
+    #[\Override]
     public function get_fallback(): mixed {
         return 0;
     }

@@ -55,6 +55,7 @@ final class unknown_element extends element implements renderable_element_interf
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
     }
 
@@ -64,6 +65,7 @@ final class unknown_element extends element implements renderable_element_interf
      * @param edit_element_form $editelementform
      * @return void
      */
+    #[\Override]
     public function set_edit_element_form(edit_element_form $editelementform): void {
     }
 
@@ -73,6 +75,7 @@ final class unknown_element extends element implements renderable_element_interf
      * @return edit_element_form
      * @throws \coding_exception always
      */
+    #[\Override]
     public function get_edit_element_form(): edit_element_form {
         throw new \coding_exception('unknown_element does not support edit forms.');
     }
@@ -85,6 +88,7 @@ final class unknown_element extends element implements renderable_element_interf
      * @param stdClass $user
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // Do not render anything to PDF to avoid altering certificate output.
     }
@@ -95,6 +99,7 @@ final class unknown_element extends element implements renderable_element_interf
      * @return string
      * @throws \coding_exception
      */
+    #[\Override]
     public function render_html(): string {
         $label = get_string('unknownelementtype', 'mod_customcert');
         $message = $label . ': ' . s($this->unknowntype);

@@ -39,12 +39,15 @@ use mod_customcert\service\element_registry;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Request-level ownership tests for edit_element.php.
- *
- * @group mod_customcert
  */
+#[CoversMethod(\mod_customcert\service\element_repository::class, 'get_for_template_or_fail')]
+#[CoversMethod(\mod_customcert\service\page_repository::class, 'get_for_template_or_fail')]
+#[Group('mod_customcert')]
 final class edit_element_test extends advanced_testcase {
     /**
      * Helper to create a course, template, page, and element.
@@ -89,8 +92,6 @@ final class edit_element_test extends advanced_testcase {
 
     /**
      * Simulates the 'edit' action in edit_element.php: tid from course A, id from course B should fail.
-     *
-     * @covers \mod_customcert\service\element_repository::get_for_template_or_fail
      */
     public function test_edit_action_mismatched_tid_and_id_throws(): void {
         $this->resetAfterTest();
@@ -110,8 +111,6 @@ final class edit_element_test extends advanced_testcase {
 
     /**
      * Simulates the 'add' action in edit_element.php: tid from course A, pageid from course B should fail.
-     *
-     * @covers \mod_customcert\service\page_repository::get_for_template_or_fail
      */
     public function test_add_action_mismatched_tid_and_pageid_throws(): void {
         $this->resetAfterTest();
@@ -131,8 +130,6 @@ final class edit_element_test extends advanced_testcase {
 
     /**
      * Simulates the 'edit' action in edit_element.php: matching tid and id should succeed.
-     *
-     * @covers \mod_customcert\service\element_repository::get_for_template_or_fail
      */
     public function test_edit_action_matching_tid_and_id_succeeds(): void {
         $this->resetAfterTest();
@@ -147,8 +144,6 @@ final class edit_element_test extends advanced_testcase {
 
     /**
      * Simulates the 'add' action in edit_element.php: matching tid and pageid should succeed.
-     *
-     * @covers \mod_customcert\service\page_repository::get_for_template_or_fail
      */
     public function test_add_action_matching_tid_and_pageid_succeeds(): void {
         $this->resetAfterTest();

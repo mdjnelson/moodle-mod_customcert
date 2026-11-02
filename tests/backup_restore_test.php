@@ -31,6 +31,7 @@ use restore_controller;
 use restore_dbops;
 use restore_date_testcase;
 use mod_customcert\service\certificate_issue_service;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -46,13 +47,12 @@ require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\backup_customcert_activity_structure_step::class)]
+#[CoversClass(\restore_customcert_activity_structure_step::class)]
 final class backup_restore_test extends restore_date_testcase {
     /**
      * completionemailed on the instance, and studentemailed on an issue, must both survive a
      * course backup and restore -- neither field was originally included in the backup structure.
-     *
-     * @covers \backup_customcert_activity_structure_step
-     * @covers \restore_customcert_activity_structure_step
      */
     public function test_backup_restore_preserves_completionemailed_and_studentemailed(): void {
         global $DB;
@@ -83,9 +83,6 @@ final class backup_restore_test extends restore_date_testcase {
     /**
      * NULL studentemailed (legacy/unknown) must survive backup and restore as NULL, not be
      * coerced into 0.
-     *
-     * @covers \backup_customcert_activity_structure_step
-     * @covers \restore_customcert_activity_structure_step
      */
     public function test_backup_restore_preserves_null_studentemailed(): void {
         global $DB;
@@ -114,8 +111,6 @@ final class backup_restore_test extends restore_date_testcase {
      * A backup predating studentemailed has no <studentemailed> element at all. Restoring it must
      * leave the issue NULL (legacy/unknown), not 0, and must not trigger a re-email. Simulated by
      * stripping the element from a real backup's activity XML before restoring.
-     *
-     * @covers \restore_customcert_activity_structure_step::process_customcert_issue
      */
     public function test_restore_from_backup_predating_studentemailed_treated_as_unknown(): void {
         global $DB, $USER, $CFG;

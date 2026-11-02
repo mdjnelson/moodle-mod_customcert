@@ -48,6 +48,7 @@ class form_element_test_element extends element implements element_interface, fo
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         $this->called = true;
         $mform->addElement('text', 'customfield', 'Custom field', []);
@@ -71,6 +72,7 @@ class form_element_test_element extends element implements element_interface, fo
      * @param stdClass $user
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         // No-op for fixture.
     }
@@ -80,6 +82,7 @@ class form_element_test_element extends element implements element_interface, fo
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

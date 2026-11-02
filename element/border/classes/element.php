@@ -54,6 +54,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function build_form(MoodleQuickForm $mform): void {
         element_helper::render_form_element_width($mform);
         element_helper::render_form_element_colour($mform);
@@ -65,6 +66,7 @@ class element extends base_element implements
      * @param MoodleQuickForm $mform
      * @return void
      */
+    #[\Override]
     public function prepare_form(MoodleQuickForm $mform): void {
         $width = $this->get_width();
         if ($width !== null) {
@@ -79,6 +81,7 @@ class element extends base_element implements
      * @param bool $preview true if it is a preview, false otherwise
      * @param stdClass $user the user we are rendering this for
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         $colour = TCPDF_COLORS::convertHTMLColorToDec($this->get_colour(), $colour);
         $pdf->SetLineStyle(['width' => $this->get_width() ?? 0, 'color' => $colour]);
@@ -96,6 +99,7 @@ class element extends base_element implements
      *
      * @return string the html
      */
+    #[\Override]
     public function render_html(): string {
         return element_helper::render_html_content($this, '');
     }
@@ -106,6 +110,7 @@ class element extends base_element implements
      * @param stdClass $formdata Form submission data
      * @return array JSON-serialisable payload
      */
+    #[\Override]
     public function normalise_data(stdClass $formdata): array {
         return [
             'colour' => isset($formdata->colour) ? (string)$formdata->colour : '',

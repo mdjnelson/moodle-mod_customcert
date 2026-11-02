@@ -42,6 +42,7 @@ use mod_customcert\service\template_service;
 use mod_customcert\template;
 use pdf;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 global $CFG;
 
@@ -55,6 +56,7 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_expiry\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -93,8 +95,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_expiry\element::__construct
      */
     public function test_instantiation(): void {
         $el = new element($this->make_record());
@@ -103,8 +103,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_expiry\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -116,8 +114,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys and values.
-     *
-     * @covers \customcertelement_expiry\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -142,8 +138,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_expiry\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -159,8 +153,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_expiry\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record(['data' => null]));
@@ -169,8 +161,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a non-empty string for a date-based expiry.
-     *
-     * @covers \customcertelement_expiry\element::render_html
      */
     public function test_render_html_returns_date_string(): void {
         $el = new element($this->make_record());
@@ -181,8 +171,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a 'valid for' string when dateformat is 'validfor'.
-     *
-     * @covers \customcertelement_expiry\element::render_html
      */
     public function test_render_html_returns_validfor_string(): void {
         $el = new element($this->make_record([
@@ -238,8 +226,6 @@ final class element_test extends advanced_testcase {
      * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
      * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
      * JSON payload and exercises the full render_html() code path to prove the fix holds.
-     *
-     * @covers \customcertelement_expiry\element::render_html
      */
     public function test_render_html_with_legacy_integer_dateformat(): void {
         $el = new element($this->make_record([
@@ -266,8 +252,6 @@ final class element_test extends advanced_testcase {
      * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
      * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
      * JSON payload and exercises the full render() code path to prove the fix holds.
-     *
-     * @covers \customcertelement_expiry\element::render
      */
     public function test_render_with_legacy_integer_dateformat(): void {
         global $DB;
@@ -301,8 +285,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'expiry'.
-     *
-     * @covers \customcertelement_expiry\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());

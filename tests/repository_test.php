@@ -24,6 +24,8 @@ use mod_customcert\service\template_repository;
 use mod_customcert\service\template_service;
 use dml_missing_record_exception;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversFunction;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Unit tests for customcert repositories.
@@ -33,7 +35,33 @@ use moodle_exception;
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'create')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'mark_emailed')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'list_emailed_users')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'mark_student_emailed')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'mark_student_email_failed')]
+#[CoversMethod(\mod_customcert\service\certificate_repository::class, 'get_for_processing')]
+#[CoversMethod(\mod_customcert\service\certificate_repository::class, 'has_elements')]
+#[CoversMethod(\mod_customcert\service\certificate_repository::class, 'get_by_template_id_or_fail')]
+#[CoversMethod(\mod_customcert\service\issue_email_repository::class, 'get_customcert_for_email')]
+#[CoversMethod(\mod_customcert\service\issue_email_repository::class, 'get_user_for_issue')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'get_by_id_or_fail')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'delete')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'list_by_user_certificate')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'exists_for_user')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'list_by_certificate')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'delete_by_certificate')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'delete_by_course')]
+#[CoversMethod(\mod_customcert\service\template_repository::class, 'get_by_id')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'delete_for_certificate')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'get_issues')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'get_number_of_issues')]
+#[CoversMethod(\mod_customcert\service\certificate_repository::class, 'get_number_of_certificates_for_user')]
+#[CoversMethod(\mod_customcert\service\issue_repository::class, 'get_conditional_issues_sql')]
+#[CoversMethod(\mod_customcert\service\certificate_repository::class, 'get_certificates_for_user')]
+#[CoversFunction('xmldb_customcert_upgrade')]
 final class repository_test extends advanced_testcase {
+    #[\Override]
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
@@ -41,10 +69,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures issues can be created, marked emailed, and listed.
-     *
-     * @covers \mod_customcert\service\issue_repository::create
-     * @covers \mod_customcert\service\issue_repository::mark_emailed
-     * @covers \mod_customcert\service\issue_repository::list_emailed_users
      */
     public function test_issue_repository_marks_and_lists_emailed(): void {
         global $DB;
@@ -76,9 +100,6 @@ final class repository_test extends advanced_testcase {
     /**
      * With emailstudents enabled, list_emailed_users() must treat studentemailed = 0 as still a
      * candidate, and both 1 and NULL (legacy/unknown) as handled.
-     *
-     * @covers \mod_customcert\service\issue_repository::list_emailed_users
-     * @covers \mod_customcert\service\issue_repository::mark_student_emailed
      */
     public function test_list_emailed_users_requires_studentemailed_when_emailstudents_enabled(): void {
         global $DB;
@@ -107,8 +128,6 @@ final class repository_test extends advanced_testcase {
     /**
      * mark_student_email_failed() moves studentemailed from NULL to the explicit, retryable 0
      * state.
-     *
-     * @covers \mod_customcert\service\issue_repository::mark_student_email_failed
      */
     public function test_mark_student_email_failed_sets_explicit_zero(): void {
         global $DB;
@@ -131,9 +150,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Verifies certificate retrieval and element presence checks.
-     *
-     * @covers \mod_customcert\service\certificate_repository::get_for_processing
-     * @covers \mod_customcert\service\certificate_repository::has_elements
      */
     public function test_certificate_repository_gets_and_checks_elements(): void {
         global $DB;
@@ -160,8 +176,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures get_by_template_id_or_fail() returns the record when it exists.
-     *
-     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
     public function test_get_by_template_id_or_fail_returns_record(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -173,8 +187,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures get_by_template_id_or_fail() throws when no record exists.
-     *
-     * @covers \mod_customcert\service\certificate_repository::get_by_template_id_or_fail
      */
     public function test_get_by_template_id_or_fail_throws_when_missing(): void {
         $repository = new certificate_repository();
@@ -184,9 +196,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures email repository can load certificate and issued user records.
-     *
-     * @covers \mod_customcert\service\issue_email_repository::get_customcert_for_email
-     * @covers \mod_customcert\service\issue_email_repository::get_user_for_issue
      */
     public function test_issue_email_repository_loads_customcert_and_user(): void {
         global $DB;
@@ -221,8 +230,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures get_by_id_or_fail throws when issue does not exist.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_by_id_or_fail
      */
     public function test_issue_repository_get_by_id_or_fail_throws_when_missing(): void {
         $this->expectException(dml_missing_record_exception::class);
@@ -231,8 +238,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures get_by_id_or_fail returns the record when it exists.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_by_id_or_fail
      */
     public function test_issue_repository_get_by_id_or_fail_returns_record(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -248,8 +253,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures delete removes the issue record.
-     *
-     * @covers \mod_customcert\service\issue_repository::delete
      */
     public function test_issue_repository_delete_removes_record(): void {
         global $DB;
@@ -266,8 +269,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures list_by_user_certificate returns all issues for a user/certificate pair.
-     *
-     * @covers \mod_customcert\service\issue_repository::list_by_user_certificate
      */
     public function test_issue_repository_list_by_user_certificate(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -283,8 +284,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures exists_for_user returns correct boolean.
-     *
-     * @covers \mod_customcert\service\issue_repository::exists_for_user
      */
     public function test_issue_repository_exists_for_user(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -299,8 +298,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures list_by_certificate returns all issues for a certificate.
-     *
-     * @covers \mod_customcert\service\issue_repository::list_by_certificate
      */
     public function test_issue_repository_list_by_certificate(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -318,8 +315,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures delete_by_certificate removes all issues for a certificate.
-     *
-     * @covers \mod_customcert\service\issue_repository::delete_by_certificate
      */
     public function test_issue_repository_delete_by_certificate(): void {
         global $DB;
@@ -336,8 +331,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures delete_by_course removes all issues for all certificates in a course.
-     *
-     * @covers \mod_customcert\service\issue_repository::delete_by_course
      */
     public function test_issue_repository_delete_by_course(): void {
         global $DB;
@@ -356,8 +349,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Ensures template_repository::get_by_id returns null when not found and the record when found.
-     *
-     * @covers \mod_customcert\service\template_repository::get_by_id
      */
     public function test_template_repository_get_by_id(): void {
         $repo = new template_repository();
@@ -371,9 +362,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * Email repository should return null for missing records.
-     *
-     * @covers \mod_customcert\service\issue_email_repository::get_customcert_for_email
-     * @covers \mod_customcert\service\issue_email_repository::get_user_for_issue
      */
     public function test_issue_email_repository_handles_missing_records(): void {
         $emailrepo = new issue_email_repository();
@@ -383,8 +371,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * delete_for_certificate deletes the issue when it belongs to the certificate.
-     *
-     * @covers \mod_customcert\service\issue_repository::delete_for_certificate
      */
     public function test_delete_for_certificate_deletes_matching_issue(): void {
         global $DB;
@@ -399,8 +385,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * delete_for_certificate throws an exception when the issue does not belong to the certificate.
-     *
-     * @covers \mod_customcert\service\issue_repository::delete_for_certificate
      */
     public function test_delete_for_certificate_throws_for_wrong_certificate(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -415,8 +399,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * get_issues returns issued users for a certificate.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_issues
      */
     public function test_get_issues_returns_issued_users(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -433,8 +415,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * get_number_of_issues returns the correct count.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
      */
     public function test_get_number_of_issues_returns_correct_count(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -449,8 +429,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * get_number_of_certificates_for_user returns the correct count.
-     *
-     * @covers \mod_customcert\service\certificate_repository::get_number_of_certificates_for_user
      */
     public function test_get_number_of_certificates_for_user(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -466,10 +444,6 @@ final class repository_test extends advanced_testcase {
     /**
      * In separate groups mode, a viewer without accessallgroups and no selected current group
      * sees no issues, and get_conditional_issues_sql() reflects the same restriction.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_issues
-     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
-     * @covers \mod_customcert\service\issue_repository::get_conditional_issues_sql
      */
     public function test_group_restrictions_hide_issues_without_accessallgroups(): void {
         $course = $this->getDataGenerator()->create_course([
@@ -502,8 +476,6 @@ final class repository_test extends advanced_testcase {
     /**
      * A viewer who can access all groups (e.g. an admin) sees every issue regardless of the
      * course's separate-groups configuration.
-     *
-     * @covers \mod_customcert\service\issue_repository::get_number_of_issues
      */
     public function test_group_restrictions_do_not_apply_with_accessallgroups(): void {
         $course = $this->getDataGenerator()->create_course([
@@ -529,8 +501,6 @@ final class repository_test extends advanced_testcase {
 
     /**
      * get_certificates_for_user returns the certificates issued to a user.
-     *
-     * @covers \mod_customcert\service\certificate_repository::get_certificates_for_user
      */
     public function test_get_certificates_for_user(): void {
         $course = $this->getDataGenerator()->create_course();
@@ -550,8 +520,6 @@ final class repository_test extends advanced_testcase {
      * The upgrade step that introduced studentemailed must leave pre-existing issues NULL
      * (legacy/unknown), never 0. Drops the column to simulate a site upgrading from before it
      * existed, then re-runs the upgrade step against a table that already has data.
-     *
-     * @covers ::xmldb_customcert_upgrade
      */
     public function test_upgrade_leaves_historical_issues_studentemailed_null(): void {
         global $DB, $CFG;
@@ -587,8 +555,6 @@ final class repository_test extends advanced_testcase {
     /**
      * The upgrade step that introduced issueautomatically must default existing certificates to
      * 0 (disabled), preserving the #672 behaviour for sites that have not opted in.
-     *
-     * @covers ::xmldb_customcert_upgrade
      */
     public function test_upgrade_defaults_issueautomatically_to_disabled(): void {
         global $DB, $CFG;

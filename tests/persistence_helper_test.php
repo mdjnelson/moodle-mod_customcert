@@ -23,6 +23,8 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\service\persistence_helper;
 use mod_customcert\tests\fixtures\minimal_persistable_element;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -35,9 +37,9 @@ require_once(__DIR__ . '/fixtures/minimal_persistable_element.php');
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_customcert\service\persistence_helper::to_json_data
- * @covers \mod_customcert\service\persistence_helper::to_object_json
  */
+#[CoversMethod(\mod_customcert\service\persistence_helper::class, 'to_json_data')]
+#[CoversMethod(\mod_customcert\service\persistence_helper::class, 'to_object_json')]
 final class persistence_helper_test extends advanced_testcase {
     /**
      * Data provider for to_object_json() invariant tests.
@@ -69,10 +71,10 @@ final class persistence_helper_test extends advanced_testcase {
     /**
      * to_object_json() must always return a JSON object string.
      *
-     * @dataProvider to_object_json_provider
      * @param mixed $input
      * @param mixed $expected decoded result (null means "just verify it is an empty object")
      */
+    #[DataProvider('to_object_json_provider')]
     public function test_to_object_json_always_returns_object(mixed $input, mixed $expected): void {
         $json = persistence_helper::to_object_json($input);
         $this->assertIsString($json);

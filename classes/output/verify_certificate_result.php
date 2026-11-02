@@ -104,6 +104,7 @@ class verify_certificate_result implements renderable, templatable {
      * @param renderer_base $output Used to do a final render of any components that need to be rendered for export.
      * @return stdClass|array
      */
+    #[\Override]
     public function export_for_template(renderer_base $output): stdClass {
         $result = new stdClass();
         $result->userprofileurl = $this->userprofileurl;

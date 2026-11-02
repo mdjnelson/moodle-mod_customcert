@@ -28,6 +28,8 @@ use mod_customcert\tests\fixtures\minimal_restore_task;
 use mod_customcert\tests\fixtures\new_restorable_element;
 use restore_customcert_activity_task;
 use mod_customcert\local\upgrade\row_migrator;
+use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -48,8 +50,8 @@ require_once(__DIR__ . '/fixtures/new_restorable_element.php');
  * @category   test
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversNothing
  */
+#[CoversNothing]
 final class restore_hooks_json_test extends advanced_testcase {
     /**
      * Create minimal template/page and return page id.
@@ -284,10 +286,10 @@ final class restore_hooks_json_test extends advanced_testcase {
      * Verify the production JSON-detection logic in restore_customcert_stepslib correctly
      * classifies each data shape as legacy or not.
      *
-     * @dataProvider json_detection_cases
      * @param string|null $rawdata
      * @param bool $expectedlegacy
      */
+    #[DataProvider('json_detection_cases')]
     public function test_json_detection_classifies_data_correctly(?string $rawdata, bool $expectedlegacy): void {
         $decoded = null;
         $isjson = false;

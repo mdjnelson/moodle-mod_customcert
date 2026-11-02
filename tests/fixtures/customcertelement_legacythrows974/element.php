@@ -54,6 +54,7 @@ class element extends \mod_customcert\element implements renderable_element_inte
      * @param stdClass $user
      * @return void
      */
+    #[\Override]
     public function render(pdf $pdf, bool $preview, stdClass $user): void {
         unset($pdf, $preview, $user);
     }
@@ -63,6 +64,7 @@ class element extends \mod_customcert\element implements renderable_element_inte
      *
      * @return string
      */
+    #[\Override]
     public function render_html(): string {
         return '';
     }

@@ -44,6 +44,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      *
      * @return string
      */
+    #[\Override]
     public function get_internal_log_table_name(): string {
         return $this->tablename;
     }
@@ -53,6 +54,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      *
      * @return string
      */
+    #[\Override]
     public function get_name() {
         return 'stub';
     }
@@ -62,6 +64,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      *
      * @return string
      */
+    #[\Override]
     public function get_description() {
         return 'stub';
     }
@@ -71,6 +74,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      *
      * @return bool
      */
+    #[\Override]
     public function is_logging() {
         return true;
     }
@@ -85,6 +89,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @param int $limitnum
      * @return array
      */
+    #[\Override]
     public function get_events_select($selectwhere, array $params, $sort, $limitfrom, $limitnum) {
         return [];
     }
@@ -96,6 +101,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @param array $params
      * @return int
      */
+    #[\Override]
     public function get_events_select_count($selectwhere, array $params) {
         return 0;
     }
@@ -107,6 +113,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @param array $params
      * @return bool
      */
+    #[\Override]
     public function get_events_select_exists(string $selectwhere, array $params): bool {
         return false;
     }
@@ -121,6 +128,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @param int $limitnum
      * @return \Traversable
      */
+    #[\Override]
     public function get_events_select_iterator($selectwhere, array $params, $sort, $limitfrom, $limitnum) {
         return new EmptyIterator();
     }
@@ -131,6 +139,7 @@ class stub_sql_internal_reader implements sql_internal_table_reader {
      * @param \stdClass $data
      * @return null
      */
+    #[\Override]
     public function get_log_event($data) {
         return null;
     }

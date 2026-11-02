@@ -41,6 +41,7 @@ class template_duplicated extends base {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
@@ -52,6 +53,7 @@ class template_duplicated extends base {
      *
      * @return string
      */
+    #[\Override]
     public function get_description(): string {
         $source = $this->other['sourceid'] ?? null;
 
@@ -69,6 +71,7 @@ class template_duplicated extends base {
      *
      * @return string
      */
+    #[\Override]
     public static function get_name(): string {
         return get_string('eventtemplateduplicated', 'customcert');
     }
@@ -78,6 +81,7 @@ class template_duplicated extends base {
      *
      * @return moodle_url|null
      */
+    #[\Override]
     public function get_url(): ?moodle_url {
         if ($this->contextlevel == context_system::instance()->contextlevel) {
             return new moodle_url('/mod/customcert/manage_templates.php');
@@ -91,6 +95,7 @@ class template_duplicated extends base {
      *
      * @return string[]
      */
+    #[\Override]
     public static function get_objectid_mapping(): array {
         return ['db' => 'customcert_templates', 'restore' => 'customcert_templates'];
     }
@@ -100,6 +105,7 @@ class template_duplicated extends base {
      *
      * @return array|bool
      */
+    #[\Override]
     public static function get_other_mapping() {
         return ['sourceid' => ['db' => 'customcert_templates', 'restore' => 'customcert_templates']];
     }

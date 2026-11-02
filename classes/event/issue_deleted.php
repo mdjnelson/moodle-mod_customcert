@@ -38,6 +38,7 @@ class issue_deleted extends base {
     /**
      * Initialises the event.
      */
+    #[\Override]
     protected function init(): void {
         $this->data['crud'] = 'd'; // A 'delete' operation.
         $this->data['edulevel'] = self::LEVEL_OTHER; // Not teaching, participation, etc.
@@ -49,6 +50,7 @@ class issue_deleted extends base {
      *
      * @return string
      */
+    #[\Override]
     public static function get_name(): string {
         return get_string('eventissuedeleted', 'mod_customcert');
     }
@@ -58,6 +60,7 @@ class issue_deleted extends base {
      *
      * @return string
      */
+    #[\Override]
     public function get_description(): string {
         return "The certificate issue with id '{$this->objectid}' was deleted, from user with id '{$this->relateduserid}'.";
     }
@@ -67,6 +70,7 @@ class issue_deleted extends base {
      *
      * @return moodle_url
      */
+    #[\Override]
     public function get_url(): moodle_url {
         return new moodle_url('/mod/customcert/view.php', ['id' => $this->contextinstanceid]);
     }

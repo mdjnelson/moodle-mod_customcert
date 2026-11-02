@@ -42,6 +42,7 @@ use mod_customcert\service\template_service;
 use mod_customcert\template;
 use pdf;
 use stdClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -56,6 +57,7 @@ require_once($CFG->libdir . '/pdflib.php');
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\customcertelement_date\element::class)]
 final class element_test extends advanced_testcase {
     /**
      * Helper to build a minimal element DB record.
@@ -93,8 +95,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the constructor returns an instance of element.
-     *
-     * @covers \customcertelement_date\element::__construct
      */
     public function test_constructor_returns_instance(): void {
         $el = new element($this->make_record());
@@ -103,8 +103,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that the element implements all required interfaces.
-     *
-     * @covers \customcertelement_date\element
      */
     public function test_implements_interfaces(): void {
         $el = new element($this->make_record());
@@ -116,8 +114,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test the date type constants are defined.
-     *
-     * @covers \customcertelement_date\element
      */
     public function test_constants_defined(): void {
         $this->assertSame('0', element::DATE_COURSE_GRADE);
@@ -132,8 +128,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() returns expected keys and values.
-     *
-     * @covers \customcertelement_date\element::normalise_data
      */
     public function test_normalise_data_returns_expected_keys(): void {
         $el = new element($this->make_record());
@@ -156,8 +150,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that normalise_data() handles missing fields gracefully.
-     *
-     * @covers \customcertelement_date\element::normalise_data
      */
     public function test_normalise_data_handles_missing_fields(): void {
         $el = new element($this->make_record());
@@ -172,8 +164,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns empty string when no data is set.
-     *
-     * @covers \customcertelement_date\element::render_html
      */
     public function test_render_html_empty_when_no_data(): void {
         $el = new element($this->make_record(['data' => null]));
@@ -182,8 +172,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that render_html() returns a non-empty string for current date.
-     *
-     * @covers \customcertelement_date\element::render_html
      */
     public function test_render_html_returns_current_date(): void {
         $el = new element($this->make_record());
@@ -194,8 +182,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test that get_type() returns 'date'.
-     *
-     * @covers \customcertelement_date\element
      */
     public function test_get_type(): void {
         $el = new element($this->make_record());
@@ -233,8 +219,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test render() uses mod grade date when dateitem is a cmid (get_mod_grade_info path).
-     *
-     * @covers \customcertelement_date\element::render
      */
     public function test_render_mod_grade_date(): void {
         global $DB;
@@ -284,8 +268,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test render() uses course grade date when dateitem is DATE_COURSE_GRADE.
-     *
-     * @covers \customcertelement_date\element::render
      */
     public function test_render_course_grade_date(): void {
         global $DB;
@@ -328,8 +310,6 @@ final class element_test extends advanced_testcase {
      * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
      * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
      * JSON payload and exercises the full render() code path to prove the fix holds.
-     *
-     * @covers \customcertelement_date\element::render
      */
     public function test_render_with_legacy_integer_dateformat(): void {
         global $DB;
@@ -367,8 +347,6 @@ final class element_test extends advanced_testcase {
      * Prior to the fix in cfd41a98, passing an integer dateformat to get_date_format_string()
      * caused a fatal TypeError under PHP 8.3. This test stores dateformat as an integer in the
      * JSON payload and exercises the full render_html() code path to prove the fix holds.
-     *
-     * @covers \customcertelement_date\element::render_html
      */
     public function test_render_html_with_legacy_integer_dateformat(): void {
         $el = new element($this->make_record([
@@ -390,8 +368,6 @@ final class element_test extends advanced_testcase {
 
     /**
      * Test render() uses grade item date when dateitem is gradeitem:N.
-     *
-     * @covers \customcertelement_date\element::render
      */
     public function test_render_gradeitem_date(): void {
         global $DB;

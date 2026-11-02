@@ -20,6 +20,7 @@ use mod_customcert\element as element_base;
 use mod_customcert\service\element_layout;
 use stdClass;
 use advanced_testcase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for element_layout DTO.
@@ -27,8 +28,8 @@ use advanced_testcase;
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \mod_customcert\service\element_layout
  */
+#[CoversClass(\mod_customcert\service\element_layout::class)]
 final class element_layout_test extends advanced_testcase {
     /**
      * Constructor stores values as-is.

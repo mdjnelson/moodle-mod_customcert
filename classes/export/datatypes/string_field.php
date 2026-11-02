@@ -56,6 +56,7 @@ class string_field implements field_interface {
      * @return string The validated string value.
      * @throws format_exception If the value is empty and empty values are not allowed.
      */
+    #[\Override]
     public function import(array $data): mixed {
         if ($data['value'] === '' && !$this->emptyallowed) {
             throw new format_exception('is empty');
@@ -70,6 +71,7 @@ class string_field implements field_interface {
      * @param mixed $value The internal field value.
      * @return array Exported array structure containing the value.
      */
+    #[\Override]
     public function export(mixed $value): array {
         return [
             'value' => $value,
@@ -81,6 +83,7 @@ class string_field implements field_interface {
      *
      * @return string predefined default
      */
+    #[\Override]
     public function get_fallback(): mixed {
         return $this->default;
     }

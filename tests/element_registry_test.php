@@ -38,17 +38,20 @@ use mod_customcert\element\element_bootstrap;
 use customcertelement_date\element as customcertelement_date_element;
 use customcertelement_image\element as customcertelement_image_element;
 use customcertelement_text\element;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
 /**
  * Tests for the element registry + bootstrap default registrations.
  */
+#[CoversMethod(\mod_customcert\element\element_bootstrap::class, 'register_defaults')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'has')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'all')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'create')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'get')]
+#[CoversMethod(\mod_customcert\service\element_registry::class, 'register')]
 final class element_registry_test extends advanced_testcase {
     /**
      * Ensure default registrations register all expected keys.
-     *
-     * @covers \mod_customcert\element\element_bootstrap::register_defaults
-     * @covers \mod_customcert\service\element_registry::has
-     * @covers \mod_customcert\service\element_registry::all
      */
     public function test_register_defaults_registers_all_expected_keys(): void {
         $this->resetAfterTest();
@@ -77,9 +80,6 @@ final class element_registry_test extends advanced_testcase {
 
     /**
      * Smoke-test factory create() with a minimal stdClass record for a few types.
-     *
-     * @covers \mod_customcert\service\element_registry::create
-     * @covers \mod_customcert\service\element_registry::get
      */
     public function test_factory_create_instantiates_expected_classes(): void {
         $this->resetAfterTest();
@@ -120,8 +120,6 @@ final class element_registry_test extends advanced_testcase {
     /**
      * Registering a class that is neither a v2 element nor a legacy element subclass must
      * throw a coding_exception with a clear developer-facing message.
-     *
-     * @covers \mod_customcert\service\element_registry::register
      */
     public function test_registering_non_element_class_throws_coding_exception(): void {
         $this->resetAfterTest();
@@ -140,8 +138,6 @@ final class element_registry_test extends advanced_testcase {
 
     /**
      * Registration must reject legacy-only subclasses that lack the v2 interfaces.
-     *
-     * @covers \mod_customcert\service\element_registry::register
      */
     public function test_registering_legacy_only_element_throws_coding_exception(): void {
         $this->resetAfterTest();

@@ -22,6 +22,7 @@ use mod_customcert\event\issue_created;
 use mod_customcert\service\certificate_issue_service;
 use moodle_database;
 use moodle_exception;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Tests for the certificate_issue_service.
@@ -29,12 +30,11 @@ use moodle_exception;
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \mod_customcert\service\certificate_issue_service
  */
+#[CoversClass(\mod_customcert\service\certificate_issue_service::class)]
 final class certificate_issue_service_test extends advanced_testcase {
     /**
      * Issues an entry and confirms the issue_created event fires with correct data.
-     * @covers ::issue_certificate
      */
     public function test_issue_certificate_creates_issue_and_triggers_event(): void {
         global $DB;
@@ -70,7 +70,6 @@ final class certificate_issue_service_test extends advanced_testcase {
 
     /**
      * Generates a code using digit-only hyphenated strategy.
-     * @covers ::generate_code
      */
     public function test_generate_code_digits_with_hyphens(): void {
         $this->resetAfterTest();
@@ -85,7 +84,6 @@ final class certificate_issue_service_test extends advanced_testcase {
 
     /**
      * Generates a default alphanumeric code when config uses default strategy.
-     * @covers ::generate_code
      */
     public function test_generate_code_upper_lower_digits_default(): void {
         $this->resetAfterTest();
@@ -100,7 +98,6 @@ final class certificate_issue_service_test extends advanced_testcase {
 
     /**
      * generate_code() throws a moodle_exception after 10 failed attempts when every candidate collides.
-     * @covers ::generate_code
      */
     public function test_generate_code_throws_after_exhausting_attempts(): void {
         $this->resetAfterTest();
