@@ -78,7 +78,7 @@ class feature_callbacks {
         $customcert = $DB->get_record(
             'customcert',
             ['id' => $coursemodule->instance],
-            'id, name, completionemailed'
+            'id, name, intro, introformat, completionemailed'
         );
         if (!$customcert) {
             return false;
@@ -86,6 +86,11 @@ class feature_callbacks {
 
         $info = new \cached_cm_info();
         $info->name = $customcert->name;
+
+        if ($coursemodule->showdescription) {
+            // Convert intro to html. Do not filter cached version, filters run at display time.
+            $info->content = format_module_intro('customcert', $customcert, $coursemodule->id, false);
+        }
 
         if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
             $info->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
