@@ -316,6 +316,9 @@ function customcert_supports($feature) {
  * Without this, cm_info::get_custom_data() never contains 'completionemailed', and core
  * completion silently skips the rule instead of evaluating it.
  *
+ * Also provides the description for display on the course page, as core only does this
+ * itself when a module has no get_coursemodule_info callback.
+ *
  * @param stdClass $coursemodule The coursemodule object (record).
  * @return cached_cm_info|false
  */
@@ -325,7 +328,7 @@ function customcert_get_coursemodule_info($coursemodule) {
     $customcert = $DB->get_record(
         'customcert',
         ['id' => $coursemodule->instance],
-        'id, name, completionemailed'
+        'id, name, intro, introformat, completionemailed'
     );
     if (!$customcert) {
         return false;
@@ -333,6 +336,10 @@ function customcert_get_coursemodule_info($coursemodule) {
 
     $info = new cached_cm_info();
     $info->name = $customcert->name;
+
+    if ($coursemodule->showdescription) {
+        $info->content = format_module_intro('customcert', $customcert, $coursemodule->id, false);
+    }
 
     if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
         $info->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;

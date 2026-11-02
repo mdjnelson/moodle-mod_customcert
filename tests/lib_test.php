@@ -402,4 +402,27 @@ final class lib_test extends advanced_testcase {
         $this->expectException('required_capability_exception');
         mod_customcert_output_fragment_editelement($args);
     }
+
+    /**
+     * Test that the description is only provided for the course page when showdescription is enabled.
+     *
+     * @covers ::customcert_get_coursemodule_info
+     */
+    public function test_get_coursemodule_info_description(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $shown = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'intro' => 'Visible description',
+            'showdescription' => 1,
+        ]);
+        $hidden = $this->getDataGenerator()->create_module('customcert', [
+            'course' => $course->id,
+            'intro' => 'Hidden description',
+            'showdescription' => 0,
+        ]);
+
+        $modinfo = get_fast_modinfo($course->id);
+        $this->assertStringContainsString('Visible description', $modinfo->get_cm($shown->cmid)->content);
+        $this->assertEmpty($modinfo->get_cm($hidden->cmid)->content);
+    }
 }
