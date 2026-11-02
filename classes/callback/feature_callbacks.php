@@ -64,7 +64,8 @@ class feature_callbacks {
 
     /**
      * Populates the custom completion rules so core completion can evaluate
-     * mod_customcert\completion\custom_completion for this instance.
+     * mod_customcert\completion\custom_completion for this instance, and the
+     * description shown on the course page when enabled.
      *
      * Without this, cm_info::get_custom_data() never contains 'completionemailed', and core
      * completion silently skips the rule instead of evaluating it.
@@ -78,7 +79,7 @@ class feature_callbacks {
         $customcert = $DB->get_record(
             'customcert',
             ['id' => $coursemodule->instance],
-            'id, name, completionemailed'
+            'id, name, intro, introformat, completionemailed'
         );
         if (!$customcert) {
             return false;
@@ -86,6 +87,11 @@ class feature_callbacks {
 
         $info = new \cached_cm_info();
         $info->name = $customcert->name;
+
+        if (!empty($coursemodule->showdescription)) {
+            // Convert intro to html. Do not filter cached version, filters run at display time.
+            $info->content = format_module_intro('customcert', $customcert, $coursemodule->id, false);
+        }
 
         if ($coursemodule->completion == COMPLETION_TRACKING_AUTOMATIC) {
             $info->customdata['customcompletionrules']['completionemailed'] = $customcert->completionemailed;
