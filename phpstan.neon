@@ -1,0 +1,26 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 2
+    paths:
+        - classes/service
+    scanDirectories:
+        - classes
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # Moodle core constants, functions and classes are not available in a plugin-only scan.
+        - '#Function [a-zA-Z0-9\\_]+ not found.#'
+        - '#Constant [a-zA-Z0-9\\_]+ not found.#'
+        - '#Instantiated class [a-zA-Z0-9\\_]+ not found.#'
+        - '#Class [a-zA-Z0-9\\_]+ not found.#'
+        - '#Call to static method .* on an unknown class#'
+        - '#Call to method .* on an unknown class#'
+        - '#Access to an undefined property .*#'
+        - '#Caught class .* not found.#'
+        - '#on an unknown class#'
+        - '#iterable type .*#'
+        - '#typehint .* not found.#'
+        - '#return type .* not found.#'
+        - '#Parameter .* of method .* has invalid type .*#'
+        - '#PHPDoc tag @throws with type .* is not subtype of Throwable#'
