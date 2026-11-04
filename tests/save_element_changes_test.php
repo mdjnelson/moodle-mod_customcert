@@ -285,7 +285,9 @@ final class save_element_changes_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
         // Save with a new text value; the text element's normalise_data() reads $formdata->text.
+        $_POST['sesskey'] = sesskey();
         $values = [
+            ['name' => '_qf__mod_customcert_edit_element_form', 'value' => '1'],
             ['name' => 'text', 'value' => 'new text'],
         ];
         $result = external::save_element($template->id, $element->id, $values);
@@ -344,7 +346,9 @@ final class save_element_changes_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
         // Submit new colour and width values.
+        $_POST['sesskey'] = sesskey();
         $values = [
+            ['name' => '_qf__mod_customcert_edit_element_form', 'value' => '1'],
             ['name' => 'colour', 'value' => '0000ff'],
             ['name' => 'width', 'value' => '3'],
         ];
