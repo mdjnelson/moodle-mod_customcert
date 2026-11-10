@@ -102,7 +102,9 @@ if ($data = $mform->get_data()) {
     // Set the element variable.
     $data->element = $element->element;
     // Get an instance of the element class.
-    if ($e = \mod_customcert\element_factory::get_element_instance($data)) {
+    $record = clone $data;
+    $record->data = $element->data ?? null;
+    if ($e = \mod_customcert\element_factory::get_element_instance($record)) {
         $newlyid = $e->save_form_elements($data);
 
         // Trigger updated event.

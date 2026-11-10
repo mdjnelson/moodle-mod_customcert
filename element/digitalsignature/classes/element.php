@@ -162,9 +162,10 @@ class element extends \customcertelement_image\element {
             $existing = json_decode($this->get_data(), true);
             $existingpassword = $existing['signaturepassword'] ?? '';
         }
-        if ($data->signaturepassword !== '') {
+        $submittedpassword = (string)($data->signaturepassword ?? '');
+        if ($submittedpassword !== '') {
             // A new password was supplied — encrypt it before storing.
-            $password = \core\encryption::encrypt($data->signaturepassword);
+            $password = \core\encryption::encrypt($submittedpassword);
         } else {
             // No new password — keep whatever is already stored (already encrypted or empty).
             $password = $existingpassword;
