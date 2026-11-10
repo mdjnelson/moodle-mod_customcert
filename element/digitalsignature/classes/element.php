@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_digitalsignature;
 
+use mod_customcert\element\validatable_element_interface;
 use context_course;
 use context_system;
 use core_collator;
@@ -45,7 +46,7 @@ use customcertelement_digitalsignature\digitalsignature_payload;
  * @copyright  2017 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class element extends \customcertelement_image\element {
+class element extends \customcertelement_image\element implements validatable_element_interface {
     /**
      * @var array The file manager options for the certificate.
      */
@@ -486,5 +487,16 @@ class element extends \customcertelement_image\element {
      */
     public function has_save_and_continue(): bool {
         return true;
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 }

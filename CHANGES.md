@@ -8,6 +8,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Fixed
 
+- Restore custom form validation for third-party subclasses of bundled elements (#1123).
 - Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
 
 ## [5.3.4] - 2026-11-01

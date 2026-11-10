@@ -99,7 +99,7 @@ final class element_test extends advanced_testcase {
         $this->assertInstanceOf(form_element_interface::class, $el);
         $this->assertInstanceOf(persistable_element_interface::class, $el);
         $this->assertInstanceOf(renderable_element_interface::class, $el);
-        $this->assertNotInstanceOf(validatable_element_interface::class, $el);
+        $this->assertInstanceOf(validatable_element_interface::class, $el);
     }
 
     /**

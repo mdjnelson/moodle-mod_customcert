@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_qrcode;
 
+use mod_customcert\element\validatable_element_interface;
 use context;
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
@@ -56,7 +57,8 @@ require_once($CFG->libdir . '/tcpdf/tcpdf_barcodes_2d.php');
 class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
-    renderable_element_interface
+    renderable_element_interface,
+    validatable_element_interface
 {
     /**
      * Build the configuration form for this element.
@@ -222,5 +224,16 @@ class element extends base_element implements
 
             return '';
         }
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 }

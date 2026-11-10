@@ -66,8 +66,7 @@ final class element_contract_test extends advanced_testcase {
     }
 
     /**
-     * A bundled element keeps the interfaces inherited from the base class plus its own declarations,
-     * but does not declare the optional validatable_element_interface.
+     * A bundled element keeps the interfaces inherited from the base class plus its own declarations.
      *
      * @covers \mod_customcert\element
      */
@@ -89,18 +88,17 @@ final class element_contract_test extends advanced_testcase {
         // Declared by the native v2 element itself.
         $this->assertArrayHasKey(renderable_element_interface::class, $implemented);
 
-        // Custom form validation is optional and bundled elements have no element-specific rules.
-        $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented);
+        // Third-party text subclasses inherit this released validation contract.
+        $this->assertArrayHasKey(validatable_element_interface::class, $implemented);
     }
 
     /**
-     * No bundled element opts in to the optional validation interface, and standard colour, position and
-     * width validation still runs for each of them through the real validation service without activating
+     * Standard colour, position and width validation still runs for bundled elements without activating
      * the deprecated validate_form_elements() fallback.
      *
      * @covers \mod_customcert\service\validation_service::validate
      */
-    public function test_bundled_elements_do_not_implement_validation_but_keep_standard_validation(): void {
+    public function test_bundled_elements_keep_standard_validation(): void {
         $this->resetAfterTest();
         set_config('showposxy', 1, 'customcert');
 
@@ -132,10 +130,8 @@ final class element_contract_test extends advanced_testcase {
             $this->assertTrue(class_exists($class), "{$class} should exist");
 
             $implemented = class_implements($class);
-            $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented, $class);
             $this->assertArrayHasKey(form_element_interface::class, $implemented, $class);
             $this->assertArrayHasKey(renderable_element_interface::class, $implemented, $class);
-            $this->assertFalse(method_exists($class, 'validate'), "{$class} should not declare validate()");
 
             $element = new $class($this->make_record());
             $errors = $svc->validate($element, [
@@ -269,5 +265,29 @@ final class element_contract_test extends advanced_testcase {
             $this->assertSame($params, $actual, "Signature of element_renderer::{$method}() changed");
             $this->assertSame($returns[$method], $ref->getReturnType()?->getName());
         }
+    }
+
+    /**
+     * A subclass can rely on the bundled parent's released validation interface and method.
+     *
+     * @covers \mod_customcert\service\validation_service::validate
+     */
+    public function test_text_subclass_inherits_validation_contract(): void {
+        $this->resetAfterTest();
+        $element = new class ($this->make_record()) extends text_element {
+            /**
+             * Add a subclass-specific error to the parent rules.
+             *
+             * @param array $data Submitted values.
+             * @return array Validation errors.
+             */
+            public function validate(array $data): array {
+                return parent::validate($data) + ['text' => 'Custom validation error'];
+            }
+        };
+
+        $errors = (new validation_service())->validate($element, ['text' => 'invalid', 'width' => -1]);
+        $this->assertSame('Custom validation error', $errors['text']);
+        $this->assertArrayHasKey('width', $errors);
     }
 }
