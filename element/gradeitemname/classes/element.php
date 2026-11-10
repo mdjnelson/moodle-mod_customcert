@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_gradeitemname;
 
+use mod_customcert\element\validatable_element_interface;
 use grade_item;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element as base_element;
@@ -50,7 +51,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /**
      * Build the configuration form for this element.
@@ -216,5 +218,16 @@ class element extends base_element implements
             // This will effectively prevent the element from rendering.
             return $gradeitem ? $gradeitem->get_name() : '';
         }
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 }

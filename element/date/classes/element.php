@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_date;
 
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element as base_element;
 use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\preparable_form_interface;
@@ -55,7 +56,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /** @var string Course grade date identifier. */
     public const string DATE_COURSE_GRADE = '0';
@@ -327,5 +329,16 @@ class element extends base_element implements
         debugging("The method customcertelement_date::get_date_formats is deprecated, " .
             "please use element_helper::get_date_formats() instead", DEBUG_DEVELOPER);
         return element_helper::get_date_formats();
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 }

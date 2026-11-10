@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace customcertelement_image;
 
+use mod_customcert\element\validatable_element_interface;
 use context_course;
 use context_system;
 use core_collator;
@@ -58,7 +59,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /**
      * @var array The file manager options.
@@ -547,5 +549,16 @@ class element extends base_element implements
      */
     public function has_save_and_continue(): bool {
         return true;
+    }
+
+    /**
+     * Validate submitted form data for this element.
+     * Core validations are handled by validation_service; no extra rules here.
+     *
+     * @param array $data
+     * @return array<string,string>
+     */
+    public function validate(array $data): array {
+        return [];
     }
 }

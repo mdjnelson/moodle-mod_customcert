@@ -83,8 +83,7 @@ because it has no rules of its own.
   fields are enabled) and `width` when they are submitted.
 - **Element-specific rules** — implement `validatable_element_interface::validate()` only when you
   have rules of your own. Do not add it just to return `[]`; `validation_service` only calls it
-  when present. Bundled elements without element-specific rules do not implement
-  `validatable_element_interface`.
+  when present. Some bundled elements retain the interface so existing subclasses inherit their released validation contract.
 - **`validate_form_elements()`** — deprecated; still called for historical subclasses that override
   it, solely for compatibility.
 
