@@ -8,6 +8,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Fixed
 
+- Allow historical element plugins to load with untyped get_data() and can_add() overrides (#1121).
 - Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
 
 ## [5.2.13] - 2026-11-01

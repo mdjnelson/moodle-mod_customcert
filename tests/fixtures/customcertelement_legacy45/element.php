@@ -132,4 +132,22 @@ class element extends \mod_customcert\element {
     public function after_restore($restore) {
         $this->restored = true;
     }
+
+    /**
+     * Provide an empty string when this legacy element has no stored data.
+     *
+     * @return mixed
+     */
+    public function get_data() {
+        return parent::get_data() ?? '';
+    }
+
+    /**
+     * Whether this element type can be added.
+     *
+     * @return bool
+     */
+    public static function can_add() {
+        return true;
+    }
 }

@@ -90,6 +90,9 @@ because it has no rules of its own.
 
 ## `get_data()` versus `get_raw_data()`
 
+Historical overrides of `get_data()` and static `can_add()` may omit their return declarations.
+Native elements may keep `: mixed` for their data view and `: bool` for their availability hook.
+
 `get_data()` is the view used by rendering and form code. For a historical element (one with neither
 `persistable_element_interface` nor `renderable_element_interface`) it may return a compatibility view: a
 scalar unwrapped from a generic migration JSON wrapper. It is not always the stored value.

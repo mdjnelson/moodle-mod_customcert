@@ -65,7 +65,7 @@ interface element_interface {
      *
      * @return mixed
      */
-    public function get_data(): mixed;
+    public function get_data();
 
     /**
      * Returns the type of the element.
