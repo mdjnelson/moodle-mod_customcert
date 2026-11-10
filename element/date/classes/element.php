@@ -313,15 +313,4 @@ class element extends base_element implements
             $DB->set_field('customcert_elements', 'data', json_encode($data), ['id' => $this->get_id()]);
         }
     }
-
-    /**
-     * Helper function to return all the date formats.
-     *
-     * @return array the list of date formats
-     */
-    public static function get_date_formats() {
-        debugging("The method customcertelement_date::get_date_formats is deprecated, " .
-            "please use element_helper::get_date_formats() instead", DEBUG_DEVELOPER);
-        return element_helper::get_date_formats();
-    }
 }

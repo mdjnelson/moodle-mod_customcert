@@ -36,6 +36,9 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   `move_item`) (#997). Call `template_service` (`update`, `add_page`, `save_pages`, `delete`,
   `delete_page`, `delete_element`, `copy_to_template`, `move_item`) or
   `pdf_generation_service::generate_pdf()` instead.
+- Removed the deprecated `customcertelement_date\element::get_date_formats()` forwarding method
+  (#1119). Use `\mod_customcert\element_helper::get_date_formats()` instead. The expiry element's
+  own `get_date_formats()` is unchanged.
 
 ## [5.3.4] - 2026-11-01
 
