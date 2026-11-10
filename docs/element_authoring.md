@@ -383,6 +383,64 @@ class element extends base_element implements
 
 ---
 
+## Template portability and resource handling
+
+A registered runtime element can participate in a certificate without supporting every way a
+template can be moved. Choose the applicable contracts separately.
+
+| Operation | Contract |
+| --- | --- |
+| Edit and save | `persistable_element_interface::normalise_data()` produces the database payload. |
+| Copy elements or templates | `copyable_element_interface::copy_from()` adjusts destination references when necessary. Without it, the repository copies the stored payload. |
+| Moodle activity backup and restore | Use the restore hook and Moodle file mappings to reconnect destination references. See the [image element](../element/image/classes/element.php) for a file-backed example. |
+| Template file export and import | Supply an exporter that describes the portable custom fields and any attached files. |
+
+### Template export and import
+
+Create `classes/exporter.php` with the class `customcertelement_<type>\exporter`, extending
+`mod_customcert\export\subplugin_exportable` (or a specialised subclass). The
+[text exporter](../element/text/classes/exporter.php) is a minimal working example. It uses
+`subplugin_text_exportable` for styling fields and adds a `string_field` for its `text` payload.
+
+Describe file references through the export field types instead of serialising site-local file IDs.
+The [image exporter](../element/image/classes/exporter.php) uses the provided file field to collect
+referenced files into the template appendix and reconstruct destination metadata on import.
+Imported files are accepted only in the `mod_customcert` component, `image` file area, item ID `0`
+and path `/`. Any other manifest entry makes the import throw `import_exception`: the whole archive is rejected
+rather than the file being skipped, files already stored by that import are removed, no template data
+is created, and the import form shows the error. Export applies no such check, so an archive can be
+created that cannot be imported. The bundled digital signature exporter is affected, because it also
+exports the signature file, which is stored in the `signature` file area. A template containing a
+digital signature element with a signature file therefore exports but cannot be imported; one
+without a signature file imports normally. An element keeping files elsewhere cannot round-trip them
+through template export/import.
+Export only fields intended for portability. For example, the digital signature exporter leaves
+the signing password out of the portable payload.
+
+When the exporter is missing or incompatible, the fallback exports an empty custom payload and
+can log an export diagnostic in the CLI. On import the element is skipped with a warning, not
+created, so a template round trip drops it. This exporter is separate from the Moodle activity backup/restore hook.
+
+### File preparation and deletion
+
+Moodle activity backup annotates only the `intro` and `image` file areas, so files in any other area, such as the
+digital signature element's `signature` area, are not included, and that element defines no
+`after_restore_from_backup()` to adjust its stored file references. A restored digital signature
+element does not receive its signature file from the backup.
+
+Use Moodle draft file areas for form uploads and persist stable file metadata, such as the context,
+area, item ID, path, and name. The bundled image elements show how a form prepares a draft, how
+normalisation checks a selected file, and how copy/restore can remap its references.
+
+In 6.0 the repository deletes element records. There is no element instance `delete()` hook.
+Resolvable individual elements can emit the standard `element_deleted` event. Bulk template/page
+deletion and unresolved records do not provide a per-element cleanup contract. Do not rely on an
+individual deletion hook to release resources shared across elements.
+
+For the historical 5.2/5.3 adapter and the 6.0 native runtime, use the corresponding branch's
+authoring guide and the [v2 migration guide](element_migration_v2.md). Retained database/backup
+migration does not imply support for legacy runtime hooks.
+
 ## Required vs optional: summary
 
 Native registration requirements:
