@@ -99,7 +99,8 @@ class external extends external_api {
 
         // Submit the values through the element edit form so the same select-option filtering
         // and validation as edit_element.php is applied.
-        $submission = self::get_form_submission($element);
+        $passwordfields = (new edit_element_form(null, ['element' => $element]))->get_password_field_names();
+        $submission = self::get_form_submission($element, $passwordfields);
         foreach ($values as $value) {
             $submission[$value['name']] = $value['value'];
         }
@@ -149,9 +150,10 @@ class external extends external_api {
      * Builds the base form submission from the stored element so omitted fields keep their values.
      *
      * @param \stdClass $element The stored element record.
+     * @param string[] $excludedfields Form fields that must be supplied explicitly rather than replayed.
      * @return array
      */
-    private static function get_form_submission(\stdClass $element): array {
+    private static function get_form_submission(\stdClass $element, array $excludedfields = []): array {
         $submission = [];
         foreach (['name', 'font', 'fontsize', 'colour', 'width', 'posx', 'posy', 'refpoint', 'alignment'] as $field) {
             if (isset($element->$field)) {
@@ -161,6 +163,9 @@ class external extends external_api {
         $payload = json_decode((string)($element->data ?? ''), true);
         if (is_array($payload)) {
             foreach ($payload as $key => $value) {
+                if (in_array($key, $excludedfields, true)) {
+                    continue;
+                }
                 if (is_scalar($value) && $value !== false) {
                     $submission[$key] = (string)$value;
                 }
