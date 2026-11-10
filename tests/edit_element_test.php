@@ -160,4 +160,57 @@ final class edit_element_test extends advanced_testcase {
         $record = $pagerepo->get_for_template_or_fail($templateid, $pageid);
         $this->assertSame($pageid, (int) $record->id);
     }
+
+    /**
+     * Mirrors edit_element.php: the element used for normalisation carries the stored payload,
+     * not just the submitted fields, so a blank signing password is preserved.
+     *
+     * @covers \customcertelement_digitalsignature\element::normalise_data
+     */
+    public function test_edit_preserves_stored_signature_password(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [, , $elementid] = $this->create_template_with_element();
+        $stored = \core\encryption::encrypt('original_secret');
+        $DB->set_field('customcert_elements', 'element', 'digitalsignature', ['id' => $elementid]);
+        $DB->set_field('customcert_elements', 'data', json_encode(['signaturepassword' => $stored]), ['id' => $elementid]);
+        $element = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        $factory = element_factory::build_with_defaults();
+        $submit = function (array $fields) use ($factory, $element): array {
+            $data = (object)($fields + ['name' => 'E', 'id' => $element->id, 'element' => $element->element]);
+            $record = clone $data;
+            $record->data = $element->data;
+            $instance = $factory->create_from_record($record);
+            return json_decode(\mod_customcert\service\persistence_helper::to_json_data($instance, $data), true);
+        };
+
+        $this->assertSame($stored, $submit(['signaturename' => 'A'])['signaturepassword']);
+        $this->assertSame($stored, $submit(['signaturepassword' => ''])['signaturepassword']);
+        $replacement = $submit(['signaturepassword' => '0'])['signaturepassword'];
+        $this->assertSame('0', \core\encryption::decrypt($replacement));
+    }
+
+    /**
+     * Password inputs of any element, including those nested in groups, are discoverable from the form.
+     *
+     * @covers \mod_customcert\edit_element_form::get_password_field_names
+     */
+    public function test_form_reports_password_fields(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        require_once(__DIR__ . '/fixtures/password_field_element.php');
+
+        $registry = new element_registry();
+        $registry->register('text', \mod_customcert\tests\fixtures\password_field_element::class);
+        $element = (object)['element' => 'text', 'name' => 'Password fixture'];
+
+        $form = new edit_element_form(null, ['element' => $element, 'factory' => new element_factory($registry)]);
+        $names = $form->get_password_field_names();
+        sort($names);
+
+        $this->assertSame(['apikey', 'pin'], $names);
+    }
 }

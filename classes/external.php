@@ -125,7 +125,10 @@ class external extends external_api {
 
         // Submit the values through the element edit form so the same select-option filtering
         // and validation as edit_element.php is applied.
-        $submission = self::get_form_submission($element);
+        $factory = element_factory::build_with_defaults();
+        $passwordfields = (new edit_element_form(null, ['element' => $element, 'factory' => $factory]))
+            ->get_password_field_names();
+        $submission = self::get_form_submission($element, $passwordfields);
         foreach ($values as $value) {
             $field = $value['name'];
             if (isset($protectedfields[$field])) {
@@ -134,7 +137,6 @@ class external extends external_api {
             $submission[$field] = $value['value'];
         }
 
-        $factory = element_factory::build_with_defaults();
         $formid = preg_replace('/[^a-z0-9_]/i', '_', edit_element_form::class);
         $submission['_qf__' . $formid] = 1;
         // The web service request is already authenticated, so skip the form's own sesskey check.
@@ -170,7 +172,9 @@ class external extends external_api {
         (new form_service())->normalise_submission($dataarray);
         $data = (object)$dataarray;
 
-        $instance = $factory->create_from_record($data);
+        $record = clone $data;
+        $record->data = $element->data;
+        $instance = $factory->create_from_record($record);
         if (!$instance) {
             throw new moodle_exception('invalidelementtype', 'customcert');
         }
@@ -222,9 +226,10 @@ class external extends external_api {
      * Builds the base form submission from the stored element so omitted fields keep their values.
      *
      * @param stdClass $element The stored element record.
+     * @param string[] $excludedfields Form fields that must be supplied explicitly rather than replayed.
      * @return array
      */
-    private static function get_form_submission(stdClass $element): array {
+    private static function get_form_submission(stdClass $element, array $excludedfields = []): array {
         $submission = [
             'name' => (string)$element->name,
             'posx' => $element->posx,
@@ -235,6 +240,9 @@ class external extends external_api {
         $payload = json_decode((string)($element->data ?? ''), true);
         if (is_array($payload)) {
             foreach ($payload as $key => $value) {
+                if (in_array($key, $excludedfields, true)) {
+                    continue;
+                }
                 if (is_scalar($value) && $value !== false) {
                     $submission[$key] = (string)$value;
                 }
