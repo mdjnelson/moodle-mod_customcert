@@ -171,11 +171,20 @@ class element extends \mod_customcert\element {
     }
 
     /**
+     * Provide an empty string when this legacy element has no stored data.
+     *
+     * @return mixed
+     */
+    public function get_data() {
+        return parent::get_data() ?? '';
+    }
+
+    /**
      * Whether this element type can be added.
      *
      * @return bool
      */
-    public static function can_add(): bool {
+    public static function can_add() {
         return true;
     }
 }

@@ -100,6 +100,9 @@ Validation has three layers; a new element normally needs only the first:
 
 ## `get_data()` versus `get_raw_data()`
 
+Historical overrides of `get_data()` and static `can_add()` may omit their return declarations.
+Native elements may keep `: mixed` for their data view and `: bool` for their availability hook.
+
 - `element_interface::get_data()` is the view used by rendering and form code. For genuine
   legacy elements — those implementing neither `persistable_element_interface` nor
   `renderable_element_interface` — it may return a compatibility view: a scalar unwrapped from

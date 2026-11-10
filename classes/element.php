@@ -242,7 +242,7 @@ abstract class element implements
      *
      * @return mixed
      */
-    public function get_data(): mixed {
+    public function get_data() {
         if (
             is_string($this->data)
             && $this->should_unwrap_generic_migration_wrapper()
@@ -493,7 +493,7 @@ abstract class element implements
      *
      * @return bool returns true if the element can be added, false otherwise
      */
-    public static function can_add(): bool {
+    public static function can_add() {
         return true;
     }
 
