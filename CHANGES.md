@@ -8,6 +8,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ### Fixed
 
+- Save common styles for historical elements without a custom data hook (#1124).
 - Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
 
 ## [5.2.13] - 2026-11-01
