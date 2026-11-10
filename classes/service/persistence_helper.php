@@ -42,7 +42,7 @@ final class persistence_helper {
      * Convert form submission to a JSON string according to element capabilities.
      *
      * - Persistable elements: use normalise_data() and enforce object JSON.
-     * - Legacy elements: use save_unique_data() (only when overridden) and enforce object JSON.
+     * - Legacy elements: save common styles and use save_unique_data() when overridden.
      * - Fallback: empty JSON object {}.
      *
      * @param object $element Element instance (persistable or legacy)
@@ -70,6 +70,17 @@ final class persistence_helper {
             );
             $legacy = $element->save_unique_data($formdata);
             return self::to_object_json(self::merge_legacy_visuals($legacy, $element, $formdata));
+        }
+
+        if ($element instanceof legacy_element_adapter) {
+            $visuals = row_migrator::merge_visuals(
+                [],
+                isset($formdata->width) ? (int)$formdata->width : $element->get_width(),
+                isset($formdata->font) ? (string)$formdata->font : $element->get_font(),
+                isset($formdata->fontsize) ? (int)$formdata->fontsize : $element->get_fontsize(),
+                isset($formdata->colour) ? (string)$formdata->colour : $element->get_colour()
+            );
+            return json_encode((object)$visuals);
         }
 
         return json_encode(new stdClass());

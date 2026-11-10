@@ -58,6 +58,42 @@ use stdClass;
 final class legacy_element_adapter_test extends advanced_testcase {
     use \mod_customcert\tests\legacy_compatibility_diagnostic_test_trait;
 
+    /**
+     * Common visual controls are saved even if a historical element has no custom data hook.
+     *
+     * @covers \mod_customcert\service\persistence_helper::to_json_data
+     */
+    public function test_legacy_static_element_saves_common_styles(): void {
+        $this->resetAfterTest();
+        $legacy = new class ((object)['data' => '{"width":30}']) extends \mod_customcert\element {
+            /**
+             * Render a static element.
+             *
+             * @param \pdf $pdf Destination PDF.
+             * @param bool $preview Whether this is a preview.
+             * @param stdClass $user Recipient.
+             */
+            public function render($pdf, $preview, $user) {
+            }
+
+            /**
+             * Render the designer preview.
+             *
+             * @return string Static content.
+             */
+            public function render_html() {
+                return 'Static label';
+            }
+        };
+        $adapter = new \mod_customcert\element\legacy_element_adapter($legacy);
+        $visuals = (object)['font' => 'times', 'fontsize' => 24, 'colour' => 'ff0000'];
+        $json = \mod_customcert\service\persistence_helper::to_json_data($adapter, $visuals);
+        $this->assertSame(
+            ['width' => 30, 'font' => 'times', 'fontsize' => 24, 'colour' => 'ff0000'],
+            json_decode($json, true)
+        );
+    }
+
     protected function setUp(): void {
         parent::setUp();
         // Each test starts with a clean per-component de-duplication state for the
