@@ -123,7 +123,9 @@ if ($data = $mform->get_data()) {
         $data->$key = $value;
     }
 
-    $elementinstance = $factory->create_from_record($data);
+    $record = clone $data;
+    $record->data = $element->data ?? null;
+    $elementinstance = $factory->create_from_record($record);
     if ($elementinstance) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();

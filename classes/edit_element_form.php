@@ -156,6 +156,37 @@ class edit_element_form extends moodleform {
     }
 
     /**
+     * Returns the names of the password inputs on this form.
+     *
+     * Stored values for these inputs are never valid replacement input, so callers
+     * replaying stored data into a submission must leave them out.
+     *
+     * @return string[]
+     */
+    public function get_password_field_names(): array {
+        return self::collect_password_names($this->_form->_elements);
+    }
+
+    /**
+     * Collects the names of password inputs, descending into groups.
+     *
+     * @param array $elements Form elements.
+     * @return string[]
+     */
+    private static function collect_password_names(array $elements): array {
+        $names = [];
+        foreach ($elements as $formelement) {
+            if ($formelement instanceof \HTML_QuickForm_group) {
+                $names = array_merge($names, self::collect_password_names($formelement->getElements()));
+            } else if ($formelement instanceof \MoodleQuickForm_password) {
+                $names[] = $formelement->getName();
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * Validation.
      *
      * @param array $data

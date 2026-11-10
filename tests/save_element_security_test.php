@@ -353,6 +353,71 @@ final class save_element_security_test extends advanced_testcase {
     }
 
     /**
+     * Editing a signature preserves its password unless a replacement is submitted.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_preserves_signature_password(): void {
+        $password = \core\encryption::encrypt('original_secret');
+        $element = $this->create_element('digitalsignature', [
+            'signaturepassword' => $password,
+            'signaturereason' => 'Original reason',
+        ]);
+
+        // Omitted password: the password and the omitted ordinary field survive repeated saves.
+        for ($i = 1; $i <= 3; $i++) {
+            $payload = $this->save($element, ['signaturename' => 'Signer ' . $i]);
+            $this->assertSame('Signer ' . $i, $payload['signaturename']);
+            $this->assertSame('Original reason', $payload['signaturereason']);
+            $this->assertSame($password, $payload['signaturepassword']);
+        }
+
+        // Explicitly blank password.
+        $payload = $this->save($element, ['signaturepassword' => '']);
+        $this->assertSame($password, $payload['signaturepassword']);
+
+        // Replacement, including the string "0", is encrypted once and then preserved.
+        $payload = $this->save($element, ['signaturepassword' => '0']);
+        $this->assertNotSame($password, $payload['signaturepassword']);
+        $this->assertSame('0', \core\encryption::decrypt($payload['signaturepassword']));
+        $replacement = $payload['signaturepassword'];
+
+        $payload = $this->save($element, ['signaturename' => 'After replacement']);
+        $this->assertSame($replacement, $payload['signaturepassword']);
+        $this->assertSame('0', \core\encryption::decrypt($payload['signaturepassword']));
+    }
+
+    /**
+     * A new signature element without a password stores none and inherits nothing.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_without_stored_signature_password(): void {
+        $element = $this->create_element('digitalsignature');
+
+        $payload = $this->save($element, ['signaturename' => 'Signer']);
+        $this->assertSame('', $payload['signaturepassword']);
+
+        $payload = $this->save($element, ['signaturepassword' => 'new_secret']);
+        $this->assertSame('new_secret', \core\encryption::decrypt($payload['signaturepassword']));
+    }
+
+    /**
+     * Stored values of password inputs are not replayed into the synthetic submission.
+     *
+     * @covers \mod_customcert\external::get_form_submission
+     */
+    public function test_form_submission_skips_excluded_fields(): void {
+        $element = $this->create_element('text', ['secret' => 'ciphertext', 'plain' => 'visible']);
+
+        $method = new ReflectionMethod(external::class, 'get_form_submission');
+        $submission = $method->invoke(null, $element, ['secret']);
+
+        $this->assertArrayNotHasKey('secret', $submission);
+        $this->assertSame('visible', $submission['plain']);
+    }
+
+    /**
      * Digital signature certificates from other courses must not be selectable.
      *
      * @covers \mod_customcert\external::save_element
