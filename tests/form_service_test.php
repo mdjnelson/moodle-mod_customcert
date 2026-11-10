@@ -75,6 +75,36 @@ final class form_service_test extends advanced_testcase {
     }
 
     /**
+     * Shared normalisation uses stored state for a blank signing password.
+     */
+    public function test_normalise_element_data_uses_existing_payload(): void {
+        $this->resetAfterTest();
+        $password = \core\encryption::encrypt('stored_secret');
+        $record = (object)[
+            'id' => 2,
+            'pageid' => 3,
+            'name' => 'Signature',
+            'element' => 'digitalsignature',
+            'data' => json_encode(['signaturepassword' => $password]),
+        ];
+        $data = (object)[
+            'id' => 2,
+            'pageid' => 3,
+            'name' => 'Updated signature',
+            'element' => 'digitalsignature',
+            'signaturename' => 'Updated signer',
+            'signaturepassword' => '',
+        ];
+
+        $factory = \mod_customcert\service\element_factory::build_with_defaults();
+        $payload = (new form_service())->normalise_element_data($factory, $record, $data);
+
+        $saved = json_decode($payload, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame($password, $saved['signaturepassword']);
+        $this->assertSame('Updated signer', $saved['signaturename']);
+    }
+
+    /**
      * Assert a specific call was recorded with the provided arguments.
      *
      * @param array $calls

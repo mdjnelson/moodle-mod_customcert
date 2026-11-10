@@ -41,7 +41,6 @@ use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
-use mod_customcert\service\persistence_helper;
 use mod_customcert\service\template_repository;
 use stdClass;
 use Throwable;
@@ -166,12 +165,8 @@ class external extends external_api {
         $data->pageid = (int)$element->pageid;
         $data->element = (string)$element->element;
 
-        $dataarray = (array)$data;
-        (new form_service())->normalise_submission($dataarray);
-        $data = (object)$dataarray;
-
-        $instance = $factory->create_from_record($data);
-        if (!$instance) {
+        $payload = (new form_service())->normalise_element_data($factory, $element, $data);
+        if ($payload === null) {
             throw new moodle_exception('invalidelementtype', 'customcert');
         }
 
@@ -188,7 +183,7 @@ class external extends external_api {
             'timecreated' => $element->timecreated,
             'timemodified' => $element->timemodified,
         ];
-        $record->data = persistence_helper::to_json_data($instance, $data);
+        $record->data = $payload;
 
         // Create the final instance from the normalised record and persist.
         $instance = $factory->create_from_record($record);
@@ -234,6 +229,10 @@ class external extends external_api {
         ];
         $payload = json_decode((string)($element->data ?? ''), true);
         if (is_array($payload)) {
+            if ($element->element === 'digitalsignature') {
+                // The stored ciphertext is never a submitted replacement password.
+                unset($payload['signaturepassword']);
+            }
             foreach ($payload as $key => $value) {
                 if (is_scalar($value) && $value !== false) {
                     $submission[$key] = (string)$value;

@@ -95,6 +95,10 @@ behaviour.
 
 ---
 
+Both editing paths normalise validated form fields against the loaded element when updating.
+The submitted fields are passed separately to `normalise_data()`. The image and digital signature
+normalisers own their draft uploads. Background image drafts are prepared by the form service.
+
 ## Validation
 
 `service\validation_service` already validates the standard `colour`, `posx`/`posy` (when

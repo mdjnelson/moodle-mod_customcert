@@ -30,7 +30,6 @@ use mod_customcert\service\element_factory;
 use mod_customcert\service\element_layout;
 use mod_customcert\service\element_repository;
 use mod_customcert\service\form_service;
-use mod_customcert\service\persistence_helper;
 use mod_customcert\service\page_repository;
 use mod_customcert\service\template_repository;
 use mod_customcert\template;
@@ -114,17 +113,8 @@ if ($data = $mform->get_data()) {
     }
     $data->element = $element->element;
 
-    // Normalise submission: process file uploads from draft areas before saving.
-    $formservice = new form_service();
-    $dataarray = (array) $data;
-    $formservice->normalise_submission($dataarray);
-    // Merge back any changes (e.g., file metadata populated from fileid).
-    foreach ($dataarray as $key => $value) {
-        $data->$key = $value;
-    }
-
-    $elementinstance = $factory->create_from_record($data);
-    if ($elementinstance) {
+    $payload = (new form_service())->normalise_element_data($factory, $element, $data);
+    if ($payload !== null) {
         // Build record similar to legacy element::save_form_elements().
         $record = new stdClass();
         $record->pageid = (int)$data->pageid;
@@ -140,7 +130,7 @@ if ($data = $mform->get_data()) {
             $record->alignment = $element->alignment ?? element::ALIGN_LEFT;
         }
         // The method normalise_data() must include visual fields in the stored JSON payload.
-        $record->data = persistence_helper::to_json_data($elementinstance, $data);
+        $record->data = $payload;
         if (!empty(get_config('customcert', 'showposxy'))) {
             $record->posx = $data->posx ?? null;
             $record->posy = $data->posy ?? null;

@@ -82,11 +82,31 @@ final class form_service {
     }
 
     /**
+     * Build the saved payload from validated form fields and server-owned element state.
+     *
+     * @param element_factory $factory Element factory.
+     * @param stdClass $element Existing or new server-owned element record.
+     * @param stdClass $data Validated submission, including its server-assigned identity.
+     * @return string|null JSON payload, or null if the element type cannot be constructed.
+     */
+    public function normalise_element_data(element_factory $factory, stdClass $element, stdClass $data): ?string {
+        // Image and signature normalisers handle their own draft uploads. Background images use the form service.
+        $uploaddrafts = !in_array($element->element, ['image', 'digitalsignature'], true);
+        $fields = (array)$data;
+        $this->normalise_submission($fields, $uploaddrafts);
+
+        $record = clone (empty($data->id) ? (object)$fields : $element);
+        $instance = $factory->create_from_record($record);
+        return $instance === null ? null : persistence_helper::to_json_data($instance, (object)$fields);
+    }
+
+    /**
      * Normalise submitted data before element save: upload drafts and clean values.
      *
      * @param array $data Submitted data (by reference)
+     * @param bool $uploaddrafts Whether the form service owns the draft uploads.
      */
-    public function normalise_submission(array &$data): void {
+    public function normalise_submission(array &$data, bool $uploaddrafts = true): void {
         global $COURSE, $SITE;
 
         // Determine context for file operations.
@@ -100,7 +120,7 @@ final class form_service {
         }
 
         // Known filemanager fields across elements.
-        $filemanagers = ['customcertimage', 'digitalsignature'];
+        $filemanagers = $uploaddrafts ? ['customcertimage', 'digitalsignature'] : [];
 
         foreach ($filemanagers as $fm) {
             if (array_key_exists($fm, $data) && !empty($data[$fm])) {
