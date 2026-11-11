@@ -184,6 +184,31 @@ final class row_migrator {
     }
 
     /**
+     * Convert a known legacy text field without interpreting its content as JSON.
+     *
+     * @param string|null $text Historical textarea value.
+     * @param int|null $width Legacy width.
+     * @param string|null $font Legacy font.
+     * @param int|null $fontsize Legacy font size.
+     * @param string|null $colour Legacy colour.
+     * @return string|null JSON payload, or the original empty value when there are no visuals.
+     */
+    public static function migrate_text_row(
+        ?string $text,
+        ?int $width,
+        ?string $font,
+        ?int $fontsize,
+        ?string $colour
+    ): ?string {
+        if ($text === null || $text === '') {
+            return self::migrate_row($text, $width, $font, $fontsize, $colour, 'text');
+        }
+
+        $payload = self::merge_visuals(['text' => $text], $width, $font, $fontsize, $colour);
+        return self::encode_payload($payload, $text);
+    }
+
+    /**
      * Migrate a single row's data payload to the consolidated JSON format.
      *
      * Rules:
