@@ -186,6 +186,20 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
     }
 
     /**
+     * Old text is literal, including values that look like a current payload.
+     *
+     * @covers \mod_customcert\local\upgrade\row_migrator::migrate_text_row
+     */
+    public function test_migrate_legacy_literal_text(): void {
+        foreach (['false', 'true', 'null', '1e3', '"quoted"', '[1,2]', '{"text":"nested"}', '  text  '] as $text) {
+            $json = row_migrator::migrate_text_row($text, 0, 'Helvetica', 12, '#333333');
+            $payload = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+            $this->assertSame($text, $payload['text']);
+            $this->assertSame(0, $payload['width']);
+        }
+    }
+
+    /**
      * Data provider for migrate_border_row cases.
      *
      * @return array
