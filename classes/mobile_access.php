@@ -47,6 +47,7 @@ class mobile_access {
 
         if ($userid != $USER->id) {
             require_capability('mod/customcert:viewreport', $context);
+            download_access::require_download_for_user($cm, $userid);
             return $issued;
         }
 

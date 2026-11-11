@@ -24,6 +24,7 @@
 
 use core\session\manager;
 use mod_customcert\local\pagination;
+use mod_customcert\download_access;
 use mod_customcert\event\course_module_viewed;
 use mod_customcert\report_table;
 use mod_customcert\service\certificate_download_service;
@@ -228,6 +229,8 @@ if (!$downloadown && !$downloadissue) {
         $completion = new completion_info($course);
         $completion->set_module_viewed($cm);
     } else if ($downloadissue && $canviewreport) {
+        download_access::require_download_for_user($cm, $downloadissue);
+
         // Only allow downloading a certificate PDF for a user who has actually been issued one.
         if (!(new issue_repository())->exists_for_user((int)$customcert->id, (int)$downloadissue)) {
             throw new moodle_exception('You have not been issued a certificate');
