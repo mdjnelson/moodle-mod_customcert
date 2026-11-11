@@ -134,6 +134,8 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
 
         // Legacy backups may contain a separate 'width' field. Since width is now
         // stored inside the JSON 'data', merge it here before inserting.
+        $haslegacyvisualfields = property_exists($data, 'width') || property_exists($data, 'font')
+            || property_exists($data, 'fontsize') || property_exists($data, 'colour');
         $legacywidth = null;
         if (property_exists($data, 'width')) {
             // Note: width can legitimately be 0 (auto). Only treat NULL as no-op.
@@ -166,7 +168,9 @@ class restore_customcert_activity_structure_step extends restore_activity_struct
         $isjsonobject = $isjson && $trimmed !== '' && $trimmed[0] === '{' && is_array($decoded);
         $dataislegacy = !$isjsonobject;
 
-        if (
+        if (($data->element ?? null) === 'text' && $haslegacyvisualfields) {
+            $data->data = row_migrator::migrate_text_row($rawdata, $legacywidth, $legacyfont, $legacyfontsize, $legacycolour);
+        } else if (
             $legacywidth !== null || $legacyfont !== null || $legacyfontsize !== null || $legacycolour !== null
             || $dataislegacy
         ) {
