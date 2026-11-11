@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [4.4.18] - Unreleased
 
+### Security
+
+- Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
+
 ### Fixed
 
 - Preserve the stored signing password when editing an existing signature without a replacement (#1125).
