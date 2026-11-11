@@ -62,6 +62,20 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $backuppath = make_backup_temp_directory($backupid);
         get_file_packer('application/vnd.moodle.backup')->extract_to_pathname($fixture, $backuppath);
 
+        // A text field in a historical backup can contain a complete JSON object as literal text.
+        $activityxmls = glob($backuppath . '/activities/customcert_*/customcert.xml');
+        $this->assertCount(1, $activityxmls);
+        $xml = file_get_contents($activityxmls[0]);
+        $xml = preg_replace(
+            '#(<name>Text BACKUP</name>\s*<element>text</element>\s*<data>).*?(</data>)#s',
+            '${1}{"text":"literal"}${2}',
+            $xml,
+            1,
+            $count
+        );
+        $this->assertSame(1, $count);
+        file_put_contents($activityxmls[0], $xml);
+
         // Restore into a fresh course.
         $categoryid = (int)$DB->get_field_sql('SELECT MIN(id) FROM {course_categories}');
         $newcourseid = restore_dbops::create_new_course('Customcert v1 restore', 'custe-v1', $categoryid);
@@ -241,7 +255,7 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $this->assertSame('#000000', $teachername['colour']);
 
         $text = $payload('Text BACKUP');
-        $this->assertSame('HEY, THIS IS SOME TEXT.', $text['text']);
+        $this->assertSame('{"text":"literal"}', $text['text']);
         $this->assertSame(15, (int)$text['width']);
         $this->assertSame('times', $text['font']);
         $this->assertSame(21, (int)$text['fontsize']);
@@ -257,5 +271,59 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $userpicture = $payload('User picture BACKUP');
         $this->assertSame(15, (int)$userpicture['width']);
         $this->assertSame(15, (int)$userpicture['height']);
+    }
+
+    /**
+     * Verify a modern text payload in a backup is restored as structured data, not literal text.
+     */
+    public function test_restore_modern_text_payload_is_not_treated_as_literal(): void {
+        global $DB, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $fixture = __DIR__ . '/fixtures/backup-moodle2-elements-v1-20260214-1413.mbz';
+        $backupid = 'custe-modern-' . uniqid();
+        $backuppath = make_backup_temp_directory($backupid);
+        get_file_packer('application/vnd.moodle.backup')->extract_to_pathname($fixture, $backuppath);
+
+        // Turn the legacy text element into an already-migrated one: JSON data, no legacy visual fields.
+        $activityxmls = glob($backuppath . '/activities/customcert_*/customcert.xml');
+        $this->assertCount(1, $activityxmls);
+        $xml = preg_replace(
+            '#(<name>Text BACKUP</name>\s*<element>text</element>\s*)<data>.*?</data>\s*<font>.*?</font>\s*'
+                . '<fontsize>.*?</fontsize>\s*<colour>.*?</colour>(\s*<posx>.*?</posx>\s*<posy>.*?</posy>)\s*'
+                . '<width>.*?</width>#s',
+            '${1}<data>{"text":"Hello","font":"Helvetica","fontsize":12,"width":20}</data>${2}',
+            file_get_contents($activityxmls[0]),
+            1,
+            $count
+        );
+        $this->assertSame(1, $count);
+        file_put_contents($activityxmls[0], $xml);
+
+        $categoryid = (int)$DB->get_field_sql('SELECT MIN(id) FROM {course_categories}');
+        $newcourseid = restore_dbops::create_new_course('Customcert modern restore', 'custe-modern', $categoryid);
+        $rc = new restore_controller(
+            $backupid,
+            $newcourseid,
+            backup::INTERACTIVE_NO,
+            backup::MODE_GENERAL,
+            $USER->id,
+            backup::TARGET_NEW_COURSE
+        );
+        $rc->execute_precheck();
+        $rc->execute_plan();
+        $rc->destroy();
+
+        $row = $DB->get_record('customcert_elements', ['name' => 'Text BACKUP'], '*', MUST_EXIST);
+        $payload = json_decode((string)$row->data, true);
+        $this->assertSame('Hello', $payload['text']);
+        $this->assertSame('Helvetica', $payload['font']);
+        $this->assertSame(12, (int)$payload['fontsize']);
+        $this->assertSame(20, (int)$payload['width']);
+
+        $element = \mod_customcert\service\element_factory::build_with_defaults()->create('text', $row);
+        $this->assertSame('Hello', $element->get_value());
     }
 }
