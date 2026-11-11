@@ -10,6 +10,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Preserve the stored signing password when editing an existing signature without a replacement (#1125).
 - Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
+- Preserved historical text element content exactly, including JSON-looking text, when migrating or restoring older certificates (#1120).
 
 ## [5.3.4] - 2026-11-01
 
