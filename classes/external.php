@@ -54,6 +54,15 @@ use Throwable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class external extends external_api {
+    /** @var int Maximum number of name/value pairs accepted by save_element(). */
+    private const MAX_SUBMITTED_FIELDS = 500;
+
+    /** @var int Maximum length of a submitted field name. */
+    private const MAX_FIELD_NAME_LENGTH = 255;
+
+    /** @var int Maximum number of bracketed levels in a submitted field name. */
+    private const MAX_FIELD_NAME_DEPTH = 5;
+
     /**
      * Returns the save_element() parameters.
      *
@@ -67,7 +76,7 @@ class external extends external_api {
                 'values' => new external_multiple_structure(
                     new external_single_structure(
                         [
-                            'name' => new external_value(PARAM_ALPHANUMEXT, 'The field to update'),
+                            'name' => new external_value(PARAM_RAW, 'The field to update'),
                             'value' => new external_value(PARAM_RAW, 'The value of the field'),
                         ]
                     )
@@ -89,8 +98,6 @@ class external extends external_api {
      * @return array{id: int, posx: int, posy: int, width: ?int, refpoint: int, alignment: string, html: string}
      */
     public static function save_element($templateid, $elementid, $values) {
-        global $USER;
-
         $params = [
             'templateid' => $templateid,
             'elementid' => $elementid,
@@ -125,41 +132,28 @@ class external extends external_api {
         ];
 
         // Submit the values through the element edit form so the same select-option filtering
-        // and validation as edit_element.php is applied.
+        // and validation as edit_element.php is applied. Stored values fill any omitted fields.
         $factory = element_factory::build_with_defaults();
         $passwordfields = (new edit_element_form(null, ['element' => $element, 'factory' => $factory]))
             ->get_password_field_names();
-        $submission = self::get_form_submission($element, $passwordfields);
-        foreach ($values as $value) {
-            $field = $value['name'];
-            if (isset($protectedfields[$field])) {
-                throw new invalid_parameter_exception('Field is not allowed to be updated: ' . $field);
-            }
-            $submission[$field] = $value['value'];
+        $posted = self::get_posted_values($values);
+        if ($protected = array_intersect_key($posted, $protectedfields)) {
+            throw new invalid_parameter_exception('Field is not allowed to be updated: ' . key($protected));
         }
+        // Submitted values take precedence over the stored fallback.
+        $submission = $posted + self::get_form_submission($element, $passwordfields);
 
-        $formid = preg_replace('/[^a-z0-9_]/i', '_', edit_element_form::class);
-        $submission['_qf__' . $formid] = 1;
-        // The web service request is already authenticated, so skip the form's own sesskey check.
-        $ignoresesskey = $USER->ignoresesskey ?? null;
-        $USER->ignoresesskey = true;
-        try {
-            $mform = new edit_element_form(
-                null,
-                ['element' => $element, 'factory' => $factory],
-                'post',
-                '',
-                null,
-                true,
-                $submission
-            );
-        } finally {
-            if ($ignoresesskey === null) {
-                unset($USER->ignoresesskey);
-            } else {
-                $USER->ignoresesskey = $ignoresesskey;
-            }
-        }
+        // The modal posts the form's own submission marker and sesskey; the web service framework
+        // has already validated the request sesskey, and the form re-checks it.
+        $mform = new edit_element_form(
+            null,
+            ['element' => $element, 'factory' => $factory],
+            'post',
+            '',
+            null,
+            true,
+            $submission
+        );
         if (!$mform->is_validated() || !($data = $mform->get_data())) {
             throw new invalid_parameter_exception('Invalid element values');
         }
@@ -221,6 +215,40 @@ class external extends external_api {
             'alignment' => $layout->alignment,
             'html' => $instance->render_html(),
         ];
+    }
+
+    /**
+     * Rebuilds the nested array a normal form POST would produce (e.g. "startdate[0][day]") from name/value pairs.
+     *
+     * Names are validated first so only plain Moodle form field names with well-formed, bounded
+     * bracket suffixes reach parse_str().
+     *
+     * @param array $values List of ['name' => string, 'value' => string] pairs.
+     * @return array
+     * @throws invalid_parameter_exception If a field name is malformed or the submission is too large.
+     */
+    private static function get_posted_values(array $values): array {
+        // Stay below max_input_vars, beyond which parse_str() would silently drop fields.
+        $maxfields = min(self::MAX_SUBMITTED_FIELDS, max(1, (int)ini_get('max_input_vars') - 1));
+        if (count($values) > $maxfields) {
+            throw new invalid_parameter_exception('Too many submitted fields');
+        }
+
+        $query = [];
+        foreach ($values as $value) {
+            $name = $value['name'];
+            if (
+                strlen($name) > self::MAX_FIELD_NAME_LENGTH ||
+                !preg_match('/^[A-Za-z0-9_-]+((?:\[[A-Za-z0-9_-]*\])*)$/D', $name, $matches) ||
+                preg_match_all('/\[/', $matches[1]) > self::MAX_FIELD_NAME_DEPTH
+            ) {
+                throw new invalid_parameter_exception('Invalid field name: ' . s($name));
+            }
+            $query[] = rawurlencode($name) . '=' . rawurlencode($value['value']);
+        }
+        parse_str(implode('&', $query), $posted);
+
+        return $posted;
     }
 
     /**
