@@ -22,8 +22,13 @@ use advanced_testcase;
 use core_external\external_api;
 use customcertelement_border\element as border_element;
 use mod_customcert\local\upgrade\row_migrator;
+use mod_customcert\tests\fixtures\browser_form_submission;
 use stdClass;
 use context_system;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/browser_form_submission.php');
 
 /**
  * Unit tests covering the save-element refactor changes:
@@ -38,6 +43,8 @@ use context_system;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class save_element_changes_test extends advanced_testcase {
+    use browser_form_submission;
+
     // -----------------------------------------------------------------------
     // 1. border::normalise_data()
     // -----------------------------------------------------------------------
@@ -285,9 +292,9 @@ final class save_element_changes_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
         // Save with a new text value; the text element's normalise_data() reads $formdata->text.
-        $values = [
+        $values = $this->browser_submission([
             ['name' => 'text', 'value' => 'new text'],
-        ];
+        ]);
         $result = external::save_element($template->id, $element->id, $values);
         $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
         $this->assertIsArray($cleaned);
@@ -344,10 +351,10 @@ final class save_element_changes_test extends advanced_testcase {
         ];
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
         // Submit new colour and width values.
-        $values = [
+        $values = $this->browser_submission([
             ['name' => 'colour', 'value' => '0000ff'],
             ['name' => 'width', 'value' => '3'],
-        ];
+        ]);
         $result = external::save_element($template->id, $element->id, $values);
         $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
         $this->assertIsArray($cleaned);
