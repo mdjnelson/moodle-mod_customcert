@@ -33,6 +33,11 @@ use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\template_service;
 use context_system;
 use moodle_exception;
+use mod_customcert\tests\fixtures\browser_form_submission;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/browser_form_submission.php');
 
 /**
  * Unit tests for the webservices.
@@ -43,6 +48,8 @@ use moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class external_test extends advanced_testcase {
+    use browser_form_submission;
+
     /**
      * Test set up.
      */
@@ -100,9 +107,9 @@ final class external_test extends advanced_testcase {
         $element->id = (int)$DB->insert_record('customcert_elements', $element, true);
 
         // Submit a new text value via the field that normalise_data() reads.
-        $values = [
+        $values = $this->browser_submission([
             ['name' => 'text', 'value' => 'new text'],
-        ];
+        ]);
 
         $result = external::save_element($template->id, $element->id, $values);
         // Simulate WS return value cleaning.
@@ -172,13 +179,13 @@ final class external_test extends advanced_testcase {
 
         set_config('showposxy', 1, 'customcert');
 
-        $values = [
+        $values = $this->browser_submission([
             ['name' => 'text', 'value' => 'new text'],
             ['name' => 'posx', 'value' => '15'],
             ['name' => 'posy', 'value' => '25'],
             ['name' => 'refpoint', 'value' => '2'],
             ['name' => 'alignment', 'value' => 'C'],
-        ];
+        ]);
 
         $result = external::save_element($template->id, $element->id, $values);
         $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
@@ -435,6 +442,162 @@ final class external_test extends advanced_testcase {
             'timecreated' => ['timecreated', '1'],
             'timemodified' => ['timemodified', '1'],
         ];
+    }
+
+    /**
+     * Bracketed Moodle form field names are valid input for the web service.
+     *
+     * @covers \mod_customcert\external::save_element_parameters
+     */
+    public function test_save_element_parameters_accept_form_field_names(): void {
+        $params = external_api::validate_parameters(external::save_element_parameters(), [
+            'templateid' => 1,
+            'elementid' => 2,
+            'values' => [
+                ['name' => 'startdate[0][day]', 'value' => '1'],
+                ['name' => 'datestring[0]', 'value' => 'Summer'],
+            ],
+        ]);
+
+        $this->assertSame('startdate[0][day]', $params['values'][0]['name']);
+        $this->assertSame('datestring[0]', $params['values'][1]['name']);
+    }
+
+    /**
+     * Server-managed fields must not be settable through bracketed or padded variations of their names.
+     *
+     * @dataProvider protected_field_variation_provider
+     * @param string $field
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_bracketed_protected_fields(string $field): void {
+        global $DB;
+
+        $scenario = $this->create_two_template_scenario();
+        $this->setUser($scenario['teacher']);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        try {
+            external::save_element($scenario['templatea'], $scenario['elementa']->id, [
+                ['name' => $field, 'value' => (string)$scenario['elementb']->id],
+            ]);
+        } finally {
+            $rowa = $DB->get_record('customcert_elements', ['id' => $scenario['elementa']->id], '*', MUST_EXIST);
+            $this->assertSame((int)$scenario['elementa']->pageid, (int)$rowa->pageid);
+            $this->assertSame($scenario['elementa']->data, $rowa->data);
+        }
+    }
+
+    /**
+     * Data provider for variations of protected field names.
+     *
+     * @return array
+     */
+    public static function protected_field_variation_provider(): array {
+        return [
+            'id[0]' => ['id[0]'],
+            'pageid[x][y]' => ['pageid[x][y]'],
+            'element[]' => ['element[]'],
+            'sequence[0]' => ['sequence[0]'],
+            'timecreated[0]' => ['timecreated[0]'],
+            'timemodified[a]' => ['timemodified[a]'],
+            'leading space' => [' id'],
+        ];
+    }
+
+    /**
+     * Normal edit form validation still applies, so an invalid submission is rejected and nothing is saved.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_rejects_invalid_form_values(): void {
+        global $DB;
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        [$cert, , , $elementid] = $this->create_cert_with_element($course);
+        $before = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+
+        try {
+            external::save_element($cert->templateid, $elementid, $this->browser_submission([
+                ['name' => 'name', 'value' => ''],
+                ['name' => 'text', 'value' => 'Should not be saved'],
+            ]));
+            $this->fail('An empty element name must be rejected by the form validation.');
+        } catch (\invalid_parameter_exception $e) {
+            $this->assertEquals($before, $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST));
+        }
+    }
+
+    /**
+     * The historical daterange plugin (nested, repeated date selectors) saves through the web service when installed.
+     *
+     * @covers \mod_customcert\external::save_element
+     */
+    public function test_save_element_saves_nested_repeated_fields(): void {
+        global $DB;
+
+        if (!class_exists(\customcertelement_daterange\element::class)) {
+            $this->markTestSkipped('The date range element is not installed.');
+        }
+
+        $this->setAdminUser();
+        $course = $this->getDataGenerator()->create_course();
+        [$cert, , , $elementid] = $this->create_cert_with_element($course);
+        $DB->set_field('customcert_elements', 'element', 'daterange', ['id' => $elementid]);
+        $DB->set_field('customcert_elements', 'data', json_encode([
+            'dateitem' => -1,
+            'fallbackstring' => '',
+            'dateranges' => [],
+        ]), ['id' => $elementid]);
+
+        $pairs = [
+            ['name' => 'name', 'value' => 'Range'],
+            ['name' => 'dateitem', 'value' => '-1'],
+            ['name' => 'fallbackstring', 'value' => 'Fallback'],
+            ['name' => 'repeats', 'value' => '2'],
+            ['name' => 'startdate[0][day]', 'value' => '1'],
+            ['name' => 'startdate[0][month]', 'value' => '6'],
+            ['name' => 'startdate[0][year]', 'value' => '2025'],
+            ['name' => 'enddate[0][day]', 'value' => '30'],
+            ['name' => 'enddate[0][month]', 'value' => '9'],
+            ['name' => 'enddate[0][year]', 'value' => '2025'],
+            ['name' => 'recurring[0]', 'value' => '0'],
+            ['name' => 'recurring[0]', 'value' => '1'],
+            ['name' => 'datestring[0]', 'value' => 'Summer'],
+            ['name' => 'startdate[1][day]', 'value' => '1'],
+            ['name' => 'startdate[1][month]', 'value' => '12'],
+            ['name' => 'startdate[1][year]', 'value' => '2025'],
+            ['name' => 'enddate[1][day]', 'value' => '28'],
+            ['name' => 'enddate[1][month]', 'value' => '2'],
+            ['name' => 'enddate[1][year]', 'value' => '2026'],
+            ['name' => 'recurring[1]', 'value' => '0'],
+            ['name' => 'datestring[1]', 'value' => 'Winter'],
+        ];
+        external::save_element($cert->templateid, $elementid, $this->browser_submission($pairs));
+
+        $row = $DB->get_record('customcert_elements', ['id' => $elementid], '*', MUST_EXIST);
+        $data = json_decode($row->data);
+        $this->assertSame(-1, (int)$data->dateitem);
+        $this->assertSame('Fallback', $data->fallbackstring);
+        $this->assertCount(2, $data->dateranges);
+        $this->assertSame(make_timestamp(2025, 6, 1), (int)$data->dateranges[0]->startdate);
+        $this->assertSame(make_timestamp(2025, 9, 30), (int)$data->dateranges[0]->enddate);
+        $this->assertSame(1, (int)$data->dateranges[0]->recurring);
+        $this->assertSame('Summer', $data->dateranges[0]->datestring);
+        $this->assertSame(make_timestamp(2025, 12, 1), (int)$data->dateranges[1]->startdate);
+        $this->assertSame('Winter', $data->dateranges[1]->datestring);
+
+        // Reopening the element shows the saved rows.
+        $form = new edit_element_form(null, ['element' => $row]);
+        $html = $form->render();
+        $this->assertMatchesRegularExpression('/<input[^>]*name="datestring\[0\]"[^>]*value="Summer"/', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*name="datestring\[1\]"[^>]*value="Winter"/', $html);
+
+        // The element's own validation (recurring ranges longer than 12 months) is still enforced.
+        $pairs[9]['value'] = '2027';
+        $this->expectException(\invalid_parameter_exception::class);
+        external::save_element($cert->templateid, $elementid, $this->browser_submission($pairs));
     }
 
     /**
@@ -880,10 +1043,10 @@ final class external_test extends advanced_testcase {
         $result = external::save_element(
             $cert->templateid,
             $elementid,
-            [
+            $this->browser_submission([
                 ['name' => 'name', 'value' => 'Updated'],
                 ['name' => 'text', 'value' => 'Updated text'],
-            ]
+            ])
         );
         $cleaned = external_api::clean_returnvalue(external::save_element_returns(), $result);
         $this->assertIsArray($cleaned);
