@@ -26,6 +26,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_customcert\element\stylable_element_interface;
 use mod_customcert\page_helper;
 use mod_customcert\service\element_factory;
 use mod_customcert\service\element_repository;
@@ -98,7 +99,7 @@ foreach ($elementrecords as $element) {
         'name' => (string)$element->name,
         'posx' => (int)($element->posx ?? 0),
         'posy' => (int)($element->posy ?? 0),
-        'width' => $instance->get_width(),
+        'width' => $instance instanceof stylable_element_interface ? $instance->get_width() : null,
         'refpoint' => (int)($element->refpoint ?? 0),
         'alignment' => (string)($element->alignment ?? 'L'),
         'html' => $instance->render_html(),
