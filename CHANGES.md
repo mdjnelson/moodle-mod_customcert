@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.2.14] - Unreleased
 
+### Security
+
+- Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
+
 ### Fixed
 
 - Allow native elements without optional base-class methods to appear in the designer (#1122).
