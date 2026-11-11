@@ -570,8 +570,7 @@ class element_helper {
                 if (!$registry->has($foldername)) {
                     continue;
                 }
-                $classname = $registry->get($foldername);
-                if ($classname::can_add()) {
+                if ($registry->can_add($foldername)) {
                     $component = "customcertelement_{$foldername}";
                     $options[$foldername] = get_string('pluginname', $component);
                 }

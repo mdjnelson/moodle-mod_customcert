@@ -30,11 +30,14 @@ namespace mod_customcert;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/fixtures/customcertelement_legacy45/element.php');
+require_once(__DIR__ . '/fixtures/independent_native_element.php');
 
 use advanced_testcase;
 use mod_customcert\service\element_registry;
 use mod_customcert\service\element_factory;
 use mod_customcert\element\element_bootstrap;
+use mod_customcert\element\stylable_element_interface;
+use mod_customcert\tests\fixtures\independent_native_element;
 use customcertelement_date\element as customcertelement_date_element;
 use customcertelement_image\element as customcertelement_image_element;
 use customcertelement_text\element;
@@ -43,6 +46,62 @@ use customcertelement_text\element;
  * Tests for the element registry + bootstrap default registrations.
  */
 final class element_registry_test extends advanced_testcase {
+    /**
+     * A native element needs only the required interfaces: no base class, styling or availability hook.
+     *
+     * @covers \mod_customcert\service\element_registry::can_add
+     * @covers \mod_customcert\service\element_factory::create
+     */
+    public function test_independent_native_element_is_available_by_default(): void {
+        $record = (object)['id' => 1, 'pageid' => 2, 'name' => 'Independent', 'element' => 'independent'];
+
+        $registry = new element_registry();
+        $registry->register('independent', independent_native_element::class);
+        $this->assertTrue($registry->has('independent'));
+        $this->assertTrue($registry->can_add('independent'));
+
+        $element = (new element_factory($registry))->create('independent', $record);
+        $this->assertNotInstanceOf(\mod_customcert\element::class, $element);
+        $this->assertNotInstanceOf(stylable_element_interface::class, $element);
+        $this->assertSame('Independent preview', $element->render_html());
+        $element->render($this->createMock(\pdf::class), false, new \stdClass());
+    }
+
+    /**
+     * A public static can_add() hook controls availability when an element provides one.
+     *
+     * @covers \mod_customcert\service\element_registry::can_add
+     */
+    public function test_can_add_hook_controls_availability(): void {
+        $unavailable = new class (new \stdClass()) extends independent_native_element {
+            /**
+             * Hide the element type.
+             *
+             * @return bool
+             */
+            public static function can_add(): bool {
+                return false;
+            }
+        };
+        $available = new class (new \stdClass()) extends independent_native_element {
+            /**
+             * Offer the element type.
+             *
+             * @return bool
+             */
+            public static function can_add(): bool {
+                return true;
+            }
+        };
+
+        $registry = new element_registry();
+        $registry->register('unavailable', $unavailable::class);
+        $registry->register('available', $available::class);
+
+        $this->assertFalse($registry->can_add('unavailable'));
+        $this->assertTrue($registry->can_add('available'));
+    }
+
     /**
      * Ensure default registrations register all expected keys.
      *

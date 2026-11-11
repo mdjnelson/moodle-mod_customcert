@@ -88,6 +88,17 @@ final class element_registry {
     }
 
     /**
+     * Check whether a registered element type can be added to a template.
+     *
+     * @param string $type Element type.
+     * @return bool True by default, or the result of its public static availability hook.
+     */
+    public function can_add(string $type): bool {
+        $class = $this->get($type);
+        return !is_callable([$class, 'can_add']) || $class::can_add();
+    }
+
+    /**
      * Return all registered mappings.
      *
      * @return array<string, class-string>

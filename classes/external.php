@@ -33,6 +33,7 @@ use core_external\external_single_structure;
 use core_external\external_multiple_structure;
 use core_external\external_function_parameters;
 use core_user\fields;
+use mod_customcert\element\stylable_element_interface;
 use mod_customcert\event\issue_deleted;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\element_factory;
@@ -215,7 +216,7 @@ class external extends external_api {
             'id' => $instance->get_id(),
             'posx' => (int)($layout->posx ?? 0),
             'posy' => (int)($layout->posy ?? 0),
-            'width' => $instance->get_width(),
+            'width' => $instance instanceof stylable_element_interface ? $instance->get_width() : null,
             'refpoint' => (int)($layout->refpoint ?? 0),
             'alignment' => $layout->alignment,
             'html' => $instance->render_html(),

@@ -95,6 +95,10 @@ behaviour.
 
 ---
 
+An element type is available in the picker by default. Implement a public static `can_add()`
+hook if the plugin needs to hide the type under particular conditions. Elements without a
+styling capability have no configured width.
+
 ## Validation
 
 `service\validation_service` already validates the standard `colour`, `posx`/`posy` (when
