@@ -565,7 +565,7 @@ class element_helper {
                 $classname = '\\customcertelement_' . $foldername . '\\element';
                 // Skip folders without the standard element class, as they would not work.
                 if (class_exists($classname)) {
-                    if ($classname::can_add()) {
+                    if (!is_callable([$classname, 'can_add']) || $classname::can_add()) {
                         $component = "customcertelement_{$foldername}";
                         $options[$foldername] = get_string('pluginname', $component);
                     }

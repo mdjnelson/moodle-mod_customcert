@@ -25,6 +25,10 @@
 
 namespace mod_customcert;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/independent_native_element.php');
+
 use grade_item;
 use grade_grade;
 use context_module;
@@ -500,6 +504,50 @@ final class element_helper_test extends advanced_testcase {
             $fromstring = element_helper::get_date_format_string($date, (string) $legacyint);
             $this->assertIsString($fromstring);
             $this->assertNotEmpty($fromstring);
+        }
+    }
+
+    /**
+     * Native elements without optional base-class methods are offered unless their can_add() hook says otherwise.
+     *
+     * @covers \mod_customcert\element_helper::get_available_element_types
+     */
+    public function test_get_available_element_types_supports_optional_can_add(): void {
+        global $CFG;
+
+        $fixtures = [
+            'zzzjuniernohook' => '',
+            'zzzjunieravailable' => 'public static function can_add(): bool { return true; }',
+            'zzzjunierhidden' => 'public static function can_add(): bool { return false; }',
+        ];
+        foreach (array_keys($fixtures) as $foldername) {
+            $this->assertFalse(is_dir("$CFG->dirroot/mod/customcert/element/$foldername"));
+        }
+
+        try {
+            foreach ($fixtures as $foldername => $hook) {
+                $elementdir = "$CFG->dirroot/mod/customcert/element/$foldername";
+                mkdir($elementdir);
+                file_put_contents($elementdir . '/element.php', "<?php\nnamespace customcertelement_{$foldername};\n" .
+                    "class element extends \\mod_customcert\\tests\\fixtures\\independent_native_element { $hook }\n");
+                require_once($elementdir . '/element.php');
+            }
+            $this->assertFalse(is_callable(['\\customcertelement_zzzjuniernohook\\element', 'can_add']));
+
+            $options = element_helper::get_available_element_types();
+
+            $this->assertArrayHasKey('zzzjuniernohook', $options);
+            $this->assertArrayHasKey('zzzjunieravailable', $options);
+            $this->assertArrayNotHasKey('zzzjunierhidden', $options);
+            $this->assertArrayHasKey('text', $options);
+            // The fixture plugins have no language strings.
+            $this->assertDebuggingCalledCount(2);
+        } finally {
+            foreach (array_keys($fixtures) as $foldername) {
+                $elementdir = "$CFG->dirroot/mod/customcert/element/$foldername";
+                @unlink($elementdir . '/element.php');
+                @rmdir($elementdir);
+            }
         }
     }
 }
