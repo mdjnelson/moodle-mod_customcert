@@ -77,6 +77,10 @@ class element extends base_element implements
 are not listed; `renderable_element_interface` must always be declared. The element has no `validate()`
 because it has no rules of its own.
 
+An element type is available in the picker by default. Implement a public static `can_add()`
+hook if the plugin needs to hide the type under particular conditions. Elements without a
+styling capability have no configured width.
+
 ## Validation
 
 - **Common fields** — `validation_service` always validates `colour`, `posx`/`posy` (when position
