@@ -10,8 +10,13 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
 
+### Added
+
+- The Expiry element now supports a custom interval in days, months or years, in addition to the existing 1–5 year options (#642).
+
 ### Fixed
 
+- The Expiry element's "Valid for..." text on the certificate PDF now uses language strings, matching the designer preview (#642).
 - Allow native elements without optional base-class methods to appear in the designer (#1122).
 - Preserve the stored signing password when editing an existing signature without a replacement (#1125).
 - Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
