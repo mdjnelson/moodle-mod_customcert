@@ -56,8 +56,22 @@ Work only on the currently checked-out branch and its task branch unless explici
 - At the start of a task, identify the current Git branch.
 - Treat the current branch as the target for the task.
 - If on `main` or a `MOODLE_*_STABLE` branch, create a separate task branch based on the current branch.
-- If already on a task branch for the current issue, continue using it.
-- If the current task branch belongs to a different issue, stop and ask before making changes.
+- Always append a version suffix to task branch names based on the target branch:
+    - For `main`, use `-main`.
+    - For `MOODLE_XXX_STABLE` branches, derive the suffix by interpreting the three-digit version code as a major version (first digit) followed by a two-digit minor version (last two digits). Remove the leading zero from the minor version, but preserve a minor version of zero as `0`.
+    - Examples:
+        - `MOODLE_405_STABLE` → `-45`
+        - `MOODLE_500_STABLE` → `-50`
+        - `MOODLE_501_STABLE` → `-51`
+        - `MOODLE_502_STABLE` → `-52`
+        - `MOODLE_503_STABLE` → `-53`
+        - `MOODLE_600_STABLE` → `-60`
+        - `MOODLE_601_STABLE` → `-61`
+        - `main` → `-main`
+- Use the naming format `issue-<number>-<description>-<version>`.
+- Determine the version suffix from the original target branch, not the task branch.
+- If already on a task branch for the current issue and target version, continue using it. Do not append the suffix again.
+- If the current task branch belongs to a different issue or target version, stop and ask before making changes.
 - Do not switch to another release branch unless asked.
 - Do not backport changes to other branches unless asked.
 - Keep all commits for the task on its task branch.
