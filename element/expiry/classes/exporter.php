@@ -20,6 +20,7 @@ namespace customcertelement_expiry;
 
 use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\int_field;
 
 /**
  * Handles import and export of expiry elements for custom certificates.
@@ -44,7 +45,32 @@ class exporter extends subplugin_text_exportable {
             'dateitem' => new enum_field($this->get_dateitems()),
             'dateformat' => new enum_field(array_keys(element::get_date_formats())),
             'startfrom' => new enum_field(['award', 'coursecomplete']),
+            'intervalvalue' => new int_field(1, 36500),
+            'intervalunit' => new enum_field(['days', 'months', 'years']),
         ];
+    }
+
+    /**
+     * Converts import data, tolerating exports that predate the custom interval fields.
+     *
+     * The interval fields are only stored for the custom interval option.
+     *
+     * @param array $data The data to convert.
+     * @return string|null Converted string.
+     */
+    public function convert_for_import(array $data): ?string {
+        $data['intervalvalue'] ??= ['value' => 1];
+        $data['intervalunit'] ??= ['value' => 'months'];
+
+        $converted = parent::convert_for_import($data);
+        $customdata = json_decode((string)$converted, true);
+
+        if (is_array($customdata) && ($customdata['dateitem'] ?? '') !== 'custom') {
+            unset($customdata['intervalvalue'], $customdata['intervalunit']);
+            return json_encode($customdata);
+        }
+
+        return $converted;
     }
 
     /**
@@ -61,6 +87,7 @@ class exporter extends subplugin_text_exportable {
             '-10',
             '-11',
             '-12',
+            'custom',
         ];
     }
 }

@@ -10,6 +10,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
 
+### Added
+
+- Added a custom interval option (a number of days, months or years) to the Expiry element, alongside the existing 1–5 year options (#642).
+
 ### Fixed
 
 - Allow native elements without optional base-class methods to appear in the designer (#1122).
