@@ -31,6 +31,8 @@ use restore_controller;
 use restore_dbops;
 use restore_date_testcase;
 use mod_customcert\service\certificate_issue_service;
+use mod_customcert\service\template_repository;
+use mod_customcert\service\template_service;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -108,6 +110,53 @@ final class backup_restore_test extends restore_date_testcase {
         $newissue = $DB->get_record('customcert_issues', ['customcertid' => $newcustomcert->id], '*', MUST_EXIST);
         $this->assertEquals(1, (int)$newissue->emailed);
         $this->assertNull($newissue->studentemailed);
+    }
+
+    /**
+     * Legacy 1-5 year and custom interval expiry configurations must survive backup and restore unchanged.
+     *
+     * @covers \restore_customcert_activity_structure_step::process_customcert_element
+     */
+    public function test_backup_restore_preserves_expiry_configuration(): void {
+        global $DB;
+
+        [$course, $customcert] = $this->create_course_and_module('customcert');
+
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $pageid = template_service::create()->add_page($template);
+
+        $payloads = [
+            'Legacy expiry' => ['dateitem' => '-9', 'dateformat' => 'validfor', 'startfrom' => 'award', 'width' => 0],
+            'Custom expiry' => [
+                'dateitem' => 'custom', 'expiryvalue' => 6, 'expiryunit' => 'months',
+                'dateformat' => 'validfor', 'startfrom' => 'coursecomplete', 'width' => 0,
+            ],
+        ];
+        foreach ($payloads as $name => $payload) {
+            $DB->insert_record('customcert_elements', (object)[
+                'pageid' => $pageid,
+                'name' => $name,
+                'element' => 'expiry',
+                'data' => json_encode($payload),
+                'sequence' => element_helper::get_element_sequence($pageid),
+                'timecreated' => time(),
+            ]);
+        }
+
+        $newcourseid = $this->backup_and_restore($course);
+
+        $newcustomcert = $DB->get_record('customcert', ['course' => $newcourseid], '*', MUST_EXIST);
+        $newpages = $DB->get_records('customcert_pages', ['templateid' => $newcustomcert->templateid]);
+        [$insql, $params] = $DB->get_in_or_equal(array_keys($newpages));
+        foreach ($payloads as $name => $payload) {
+            $data = $DB->get_field_select(
+                'customcert_elements',
+                'data',
+                "name = ? AND pageid $insql",
+                array_merge([$name], $params)
+            );
+            $this->assertEquals($payload, json_decode($data, true));
+        }
     }
 
     /**

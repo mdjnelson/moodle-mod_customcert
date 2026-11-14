@@ -94,9 +94,9 @@ final class element_contract_test extends advanced_testcase {
     }
 
     /**
-     * No bundled element opts in to the optional validation interface, and standard colour, position and
-     * width validation still runs for each of them through the real validation service without activating
-     * the deprecated validate_form_elements() fallback.
+     * No bundled element other than expiry (which validates its custom interval) opts in to the optional
+     * validation interface, and standard colour, position and width validation still runs for each of them
+     * through the real validation service without activating the deprecated validate_form_elements() fallback.
      *
      * @covers \mod_customcert\service\validation_service::validate
      */
@@ -132,10 +132,14 @@ final class element_contract_test extends advanced_testcase {
             $this->assertTrue(class_exists($class), "{$class} should exist");
 
             $implemented = class_implements($class);
-            $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented, $class);
+            if ($name === 'expiry') {
+                $this->assertArrayHasKey(validatable_element_interface::class, $implemented, $class);
+            } else {
+                $this->assertArrayNotHasKey(validatable_element_interface::class, $implemented, $class);
+                $this->assertFalse(method_exists($class, 'validate'), "{$class} should not declare validate()");
+            }
             $this->assertArrayHasKey(form_element_interface::class, $implemented, $class);
             $this->assertArrayHasKey(renderable_element_interface::class, $implemented, $class);
-            $this->assertFalse(method_exists($class, 'validate'), "{$class} should not declare validate()");
 
             $element = new $class($this->make_record());
             $errors = $svc->validate($element, [
