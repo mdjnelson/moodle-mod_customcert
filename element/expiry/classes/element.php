@@ -59,13 +59,43 @@ class element extends \mod_customcert\element {
      */
     private const EXPIRY_FIVE = '-12';
 
-    /** @var array Map EXPIRY_ consts to strtotime()'s $datetime param. */
-    private array $relative = [
+    /**
+     * Date - Custom interval (duration and unit are stored alongside).
+     */
+    public const EXPIRY_CUSTOM = 'custom';
+
+    /** Custom interval unit - days. */
+    public const UNIT_DAYS = 'days';
+
+    /** Custom interval unit - months. */
+    public const UNIT_MONTHS = 'months';
+
+    /** Custom interval unit - years. */
+    public const UNIT_YEARS = 'years';
+
+    /** @var array Largest duration accepted for each custom interval unit. */
+    public const MAX_DURATION = [
+        self::UNIT_DAYS => 36500,
+        self::UNIT_MONTHS => 1200,
+        self::UNIT_YEARS => 100,
+    ];
+
+    /** @var array Map legacy EXPIRY_ consts to strtotime()'s $datetime param. */
+    private const RELATIVE = [
         self::EXPIRY_ONE => '+1 year',
         self::EXPIRY_TWO => '+2 years',
         self::EXPIRY_THREE => '+3 years',
         self::EXPIRY_FOUR => '+4 years',
         self::EXPIRY_FIVE => '+5 years',
+    ];
+
+    /** @var array Map legacy EXPIRY_ consts to the language string used for the "Valid for" format. */
+    private const VALIDFOR_STRINGS = [
+        self::EXPIRY_ONE => 'validfor1year',
+        self::EXPIRY_TWO => 'validfor2years',
+        self::EXPIRY_THREE => 'validfor3years',
+        self::EXPIRY_FOUR => 'validfor4years',
+        self::EXPIRY_FIVE => 'validfor5years',
     ];
 
     /**
@@ -81,9 +111,24 @@ class element extends \mod_customcert\element {
         $dateoptions[self::EXPIRY_THREE] = get_string('expirydatethree', 'customcertelement_expiry');
         $dateoptions[self::EXPIRY_FOUR] = get_string('expirydatefour', 'customcertelement_expiry');
         $dateoptions[self::EXPIRY_FIVE] = get_string('expirydatefive', 'customcertelement_expiry');
+        $dateoptions[self::EXPIRY_CUSTOM] = get_string('expirydatecustom', 'customcertelement_expiry');
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_expiry'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_expiry');
+
+        $mform->addElement('text', 'expiryduration', get_string('expiryduration', 'customcertelement_expiry'), ['size' => 5]);
+        $mform->setType('expiryduration', PARAM_RAW_TRIMMED);
+        $mform->setDefault('expiryduration', 1);
+        $mform->addHelpButton('expiryduration', 'expiryduration', 'customcertelement_expiry');
+        $mform->hideIf('expiryduration', 'dateitem', 'neq', self::EXPIRY_CUSTOM);
+
+        $mform->addElement('select', 'expiryunit', get_string('expiryunit', 'customcertelement_expiry'), [
+            self::UNIT_DAYS => get_string('unitdays', 'customcertelement_expiry'),
+            self::UNIT_MONTHS => get_string('unitmonths', 'customcertelement_expiry'),
+            self::UNIT_YEARS => get_string('unityears', 'customcertelement_expiry'),
+        ]);
+        $mform->setDefault('expiryunit', self::UNIT_MONTHS);
+        $mform->hideIf('expiryunit', 'dateitem', 'neq', self::EXPIRY_CUSTOM);
 
         $mform->addElement('select', 'dateformat', get_string('dateformat', 'customcertelement_expiry'), self::get_date_formats());
         $mform->addHelpButton('dateformat', 'dateformat', 'customcertelement_expiry');
@@ -101,8 +146,41 @@ class element extends \mod_customcert\element {
     }
 
     /**
+     * Performs validation on the element values.
+     *
+     * @param array $data the submitted data
+     * @param array $files the submitted files
+     * @return array the validation errors
+     */
+    public function validate_form_elements($data, $files) {
+        $errors = parent::validate_form_elements($data, $files);
+
+        if (($data['dateitem'] ?? '') !== self::EXPIRY_CUSTOM) {
+            return $errors;
+        }
+
+        $unit = $data['expiryunit'] ?? '';
+        if (!array_key_exists($unit, self::MAX_DURATION)) {
+            $errors['expiryunit'] = get_string('error:invalidunit', 'customcertelement_expiry');
+            return $errors;
+        }
+
+        $duration = trim((string) ($data['expiryduration'] ?? ''));
+        if (!preg_match('/^[1-9][0-9]*$/', $duration)) {
+            $errors['expiryduration'] = get_string('error:invalidduration', 'customcertelement_expiry');
+        } else if ((int) $duration > self::MAX_DURATION[$unit]) {
+            $errors['expiryduration'] = get_string('error:durationtoolarge', 'customcertelement_expiry', self::MAX_DURATION[$unit]);
+        }
+
+        return $errors;
+    }
+
+    /**
      * This will handle how form data will be saved into the data column in the
      * customcert_elements table.
+     *
+     * The format is unchanged for the legacy 1-5 year options. The custom interval additionally
+     * stores 'expiryduration' and 'expiryunit'.
      *
      * @param \stdClass $data the form data
      * @return string the json encoded array
@@ -114,6 +192,11 @@ class element extends \mod_customcert\element {
             'dateformat' => $data->dateformat,
             'startfrom' => $data->startfrom,
         ];
+
+        if ((string) $data->dateitem === self::EXPIRY_CUSTOM) {
+            $arrtostore['expiryduration'] = (int) ($data->expiryduration ?? 0);
+            $arrtostore['expiryunit'] = (string) ($data->expiryunit ?? '');
+        }
 
         // Encode these variables before saving into the DB.
         return json_encode($arrtostore);
@@ -134,25 +217,19 @@ class element extends \mod_customcert\element {
             return;
         }
 
-        $courseid = element_helper::get_courseid($this->id);
         $dateinfo = json_decode($this->get_data());
+        if (!is_object($dateinfo) || !isset($dateinfo->dateitem, $dateinfo->dateformat)) {
+            return;
+        }
         $dateformat = $dateinfo->dateformat;
-        $dateitem = $dateinfo->dateitem;
         $date = $this->expiry($user->id, $preview);
 
         // Ensure that a date has been set.
         if (!empty($date)) {
             if ($dateformat == 'validfor') {
-                if ($dateitem == self::EXPIRY_ONE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 1 year');
-                } else if ($dateitem == self::EXPIRY_TWO) {
-                    element_helper::render_content($pdf, $this, 'Valid for 2 years');
-                } else if ($dateitem == self::EXPIRY_THREE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 3 years');
-                } else if ($dateitem == self::EXPIRY_FOUR) {
-                    element_helper::render_content($pdf, $this, 'Valid for 4 years');
-                } else if ($dateitem == self::EXPIRY_FIVE) {
-                    element_helper::render_content($pdf, $this, 'Valid for 5 years');
+                $text = self::get_validfor_string($dateinfo);
+                if ($text !== '') {
+                    element_helper::render_content($pdf, $this, $text);
                 }
             } else {
                 element_helper::render_content($pdf, $this, element_helper::get_date_format_string($date, $dateformat));
@@ -176,27 +253,21 @@ class element extends \mod_customcert\element {
 
         // Decode the information stored in the database.
         $dateinfo = json_decode($this->get_data());
+        if (!is_object($dateinfo) || !isset($dateinfo->dateitem, $dateinfo->dateformat)) {
+            return '';
+        }
         $dateformat = $dateinfo->dateformat;
-        $dateitem = $dateinfo->dateitem;
 
         if ($dateformat == 'validfor') {
-            if ($dateitem == self::EXPIRY_ONE) {
-                return element_helper::render_html_content($this, get_string('validfor1year', 'customcertelement_expiry'));
-            } else if ($dateitem == self::EXPIRY_TWO) {
-                return element_helper::render_html_content($this, get_string('validfor2years', 'customcertelement_expiry'));
-            } else if ($dateitem == self::EXPIRY_THREE) {
-                return element_helper::render_html_content($this, get_string('validfor3years', 'customcertelement_expiry'));
-            } else if ($dateitem == self::EXPIRY_FOUR) {
-                return element_helper::render_html_content($this, get_string('validfor4years', 'customcertelement_expiry'));
-            } else if ($dateitem == self::EXPIRY_FIVE) {
-                return element_helper::render_html_content($this, get_string('validfor5years', 'customcertelement_expiry'));
-            }
-        } else {
-            return element_helper::render_html_content($this, element_helper::get_date_format_string(
-                strtotime($this->relative[$dateitem], time()),
-                $dateformat
-            ));
+            $text = self::get_validfor_string($dateinfo);
+            return $text === '' ? '' : element_helper::render_html_content($this, $text);
         }
+
+        $expiry = self::calculate_expiry_from_data(time(), $dateinfo);
+        if (empty($expiry)) {
+            return '';
+        }
+        return element_helper::render_html_content($this, element_helper::get_date_format_string($expiry, $dateformat));
     }
 
     /**
@@ -217,6 +288,13 @@ class element extends \mod_customcert\element {
 
             $element = $mform->getElement('startfrom');
             $element->setValue($dateinfo->startfrom);
+
+            if (isset($dateinfo->expiryduration)) {
+                $mform->getElement('expiryduration')->setValue($dateinfo->expiryduration);
+            }
+            if (isset($dateinfo->expiryunit)) {
+                $mform->getElement('expiryunit')->setValue($dateinfo->expiryunit);
+            }
         }
 
         parent::definition_after_data($mform);
@@ -234,6 +312,11 @@ class element extends \mod_customcert\element {
         global $DB;
 
         $dateinfo = json_decode($this->get_data());
+
+        // The 1-5 year and custom interval options are not course module or grade item references.
+        if (!preg_match('/^(gradeitem:)?[0-9]+$/', (string) $dateinfo->dateitem)) {
+            return;
+        }
 
         $isgradeitem = false;
         $oldid = $dateinfo->dateitem;
@@ -277,8 +360,10 @@ class element extends \mod_customcert\element {
         global $DB;
 
         $dateinfo = json_decode($this->get_data());
-        $dateitem = $dateinfo->dateitem;
-        $startfrom = $dateinfo->startfrom;
+        if (!is_object($dateinfo) || !isset($dateinfo->dateitem)) {
+            return 0;
+        }
+        $startfrom = $dateinfo->startfrom ?? 'award';
         $starttime = null;
 
         if ($preview) {
@@ -307,6 +392,9 @@ class element extends \mod_customcert\element {
                 '*',
                 IGNORE_MULTIPLE
             );
+            if (!$issue) {
+                return 0;
+            }
             $starttime = $issue->timecreated;
         }
 
@@ -314,7 +402,105 @@ class element extends \mod_customcert\element {
             return 0;
         }
 
-        return strtotime($this->relative[$dateitem], $starttime);
+        return self::calculate_expiry_from_data((int) $starttime, $dateinfo);
+    }
+
+    /**
+     * Calculate the expiry timestamp from decoded element data.
+     *
+     * @param int $starttime The timestamp the interval starts from.
+     * @param \stdClass $dateinfo The decoded element data.
+     * @return int Timestamp, or 0 if the configuration is invalid.
+     */
+    private static function calculate_expiry_from_data(int $starttime, \stdClass $dateinfo): int {
+        return self::calculate_expiry(
+            $starttime,
+            (string) ($dateinfo->dateitem ?? ''),
+            $dateinfo->expiryduration ?? null,
+            $dateinfo->expiryunit ?? null
+        );
+    }
+
+    /**
+     * Calculate an expiry timestamp. This is the single calculation used by PDF generation,
+     * previews and expiry reporting.
+     *
+     * The legacy 1-5 year options use strtotime() exactly as before. For a custom interval days are
+     * added using wall-clock time, while months and years are calendar based: if the target month
+     * is shorter than the start day the result is clamped to the last day of that month (for
+     * example 31 January + 1 month = 28/29 February; 29 February + 1 year = 28 February).
+     *
+     * @param int $starttime The timestamp the interval starts from.
+     * @param string $dateitem The stored date item (a legacy option or 'custom').
+     * @param mixed $duration The custom duration (a positive integer), ignored for legacy options.
+     * @param mixed $unit The custom unit (days, months or years), ignored for legacy options.
+     * @return int Timestamp, or 0 if the configuration is invalid.
+     */
+    public static function calculate_expiry(int $starttime, string $dateitem, $duration = null, $unit = null): int {
+        if (isset(self::RELATIVE[$dateitem])) {
+            return (int) strtotime(self::RELATIVE[$dateitem], $starttime);
+        }
+
+        if ($dateitem !== self::EXPIRY_CUSTOM || !self::is_valid_interval($duration, $unit)) {
+            return 0;
+        }
+
+        $duration = (int) $duration;
+        $start = (new \DateTimeImmutable('@' . $starttime))->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+
+        if ($unit === self::UNIT_DAYS) {
+            return $start->modify('+' . $duration . ' days')->getTimestamp();
+        }
+
+        $months = $unit === self::UNIT_YEARS ? $duration * 12 : $duration;
+        $monthindex = ((int) $start->format('Y')) * 12 + ((int) $start->format('n') - 1) + $months;
+        $year = intdiv($monthindex, 12);
+        $month = $monthindex % 12 + 1;
+        $lastday = (int) $start->setDate($year, $month, 1)->format('t');
+        $day = min((int) $start->format('j'), $lastday);
+
+        return $start->setDate($year, $month, $day)->getTimestamp();
+    }
+
+    /**
+     * Is the given custom duration and unit valid?
+     *
+     * @param mixed $duration The duration.
+     * @param mixed $unit The unit.
+     * @return bool
+     */
+    public static function is_valid_interval($duration, $unit): bool {
+        if (!is_string($unit) || !array_key_exists($unit, self::MAX_DURATION)) {
+            return false;
+        }
+        if (is_string($duration) && preg_match('/^[1-9][0-9]*$/', $duration)) {
+            $duration = (int) $duration;
+        }
+        return is_int($duration) && $duration >= 1 && $duration <= self::MAX_DURATION[$unit];
+    }
+
+    /**
+     * Get the localised "Valid for ..." text for the element's configured interval.
+     *
+     * @param \stdClass $dateinfo The decoded element data.
+     * @return string The text, or an empty string if the configuration is invalid.
+     */
+    public static function get_validfor_string(\stdClass $dateinfo): string {
+        $dateitem = (string) ($dateinfo->dateitem ?? '');
+        if (isset(self::VALIDFOR_STRINGS[$dateitem])) {
+            return get_string(self::VALIDFOR_STRINGS[$dateitem], 'customcertelement_expiry');
+        }
+
+        $duration = $dateinfo->expiryduration ?? null;
+        $unit = $dateinfo->expiryunit ?? null;
+        if ($dateitem !== self::EXPIRY_CUSTOM || !self::is_valid_interval($duration, $unit)) {
+            return '';
+        }
+
+        $duration = (int) $duration;
+        $stringid = 'duration' . rtrim($unit, 's') . ($duration === 1 ? '' : 's');
+        $interval = get_string($stringid, 'customcertelement_expiry', $duration);
+        return get_string('validforinterval', 'customcertelement_expiry', $interval);
     }
 
     /**
@@ -392,6 +578,9 @@ class element extends \mod_customcert\element {
         // certificate we use the first returned by this query to calculate the
         // expiry date for reporting.
         $expirydata = $DB->get_records_sql($sql, ['customcertid' => $customcertid], 0, 1);
+        if (empty($expirydata)) {
+            return 0;
+        }
         $element = new self(reset($expirydata));
         return $element->expiry($userid);
     }

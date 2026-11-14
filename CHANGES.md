@@ -6,6 +6,14 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.0.12] - Unreleased
 
+### Added
+
+- The Expiry element now supports a custom interval (a positive number of days, months or years) in addition to the 1-5 year options, including the "Valid for ..." display format (#642). Existing 1-5 year configurations are unchanged and require no upgrade. Calendar-based custom intervals clamp to the last day of the target month (for example 31 January + 1 month = 28/29 February).
+
+### Changed
+
+- The "Valid for ..." text shown by the Expiry element on the PDF now comes from language strings rather than hard-coded English (#642).
+
 ### Security
 
 - Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
