@@ -10,6 +10,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
 
+### Added
+
+- The Expiry element now supports a custom interval (a positive number of days, months or years) in addition to the 1-5 year options. Existing configurations are unchanged and no upgrade is required (#642).
+
 ### Fixed
 
 - Preserve the stored signing password when editing an existing signature without a replacement (#1125).
