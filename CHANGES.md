@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.2.15] - Unreleased
 
+### Added
+
+- Added a custom interval option (a number of days, months or years) to the Expiry element, alongside the existing 1–5 year options (#642).
+
 ### Fixed
 
 - Fixed a database error when sorting the recipients list by the expiry date column (#1168).
