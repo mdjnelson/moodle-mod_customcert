@@ -31,9 +31,12 @@ use mod_customcert\element\persistable_element_interface;
 use mod_customcert\element\renderable_element_interface;
 use mod_customcert\element\preparable_form_interface;
 use mod_customcert\element\stylable_payload;
+use mod_customcert\element\validatable_element_interface;
 use mod_customcert\element_helper;
 use mod_customcert\service\certificate_repository;
 use mod_customcert\service\element_renderer;
+use DateTimeImmutable;
+use DateTimeZone;
 use MoodleQuickForm;
 use pdf;
 use restore_customcert_activity_task;
@@ -51,7 +54,8 @@ class element extends base_element implements
     persistable_element_interface,
     preparable_form_interface,
     renderable_element_interface,
-    restorable_element_interface
+    restorable_element_interface,
+    validatable_element_interface
 {
     /**
      * Date - Relative expiry date of 1 year
@@ -78,6 +82,18 @@ class element extends base_element implements
      */
     private const string EXPIRY_FIVE = '-12';
 
+    /**
+     * Date - Custom interval configured with an interval value and unit.
+     */
+    private const string EXPIRY_CUSTOM = 'custom';
+
+    /** @var array<string,int> Valid custom interval units mapped to their maximum interval value. */
+    private const array INTERVAL_UNITS = [
+        'days' => 36500,
+        'months' => 1200,
+        'years' => 100,
+    ];
+
     /** @var array Map EXPIRY_ consts to strtotime()'s $datetime param. */
     private array $relative = [
         self::EXPIRY_ONE => '+1 year',
@@ -101,6 +117,7 @@ class element extends base_element implements
         $dateoptions[self::EXPIRY_THREE] = get_string('expirydatethree', 'customcertelement_expiry');
         $dateoptions[self::EXPIRY_FOUR] = get_string('expirydatefour', 'customcertelement_expiry');
         $dateoptions[self::EXPIRY_FIVE] = get_string('expirydatefive', 'customcertelement_expiry');
+        $dateoptions[self::EXPIRY_CUSTOM] = get_string('expirydatecustom', 'customcertelement_expiry');
 
         $startdates['award'] = get_string('awarddate', 'customcertelement_expiry');
         if ($CFG->enablecompletion && ($COURSE->id == SITEID || $COURSE->enablecompletion)) {
@@ -109,6 +126,19 @@ class element extends base_element implements
 
         $mform->addElement('select', 'dateitem', get_string('dateitem', 'customcertelement_expiry'), $dateoptions);
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_expiry');
+
+        $mform->addElement('text', 'intervalvalue', get_string('intervalvalue', 'customcertelement_expiry'), ['size' => 5]);
+        $mform->setType('intervalvalue', PARAM_INT);
+        $mform->setDefault('intervalvalue', 1);
+        $mform->hideIf('intervalvalue', 'dateitem', 'neq', self::EXPIRY_CUSTOM);
+
+        $unitoptions = [];
+        foreach (array_keys(self::INTERVAL_UNITS) as $unit) {
+            $unitoptions[$unit] = get_string('intervalunit_' . $unit, 'customcertelement_expiry');
+        }
+        $mform->addElement('select', 'intervalunit', get_string('intervalunit', 'customcertelement_expiry'), $unitoptions);
+        $mform->setDefault('intervalunit', 'months');
+        $mform->hideIf('intervalunit', 'dateitem', 'neq', self::EXPIRY_CUSTOM);
 
         $mform->addElement(
             'select',
@@ -131,14 +161,44 @@ class element extends base_element implements
      * @return array JSON-serialisable payload
      */
     public function normalise_data(stdClass $formdata): array {
-        return array_merge(
-            [
-                'dateitem' => (string)($formdata->dateitem ?? ''),
-                'dateformat' => (string)($formdata->dateformat ?? ''),
-                'startfrom' => (string)($formdata->startfrom ?? ''),
-            ],
-            stylable_payload::from_form($formdata)->to_array(),
-        );
+        $payload = [
+            'dateitem' => (string)($formdata->dateitem ?? ''),
+            'dateformat' => (string)($formdata->dateformat ?? ''),
+            'startfrom' => (string)($formdata->startfrom ?? ''),
+        ];
+
+        if ($payload['dateitem'] === self::EXPIRY_CUSTOM) {
+            $payload['intervalvalue'] = (int)($formdata->intervalvalue ?? 0);
+            $payload['intervalunit'] = (string)($formdata->intervalunit ?? '');
+        }
+
+        return array_merge($payload, stylable_payload::from_form($formdata)->to_array());
+    }
+
+    /**
+     * Validate the custom interval settings.
+     *
+     * @param array $data Submitted form data
+     * @return array<string,string> Errors keyed by form field name
+     */
+    public function validate(array $data): array {
+        $errors = [];
+
+        if (($data['dateitem'] ?? '') !== self::EXPIRY_CUSTOM) {
+            return $errors;
+        }
+
+        $unit = (string)($data['intervalunit'] ?? '');
+        if (!isset(self::INTERVAL_UNITS[$unit])) {
+            $errors['intervalunit'] = get_string('errorintervalunit', 'customcertelement_expiry');
+            return $errors;
+        }
+
+        if (self::resolve_interval($data) === null) {
+            $errors['intervalvalue'] = get_string('errorintervalvalue', 'customcertelement_expiry', self::INTERVAL_UNITS[$unit]);
+        }
+
+        return $errors;
     }
 
     /**
@@ -158,6 +218,12 @@ class element extends base_element implements
             }
             if (isset($payload['startfrom'])) {
                 $mform->getElement('startfrom')->setValue($payload['startfrom']);
+            }
+            if (isset($payload['intervalvalue'])) {
+                $mform->getElement('intervalvalue')->setValue($payload['intervalvalue']);
+            }
+            if (isset($payload['intervalunit'])) {
+                $mform->getElement('intervalunit')->setValue($payload['intervalunit']);
             }
         }
     }
@@ -193,6 +259,8 @@ class element extends base_element implements
                     $content = 'Valid for 4 years';
                 } else if ($dateitem == self::EXPIRY_FIVE) {
                     $content = 'Valid for 5 years';
+                } else if ($dateitem == self::EXPIRY_CUSTOM) {
+                    $content = $this->get_custom_validfor_text();
                 }
             } else {
                 $content = element_helper::get_date_format_string($date, (string)$dateformat);
@@ -235,12 +303,12 @@ class element extends base_element implements
                 $content = get_string('validfor4years', 'customcertelement_expiry');
             } else if ($dateitem == self::EXPIRY_FIVE) {
                 $content = get_string('validfor5years', 'customcertelement_expiry');
+            } else if ($dateitem == self::EXPIRY_CUSTOM) {
+                $content = $this->get_custom_validfor_text();
             }
         } else {
-            $content = element_helper::get_date_format_string(
-                strtotime($this->relative[$dateitem], time()),
-                (string)$dateformat
-            );
+            $date = $this->calculate_expiry(time());
+            $content = empty($date) ? '' : element_helper::get_date_format_string($date, (string)$dateformat);
         }
 
         if (empty($content)) {
@@ -331,7 +399,96 @@ class element extends base_element implements
             return 0;
         }
 
-        return strtotime($this->relative[$dateitem], (int) $starttime);
+        return $this->calculate_expiry((int) $starttime);
+    }
+
+    /**
+     * Calculate the expiry timestamp for this element's configured interval.
+     *
+     * @param int $starttime Timestamp the interval is added to.
+     * @return int Expiry timestamp, or 0 if the configuration is invalid.
+     */
+    private function calculate_expiry(int $starttime): int {
+        $payload = $this->get_payload();
+        $dateitem = (string)($payload['dateitem'] ?? '');
+
+        if (isset($this->relative[$dateitem])) {
+            return (int)strtotime($this->relative[$dateitem], $starttime);
+        }
+
+        if ($dateitem === self::EXPIRY_CUSTOM) {
+            $interval = self::resolve_interval($payload);
+            if ($interval !== null) {
+                return self::add_interval($starttime, $interval['value'], $interval['unit']);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Return the custom interval from the given payload if it is valid.
+     *
+     * @param array $payload Element payload or submitted form data.
+     * @return array{value: int, unit: string}|null Null if the value or unit is missing or invalid.
+     */
+    private static function resolve_interval(array $payload): ?array {
+        $unit = (string)($payload['intervalunit'] ?? '');
+        $value = $payload['intervalvalue'] ?? null;
+
+        if (!isset(self::INTERVAL_UNITS[$unit]) || filter_var($value, FILTER_VALIDATE_INT) === false) {
+            return null;
+        }
+
+        $value = (int)$value;
+        if ($value < 1 || $value > self::INTERVAL_UNITS[$unit]) {
+            return null;
+        }
+
+        return ['value' => $value, 'unit' => $unit];
+    }
+
+    /**
+     * Add a calendar interval to a timestamp.
+     *
+     * Months and years keep the time of day and clamp the day to the last day of the target month
+     * (for example 31 January plus one month is the last day of February).
+     *
+     * @param int $starttime Start timestamp.
+     * @param int $value Positive number of units.
+     * @param string $unit One of 'days', 'months' or 'years'.
+     * @return int Resulting timestamp.
+     */
+    public static function add_interval(int $starttime, int $value, string $unit): int {
+        $start = (new DateTimeImmutable('@' . $starttime))->setTimezone(new DateTimeZone(date_default_timezone_get()));
+
+        if ($unit === 'days') {
+            return $start->modify('+' . $value . ' days')->getTimestamp();
+        }
+
+        $months = (int)$start->format('n') - 1 + ($unit === 'years' ? $value * 12 : $value);
+        $year = (int)$start->format('Y') + intdiv($months, 12);
+        $month = $months % 12 + 1;
+        $lastday = (int)(new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month)))->format('t');
+        $day = min((int)$start->format('j'), $lastday);
+
+        return $start->setDate($year, $month, $day)->getTimestamp();
+    }
+
+    /**
+     * Return the localised "Valid for ..." text for a custom interval.
+     *
+     * @return string Empty string if the interval is invalid.
+     */
+    private function get_custom_validfor_text(): string {
+        $interval = self::resolve_interval($this->get_payload());
+        if ($interval === null) {
+            return '';
+        }
+
+        $key = 'validfor' . rtrim($interval['unit'], 's') . ($interval['value'] === 1 ? '' : 's');
+
+        return get_string($key, 'customcertelement_expiry', $interval['value']);
     }
 
     /**
