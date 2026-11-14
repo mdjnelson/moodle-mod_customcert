@@ -6,6 +6,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 ## [5.3.6] - Unreleased
 
+### Added
+
+- Added a custom interval option (a number of days, months or years) to the Expiry element, alongside the existing 1–5 year options (#642).
+
 ### Fixed
 
 - Fixed an exception on the course participant outline and complete activity reports (#1167).
