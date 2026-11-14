@@ -40,6 +40,19 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
   (#1119). Use `\mod_customcert\element_helper::get_date_formats()` instead. The expiry element's
   own `get_date_formats()` is unchanged.
 
+## [5.3.5] - 2026-11-14
+
+### Security
+
+- Fixed certificate PDF downloads bypassing activity group visibility restrictions ([GHSA-v4rx-4222-4qf3](https://github.com/mdjnelson/moodle-mod_customcert/security/advisories/GHSA-v4rx-4222-4qf3)).
+
+### Fixed
+
+- Allow native elements without optional base-class methods to appear in the designer (#1122).
+- Preserve the stored signing password when editing an existing signature without a replacement (#1125).
+- Fixed the activity description not being shown on the course page when "Display description on course page" is enabled (#1087).
+- Preserved historical text element content exactly, including JSON-looking text, when migrating or restoring older certificates (#1120).
+
 ## [5.3.4] - 2026-11-01
 
 ### Fixed
