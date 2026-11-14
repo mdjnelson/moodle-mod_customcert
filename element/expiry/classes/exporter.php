@@ -20,6 +20,7 @@ namespace customcertelement_expiry;
 
 use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\int_field;
 
 /**
  * Handles import and export of expiry elements for custom certificates.
@@ -44,7 +45,46 @@ class exporter extends subplugin_text_exportable {
             'dateitem' => new enum_field($this->get_dateitems()),
             'dateformat' => new enum_field(array_keys(element::get_date_formats())),
             'startfrom' => new enum_field(['award', 'coursecomplete']),
+            'intervalvalue' => new int_field(1, 36500),
+            'intervalunit' => new enum_field([element::UNIT_DAYS, element::UNIT_MONTHS, element::UNIT_YEARS]),
         ];
+    }
+
+    /**
+     * Exports expiry data, omitting the interval fields unless a custom interval is used.
+     *
+     * @param string $customdata Subplugin custom data.
+     * @return array Exported data in array format.
+     */
+    public function export(string $customdata): array {
+        $data = parent::export($customdata);
+        if (($data['dateitem']['value'] ?? null) !== element::EXPIRY_CUSTOM) {
+            unset($data['intervalvalue'], $data['intervalunit']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Converts import data, tolerating exports that predate custom intervals.
+     *
+     * @param array $data The data to convert.
+     * @return string|null Converted string.
+     */
+    public function convert_for_import(array $data): ?string {
+        $data += [
+            'intervalvalue' => ['value' => 1],
+            'intervalunit' => ['value' => element::UNIT_MONTHS],
+        ];
+        $json = parent::convert_for_import($data);
+
+        $customdata = json_decode((string)$json, true);
+        if (is_array($customdata) && ($customdata['dateitem'] ?? null) !== element::EXPIRY_CUSTOM) {
+            unset($customdata['intervalvalue'], $customdata['intervalunit']);
+            $json = json_encode($customdata);
+        }
+
+        return $json;
     }
 
     /**
@@ -61,6 +101,7 @@ class exporter extends subplugin_text_exportable {
             '-10',
             '-11',
             '-12',
+            element::EXPIRY_CUSTOM,
         ];
     }
 }
