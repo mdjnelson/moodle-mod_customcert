@@ -326,4 +326,79 @@ final class restore_v1_fixture_test extends advanced_testcase {
         $element = \mod_customcert\service\element_factory::build_with_defaults()->create('text', $row);
         $this->assertSame('Hello', $element->get_value());
     }
+
+    /**
+     * A historical backup is recognised by its visual fields, even when all of them are NULL.
+     */
+    public function test_restore_legacy_text_with_null_visuals_stays_literal(): void {
+        $row = $this->restore_with_text_element_xml(
+            '<data>{"text":"Hello"}</data><font>$@NULL@$</font><fontsize>$@NULL@$</fontsize>'
+                . '<colour>$@NULL@$</colour>${2}<width>$@NULL@$</width>'
+        );
+
+        $payload = json_decode((string)$row->data, true);
+        $this->assertSame('{"text":"Hello"}', $payload['text']);
+        $this->assertArrayNotHasKey('width', $payload);
+    }
+
+    /**
+     * A modern backup without visual fields keeps a structured payload, including text that looks like JSON.
+     */
+    public function test_restore_modern_text_payload_with_nested_json_is_preserved(): void {
+        $row = $this->restore_with_text_element_xml(
+            '<data>{"text":"{\"text\":\"nested\"}","width":20}</data>${2}'
+        );
+
+        $payload = json_decode((string)$row->data, true);
+        $this->assertSame('{"text":"nested"}', $payload['text']);
+        $this->assertSame(20, (int)$payload['width']);
+    }
+
+    /**
+     * Restore the v1 fixture after replacing the text element's data and visual fields.
+     *
+     * @param string $replacement XML replacement; ${2} keeps the position fields.
+     * @return stdClass The restored text element record.
+     */
+    private function restore_with_text_element_xml(string $replacement): stdClass {
+        global $DB, $USER;
+
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        $backupid = 'custe-text-' . uniqid();
+        $backuppath = make_backup_temp_directory($backupid);
+        get_file_packer('application/vnd.moodle.backup')
+            ->extract_to_pathname(__DIR__ . '/fixtures/backup-moodle2-elements-v1-20260214-1413.mbz', $backuppath);
+
+        $activityxmls = glob($backuppath . '/activities/customcert_*/customcert.xml');
+        $this->assertCount(1, $activityxmls);
+        $xml = preg_replace(
+            '#(<name>Text BACKUP</name>\s*<element>text</element>\s*)<data>.*?</data>\s*<font>.*?</font>\s*'
+                . '<fontsize>.*?</fontsize>\s*<colour>.*?</colour>(\s*<posx>.*?</posx>\s*<posy>.*?</posy>)\s*'
+                . '<width>.*?</width>#s',
+            '${1}' . $replacement,
+            file_get_contents($activityxmls[0]),
+            1,
+            $count
+        );
+        $this->assertSame(1, $count);
+        file_put_contents($activityxmls[0], $xml);
+
+        $categoryid = (int)$DB->get_field_sql('SELECT MIN(id) FROM {course_categories}');
+        $newcourseid = restore_dbops::create_new_course('Customcert text restore', $backupid, $categoryid);
+        $rc = new restore_controller(
+            $backupid,
+            $newcourseid,
+            backup::INTERACTIVE_NO,
+            backup::MODE_GENERAL,
+            $USER->id,
+            backup::TARGET_NEW_COURSE
+        );
+        $rc->execute_precheck();
+        $rc->execute_plan();
+        $rc->destroy();
+
+        return $DB->get_record('customcert_elements', ['name' => 'Text BACKUP'], '*', MUST_EXIST);
+    }
 }
