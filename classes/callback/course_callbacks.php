@@ -82,11 +82,11 @@ class course_callbacks {
      *
      * @param \stdClass $course
      * @param \stdClass $user
-     * @param \stdClass $mod
+     * @param \stdClass|\cm_info $mod
      * @param \stdClass $customcert
      * @return \stdClass the user outline object
      */
-    public static function user_outline(\stdClass $course, \stdClass $user, \stdClass $mod, \stdClass $customcert): \stdClass {
+    public static function user_outline(\stdClass $course, \stdClass $user, \stdClass|\cm_info $mod, \stdClass $customcert): \stdClass {
         $result = new \stdClass();
         if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
             $result->info = get_string('receiveddate', 'customcert');
@@ -104,10 +104,10 @@ class course_callbacks {
      *
      * @param \stdClass $course
      * @param \stdClass $user
-     * @param \stdClass $mod
+     * @param \stdClass|\cm_info $mod
      * @param \stdClass $customcert
      */
-    public static function user_complete(\stdClass $course, \stdClass $user, \stdClass $mod, \stdClass $customcert): void {
+    public static function user_complete(\stdClass $course, \stdClass $user, \stdClass|\cm_info $mod, \stdClass $customcert): void {
         global $OUTPUT;
         if ($issue = (new issue_repository())->find_by_user_certificate((int)$customcert->id, (int)$user->id)) {
             echo $OUTPUT->box_start();
