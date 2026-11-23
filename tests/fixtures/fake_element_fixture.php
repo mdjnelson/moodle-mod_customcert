@@ -23,6 +23,7 @@ use mod_customcert\element\renderable_element_interface;
 use MoodleQuickForm;
 use pdf;
 use stdClass;
+
 /**
  * Fixture element class used for discovery tests via class_alias.
  *

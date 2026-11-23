@@ -311,7 +311,8 @@ class element extends base_element implements
                     $starttime = $timecompleted->timecompleted;
                 }
             }
-        } else { // Expiry date calculated from certificate award date.
+        } else {
+            // Expiry date calculated from certificate award date.
             $page = $DB->get_record('customcert_pages', ['id' => $this->get_pageid()], '*', MUST_EXIST);
             $customcert = (new certificate_repository())->get_by_template_id_or_fail((int)$page->templateid);
             $issue = $DB->get_record(

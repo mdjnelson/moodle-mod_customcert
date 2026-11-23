@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export;
 
-
 /**
  * Handles the import and export of custom certificate templates.
  *

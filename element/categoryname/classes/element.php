@@ -91,7 +91,8 @@ class element extends base_element implements
 
         if (!empty($course->category)) {
             $categoryname = $DB->get_field('course_categories', 'name', ['id' => $course->category], MUST_EXIST);
-        } else { // Must be in a site template.
+        } else {
+            // Must be in a site template.
             $categoryname = $SITE->fullname;
         }
 
