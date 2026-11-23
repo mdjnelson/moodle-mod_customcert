@@ -101,4 +101,23 @@ final class course_callbacks_test extends advanced_testcase {
         $this->assertSame([], $status);
         $this->assertCount(1, (new issue_repository())->list_by_certificate((int)$customcert->id));
     }
+
+    /**
+     * user_outline() and user_complete() must accept the cm_info object Moodle passes for $mod.
+     *
+     * @covers \mod_customcert\callback\course_callbacks::user_outline
+     * @covers \mod_customcert\callback\course_callbacks::user_complete
+     */
+    public function test_user_outline_and_complete_accept_cm_info(): void {
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $user = $this->getDataGenerator()->create_user();
+        $cm = get_fast_modinfo($course)->get_cm($customcert->cmid);
+
+        $outline = course_callbacks::user_outline($course, $user, $cm, $customcert);
+        $this->assertSame(get_string('notissued', 'customcert'), $outline->info);
+
+        $this->expectOutputString(get_string('notissued', 'customcert'));
+        course_callbacks::user_complete($course, $user, $cm, $customcert);
+    }
 }

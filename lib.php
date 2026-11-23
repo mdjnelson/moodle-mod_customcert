@@ -113,7 +113,7 @@ function customcert_reset_course_form_defaults($course) {
  *
  * @param stdClass $course
  * @param stdClass $user
- * @param stdClass $mod
+ * @param stdClass|cm_info $mod
  * @param stdClass $customcert
  * @return stdClass the user outline object
  */
@@ -127,7 +127,7 @@ function customcert_user_outline($course, $user, $mod, $customcert) {
  *
  * @param stdClass $course
  * @param stdClass $user
- * @param stdClass $mod
+ * @param stdClass|cm_info $mod
  * @param stdClass $customcert
  * @return string the user complete information
  */
