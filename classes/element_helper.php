@@ -519,7 +519,8 @@ class element_helper {
 
         if ($course = $DB->get_record_sql($sql, ['elementid' => $elementid])) {
             return $course->course;
-        } else { // Must be in a site template.
+        } else {
+            // Must be in a site template.
             return $SITE->id;
         }
     }

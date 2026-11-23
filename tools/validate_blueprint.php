@@ -30,11 +30,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// This is a standalone CLI tool; it does not bootstrap Moodle.
+// phpcs:disable moodle.Files.MoodleInternal.MoodleInternalGlobalState
 define('MOODLE_INTERNAL', true);
 
 define('BLUEPRINT_PATH', __DIR__ . '/../blueprint.json');
 
-// @codingStandardsIgnoreLine
 $errors = [];
 
 // 1. File must exist and be readable.

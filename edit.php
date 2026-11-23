@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 use mod_customcert\edit_form;
 use mod_customcert\load_template_form;
 use mod_customcert\local\preview_renderer;
@@ -53,7 +52,8 @@ if ($tid) {
     $template = template::from_record($templaterepo->get_by_id_or_fail((int)$tid));
     $contextid = $template->get_contextid();
     $pageurl = new moodle_url('/mod/customcert/edit.php', ['tid' => $tid]);
-} else { // Adding a new template.
+} else {
+    // Adding a new template.
     $contextid = required_param('contextid', PARAM_INT);
     $pageurl = new moodle_url('/mod/customcert/edit.php', ['contextid' => $contextid]);
 }

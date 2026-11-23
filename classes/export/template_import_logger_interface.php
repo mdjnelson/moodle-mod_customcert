@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export;
 
-
 /**
  * Defines logging capabilities for custom certificate template import feature.
  *

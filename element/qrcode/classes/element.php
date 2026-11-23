@@ -39,7 +39,6 @@ use stdClass;
 use TCPDF2DBarcode;
 use Throwable;
 
-
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
