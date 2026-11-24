@@ -72,7 +72,8 @@ if ($action == 'edit') {
     $id = required_param('id', PARAM_INT);
     $element = $elementrepo->get_for_template_or_fail($tid, $id);
     $pageurl = new moodle_url('/mod/customcert/edit_element.php', ['id' => $id, 'tid' => $tid, 'action' => $action]);
-} else { // Must be adding an element.
+} else {
+    // Must be adding an element.
     // We need to supply what element we want added to what page.
     $pageid = required_param('pageid', PARAM_INT);
     $pagerepo->get_for_template_or_fail($tid, $pageid);

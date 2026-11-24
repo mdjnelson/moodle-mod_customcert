@@ -102,7 +102,7 @@ final class edit_element_test extends advanced_testcase {
         // Course B: provides the element id (element belongs to template B).
         [, , $elementidb] = $this->create_template_with_element();
 
-        // Edit_element.php 'edit' path: get_for_template_or_fail($tid, $id).
+        // This mirrors the edit path in edit_element.php, which scopes the lookup to the template.
         $elementrepo = new element_repository(new element_factory(new element_registry()));
         $this->expectException(dml_missing_record_exception::class);
         $elementrepo->get_for_template_or_fail($templateida, $elementidb);
@@ -123,7 +123,7 @@ final class edit_element_test extends advanced_testcase {
         // Course B: provides the pageid (page belongs to template B).
         [, $pageidb] = $this->create_template_with_element();
 
-        // Edit_element.php 'add' path: get_for_template_or_fail($tid, $pageid).
+        // This mirrors the add path in edit_element.php, which scopes the page lookup to the template.
         $pagerepo = new page_repository();
         $this->expectException(dml_missing_record_exception::class);
         $pagerepo->get_for_template_or_fail($templateida, $pageidb);

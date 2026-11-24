@@ -211,7 +211,8 @@ if (!$downloadown && !$downloadissue) {
     }
     echo $OUTPUT->footer($course);
     exit();
-} else if ($canreceive || $canviewreport) { // Output to pdf.
+} else if ($canreceive || $canviewreport) {
+    // Output to pdf.
     $userid = $USER->id;
     if ($downloadown) {
         if (!data_submitted()) {

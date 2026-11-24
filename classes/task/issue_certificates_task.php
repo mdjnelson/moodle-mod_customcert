@@ -21,6 +21,7 @@
  * @copyright  2024 Oscar Nadjar <oscar.nadjar@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_customcert\task;
 
 use core\task\scheduled_task;

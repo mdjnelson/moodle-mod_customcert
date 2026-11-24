@@ -665,7 +665,8 @@ abstract class element implements
         $element->timemodified = time();
 
         // Check if we are updating, or inserting a new element.
-        if (!empty($this->id)) { // Must be updating a record in the database.
+        if (!empty($this->id)) {
+            // Must be updating a record in the database.
             $element->id = $this->id;
             $return = $DB->update_record('customcert_elements', $element);
 
@@ -673,7 +674,8 @@ abstract class element implements
             element_updated::create_from_element($target)->trigger();
 
             return $return;
-        } else { // Must be adding a new one.
+        } else {
+            // Must be adding a new one.
             $element->element = $data->element;
             $element->pageid = $data->pageid;
             $element->sequence = element_helper::get_element_sequence($element->pageid);

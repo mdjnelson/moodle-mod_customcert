@@ -77,7 +77,7 @@ final class upgrade_visuals_migration_test extends advanced_testcase {
                 ['width' => 9, 'x' => 1],
             ],
 
-            // E: empty data became {"width":0}.
+            // Case E: empty data becomes a payload containing only a zero width.
             'empty data becomes width only' => [
                 '', 0, null, null, null,
                 ['width' => 0],
