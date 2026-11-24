@@ -36,7 +36,6 @@ use MoodleQuickForm;
 use pdf;
 use stdClass;
 
-
 /**
  * The customcert element studentname's core interaction API.
  *

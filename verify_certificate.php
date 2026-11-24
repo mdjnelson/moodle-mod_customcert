@@ -22,8 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// This file does not need require_login because capability to verify can be granted to guests, skip codechecker here.
-// @codingStandardsIgnoreLine
+// This file does not need require_login because capability to verify can be granted to guests.
+// phpcs:ignore moodle.Files.RequireLogin.Missing
 require_once('../../config.php');
 
 use mod_customcert\helper;

@@ -20,6 +20,7 @@ namespace mod_customcert\export;
 
 use core\clock;
 use mod_customcert\export\import_exception;
+
 /**
  * Handles the import and export of custom certificate templates.
  *

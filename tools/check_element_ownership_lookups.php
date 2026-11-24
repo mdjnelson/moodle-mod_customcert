@@ -46,6 +46,7 @@
  */
 
 // This is a standalone CLI tool; it does not bootstrap Moodle.
+// phpcs:disable moodle.Files.MoodleInternal.MoodleInternalGlobalState
 define('MOODLE_INTERNAL', true);
 
 // Root of the mod_customcert plugin (one level up from this script).
@@ -67,7 +68,6 @@ define('PLUGIN_ROOT', dirname(__DIR__));
  * Scoped lookups (element_repository::get_for_template_or_fail) should be used
  * when an authorised template/context is already available.
  */
-// @codingStandardsIgnoreLine
 const FILES_TO_SCAN = [
     'ajax.php',
     'download_all_certificates.php',

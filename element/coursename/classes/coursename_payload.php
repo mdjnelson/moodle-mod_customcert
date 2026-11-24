@@ -23,6 +23,7 @@
  */
 
 declare(strict_types=1);
+
 namespace customcertelement_coursename;
 
 use coding_exception;

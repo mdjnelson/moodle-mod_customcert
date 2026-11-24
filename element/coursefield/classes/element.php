@@ -160,7 +160,8 @@ class element extends base_element implements
         } else {
             $value = '';
         }
-        if (is_number($field)) { // Must be a custom course profile field.
+        if (is_number($field)) {
+            // Must be a custom course profile field.
             $handler = course_handler::create();
             $data = $handler->get_instance_data((int)$course->id, true);
             if ($preview && empty($data[$field]->export_value())) {
@@ -169,7 +170,8 @@ class element extends base_element implements
             } else if (!empty($data[$field])) {
                 $value = $data[$field]->export_value();
             }
-        } else if (!empty($course->$field)) { // Field in the course table.
+        } else if (!empty($course->$field)) {
+            // Field in the course table.
             $value = $course->$field;
         }
 

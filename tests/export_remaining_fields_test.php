@@ -15,12 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 declare(strict_types=1);
+
 namespace mod_customcert;
+
 use advanced_testcase;
 use mod_customcert\export\datatypes\format_exception;
 use mod_customcert\export\datatypes\unimported_field;
 use mod_customcert\export\datatypes\user_field;
 use mod_customcert\export\table_exporter;
+
 /**
  * Tests for user_field, unimported_field and table_exporter.
  *
