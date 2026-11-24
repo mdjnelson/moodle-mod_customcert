@@ -509,7 +509,7 @@ function mod_customcert_inplace_editable($itemtype, $itemid, $newvalue) {
 
         // This callback receives only $itemid with no template context; ownership is resolved by walking
         // element -> page -> template immediately after. customcert-allow-raw-element-lookup.
-        $element = $elementrepo->get_by_id_or_fail((int)$itemid); // @codingStandardsIgnoreLine
+        $element = $elementrepo->get_by_id_or_fail((int)$itemid); // phpcs:ignore
         $page = (new page_repository())->get_by_id_or_fail((int)$element->pageid);
 
         $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$page->templateid));

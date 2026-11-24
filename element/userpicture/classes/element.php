@@ -129,7 +129,8 @@ class element extends base_element implements
             $location = make_request_directory() . '/target';
             $file->copy_content_to($location);
             $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
-        } else if ($preview) { // Can't find an image, but we are in preview mode then display default pic.
+        } else if ($preview) {
+            // Can't find an image, but we are in preview mode then display default pic.
             $location = $CFG->dirroot . '/pix/u/f1.png';
             $pdf->Image($location, $this->get_posx(), $this->get_posy(), (int)$payload['width'], (int)$payload['height']);
         }
@@ -158,13 +159,16 @@ class element extends base_element implements
         if ((int)($payload['width'] ?? 0) === 0 && (int)($payload['height'] ?? 0) === 0) {
             // Neither dimension is set, so no style is applied.
             $style .= '';
-        } else if ((int)($payload['width'] ?? 0) === 0) { // Then the height must be set.
+        } else if ((int)($payload['width'] ?? 0) === 0) {
+            // Then the height must be set.
             $style .= 'width: ' . (int)$payload['height'] . 'mm; ';
             $style .= 'height: ' . (int)$payload['height'] . 'mm';
-        } else if ((int)($payload['height'] ?? 0) === 0) { // Then the width must be set.
+        } else if ((int)($payload['height'] ?? 0) === 0) {
+            // Then the width must be set.
             $style .= 'width: ' . (int)$payload['width'] . 'mm; ';
             $style .= 'height: ' . (int)$payload['width'] . 'mm';
-        } else { // Must both be set.
+        } else {
+            // Must both be set.
             $style .= 'width: ' . (int)$payload['width'] . 'mm; ';
             $style .= 'height: ' . (int)$payload['height'] . 'mm';
         }

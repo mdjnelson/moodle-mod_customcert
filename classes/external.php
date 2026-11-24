@@ -21,6 +21,7 @@
  * @copyright  2016 Mark Nelson <mdjnelson@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_customcert;
 
 use context_module;

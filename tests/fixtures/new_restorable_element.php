@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 declare(strict_types=1);
+
 namespace mod_customcert\tests\fixtures;
 
 use mod_customcert\element;

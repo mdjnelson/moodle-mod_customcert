@@ -15,10 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 declare(strict_types=1);
+
 namespace mod_customcert;
+
 use advanced_testcase;
 use mod_customcert\export\template_import_logger_interface;
 use mod_customcert\export\template_logger;
+
 /**
  * Tests for template_logger.
  *

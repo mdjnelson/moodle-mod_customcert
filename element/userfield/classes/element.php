@@ -178,7 +178,8 @@ class element extends base_element implements
         } else {
             $value = '';
         }
-        if (is_number($field)) { // Must be a custom user profile field.
+        if (is_number($field)) {
+            // Must be a custom user profile field.
             if ($field = $DB->get_record('user_info_field', ['id' => $field])) {
                 $value = $field->name;
                 $file = $CFG->dirroot . '/user/profile/field/' . $field->datatype . '/field.class.php';
@@ -193,7 +194,8 @@ class element extends base_element implements
                     }
                 }
             }
-        } else if (in_array($field, self::USER_FIELDS, true) && !empty($user->$field)) { // Field in the user table.
+        } else if (in_array($field, self::USER_FIELDS, true) && !empty($user->$field)) {
+            // Field in the user table.
             $value = $user->$field;
         }
 

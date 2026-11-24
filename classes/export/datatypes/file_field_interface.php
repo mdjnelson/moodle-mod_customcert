@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-
 /**
  * Defines a contract for export fields that involve stored file references.
  *
