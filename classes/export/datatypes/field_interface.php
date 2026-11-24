@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-
 /**
  * Defines the interface for all exportable field types in custom certificates.
  *

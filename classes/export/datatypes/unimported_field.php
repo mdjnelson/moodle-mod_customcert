@@ -18,7 +18,6 @@ declare(strict_types=1);
 
 namespace mod_customcert\export\datatypes;
 
-
 /**
  * Represents a field that cannot be imported in custom certificate exports.
  *

@@ -84,7 +84,8 @@ class edit_form extends moodleform {
                     $this->add_customcert_page_elements($p);
                 }
             }
-        } else { // Add a new template.
+        } else {
+            // Add a new template.
             // Create a 'fake' page to display the elements on - not yet saved in the DB.
             $page = new stdClass();
             $page->id = 0;

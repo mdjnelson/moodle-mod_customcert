@@ -358,15 +358,18 @@ class element extends base_element implements
             if ($w === 0 && $h === 0) {
                 $style .= 'width: ' . $fileimageinfo['width'] . 'px; ';
                 $style .= 'height: ' . $fileimageinfo['height'] . 'px';
-            } else if ($w === 0) { // Then the height must be set.
+            } else if ($w === 0) {
+                // Then the height must be set.
                 // We must get the width based on the height to keep the ratio.
                 $style .= 'width: ' . ($h * $whratio) . 'mm; ';
                 $style .= 'height: ' . $h . 'mm';
-            } else if ($h === 0) { // Then the width must be set.
+            } else if ($h === 0) {
+                // Then the width must be set.
                 $style .= 'width: ' . $w . 'mm; ';
                 // We must get the height based on the width to keep the ratio.
                 $style .= 'height: ' . ($w / $whratio) . 'mm';
-            } else { // Must both be set.
+            } else {
+                // Must both be set.
                 $style .= 'width: ' . $w . 'mm; ';
                 $style .= 'height: ' . $h . 'mm';
             }
