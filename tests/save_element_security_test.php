@@ -24,8 +24,13 @@ use customcertelement_userfield\element as userfield_element;
 use grade_item;
 use invalid_parameter_exception;
 use mod_customcert\service\element_factory;
+use mod_customcert\tests\fixtures\browser_form_submission;
 use ReflectionMethod;
 use stdClass;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/fixtures/browser_form_submission.php');
 
 /**
  * Security regression tests for mod_customcert_save_element value validation.
@@ -36,6 +41,8 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class save_element_security_test extends advanced_testcase {
+    use browser_form_submission;
+
     /** @var stdClass Course the teacher can manage. */
     private stdClass $coursea;
 
@@ -121,6 +128,7 @@ final class save_element_security_test extends advanced_testcase {
         foreach ($values as $name => $value) {
             $submitted[] = ['name' => $name, 'value' => (string)$value];
         }
+        $submitted = $this->browser_submission($submitted);
         try {
             $result = external::save_element($this->templateid, $element->id, $submitted);
             external_api::clean_returnvalue(external::save_element_returns(), $result);
