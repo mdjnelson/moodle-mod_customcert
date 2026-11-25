@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Note - All hash comments refer to the issue number. Eg. #169 refers to https://github.com/mdjnelson/moodle-mod_customcert/issues/169.
 
+## [5.2.15] - Unreleased
+
+### Fixed
+
+- Fixed a database error when sorting the recipients list by the expiry date column (#1168).
+
 ## [5.2.14] - 2026-11-14
 
 ### Security
