@@ -122,6 +122,7 @@ class report_table extends table_sql {
         $this->define_headers($headers);
         $this->collapsible(false);
         $this->sortable(true);
+        $this->no_sorting('timeexpires');
         $this->no_sorting('code');
         $this->no_sorting('download');
         $this->is_downloadable(true);
