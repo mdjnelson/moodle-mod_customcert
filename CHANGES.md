@@ -9,6 +9,7 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 ### Fixed
 
 - Fixed an exception on the course participant outline and complete activity reports (#1167).
+- Fixed a database error when sorting the recipients list by the expiry date column (#1168).
 
 ## [5.3.5] - 2026-11-14
 
