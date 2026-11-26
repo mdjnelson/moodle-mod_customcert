@@ -34,6 +34,7 @@ $string['dateitem'] = 'Date item';
 $string['dateitem_help'] = 'This will be the date that is printed on the certificate';
 $string['enrolmentenddate'] = 'Enrolment end date';
 $string['enrolmentstartdate'] = 'Enrolment start date';
+$string['errorimportinterval'] = 'The expiry element was not imported because its custom interval is missing or invalid. {$a}';
 $string['errorinvalidinterval'] = 'Enter a whole number between 1 and {$a}.';
 $string['errorinvalidunit'] = 'Select a valid unit.';
 $string['expireson'] = 'Expires on';
