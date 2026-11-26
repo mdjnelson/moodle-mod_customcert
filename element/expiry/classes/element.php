@@ -127,7 +127,8 @@ class element extends base_element implements
         $mform->addHelpButton('dateitem', 'dateitem', 'customcertelement_expiry');
 
         $mform->addElement('text', 'intervalvalue', get_string('intervalvalue', 'customcertelement_expiry'), ['size' => 5]);
-        $mform->setType('intervalvalue', PARAM_INT);
+        // PARAM_INT would truncate input such as "1.5" to 1 before validate() sees it.
+        $mform->setType('intervalvalue', PARAM_RAW);
         $mform->setDefault('intervalvalue', 1);
         $mform->hideIf('intervalvalue', 'dateitem', 'neq', self::EXPIRY_CUSTOM);
 
@@ -188,24 +189,34 @@ class element extends base_element implements
      * @return array<string,string> Errors keyed by form field name
      */
     public function validate(array $data): array {
-        $errors = [];
-
         if (($data['dateitem'] ?? '') !== self::EXPIRY_CUSTOM) {
-            return $errors;
+            return [];
         }
 
-        $unit = (string)($data['intervalunit'] ?? '');
-        if (!isset(self::MAX_INTERVAL[$unit])) {
-            $errors['intervalunit'] = get_string('errorinvalidunit', 'customcertelement_expiry');
-            return $errors;
+        return self::validate_interval($data['intervalvalue'] ?? null, $data['intervalunit'] ?? null);
+    }
+
+    /**
+     * Validate a custom interval. This is the single source of the interval rules, used by the
+     * form, template imports and expiry calculations.
+     *
+     * @param mixed $value The interval length, a whole number from 1 up to the maximum for the unit
+     * @param mixed $unit One of the UNIT_* constants
+     * @return array<string,string> Localised errors keyed by form field name, empty if valid
+     */
+    public static function validate_interval(mixed $value, mixed $unit): array {
+        if (!is_string($unit) || !isset(self::MAX_INTERVAL[$unit])) {
+            return ['intervalunit' => get_string('errorinvalidunit', 'customcertelement_expiry')];
         }
 
-        $value = $data['intervalvalue'] ?? null;
-        if (!is_numeric($value) || (int)$value != $value || (int)$value < 1 || (int)$value > self::MAX_INTERVAL[$unit]) {
-            $errors['intervalvalue'] = get_string('errorinvalidinterval', 'customcertelement_expiry', self::MAX_INTERVAL[$unit]);
+        $max = self::MAX_INTERVAL[$unit];
+        // FILTER_VALIDATE_INT rejects fractions such as "1.5", unlike an (int) cast.
+        $int = is_bool($value) ? false : filter_var($value, FILTER_VALIDATE_INT);
+        if ($int === false || $int < 1 || $int > $max) {
+            return ['intervalvalue' => get_string('errorinvalidinterval', 'customcertelement_expiry', $max)];
         }
 
-        return $errors;
+        return [];
     }
 
     /**
@@ -374,27 +385,33 @@ class element extends base_element implements
      * @return array|null Array with 'value' (int) and 'unit' (string), or null if missing or invalid
      */
     private static function get_custom_interval(array $payload): ?array {
-        $unit = (string)($payload['intervalunit'] ?? '');
         $value = $payload['intervalvalue'] ?? null;
-
-        if (!isset(self::MAX_INTERVAL[$unit]) || !is_numeric($value) || (int)$value != $value) {
+        $unit = $payload['intervalunit'] ?? null;
+        if (self::validate_interval($value, $unit) !== []) {
             return null;
         }
 
-        $value = (int)$value;
-        if ($value < 1 || $value > self::MAX_INTERVAL[$unit]) {
-            return null;
-        }
-
-        return ['value' => $value, 'unit' => $unit];
+        return ['value' => (int)$value, 'unit' => $unit];
     }
 
     /**
      * Calculate an expiry timestamp from a start time and an element payload.
      *
-     * Used for PDF rendering, previews and reporting. The 1-5 year options keep their historical
-     * strtotime() behaviour. Custom month/year intervals are clamped to the last day of the target
-     * month (for example, 31 January + 1 month = 28 or 29 February).
+     * Used for PDF rendering, previews and reporting. Calculations use the site's server timezone,
+     * as strtotime() does, so the result never depends on the user viewing the certificate.
+     *
+     * The 1-5 year options keep their historical strtotime() behaviour, so 29 February + 1 year is
+     * 1 March. Custom month/year intervals are instead clamped to the last day of the target month
+     * (for example, 31 January + 1 month = 28 or 29 February, 29 February + 1 year = 28 February).
+     * Custom intervals keep the wall-clock time of day in the server timezone, with PHP's normalisation
+     * where that time is not unique: a local time skipped by a spring clock change moves forward by the
+     * length of the gap (01:30 becomes 02:30), and a local time repeated by an autumn clock change
+     * resolves to one of the two occurrences, depending on the UTC offset of the start time. The result
+     * is always the same for a given start timestamp and server timezone.
+     *
+     * The returned timestamp is deterministic, but the calendar date displayed for it is not: like the
+     * other date elements, the PDF, verification page and reports format it with userdate(), so it
+     * follows the timezone of the viewing user.
      *
      * @param int $starttime Unix timestamp to calculate from
      * @param array $payload The element payload
@@ -422,7 +439,7 @@ class element extends base_element implements
             return 0;
         }
 
-        $start = (new DateTimeImmutable('@' . $starttime))->setTimezone(core_date::get_user_timezone_object());
+        $start = (new DateTimeImmutable('@' . $starttime))->setTimezone(core_date::get_server_timezone_object());
 
         if ($interval['unit'] === self::UNIT_DAYS) {
             return $start->modify('+' . $interval['value'] . ' days')->getTimestamp();
