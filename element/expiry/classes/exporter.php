@@ -20,6 +20,7 @@ namespace customcertelement_expiry;
 
 use mod_customcert\export\subplugin_text_exportable;
 use mod_customcert\export\datatypes\enum_field;
+use mod_customcert\export\datatypes\format_error;
 use mod_customcert\export\datatypes\int_field;
 
 /**
@@ -27,7 +28,8 @@ use mod_customcert\export\datatypes\int_field;
  *
  * This exporter ensures expiry configuration is valid, including the date type,
  * format, and calculation base (award or course completion). Defaults are used for
- * unknown or invalid input, with warnings logged accordingly.
+ * unknown or invalid input, with warnings logged accordingly. An invalid custom interval
+ * causes the element to be skipped.
  *
  * @package    customcertelement_expiry
  * @author     Konrad Ebel <konrad.ebel@oncampus.de>
@@ -68,18 +70,32 @@ class exporter extends subplugin_text_exportable {
     /**
      * Converts import data, tolerating exports that predate custom intervals.
      *
+     * A custom interval must be complete and valid, otherwise the element is skipped rather than
+     * given an interval the template did not specify.
+     *
      * @param array $data The data to convert.
      * @return string|null Converted string.
+     * @throws format_error If a custom interval is missing or invalid.
      */
     public function convert_for_import(array $data): ?string {
-        $data += [
-            'intervalvalue' => ['value' => 1],
-            'intervalunit' => ['value' => element::UNIT_MONTHS],
-        ];
+        $custom = (string)($data['dateitem']['value'] ?? '') === element::EXPIRY_CUSTOM;
+
+        if ($custom) {
+            $errors = element::validate_interval(
+                $data['intervalvalue']['value'] ?? null,
+                $data['intervalunit']['value'] ?? null
+            );
+            if ($errors) {
+                throw new format_error(get_string('errorimportinterval', 'customcertelement_expiry', implode(' ', $errors)));
+            }
+        } else {
+            $data['intervalvalue'] = ['value' => 1];
+            $data['intervalunit'] = ['value' => element::UNIT_MONTHS];
+        }
         $json = parent::convert_for_import($data);
 
-        $customdata = json_decode((string)$json, true);
-        if (is_array($customdata) && ($customdata['dateitem'] ?? null) !== element::EXPIRY_CUSTOM) {
+        if (!$custom) {
+            $customdata = json_decode((string)$json, true);
             unset($customdata['intervalvalue'], $customdata['intervalunit']);
             $json = json_encode($customdata);
         }
