@@ -32,7 +32,7 @@ use mod_customcert\service\certificate_download_service;
  * A scheduled task for cleaning up old site-wide certificate download archives.
  *
  * Archives older than certificate_download_service::SITE_DOWNLOAD_FILE_LIFETIME are removed
- * by this cleanup task.
+ * by this cleanup task, including the activity-level "download all issued certificates" archives.
  *
  * @package    mod_customcert
  * @copyright  2026 Mark Nelson <mdjnelson@gmail.com>
@@ -55,6 +55,8 @@ class cleanup_site_certificates_downloads_task extends scheduled_task {
      * {@see certificate_download_service::SITE_DOWNLOAD_FILE_LIFETIME}.
      */
     public function execute(): void {
+        global $DB;
+
         $fs = get_file_storage();
         $context = context_system::instance();
         $files = $fs->get_area_files(
@@ -71,6 +73,70 @@ class cleanup_site_certificates_downloads_task extends scheduled_task {
             if ($file->get_timecreated() < $expirybefore) {
                 $file->delete();
             }
+        }
+
+        $this->cleanup_instance_archives($expirybefore);
+    }
+
+    /**
+     * Remove expired activity-level archives, which are stored against each activity's module context.
+     *
+     * The directory records the file API creates for each request are removed once they are empty, as
+     * deleting a file does not remove them.
+     *
+     * @param int $expirybefore Archives created before this time are removed.
+     */
+    private function cleanup_instance_archives(int $expirybefore): void {
+        global $DB;
+
+        $fs = get_file_storage();
+        $params = [
+            'component' => 'mod_customcert',
+            'filearea' => certificate_download_service::INSTANCE_DOWNLOAD_FILEAREA,
+            'expirybefore' => $expirybefore,
+        ];
+
+        $files = $DB->get_recordset_select(
+            'files',
+            "component = :component AND filearea = :filearea AND filename <> '.' AND timecreated < :expirybefore",
+            $params
+        );
+        try {
+            foreach ($files as $record) {
+                $fs->get_file_instance($record)->delete();
+            }
+        } finally {
+            $files->close();
+        }
+
+        // Deepest directories first, so a parent is only considered once its children are gone.
+        $directories = $DB->get_recordset_select(
+            'files',
+            "component = :component AND filearea = :filearea AND filename = '.' AND timecreated < :expirybefore",
+            $params,
+            'filepath DESC'
+        );
+        try {
+            foreach ($directories as $directory) {
+                $haschildren = $DB->record_exists_select(
+                    'files',
+                    "contextid = :contextid AND component = :component AND filearea = :filearea AND itemid = :itemid
+                     AND id <> :id AND " . $DB->sql_like('filepath', ':path'),
+                    [
+                        'contextid' => $directory->contextid,
+                        'component' => $directory->component,
+                        'filearea' => $directory->filearea,
+                        'itemid' => $directory->itemid,
+                        'id' => $directory->id,
+                        'path' => $DB->sql_like_escape($directory->filepath) . '%',
+                    ]
+                );
+                if (!$haschildren) {
+                    $fs->get_file_instance($directory)->delete();
+                }
+            }
+        } finally {
+            $directories->close();
         }
     }
 }
