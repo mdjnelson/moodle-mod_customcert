@@ -27,6 +27,8 @@
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
+use Behat\Mink\Exception\ExpectationException;
+
 /**
  * The class responsible for step definitions related to mod_customcert.
  *
@@ -237,5 +239,108 @@ class behat_mod_customcert extends behat_base {
             ['downloadcert' => 1, 'certificateid' => $certificate->id, 'userid' => $user->id]
         );
         $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
+
+    /**
+     * Checks that a user was sent the notification that their "download all issued certificates" archive is ready.
+     *
+     * phpcs:ignore
+     * @Then /^"(?P<username>(?:[^"]|\\")*)" should have received the issued certificates download notification$/
+     * @param string $username
+     */
+    public function should_have_received_the_issued_certificates_download_notification($username) {
+        $this->get_issued_certificates_download_url($username);
+    }
+
+    /**
+     * Visits the download link in the notification sent to a user when their archive of issued certificates is ready.
+     *
+     * phpcs:ignore
+     * @When /^I follow the issued certificates download link sent to "(?P<username>(?:[^"]|\\")*)"$/
+     * @param string $username
+     */
+    public function i_follow_the_issued_certificates_download_link_sent_to($username) {
+        $url = new moodle_url($this->get_issued_certificates_download_url($username));
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+    }
+
+    /**
+     * Checks that the last response was a zip file.
+     *
+     * @Then /^the response should be a zip file$/
+     */
+    public function the_response_should_be_a_zip_file() {
+        if (!$this->is_zip_response()) {
+            throw new ExpectationException('The response is not a zip file', $this->getSession());
+        }
+    }
+
+    /**
+     * Checks that the current user is refused the download link in the notification sent to a user.
+     *
+     * Being refused is the expected outcome here rather than a test failure, so it is checked for and navigated
+     * away from within this step, before Moodle's standard post-step check for unexpected error pages runs.
+     *
+     * phpcs:ignore
+     * @Then /^the issued certificates download link sent to "(?P<username>(?:[^"]|\\")*)" should be refused$/
+     * @param string $username
+     */
+    public function the_issued_certificates_download_link_sent_to_should_be_refused($username) {
+        $url = new moodle_url($this->get_issued_certificates_download_url($username));
+        $this->getSession()->visit($this->locate_path($url->out_as_local_url(false)));
+
+        $refused = !$this->is_zip_response()
+            && strpos($this->getSession()->getPage()->getText(), get_string('filenotfound', 'error')) !== false;
+
+        // Leave the error page before returning, so it is not treated as an unexpected failure.
+        $this->getSession()->visit($this->locate_path((new moodle_url('/'))->out_as_local_url()));
+
+        if (!$refused) {
+            throw new ExpectationException('The download link was not refused', $this->getSession());
+        }
+    }
+
+    /**
+     * Whether the last response was a zip file, judged by its content type and content.
+     *
+     * @return bool
+     */
+    private function is_zip_response(): bool {
+        $headers = array_change_key_case($this->getSession()->getResponseHeaders(), CASE_LOWER);
+        $contenttype = implode(',', (array) ($headers['content-type'] ?? []));
+
+        return stripos($contenttype, 'zip') !== false
+            && strncmp($this->getSession()->getPage()->getContent(), 'PK', 2) === 0;
+    }
+
+    /**
+     * Gets the download link from the latest "archive is ready" notification sent to a user.
+     *
+     * @param string $username
+     * @return string The link.
+     * @throws ExpectationException If the user was not sent the notification.
+     */
+    private function get_issued_certificates_download_url(string $username): string {
+        global $DB;
+
+        $user = $DB->get_record('user', ['username' => $username], '*', MUST_EXIST);
+        // The subject is a text column, which databases such as PostgreSQL cannot compare directly.
+        $notifications = $DB->get_records_select(
+            'notifications',
+            'useridto = :userid AND ' . $DB->sql_compare_text('subject', 255) . ' = ' . $DB->sql_compare_text(':subject', 255),
+            [
+                'userid' => $user->id,
+                'subject' => get_string('downloadallissuedcertificatesreadysubject', 'customcert'),
+            ],
+            'id DESC',
+            'id, contexturl',
+            0,
+            1
+        );
+        if (!$notifications || empty(reset($notifications)->contexturl)) {
+            throw new ExpectationException("'$username' was not sent a download notification", $this->getSession());
+        }
+
+        return reset($notifications)->contexturl;
     }
 }

@@ -48,6 +48,20 @@ final class certificate_download_service {
     public const string SITE_DOWNLOAD_FILEAREA = 'site_certificates_download';
 
     /**
+     * The file area used to store the generated "download all issued certificates" zip archives for an activity.
+     */
+    public const string INSTANCE_DOWNLOAD_FILEAREA = 'instance_certificates_download';
+
+    /**
+     * The name of the file, stored next to each activity archive, recording who the archive was generated for.
+     *
+     * It holds the group and the ids of the users whose certificates are in the archive, so access can be
+     * checked again when the archive is downloaded. It is a file, rather than file metadata, so the number of
+     * recipients is not limited by the size of a database column.
+     */
+    public const string INSTANCE_DOWNLOAD_MANIFEST = 'recipients.json';
+
+    /**
      * How long a generated site-wide download archive is kept before being cleaned up, in seconds.
      *
      * Archives older than this lifetime are removed by the cleanup scheduled task.
@@ -135,9 +149,25 @@ final class certificate_download_service {
      * @throws \moodle_exception
      */
     public function download_all_issues_for_instance(template $template, array $issues): void {
-        $zipdir = make_request_directory();
+        $zip = $this->generate_issues_zip($template, $issues);
+        ($this->sendfile)($zip['path'], $zip['filename']);
+    }
+
+    /**
+     * Generate a ZIP archive containing the certificates of the given users for a single instance.
+     *
+     * This builds the archive on disk without sending it, so it can be persisted (e.g. by an
+     * asynchronous task) rather than streamed directly to the browser.
+     *
+     * @param template $template
+     * @param array $users Records with the user's id and name fields, one certificate is generated for each.
+     * @return array{path: string, filename: string}
+     * @throws moodle_exception If a temporary directory or zip archive cannot be created, or a certificate cannot be added.
+     */
+    public function generate_issues_zip(template $template, array $users): array {
+        $zipdir = ($this->requestdirfactory)();
         if (!$zipdir) {
-            return;
+            throw new moodle_exception('errorcreatetempdir', 'customcert');
         }
 
         $zipfilenameprefix = userdate(time(), self::ZIP_FILE_NAME_DOWNLOAD_ALL_CERTIFICATES_DATE_FORMAT);
@@ -145,17 +175,62 @@ final class certificate_download_service {
         $zipfullpath = $zipdir . DIRECTORY_SEPARATOR . $zipfilename;
 
         $ziparchive = ($this->zipfactory)();
-        if ($ziparchive->open($zipfullpath)) {
-            foreach ($issues as $issue) {
-                $userfullname = str_replace(' ', '_', mb_strtolower(format_text(fullname($issue), FORMAT_PLAIN)));
-                $pdfname = $userfullname . DIRECTORY_SEPARATOR . 'certificate.pdf';
-                $filecontents = $this->pdfservice->generate_pdf($template, false, (int)$issue->id, true);
-                $ziparchive->add_file_from_string($pdfname, $filecontents);
-            }
-            $ziparchive->close();
+        if (!$ziparchive->open($zipfullpath)) {
+            throw new moodle_exception('errorcreatezip', 'customcert');
         }
 
-        ($this->sendfile)($zipfullpath, $zipfilename);
+        try {
+            $usednames = [];
+            foreach ($users as $user) {
+                $userdirectory = $this->get_unique_user_directory(
+                    format_text(fullname($user), FORMAT_PLAIN),
+                    (int) $user->id,
+                    $usednames
+                );
+                $filecontents = $this->pdfservice->generate_pdf($template, false, (int) $user->id, true);
+                if (!$ziparchive->add_file_from_string($userdirectory . DIRECTORY_SEPARATOR . 'certificate.pdf', $filecontents)) {
+                    throw new moodle_exception('errorcreatezip', 'customcert');
+                }
+            }
+        } catch (\Throwable $e) {
+            $ziparchive->close();
+            throw $e;
+        }
+        if (!$ziparchive->close()) {
+            throw new moodle_exception('errorcreatezip', 'customcert');
+        }
+
+        return ['path' => $zipfullpath, 'filename' => $zipfilename];
+    }
+
+    /**
+     * Build a safe archive directory name for a user, unique within the archive.
+     *
+     * Learners sharing a name get their user id appended so their certificates cannot overwrite each other.
+     * The result is checked against every name already used, including ones produced this way, and extended
+     * with a counter if it is still taken.
+     *
+     * @param string $fullname The user's full name.
+     * @param int $userid The user's id.
+     * @param array $usednames Names already used in the archive, as array keys. Updated by reference.
+     * @return string
+     */
+    private function get_unique_user_directory(string $fullname, int $userid, array &$usednames): string {
+        $base = clean_filename(str_replace(' ', '_', mb_strtolower($fullname)));
+        if (trim($base, '._') === '') {
+            $base = 'user';
+        }
+
+        $name = $base;
+        if (isset($usednames[$name])) {
+            $name = $base . '_' . $userid;
+        }
+        for ($counter = 2; isset($usednames[$name]); $counter++) {
+            $name = $base . '_' . $userid . '_' . $counter;
+        }
+        $usednames[$name] = true;
+
+        return $name;
     }
 
     /**
@@ -228,7 +303,7 @@ final class certificate_download_service {
                 // Use the activity name (not the template name, which may be shared) and the
                 // issue id to guarantee a unique archive path even when activity names collide.
                 $activityname = str_replace(' ', '_', mb_strtolower((string) ($issue->customcertname ?? '')));
-                $userfullname = str_replace(' ', '_', mb_strtolower($issue->fullname));
+                $userfullname = clean_filename(str_replace(' ', '_', mb_strtolower($issue->fullname))) ?: 'user';
                 $pdfbasename = ($activityname !== '' ? $activityname . '_' : '') . 'certificate_' . $issue->id . '.pdf';
                 $pdfname = $userfullname . DIRECTORY_SEPARATOR . clean_filename($pdfbasename);
                 $filecontents = $this->pdfservice->generate_pdf($template, false, (int) $issue->userid, true);
