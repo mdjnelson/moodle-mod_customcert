@@ -449,6 +449,127 @@ final class certificate_download_service_test extends advanced_testcase {
     }
 
     /**
+     * Learners with the same name get separate directories and unsafe names cannot escape the archive.
+     * @covers ::generate_issues_zip
+     */
+    public function test_generate_issues_zip_keeps_identical_and_unsafe_names_apart(): void {
+        $this->resetAfterTest();
+
+        $template = $this->create_template();
+        $first = $this->getDataGenerator()->create_user(['firstname' => 'Ada', 'lastname' => 'Lovelace']);
+        $second = $this->getDataGenerator()->create_user(['firstname' => 'Ada', 'lastname' => 'Lovelace']);
+        $unsafe = $this->getDataGenerator()->create_user(['firstname' => '../../etc', 'lastname' => 'passwd']);
+
+        $zip = certificate_download_service::create()->generate_issues_zip($template, [$first, $second, $unsafe]);
+
+        $archive = new zip_archive();
+        $archive->open($zip['path'], file_archive::OPEN);
+        $paths = array_map(static fn($file) => $file->pathname, $archive->list_files());
+        $archive->close();
+
+        $this->assertCount(3, $paths);
+        $this->assertContains('ada_lovelace/certificate.pdf', $paths);
+        $this->assertContains("ada_lovelace_{$second->id}/certificate.pdf", $paths);
+        foreach ($paths as $path) {
+            $this->assertStringNotContainsString('..', $path);
+            $this->assertSame(1, substr_count($path, '/'), "$path is not a single directory with a file");
+        }
+    }
+
+    /**
+     * A directory name made unique with a user id cannot collide with another learner's own name.
+     * @covers ::generate_issues_zip
+     * @dataProvider generation_order_provider
+     * @param int[] $order Positions of the users to generate the certificates for, and in which order.
+     */
+    public function test_generate_issues_zip_keeps_generated_names_unique(array $order): void {
+        $this->resetAfterTest();
+
+        $template = $this->create_template();
+        $first = $this->getDataGenerator()->create_user(['firstname' => 'John', 'lastname' => 'Smith']);
+        $second = $this->getDataGenerator()->create_user(['firstname' => 'John', 'lastname' => 'Smith']);
+        // This learner's own name matches the name the second learner is given to make theirs unique.
+        $third = $this->getDataGenerator()->create_user(['firstname' => 'John', 'lastname' => "Smith {$second->id}"]);
+        $users = [$first, $second, $third];
+
+        $zip = certificate_download_service::create()->generate_issues_zip(
+            $template,
+            array_map(static fn(int $position): stdClass => $users[$position], $order)
+        );
+
+        $archive = new zip_archive();
+        $archive->open($zip['path'], file_archive::OPEN);
+        $paths = array_map(static fn($file) => $file->pathname, $archive->list_files());
+        $archive->close();
+
+        $this->assertCount(3, $paths);
+        $this->assertCount(3, array_unique($paths));
+        foreach ($paths as $path) {
+            $this->assertMatchesRegularExpression('~^john_smith[0-9_]*/certificate\.pdf$~', $path);
+        }
+    }
+
+    /**
+     * Every order of three learners, including the one where a generated name meets a learner's own name.
+     *
+     * @return array
+     */
+    public static function generation_order_provider(): array {
+        return [
+            'generated name meets natural name' => [[2, 0, 1]],
+            'in order' => [[0, 1, 2]],
+            'reversed' => [[2, 1, 0]],
+            'natural name last' => [[1, 0, 2]],
+        ];
+    }
+
+    /**
+     * A certificate that cannot be added to the archive fails the generation and closes the archive.
+     * @covers ::generate_issues_zip
+     */
+    public function test_generate_issues_zip_fails_when_a_certificate_cannot_be_added(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $template = $this->create_template();
+        $user = $this->getDataGenerator()->create_user();
+
+        $archive = $this->createMock(zip_archive::class);
+        $archive->method('open')->willReturn(true);
+        $archive->method('add_file_from_string')->willReturn(false);
+        $archive->expects($this->once())->method('close')->willReturn(true);
+
+        $service = new certificate_download_service(
+            new template_repository(),
+            pdf_generation_service::create(),
+            $DB,
+            static fn() => $archive
+        );
+
+        $this->expectException(moodle_exception::class);
+        $this->expectExceptionMessage(get_string('errorcreatezip', 'customcert'));
+        $service->generate_issues_zip($template, [$user]);
+    }
+
+    /**
+     * Create a certificate template with a single page and element.
+     *
+     * @return template
+     */
+    private function create_template(): template {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $customcert = $this->getDataGenerator()->create_module('customcert', ['course' => $course->id]);
+        $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$customcert->templateid));
+        $pageid = template_service::create()->add_page($template);
+        $DB->insert_record('customcert_elements', (object) ['pageid' => $pageid, 'name' => 'Image']);
+
+        return $template;
+    }
+
+    /**
      * Create a single issued certificate used by failure-path tests.
      */
     private function create_issued_certificate(): void {

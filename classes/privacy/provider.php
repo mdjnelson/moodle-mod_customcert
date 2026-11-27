@@ -37,6 +37,7 @@ use core_privacy\local\request\plugin\provider as plugin_provider;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use mod_customcert\service\certificate_download_service;
 use moodle_recordset;
 
 /**
@@ -53,6 +54,8 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
      * @return collection the updated collection of metadata items.
      */
     public static function get_metadata(collection $items): collection {
+        $items->link_subsystem('core_files', 'privacy:metadata:core_files');
+
         $items->add_database_table(
             'customcert_issues',
             [
@@ -202,6 +205,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         }
 
         $DB->delete_records('customcert_issues', ['customcertid' => $cm->instance]);
+        self::delete_download_archives($context);
     }
 
     /**
@@ -223,6 +227,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             }
             $instanceid = $DB->get_field('course_modules', 'instance', ['id' => $context->instanceid], MUST_EXIST);
             $DB->delete_records('customcert_issues', ['customcertid' => $instanceid, 'userid' => $userid]);
+            self::delete_download_archives($context);
         }
     }
 
@@ -251,6 +256,23 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         $select = "customcertid = :customcertid AND userid $usersql";
         $params = ['customcertid' => $cm->instance] + $userparams;
         $DB->delete_records_select('customcert_issues', $select, $params);
+        self::delete_download_archives($context);
+    }
+
+    /**
+     * Delete the temporary "download all issued certificates" archives of an activity.
+     *
+     * The archives are short-lived copies of issued certificates, and cannot be traced to the individual
+     * users they contain, so all of the activity's archives are removed whenever user data is deleted from it.
+     *
+     * @param context_module $context The activity context.
+     */
+    protected static function delete_download_archives(context_module $context): void {
+        get_file_storage()->delete_area_files(
+            $context->id,
+            'mod_customcert',
+            certificate_download_service::INSTANCE_DOWNLOAD_FILEAREA
+        );
     }
 
     /**
