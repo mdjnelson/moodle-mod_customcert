@@ -211,6 +211,7 @@ final class issue_repository {
      * @param int $limitfrom
      * @param int $limitnum
      * @param string $sort
+     * @param int|null $groupid The group to restrict to, or null to use the current user's active group in the session.
      * @return array the users
      */
     public function get_issues(
@@ -218,11 +219,12 @@ final class issue_repository {
         stdClass $cm,
         int $limitfrom,
         int $limitnum,
-        string $sort = ''
+        string $sort = '',
+        ?int $groupid = null
     ): array {
         global $DB;
 
-        [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm);
+        [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm, $groupid);
 
         if (empty($conditionsparams)) {
             return [];
@@ -244,6 +246,34 @@ final class issue_repository {
               ORDER BY $orderby";
 
         return $DB->get_records_sql($sql, $allparams, $limitfrom, $limitnum);
+    }
+
+    /**
+     * Returns the ids of the users whose issued certificate the current user can see for a given customcert.
+     *
+     * This applies the same visibility rules as {@see self::get_issues()}.
+     *
+     * @param int $customcertid
+     * @param stdClass $cm the course module
+     * @param int|null $groupid The group to restrict to, or null to use the current user's active group in the session.
+     * @return int[] the user ids
+     */
+    public function get_visible_user_ids(int $customcertid, stdClass $cm, ?int $groupid = null): array {
+        global $DB;
+
+        [$conditionssql, $conditionsparams] = $this->get_conditional_issues_sql($cm, $groupid);
+
+        if (empty($conditionsparams)) {
+            return [];
+        }
+
+        $sql = "SELECT DISTINCT u.id
+                  FROM {user} u
+            INNER JOIN {customcert_issues} ci ON (u.id = ci.userid)
+                 WHERE u.deleted = 0 AND ci.customcertid = :customcertid
+                       $conditionssql";
+
+        return array_map('intval', $DB->get_fieldset_sql($sql, $conditionsparams + ['customcertid' => $customcertid]));
     }
 
     /**
@@ -277,9 +307,11 @@ final class issue_repository {
      * Returns an array of the conditional variables to use in the get_issues SQL query.
      *
      * @param stdClass $cm the course module
+     * @param int|null $groupid The group to restrict to (0 for all participants), or null to use the current
+     *                          user's active group in the session. Pass it when no session is available.
      * @return array the conditional variables
      */
-    public function get_conditional_issues_sql(stdClass $cm): array {
+    public function get_conditional_issues_sql(stdClass $cm, ?int $groupid = null): array {
         global $DB, $USER;
 
         $groupmode = groups_get_activity_groupmode($cm);
@@ -296,7 +328,7 @@ final class issue_repository {
 
         if ($groupmode) {
             $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
-            $currentgroup = groups_get_activity_group($cm);
+            $currentgroup = $groupid ?? groups_get_activity_group($cm);
 
             if (!$currentgroup && !$canaccessallgroups) {
                 return ['', []];

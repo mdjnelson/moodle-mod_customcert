@@ -22,17 +22,19 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
 use core\session\manager;
+use core\task\manager as taskmanager;
 use mod_customcert\local\pagination;
 use mod_customcert\download_access;
 use mod_customcert\event\course_module_viewed;
 use mod_customcert\report_table;
-use mod_customcert\service\certificate_download_service;
 use mod_customcert\service\certificate_issue_service;
 use mod_customcert\service\certificate_time_service;
 use mod_customcert\service\issue_repository;
 use mod_customcert\service\pdf_generation_service;
 use mod_customcert\service\template_repository;
+use mod_customcert\task\generate_instance_certificates_download_task;
 use mod_customcert\template;
 
 require_once('../../config.php');
@@ -121,17 +123,33 @@ if ($groupmode = groups_get_activity_groupmode($cm)) {
 $issuerepo = new issue_repository();
 
 if ($downloadall && $canviewreport && confirm_sesskey()) {
-    $template = template::from_record((new template_repository())->get_by_id_or_fail((int)$template->id));
-    $issues = $issuerepo->get_issues($customcert->id, $cm, 0, 0);
+    $recipients = $issuerepo->get_issues($customcert->id, $cm, 0, 0);
 
     // The button is not visible if there are no issues, so in this case just redirect back to this page.
-    if (empty($issues)) {
-        redirect(new moodle_url('/mod/customcert/view.php', ['id' => $id]));
+    $returnurl = new moodle_url('/mod/customcert/view.php', ['id' => $id]);
+    if (empty($recipients)) {
+        redirect($returnurl);
     }
 
-    $downloadservice = certificate_download_service::create();
-    $downloadservice->download_all_issues_for_instance($template, $issues);
-    exit();
+    // The group is stored in the session, which the task cannot see, so it is passed to the task explicitly.
+    // The task checks the requester's access again when it runs.
+    // Avoid queueing duplicate tasks if the user submits the request more than once before it runs.
+    taskmanager::queue_adhoc_task(
+        generate_instance_certificates_download_task::create_request(
+            (int) $USER->id,
+            (int) $cm->id,
+            (int) groups_get_activity_group($cm),
+            array_map(static fn(stdClass $recipient): int => (int) $recipient->id, $recipients)
+        ),
+        true
+    );
+
+    redirect(
+        $returnurl,
+        get_string('downloadallissuedcertificatesqueued', 'customcert'),
+        null,
+        notification::NOTIFY_SUCCESS
+    );
 }
 
 $event = course_module_viewed::create([

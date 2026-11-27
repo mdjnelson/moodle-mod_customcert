@@ -10,6 +10,10 @@ Note - All hash comments refer to the issue number. Eg. #169 refers to https://g
 
 - Added a custom interval option (a number of days, months or years) to the Expiry element, alongside the existing 1–5 year options (#642).
 
+### Changed
+
+- Downloading all issued certificates for a certificate activity is now asynchronous; a notification with a download link is sent when the archive is ready (#1181).
+
 ### Fixed
 
 - Fixed a database error when sorting the recipients list by the expiry date column (#1168).
